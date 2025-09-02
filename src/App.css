@@ -151,10 +151,10 @@ html, body { overflow: hidden; }
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 26px;
-    height: 26px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
     color: #fff;
 }
@@ -165,11 +165,10 @@ html, body { overflow: hidden; }
 .marker--return {
     background: #c62828;
 }
-.marker--current {
-    background: #1565c0;
-}
-.marker--active { background: #1565c0; }
-.marker--problem { background: #c62828; }
+.marker--current { background: #1565c0; }
+.marker--active { background: #2e7d32; }
+.marker--overdue { background: #f59e0b; }
+.marker--stolen { background: #c62828; }
 
 /* Bottom navigation */
 .bottom-nav {

@@ -31,23 +31,28 @@ export default function RentalsMap({ rentals }) {
       const isActive = start && end ? now >= start && now <= end : false;
       const isOverdue = end ? now > end : false;
       const isStolen = Boolean(r.reported_stolen);
-      const isProblem = isStolen || isOverdue;
 
-      const className = isProblem
-        ? "marker marker--problem"
-        : isActive
-        ? "marker marker--active"
-        : "marker marker--car";
+      let className = "marker marker--car";
+      if (isStolen) className = "marker marker--stolen";
+      else if (isOverdue) className = "marker marker--overdue";
+      else if (isActive) className = "marker marker--active";
 
       const icon = L.divIcon({ className, html: "🚗" });
       const m = L.marker([cp.lat, cp.lng], { icon });
 
+      const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
       const lines = [
         `<strong>Rental #${r.rental_id}</strong>`,
         `VIN: ${r.vin}`,
         `Renter: ${r.renter_name}`,
         `Period: ${r.rental_period?.start ?? "-"} ~ ${r.rental_period?.end ?? "-"}`,
-        isProblem ? `<span style="color:#c62828;font-weight:600;">Problem</span>` : isActive ? `<span style="color:#1565c0;">Active</span>` : "",
+        isStolen
+          ? `<span style=\"color:#c62828;font-weight:600;\">Stolen suspected</span>`
+          : isOverdue
+          ? `<span style=\"color:#f59e0b;font-weight:600;\">Overdue ${overdueDays} day(s)</span>`
+          : isActive
+          ? `<span style=\"color:#177245;font-weight:600;\">Active</span>`
+          : "",
       ].filter(Boolean);
       m.bindPopup(lines.join("<br/>"));
 

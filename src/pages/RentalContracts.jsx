@@ -90,7 +90,10 @@ export default function RentalContracts() {
                                 <span className="marker marker--active">🚗</span> Active
                             </span>
                             <span className="legend__item">
-                                <span className="marker marker--problem">🚗</span> Problem
+                                <span className="marker marker--overdue">🚗</span> Overdue
+                            </span>
+                            <span className="legend__item">
+                                <span className="marker marker--stolen">🚗</span> Stolen
                             </span>
                             <span className="legend__item">
                                 <span className="marker marker--car">🚗</span> Other
