@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function IssueForm({ initial = {}, readOnly = false, onSubmit }) {
+export default function IssueForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
   const [form, setForm] = useState({
     vin: initial.vin || "",
     type: initial.type || "overdue",
@@ -16,7 +16,7 @@ export default function IssueForm({ initial = {}, readOnly = false, onSubmit }) 
   };
 
   return (
-    <form className="form-grid" onSubmit={handleSubmit}>
+    <form id={formId} className="form-grid" onSubmit={handleSubmit}>
       <label className="form-label" htmlFor="vin">VIN</label>
       <input id="vin" className="form-input" value={form.vin} onChange={(e) => update("vin", e.target.value)} placeholder="e.g. 1HGCM82633A004352" required disabled={readOnly} />
 
@@ -38,7 +38,7 @@ export default function IssueForm({ initial = {}, readOnly = false, onSubmit }) 
       <label className="form-label" htmlFor="description">Description</label>
       <textarea id="description" rows="4" className="form-input" value={form.description} onChange={(e) => update("description", e.target.value)} placeholder="Enter details" disabled={readOnly} />
 
-      {!readOnly && (
+      {!readOnly && showSubmit && (
         <div className="form-actions">
           <button type="submit" className="form-button">등록</button>
         </div>
@@ -46,4 +46,3 @@ export default function IssueForm({ initial = {}, readOnly = false, onSubmit }) 
     </form>
   );
 }
-

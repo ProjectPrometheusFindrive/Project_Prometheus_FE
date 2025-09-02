@@ -1,5 +1,5 @@
-import React, { useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useMemo, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { assets } from "../data/assets";
 import { rentals } from "../data/rentals";
 import AssetForm from "../components/forms/AssetForm";
@@ -8,7 +8,9 @@ import IssueForm from "../components/forms/IssueForm";
 
 export default function Detail() {
   const { type, id } = useParams();
+  const navigate = useNavigate();
   const t = (type || "").toLowerCase();
+  const [editing, setEditing] = useState(false);
 
   const data = useMemo(() => {
     if (t === "asset") {
@@ -33,12 +35,51 @@ export default function Detail() {
   return (
     <div className="page">
       <h1>Details</h1>
+
+      <div className="sticky-header">
+        <div className="view-toggle" role="toolbar" aria-label="Detail actions">
+          <button type="button" className="toggle-btn" onClick={() => navigate(-1)}>Back</button>
+          {!editing ? (
+            <button type="button" className="toggle-btn" onClick={() => setEditing(true)}>Edit</button>
+          ) : (
+            // Save submits the form rendered below via the 'form' attribute
+            <button type="submit" className="toggle-btn is-active" form="detail-form">Save</button>
+          )}
+        </div>
+      </div>
+
       <div className="page-scroll">
         {t === "asset" && (
-          <AssetForm initial={data} readOnly />
+          <AssetForm
+            initial={data}
+            readOnly={!editing}
+            formId="detail-form"
+            showSubmit={false}
+            onSubmit={(form) => {
+              try {
+                const edits = JSON.parse(localStorage.getItem("assetEdits") || "{}");
+                edits[String(data.id)] = { ...data, ...form };
+                localStorage.setItem("assetEdits", JSON.stringify(edits));
+              } catch {}
+              setEditing(false);
+            }}
+          />
         )}
         {t === "rental" && (
-          <RentalForm initial={data} readOnly />
+          <RentalForm
+            initial={data}
+            readOnly={!editing}
+            formId="detail-form"
+            showSubmit={false}
+            onSubmit={(form) => {
+              try {
+                const edits = JSON.parse(localStorage.getItem("rentalEdits") || "{}");
+                edits[String(data.rental_id)] = { ...data, ...form };
+                localStorage.setItem("rentalEdits", JSON.stringify(edits));
+              } catch {}
+              setEditing(false);
+            }}
+          />
         )}
         {t === "issue" && (
           <IssueForm
@@ -52,11 +93,20 @@ export default function Detail() {
               severity: data.reported_stolen ? "high" : "medium",
               description: `From rental #${data.rental_id}`,
             }}
-            readOnly
+            readOnly={!editing}
+            formId="detail-form"
+            showSubmit={false}
+            onSubmit={(form) => {
+              try {
+                const edits = JSON.parse(localStorage.getItem("issueEdits") || "{}");
+                edits[String(data.rental_id)] = form;
+                localStorage.setItem("issueEdits", JSON.stringify(edits));
+              } catch {}
+              setEditing(false);
+            }}
           />
         )}
       </div>
     </div>
   );
 }
-

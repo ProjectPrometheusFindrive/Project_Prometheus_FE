@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function RentalForm({ initial = {}, readOnly = false, onSubmit }) {
+export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
   const [form, setForm] = useState({
     rental_id: initial.rental_id || "",
     vin: initial.vin || "",
@@ -20,7 +20,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit })
   };
 
   return (
-    <form className="form-grid" onSubmit={handleSubmit}>
+    <form id={formId} className="form-grid" onSubmit={handleSubmit}>
       <label className="form-label" htmlFor="rental_id">Rental ID</label>
       <input id="rental_id" className="form-input" value={form.rental_id} onChange={(e) => update("rental_id", e.target.value)} placeholder="e.g. R-2024-001" required disabled={readOnly} />
 
@@ -45,7 +45,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit })
       <label className="form-label" htmlFor="insurance_name">Insurance</label>
       <input id="insurance_name" className="form-input" value={form.insurance_name} onChange={(e) => update("insurance_name", e.target.value)} placeholder="e.g. ABC 보험" disabled={readOnly} />
 
-      {!readOnly && (
+      {!readOnly && showSubmit && (
         <div className="form-actions">
           <button type="submit" className="form-button">등록</button>
         </div>
@@ -53,4 +53,3 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit })
     </form>
   );
 }
-

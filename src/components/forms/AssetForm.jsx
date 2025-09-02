@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-export default function AssetForm({ initial = {}, readOnly = false, onSubmit }) {
+export default function AssetForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
   const [form, setForm] = useState({
     vin: initial.vin || "",
     make: initial.make || "",
@@ -18,7 +18,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit }) 
   };
 
   return (
-    <form className="form-grid" onSubmit={handleSubmit}>
+    <form id={formId} className="form-grid" onSubmit={handleSubmit}>
       <label className="form-label" htmlFor="vin">VIN</label>
       <input id="vin" className="form-input" value={form.vin} onChange={(e) => update("vin", e.target.value)} placeholder="e.g. 1HGCM82633A004352" required disabled={readOnly} />
 
@@ -37,7 +37,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit }) 
       <label className="form-label" htmlFor="plate">Plate</label>
       <input id="plate" className="form-input" value={form.plate} onChange={(e) => update("plate", e.target.value)} placeholder="e.g. 12가 3456" disabled={readOnly} />
 
-      {!readOnly && (
+      {!readOnly && showSubmit && (
         <div className="form-actions">
           <button type="submit" className="form-button">등록</button>
         </div>
@@ -45,4 +45,3 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit }) 
     </form>
   );
 }
-
