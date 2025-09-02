@@ -51,6 +51,7 @@ export default function Detail() {
       <div className="page-scroll">
         {t === "asset" && (
           <AssetForm
+            key={`asset-${editing}-${data.id}`}
             initial={data}
             readOnly={!editing}
             formId="detail-form"
@@ -67,6 +68,7 @@ export default function Detail() {
         )}
         {t === "rental" && (
           <RentalForm
+            key={`rental-${editing}-${data.rental_id}`}
             initial={data}
             readOnly={!editing}
             formId="detail-form"
@@ -83,6 +85,7 @@ export default function Detail() {
         )}
         {t === "issue" && (
           <IssueForm
+            key={`issue-${editing}-${data.rental_id}`}
             initial={{
               vin: data.vin,
               type: data.reported_stolen

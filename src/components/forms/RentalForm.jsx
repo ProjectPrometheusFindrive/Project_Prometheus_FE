@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+﻿import React, { useState } from "react";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
   const [form, setForm] = useState({
@@ -28,13 +28,13 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
       <input id="vin" className="form-input" value={form.vin} onChange={(e) => update("vin", e.target.value)} placeholder="e.g. 1HGCM82633A004352" required disabled={readOnly} />
 
       <label className="form-label" htmlFor="renter_name">Renter</label>
-      <input id="renter_name" className="form-input" value={form.renter_name} onChange={(e) => update("renter_name", e.target.value)} placeholder="e.g. 홍길동" required disabled={readOnly} />
+      <input id="renter_name" className="form-input" value={form.renter_name} onChange={(e) => update("renter_name", e.target.value)} placeholder="e.g. Hong Gildong" required disabled={readOnly} />
 
       <label className="form-label" htmlFor="contact_number">Contact</label>
       <input id="contact_number" className="form-input" value={form.contact_number} onChange={(e) => update("contact_number", e.target.value)} placeholder="e.g. 010-1234-5678" disabled={readOnly} />
 
       <label className="form-label" htmlFor="address">Address</label>
-      <input id="address" className="form-input" value={form.address} onChange={(e) => update("address", e.target.value)} placeholder="e.g. 서울특별시 ..." disabled={readOnly} />
+      <input id="address" className="form-input" value={form.address} onChange={(e) => update("address", e.target.value)} placeholder="e.g. Seoul, Jongno-gu ..." disabled={readOnly} />
 
       <label className="form-label" htmlFor="start">Start</label>
       <input id="start" type="date" className="form-input" value={form.start} onChange={(e) => update("start", e.target.value)} required disabled={readOnly} />
@@ -43,11 +43,11 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
       <input id="end" type="date" className="form-input" value={form.end} onChange={(e) => update("end", e.target.value)} required disabled={readOnly} />
 
       <label className="form-label" htmlFor="insurance_name">Insurance</label>
-      <input id="insurance_name" className="form-input" value={form.insurance_name} onChange={(e) => update("insurance_name", e.target.value)} placeholder="e.g. ABC 보험" disabled={readOnly} />
+      <input id="insurance_name" className="form-input" value={form.insurance_name} onChange={(e) => update("insurance_name", e.target.value)} placeholder="e.g. ABC Insurance" disabled={readOnly} />
 
       {!readOnly && showSubmit && (
         <div className="form-actions">
-          <button type="submit" className="form-button">등록</button>
+          <button type="submit" className="form-button">Save</button>
         </div>
       )}
     </form>
