@@ -93,7 +93,7 @@
 html, body, #root { height: 100%; }
 html, body { overflow: hidden; }
 .app-layout { min-height: 100%; height: 100%; display: flex; flex-direction: column; }
-.app-content { flex: 1 1 auto; min-height: 0; overflow: auto; padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
+.app-content { flex: 1 1 auto; min-height: 0; overflow: hidden; padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
 .view-toggle {
     display: inline-flex;
     border: 1px solid #ddd;
@@ -329,6 +329,8 @@ html, body { overflow: hidden; }
 .page-scroll {
     flex: 1 1 auto;
     min-height: 0;
+    display: flex;
+    flex-direction: column;
     overflow: auto;
     padding-bottom: 0;
 }
