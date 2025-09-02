@@ -137,7 +137,9 @@ body {
     color: #fff;
 }
 /* Light spacing for toolbar when used in sticky header */
-.sticky-header .view-toggle { margin-bottom: 0; }
+.sticky-header .view-toggle {
+    margin-bottom: 0;
+}
 
 /* Sticky header wrapper for top controls */
 .sticky-header {
@@ -146,6 +148,19 @@ body {
     z-index: 200;
     background: #fff;
     padding: 0.25rem 0;
+}
+
+/* Header row for detail page: align actions left and saved indicator right */
+.header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.saved-indicator {
+    margin-right: 8px;
+    color: #2e7d32;
+    font-weight: 600;
 }
 
 .map-view {
