@@ -37,7 +37,7 @@ export default function RentalsMap({ rentals }) {
       else if (isOverdue) className = "marker marker--overdue";
       else if (isActive) className = "marker marker--active";
 
-      const icon = L.divIcon({ className, html: "🚗" });
+      const icon = L.divIcon({ className, html: "🚗", iconSize: [36, 36] });
       const m = L.marker([cp.lat, cp.lng], { icon });
 
       const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;

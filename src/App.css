@@ -147,18 +147,25 @@ html, body { overflow: hidden; }
 }
 
 /* Simple text-based markers for Leaflet */
-.marker {
+/* Leaflet divIcon markers: ensure our CSS wins regardless of load order */
+.marker,
+.leaflet-marker-icon.marker,
+.leaflet-div-icon.marker {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 36px !important;
+    height: 36px !important;
     border-radius: 50%;
     font-size: 18px;
     font-weight: 700;
     color: #fff;
+    line-height: 1;
+    border: 2px solid #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.2);
 }
 .marker--car { background: #6b7280; }
+.leaflet-marker-icon.marker.marker--car { background: #6b7280; }
 .marker--rental {
     background: #2e7d32;
 }
@@ -169,6 +176,10 @@ html, body { overflow: hidden; }
 .marker--active { background: #2e7d32; }
 .marker--overdue { background: #f59e0b; }
 .marker--stolen { background: #c62828; }
+.leaflet-marker-icon.marker.marker--current { background: #1565c0; }
+.leaflet-marker-icon.marker.marker--active { background: #2e7d32; }
+.leaflet-marker-icon.marker.marker--overdue { background: #f59e0b; }
+.leaflet-marker-icon.marker.marker--stolen { background: #c62828; }
 
 /* Bottom navigation */
 .bottom-nav {
