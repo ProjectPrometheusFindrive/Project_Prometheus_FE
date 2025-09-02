@@ -172,10 +172,11 @@ export default function Registration() {
           </button>
         </div>
       </div>
-
-      {mode === "asset" && <AssetForm />}
-      {mode === "rental" && <RentalForm />}
-      {mode === "issue" && <IssueForm />}
+      <div className="page-scroll">
+        {mode === "asset" && <AssetForm />}
+        {mode === "rental" && <RentalForm />}
+        {mode === "issue" && <IssueForm />}
+      </div>
     </div>
   );
 }
