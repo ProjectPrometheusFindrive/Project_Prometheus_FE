@@ -1,3 +1,50 @@
-# Dependencies
+### Dependencies
 node_modules/
 
+### Editors/IDEs
+.vscode/
+.idea/
+
+### OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+### Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+### Environment files
+.env
+.env.local
+.env.*.local
+
+### Build output
+build/
+dist/
+coverage/
+.nyc_output/
+
+### Caches
+.cache/
+.parcel-cache/
+.eslintcache
+*.tsbuildinfo
+
+### Test artifacts
+cypress/videos/
+cypress/screenshots/
+playwright-report/
+test-results/
+
+### Misc temp
+.tmp/
+tmp/
+temp/
+
+### Yarn Plug'n'Play
+.pnp.*
