@@ -20,15 +20,38 @@ export default function RentalsMap({ rentals }) {
 
     // Use a cluster group to merge nearby markers and show counts
     const cluster = L.markerClusterGroup();
-    const currentIcon = L.divIcon({ className: "marker marker--current", html: "C" });
 
+    const now = new Date();
     rentals.forEach((r) => {
       const cp = r.current_location;
-      if (cp) {
-        const m = L.marker([cp.lat, cp.lng], { icon: currentIcon });
-        m.bindPopup(`Current #${r.rental_id}<br/>VIN ${r.vin}`);
-        cluster.addLayer(m);
-      }
+      if (!cp) return;
+
+      const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
+      const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
+      const isActive = start && end ? now >= start && now <= end : false;
+      const isOverdue = end ? now > end : false;
+      const isStolen = Boolean(r.reported_stolen);
+      const isProblem = isStolen || isOverdue;
+
+      const className = isProblem
+        ? "marker marker--problem"
+        : isActive
+        ? "marker marker--active"
+        : "marker marker--car";
+
+      const icon = L.divIcon({ className, html: "🚗" });
+      const m = L.marker([cp.lat, cp.lng], { icon });
+
+      const lines = [
+        `<strong>Rental #${r.rental_id}</strong>`,
+        `VIN: ${r.vin}`,
+        `Renter: ${r.renter_name}`,
+        `Period: ${r.rental_period?.start ?? "-"} ~ ${r.rental_period?.end ?? "-"}`,
+        isProblem ? `<span style="color:#c62828;font-weight:600;">Problem</span>` : isActive ? `<span style="color:#1565c0;">Active</span>` : "",
+      ].filter(Boolean);
+      m.bindPopup(lines.join("<br/>"));
+
+      cluster.addLayer(m);
     });
 
     map.addLayer(cluster);
