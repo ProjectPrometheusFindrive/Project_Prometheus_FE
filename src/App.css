@@ -91,8 +91,9 @@
 /* Rentals: view toggle and map */
 .page { height: 100%; display: flex; flex-direction: column; }
 html, body, #root { height: 100%; }
+html, body { overflow: hidden; }
 .app-layout { min-height: 100%; height: 100%; display: flex; flex-direction: column; }
-.app-content { flex: 1 1 auto; min-height: 0; padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px) - 1px); }
+.app-content { flex: 1 1 auto; min-height: 0; overflow: auto; padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
 .view-toggle {
     display: inline-flex;
     border: 1px solid #ddd;
@@ -329,8 +330,11 @@ html, body, #root { height: 100%; }
     flex: 1 1 auto;
     min-height: 0;
     overflow: auto;
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    padding-bottom: 0;
 }
+
+/* Normalize headings to avoid extra top margins pushing layout */
+.page > h1 { margin: 0 0 0.75rem; }
 /* Global sizing reset to avoid off-by-one overflows */
 html { box-sizing: border-box; }
 *, *::before, *::after { box-sizing: inherit; }
