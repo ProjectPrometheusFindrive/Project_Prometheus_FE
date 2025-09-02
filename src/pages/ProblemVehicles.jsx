@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { Link } from "react-router-dom";
 import { rentals } from "../data/rentals";
 import { assets } from "../data/assets";
 
@@ -67,7 +68,9 @@ export default function ProblemVehicles() {
                     {p.issue}
                   </span>
                 </td>
-                <td>{p.rental_id}</td>
+                <td>
+                  <Link to={`/detail/issue/${p.rental_id}`}>{p.rental_id}</Link>
+                </td>
                 <td>{p.vin}</td>
                 <td>
                   {p.asset ? `${p.asset.make} ${p.asset.model}` : "-"}

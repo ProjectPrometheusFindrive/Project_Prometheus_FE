@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import { assets } from "../data/assets";
 
 export default function AssetStatus() {
@@ -69,7 +70,9 @@ export default function AssetStatus() {
                     <tbody>
                         {filtered.map((a) => (
                             <tr key={a.id}>
-                                <td>{a.id}</td>
+                                <td>
+                                    <Link to={`/detail/asset/${a.id}`}>{a.id}</Link>
+                                </td>
                                 <td>
                                     {a.make} {a.model}
                                 </td>

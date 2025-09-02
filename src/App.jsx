@@ -7,6 +7,7 @@ import AssetStatus from "./pages/AssetStatus";
 import RentalContracts from "./pages/RentalContracts";
 import ProblemVehicles from "./pages/ProblemVehicles";
 import Registration from "./pages/Registration";
+import Detail from "./pages/Detail";
 import AppLayout from "./components/AppLayout";
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
           <Route path="/rentals" element={<RentalContracts />} />
           <Route path="/returns" element={<ProblemVehicles />} />
           <Route path="/register" element={<Registration />} />
+          <Route path="/detail/:type/:id" element={<Detail />} />
         </Route>
       </Routes>
     </Router>

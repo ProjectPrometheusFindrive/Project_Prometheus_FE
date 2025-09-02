@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { rentals } from "../data/rentals";
 import RentalsMap from "../components/RentalsMap";
 
@@ -68,7 +68,9 @@ export default function RentalContracts() {
                             <tbody>
                                 {rows.map((r) => (
                                     <tr key={r.rental_id}>
-                                        <td>{r.rental_id}</td>
+                                    <td>
+                                        <Link to={`/detail/rental/${r.rental_id}`}>{r.rental_id}</Link>
+                                    </td>
                                         <td>{r.vin}</td>
                                         <td>{r.renter_name}</td>
                                         <td>{r.contact_number}</td>
