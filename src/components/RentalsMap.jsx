@@ -18,8 +18,18 @@ export default function RentalsMap({ rentals }) {
 
     const map = mapInstanceRef.current;
 
-    // Use a cluster group to merge nearby markers and show counts
-    const cluster = L.markerClusterGroup();
+    // Build separate clusters for each status with custom icons
+    const makeClusterIcon = (type) => (cluster) =>
+      L.divIcon({
+        html: `<div class="cluster__inner">${cluster.getChildCount()}</div>`,
+        className: `cluster cluster--${type}`,
+        iconSize: [40, 40],
+      });
+
+    const clusterActive = L.markerClusterGroup({ iconCreateFunction: makeClusterIcon("active") });
+    const clusterOverdue = L.markerClusterGroup({ iconCreateFunction: makeClusterIcon("overdue") });
+    const clusterStolen = L.markerClusterGroup({ iconCreateFunction: makeClusterIcon("stolen") });
+    const clusterOther = L.markerClusterGroup({ iconCreateFunction: makeClusterIcon("other") });
 
     const now = new Date();
     rentals.forEach((r) => {
@@ -56,10 +66,17 @@ export default function RentalsMap({ rentals }) {
       ].filter(Boolean);
       m.bindPopup(lines.join("<br/>"));
 
-      cluster.addLayer(m);
+      // Add to corresponding cluster group
+      if (isStolen) clusterStolen.addLayer(m);
+      else if (isOverdue) clusterOverdue.addLayer(m);
+      else if (isActive) clusterActive.addLayer(m);
+      else clusterOther.addLayer(m);
     });
 
-    map.addLayer(cluster);
+    map.addLayer(clusterActive);
+    map.addLayer(clusterOverdue);
+    map.addLayer(clusterStolen);
+    map.addLayer(clusterOther);
 
     // Fit bounds to current locations only
     const points = rentals
@@ -71,7 +88,10 @@ export default function RentalsMap({ rentals }) {
     }
 
     return () => {
-      map.removeLayer(cluster);
+      map.removeLayer(clusterActive);
+      map.removeLayer(clusterOverdue);
+      map.removeLayer(clusterStolen);
+      map.removeLayer(clusterOther);
     };
   }, [rentals]);
 
