@@ -159,16 +159,18 @@ export default function Registration() {
     <div className="page">
       <h1>Registration</h1>
 
-      <div className="view-toggle" role="tablist" aria-label="Registration type">
-        <button type="button" className={`toggle-btn ${mode === "asset" ? "is-active" : ""}`} onClick={() => changeMode("asset")} role="tab" aria-selected={mode === "asset"}>
-          Asset
-        </button>
-        <button type="button" className={`toggle-btn ${mode === "rental" ? "is-active" : ""}`} onClick={() => changeMode("rental")} role="tab" aria-selected={mode === "rental"}>
-          Rental
-        </button>
-        <button type="button" className={`toggle-btn ${mode === "issue" ? "is-active" : ""}`} onClick={() => changeMode("issue")} role="tab" aria-selected={mode === "issue"}>
-          Issue
-        </button>
+      <div className="sticky-header">
+        <div className="view-toggle" role="tablist" aria-label="Registration type">
+          <button type="button" className={`toggle-btn ${mode === "asset" ? "is-active" : ""}`} onClick={() => changeMode("asset")} role="tab" aria-selected={mode === "asset"}>
+            Asset
+          </button>
+          <button type="button" className={`toggle-btn ${mode === "rental" ? "is-active" : ""}`} onClick={() => changeMode("rental")} role="tab" aria-selected={mode === "rental"}>
+            Rental
+          </button>
+          <button type="button" className={`toggle-btn ${mode === "issue" ? "is-active" : ""}`} onClick={() => changeMode("issue")} role="tab" aria-selected={mode === "issue"}>
+            Issue
+          </button>
+        </div>
       </div>
 
       {mode === "asset" && <AssetForm />}
@@ -177,4 +179,3 @@ export default function Registration() {
     </div>
   );
 }
-

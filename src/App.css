@@ -115,6 +115,15 @@ html, body, #root { height: 100%; }
     color: #fff;
 }
 
+/* Sticky header wrapper for top controls */
+.sticky-header {
+    position: sticky;
+    top: 0;
+    z-index: 200;
+    background: #fff;
+    padding: 0.25rem 0;
+}
+
 .map-view { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .map-container {
     width: 100%;
