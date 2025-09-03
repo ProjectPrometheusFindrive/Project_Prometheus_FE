@@ -3,7 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import "./App.css";
 import Login from "./pages/Login";
 import Settings from "./pages/Settings";
-import AssetStatus from "./pages/AssetStatus";
+import AssetStatus from "./pages/AssetStatusFixed";
 import RentalContracts from "./pages/RentalContracts";
 import ProblemVehicles from "./pages/ProblemVehicles";
 import Registration from "./pages/Registration";
