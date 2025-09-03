@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 function AssetForm() {
   const navigate = useNavigate();
@@ -131,19 +131,42 @@ function IssueForm() {
 }
 
 export default function Registration() {
-  const [mode, setMode] = useState("asset");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const typeParam = (searchParams.get("type") || "asset").toLowerCase();
+  const mode = useMemo(() => (typeParam === "rental" || typeParam === "issue" ? typeParam : "asset"), [typeParam]);
+
+  useEffect(() => {
+    // Normalize invalid values to a valid one
+    if (typeParam !== mode) {
+      setSearchParams((prev) => {
+        const next = new URLSearchParams(prev);
+        next.set("type", mode);
+        return next;
+      }, { replace: true });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mode]);
+
+  const changeMode = (next) => {
+    setSearchParams((prev) => {
+      const sp = new URLSearchParams(prev);
+      sp.set("type", next);
+      return sp;
+    });
+  };
+
   return (
     <div className="page">
       <h1>Registration</h1>
 
       <div className="view-toggle" role="tablist" aria-label="Registration type">
-        <button className={`toggle-btn ${mode === "asset" ? "is-active" : ""}`} onClick={() => setMode("asset")} role="tab" aria-selected={mode === "asset"}>
+        <button type="button" className={`toggle-btn ${mode === "asset" ? "is-active" : ""}`} onClick={() => changeMode("asset")} role="tab" aria-selected={mode === "asset"}>
           Asset
         </button>
-        <button className={`toggle-btn ${mode === "rental" ? "is-active" : ""}`} onClick={() => setMode("rental")} role="tab" aria-selected={mode === "rental"}>
+        <button type="button" className={`toggle-btn ${mode === "rental" ? "is-active" : ""}`} onClick={() => changeMode("rental")} role="tab" aria-selected={mode === "rental"}>
           Rental
         </button>
-        <button className={`toggle-btn ${mode === "issue" ? "is-active" : ""}`} onClick={() => setMode("issue")} role="tab" aria-selected={mode === "issue"}>
+        <button type="button" className={`toggle-btn ${mode === "issue" ? "is-active" : ""}`} onClick={() => changeMode("issue")} role="tab" aria-selected={mode === "issue"}>
           Issue
         </button>
       </div>
