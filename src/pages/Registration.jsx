@@ -92,7 +92,9 @@ export default function Registration() {
     const handleAssetSubmit = (data) => {
         try {
             const arr = JSON.parse(localStorage.getItem("assetDrafts") || "[]");
-            arr.push({ ...data, createdAt: new Date().toISOString() });
+            // Omit non-serializable file objects for now
+            const { registrationDoc, insuranceDoc, ...rest } = data || {};
+            arr.push({ ...rest, createdAt: new Date().toISOString() });
             localStorage.setItem("assetDrafts", JSON.stringify(arr));
         } catch {}
         navigate("/assets");
@@ -101,7 +103,9 @@ export default function Registration() {
     const handleRentalSubmit = (data) => {
         try {
             const arr = JSON.parse(localStorage.getItem("rentalDrafts") || "[]");
-            arr.push({ ...data, createdAt: new Date().toISOString() });
+            // Omit non-serializable file object for now
+            const { contract_file, ...rest } = data || {};
+            arr.push({ ...rest, createdAt: new Date().toISOString() });
             localStorage.setItem("rentalDrafts", JSON.stringify(arr));
         } catch {}
         navigate("/rentals");
@@ -128,6 +132,10 @@ export default function Registration() {
                     const points = Array.isArray(incoming) && incoming.length > 0 ? incoming : existing.points;
                     const name = (data?.name && data.name.trim()) || editingName || existing.name;
                     base[editingIdx] = { name, points };
+                    try {
+                        localStorage.setItem("geofenceSets", JSON.stringify({ geofences: base, updatedAt: now }));
+                        setGeofenceStored({ geofences: base, updatedAt: now, isDummy: false });
+                    } catch {}
                     return base;
                 });
                 // clear edit state
@@ -147,6 +155,10 @@ export default function Registration() {
                 items = polys.map((pts, i) => ({ name: `Polygon ${i + 1}`, points: pts }));
             }
             setGeofenceList(items);
+            try {
+                localStorage.setItem("geofenceSets", JSON.stringify({ geofences: items, updatedAt: now }));
+                setGeofenceStored({ geofences: items, updatedAt: now, isDummy: false });
+            } catch {}
             setGeofenceDraft({ geofences: [] });
             setEditingName("");
         } catch {}
@@ -181,7 +193,14 @@ export default function Registration() {
     };
 
     const handleGeofenceDeleteOne = (idx) => {
-        setGeofenceList((prev) => (Array.isArray(prev) ? prev.filter((_, i) => i !== idx) : []));
+        setGeofenceList((prev) => {
+            const next = Array.isArray(prev) ? prev.filter((_, i) => i !== idx) : [];
+            try {
+                localStorage.setItem("geofenceSets", JSON.stringify({ geofences: next, updatedAt: new Date().toISOString() }));
+                setGeofenceStored({ geofences: next, updatedAt: new Date().toISOString(), isDummy: next.length === 0 });
+            } catch {}
+            return next;
+        });
     };
 
     const handleRenameOne = (idx, name) => {
@@ -189,6 +208,10 @@ export default function Registration() {
             const list = toItems(prev || []);
             if (!list[idx]) return prev;
             list[idx] = { ...list[idx], name: name || list[idx].name };
+            try {
+                localStorage.setItem("geofenceSets", JSON.stringify({ geofences: list, updatedAt: new Date().toISOString() }));
+                setGeofenceStored({ geofences: list, updatedAt: new Date().toISOString(), isDummy: false });
+            } catch {}
             return list;
         });
     };

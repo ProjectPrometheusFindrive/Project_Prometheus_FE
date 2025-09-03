@@ -94,7 +94,8 @@ export default function Detail() {
                         onSubmit={(form) => {
                             try {
                                 const edits = JSON.parse(localStorage.getItem("assetEdits") || "{}");
-                                edits[String(data.id)] = { ...data, ...form };
+                                const { registrationDoc, insuranceDoc, ...rest } = form || {};
+                                edits[String(data.id)] = { ...data, ...rest };
                                 localStorage.setItem("assetEdits", JSON.stringify(edits));
                                 console.log("Asset saved:", edits[String(data.id)]);
                             } catch (e) {
@@ -116,7 +117,8 @@ export default function Detail() {
                         onSubmit={(form) => {
                             try {
                                 const edits = JSON.parse(localStorage.getItem("rentalEdits") || "{}");
-                                edits[String(data.rental_id)] = { ...data, ...form };
+                                const { contract_file, ...rest } = form || {};
+                                edits[String(data.rental_id)] = { ...data, ...rest };
                                 localStorage.setItem("rentalEdits", JSON.stringify(edits));
                                 console.log("Rental saved:", edits[String(data.rental_id)]);
                             } catch (e) {

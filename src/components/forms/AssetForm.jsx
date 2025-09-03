@@ -8,6 +8,9 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
     year: initial.year || "",
     fuelType: initial.fuelType || "",
     plate: initial.plate || "",
+    // Files (kept in-memory only for now)
+    registrationDoc: initial.registrationDoc || null,
+    insuranceDoc: initial.insuranceDoc || null,
   });
 
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
@@ -36,6 +39,34 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
 
       <label className="form-label" htmlFor="plate">Plate</label>
       <input id="plate" className="form-input" value={form.plate} onChange={(e) => update("plate", e.target.value)} placeholder="e.g. 12가 3456" disabled={readOnly} />
+
+      {/* Vehicle registration certificate (image or PDF) */}
+      <label className="form-label" htmlFor="registrationDoc">Registration Doc</label>
+      <input
+        id="registrationDoc"
+        type="file"
+        className="form-input"
+        accept="image/*,application/pdf"
+        onChange={(e) => update("registrationDoc", e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+        disabled={readOnly}
+      />
+      {form.registrationDoc && (
+        <div style={{ fontSize: 12, color: "#555" }}>{form.registrationDoc.name}</div>
+      )}
+
+      {/* Insurance policy (image or PDF) */}
+      <label className="form-label" htmlFor="insuranceDoc">Insurance Policy</label>
+      <input
+        id="insuranceDoc"
+        type="file"
+        className="form-input"
+        accept="image/*,application/pdf"
+        onChange={(e) => update("insuranceDoc", e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+        disabled={readOnly}
+      />
+      {form.insuranceDoc && (
+        <div style={{ fontSize: 12, color: "#555" }}>{form.insuranceDoc.name}</div>
+      )}
 
       {!readOnly && showSubmit && (
         <div className="form-actions">

@@ -244,6 +244,14 @@ body {
     background: #c62828;
 }
 
+/* Geofence marker */
+.marker--geo {
+    background: #6a1b9a; /* purple */
+}
+.leaflet-marker-icon.marker.marker--geo {
+    background: #6a1b9a;
+}
+
 /* MarkerCluster custom cluster icons */
 .cluster,
 .leaflet-marker-icon.cluster {

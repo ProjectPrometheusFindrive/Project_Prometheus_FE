@@ -10,6 +10,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
     start: initial.start || initial?.rental_period?.start || "",
     end: initial.end || initial?.rental_period?.end || "",
     insurance_name: initial.insurance_name || "",
+    // Contract file (image or PDF)
+    contract_file: initial.contract_file || null,
   });
 
   const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
@@ -44,6 +46,20 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
 
       <label className="form-label" htmlFor="insurance_name">Insurance</label>
       <input id="insurance_name" className="form-input" value={form.insurance_name} onChange={(e) => update("insurance_name", e.target.value)} placeholder="e.g. ABC Insurance" disabled={readOnly} />
+
+      {/* Rental contract (image or PDF) */}
+      <label className="form-label" htmlFor="contract_file">Contract File</label>
+      <input
+        id="contract_file"
+        type="file"
+        className="form-input"
+        accept="image/*,application/pdf"
+        onChange={(e) => update("contract_file", e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+        disabled={readOnly}
+      />
+      {form.contract_file && (
+        <div style={{ fontSize: 12, color: "#555" }}>{form.contract_file.name}</div>
+      )}
 
       {!readOnly && showSubmit && (
         <div className="form-actions">
