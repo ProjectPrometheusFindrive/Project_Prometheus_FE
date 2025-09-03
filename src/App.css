@@ -357,6 +357,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 2px;
+    position: relative; /* for tooltip positioning */
 }
 
 .bottom-nav__link.is-active {
@@ -364,18 +365,56 @@ body {
     font-weight: 600;
 }
 
+/* Tooltip label: hidden by default, shows on hover/focus */
 .bottom-nav__label {
-    display: block;
+    position: absolute;
+    left: 50%;
+    bottom: calc(100% + 8px);
+    transform: translate(-50%, 6px);
+    opacity: 0;
+    pointer-events: none;
+    background: #111;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 12px;
+    line-height: 1.2;
     white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 100%;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+    transition: opacity 120ms ease, transform 120ms ease;
+    z-index: 1001;
+}
+.bottom-nav__label::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid transparent;
+    border-right: 6px solid transparent;
+    border-top: 6px solid #111;
+}
+.bottom-nav__link:hover .bottom-nav__label,
+.bottom-nav__link:focus .bottom-nav__label,
+.bottom-nav__link:focus-visible .bottom-nav__label,
+.bottom-nav__link:active .bottom-nav__label {
+    opacity: 1;
+    transform: translate(-50%, 0);
 }
 
 /* Icon for bottom nav items that use emojis or inline SVG */
 .bottom-nav__icon {
-    font-size: 20px;
+    font-size: 22px;
     line-height: 1;
+}
+
+/* Visible focus style for accessibility */
+.bottom-nav__link:focus-visible {
+    outline: 2px solid #0b57d0;
+    outline-offset: 2px;
+    border-radius: 10px;
 }
 
 /* Top-right global controls */

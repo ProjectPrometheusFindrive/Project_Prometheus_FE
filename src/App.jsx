@@ -9,6 +9,7 @@ import Settings from "./pages/Settings";
 import AssetStatus from "./pages/AssetStatusFixed";
 import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
+import RentalsMapPage from "./pages/RentalsMapPage";
 import ProblemVehicles from "./pages/ProblemVehicles";
 import Registration from "./pages/Registration";
 import Detail from "./pages/Detail";
@@ -27,7 +28,8 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/assets" element={<AssetStatus />} />
           <Route path="/rentals" element={<Navigate to="/rentals/table" replace />} />
-          <Route path="/rentals/:mode" element={<RentalContracts />} />
+          <Route path="/rentals/table" element={<RentalContracts />} />
+          <Route path="/rentals/map" element={<RentalsMapPage />} />
           <Route path="/returns" element={<ProblemVehicles />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/detail/:type/:id" element={<Detail />} />

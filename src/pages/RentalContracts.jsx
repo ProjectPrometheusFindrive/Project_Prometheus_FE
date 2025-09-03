@@ -1,13 +1,8 @@
 import React, { useMemo } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { rentals } from "../data/rentals";
-import RentalsMap from "../components/RentalsMap";
 
 export default function RentalContracts() {
-  const navigate = useNavigate();
-  const { mode: modeParam } = useParams();
-  const mode = modeParam === "map" ? "map" : "table";
-
   const rows = useMemo(() => {
     const now = new Date();
     return rentals.map((r) => {
@@ -35,86 +30,49 @@ export default function RentalContracts() {
 
   return (
     <div className="page">
-      <h1>렌탈 계약 현황</h1>
-
-      <div className="sticky-header">
-        <div className="view-toggle" role="tablist" aria-label="View toggle">
-          <button
-            type="button"
-            role="tab"
-            className={`toggle-btn ${mode === "table" ? "is-active" : ""}`}
-            onClick={() => navigate("/rentals/table", { replace: false })}
-            aria-selected={mode === "table"}
-          >
-            Table
-          </button>
-          <button
-            type="button"
-            role="tab"
-            className={`toggle-btn ${mode === "map" ? "is-active" : ""}`}
-            onClick={() => navigate("/rentals/map", { replace: false })}
-            aria-selected={mode === "map"}
-          >
-            Map
-          </button>
-        </div>
-      </div>
-
+      <h1>Rental Contracts</h1>
       <div className="page-scroll">
-        {mode === "table" && (
-          <div className="table-wrap">
-            <table className="asset-table">
-              <thead>
-                <tr>
-                  <th>Status</th>
-                  <th>Rental ID</th>
-                  <th>VIN</th>
-                  <th>Renter</th>
-                  <th>Contact</th>
-                  <th>Period</th>
-                  <th>Insurance</th>
-                  <th>Current Loc</th>
+        <div className="table-wrap">
+          <table className="asset-table">
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th>Rental ID</th>
+                <th>VIN</th>
+                <th>Renter</th>
+                <th>Contact</th>
+                <th>Period</th>
+                <th>Insurance</th>
+                <th>Current Loc</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((r) => (
+                <tr key={r.rental_id}>
+                  <td>{r.statusText !== "-" ? <span className={`badge ${r.statusClass}`}>{r.statusText}</span> : "-"}</td>
+                  <td>
+                    <Link to={`/detail/rental/${r.rental_id}`}>{r.rental_id}</Link>
+                  </td>
+                  <td>{r.vin}</td>
+                  <td>{r.renter_name}</td>
+                  <td>{r.contact_number}</td>
+                  <td>
+                    {r.rental_period?.start ? new Date(r.rental_period.start).toLocaleDateString() : "-"} ~{" "}
+                    {r.rental_period?.end ? new Date(r.rental_period.end).toLocaleDateString() : "-"}
+                  </td>
+                  <td>{r.insurance_name || "-"}</td>
+                  <td>
+                    {r.current_location
+                      ? `${Number(r.current_location.lat).toFixed(4)}, ${Number(r.current_location.lng).toFixed(4)}`
+                      : "-"}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.rental_id}>
-                    <td>{r.statusText !== "-" ? <span className={`badge ${r.statusClass}`}>{r.statusText}</span> : "-"}</td>
-                    <td>
-                      <Link to={`/detail/rental/${r.rental_id}`}>{r.rental_id}</Link>
-                    </td>
-                    <td>{r.vin}</td>
-                    <td>{r.renter_name}</td>
-                    <td>{r.contact_number}</td>
-                    <td>
-                      {r.rental_period?.start ? new Date(r.rental_period.start).toLocaleDateString() : "-"} ~ {" "}
-                      {r.rental_period?.end ? new Date(r.rental_period.end).toLocaleDateString() : "-"}
-                    </td>
-                    <td>{r.insurance_name || "-"}</td>
-                    <td>
-                      {r.current_location
-                        ? `${Number(r.current_location.lat).toFixed(4)}, ${Number(r.current_location.lng).toFixed(4)}`
-                        : "-"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        {mode === "map" && (
-          <div className="map-view">
-            <div className="legend">
-              <span className="legend__item"><span className="marker marker--active">A</span> Active</span>
-              <span className="legend__item"><span className="marker marker--overdue">O</span> Overdue</span>
-              <span className="legend__item"><span className="marker marker--stolen">S</span> Stolen</span>
-              <span className="legend__item"><span className="marker marker--car">C</span> Other</span>
-            </div>
-            <RentalsMap rentals={rentals} />
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
 }
+
