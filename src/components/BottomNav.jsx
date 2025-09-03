@@ -5,7 +5,7 @@ import {
   FiBox,
   FiFileText,
   FiAlertCircle,
-  FiUserPlus,
+  FiPlus,
   FiSettings,
   FiLogOut,
   FiMap,
@@ -79,7 +79,7 @@ export default function BottomNav() {
         aria-label="Register"
         title="Register"
       >
-        <FiUserPlus className="bottom-nav__icon" aria-hidden />
+        <FiPlus className="bottom-nav__icon" aria-hidden />
         <span className="bottom-nav__label" role="tooltip">Register</span>
       </NavLink>
 
