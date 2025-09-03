@@ -347,6 +347,16 @@ body {
     text-decoration: none;
     font-size: 0.9rem;
     padding: 0.4rem 0.3rem;
+    /* Make it work for both <a> and <button> */
+    appearance: none;
+    -webkit-appearance: none;
+    background: transparent;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
 }
 
 .bottom-nav__link.is-active {
@@ -360,6 +370,12 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+}
+
+/* Icon for bottom nav items that use emojis or inline SVG */
+.bottom-nav__icon {
+    font-size: 20px;
+    line-height: 1;
 }
 
 /* Top-right global controls */
