@@ -1,6 +1,5 @@
 .page {
-    padding: 1rem;
-    padding-bottom: 5.5rem; /* space for bottom nav */
+    padding: 1rem; /* top/bottom 1rem; bottom nav spacing handled by .app-content */
 }
 
 .grid {
@@ -90,10 +89,10 @@
 }
 
 /* Rentals: view toggle and map */
+.page { height: 100%; display: flex; flex-direction: column; }
 html, body, #root { height: 100%; }
 .app-layout { min-height: 100%; height: 100%; display: flex; flex-direction: column; }
-.app-content { flex: 1 1 auto; height: calc(100% - 56px); }
-.page { height: 100%; }
+.app-content { flex: 1 1 auto; min-height: 0; padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px)); }
 .view-toggle {
     display: inline-flex;
     border: 1px solid #ddd;
@@ -108,12 +107,20 @@ html, body, #root { height: 100%; }
     cursor: pointer;
     color: #444;
 }
-.toggle-btn + .toggle-btn { border-left: 1px solid #ddd; }
-.toggle-btn.is-active { background: #0057e7; color: #fff; }
+.toggle-btn + .toggle-btn {
+    border-left: 1px solid #ddd;
+}
+.toggle-btn.is-active {
+    background: #0057e7;
+    color: #fff;
+}
 
+.map-view { display: flex; flex-direction: column; flex: 1 1 auto; min-height: 0; }
 .map-container {
     width: 100%;
-    height: 60%;
+    flex: 1 1 auto;
+    height: auto;
+    min-height: 200px;
     border: 1px solid #e5e5e5;
     border-radius: 8px;
 }
@@ -124,7 +131,10 @@ html, body, #root { height: 100%; }
     align-items: center;
     margin-bottom: 0.5rem;
 }
-.legend__item { color: #444; font-size: 0.9rem; }
+.legend__item {
+    color: #444;
+    font-size: 0.9rem;
+}
 
 /* Simple text-based markers for Leaflet */
 .marker {
@@ -138,9 +148,15 @@ html, body, #root { height: 100%; }
     font-weight: 700;
     color: #fff;
 }
-.marker--rental { background: #2e7d32; }
-.marker--return { background: #c62828; }
-.marker--current { background: #1565c0; }
+.marker--rental {
+    background: #2e7d32;
+}
+.marker--return {
+    background: #c62828;
+}
+.marker--current {
+    background: #1565c0;
+}
 
 /* Bottom navigation */
 .bottom-nav {
@@ -178,4 +194,59 @@ html, body, #root { height: 100%; }
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 100%;
+}
+
+/* Login */
+.login-container {
+    min-height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    background: linear-gradient(180deg, #f7f9fc 0%, #ffffff 100%);
+}
+.login-card {
+    width: 100%;
+    max-width: 420px;
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+    padding: 1.25rem;
+}
+.login-title {
+    margin: 0 0 1rem;
+    font-size: 1.5rem;
+}
+.login-form {
+    display: grid;
+    gap: 0.75rem;
+}
+.login-label {
+    font-size: 0.9rem;
+    color: #333;
+}
+.login-input {
+    padding: 0.6rem 0.7rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+.login-button {
+    margin-top: 0.25rem;
+    background: #0057e7;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.login-button:hover {
+    background: #064dc9;
+}
+.login-help {
+    margin-top: 0.75rem;
+    color: #666;
+    font-size: 0.9rem;
 }

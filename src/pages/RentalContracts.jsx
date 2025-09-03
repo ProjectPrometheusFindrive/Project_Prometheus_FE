@@ -1,9 +1,12 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { rentals } from "../data/rentals";
 import RentalsMap from "../components/RentalsMap";
 
 export default function RentalContracts() {
-    const [view, setView] = useState("table");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const viewParam = searchParams.get("view");
+    const view = viewParam === "map" ? "map" : "table";
     const data = rentals;
 
     const columns = [
@@ -34,10 +37,10 @@ export default function RentalContracts() {
             <h1>대여 계약 현황</h1>
 
             <div className="view-toggle" role="tablist" aria-label="View toggle">
-                <button className={`toggle-btn ${view === "table" ? "is-active" : ""}`} onClick={() => setView("table")} role="tab" aria-selected={view === "table"}>
+                <button className={`toggle-btn ${view === "table" ? "is-active" : ""}`} onClick={() => setSearchParams((prev) => { const next = new URLSearchParams(prev); next.set("view", "table"); return next; })} role="tab" aria-selected={view === "table"}>
                     표 뷰
                 </button>
-                <button className={`toggle-btn ${view === "map" ? "is-active" : ""}`} onClick={() => setView("map")} role="tab" aria-selected={view === "map"}>
+                <button className={`toggle-btn ${view === "map" ? "is-active" : ""}`} onClick={() => setSearchParams((prev) => { const next = new URLSearchParams(prev); next.set("view", "map"); return next; })} role="tab" aria-selected={view === "map"}>
                     지도 뷰
                 </button>
             </div>
@@ -71,7 +74,7 @@ export default function RentalContracts() {
                     </table>
                 </div>
             ) : (
-                <div>
+                <div className="map-view">
                     <div className="legend">
                         <span className="legend__item">
                             <span className="marker marker--current">C</span> Current
