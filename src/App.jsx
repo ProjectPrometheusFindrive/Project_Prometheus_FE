@@ -8,6 +8,8 @@ import AssetStatus from "./pages/AssetStatus";
 import RentalContracts from "./pages/RentalContracts";
 import ProblemVehicles from "./pages/ProblemVehicles";
 import AssetRegistration from "./pages/AssetRegistration";
+import RentalRegistration from "./pages/RentalRegistration";
+import IssueRegistration from "./pages/IssueRegistration";
 import AppLayout from "./components/AppLayout";
 
 function App() {
@@ -22,6 +24,8 @@ function App() {
           <Route path="/rentals" element={<RentalContracts />} />
           <Route path="/returns" element={<ProblemVehicles />} />
           <Route path="/new-asset" element={<AssetRegistration />} />
+          <Route path="/new-rental" element={<RentalRegistration />} />
+          <Route path="/new-issue" element={<IssueRegistration />} />
         </Route>
       </Routes>
     </Router>

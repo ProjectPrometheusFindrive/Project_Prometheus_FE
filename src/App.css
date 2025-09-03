@@ -250,3 +250,36 @@ html, body, #root { height: 100%; }
     color: #666;
     font-size: 0.9rem;
 }
+
+/* Generic form styles */
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+    max-width: 640px;
+}
+.form-label {
+    font-size: 0.9rem;
+    color: #333;
+}
+.form-input {
+    padding: 0.55rem 0.7rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+.form-actions {
+    margin-top: 0.5rem;
+}
+.form-button {
+    background: #0057e7;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.7rem 1rem;
+    font-size: 1rem;
+    cursor: pointer;
+}
+.form-button:hover {
+    background: #064dc9;
+}

@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 
 const OPTIONS = [
-  { value: "/assets", label: "자산 현황" },
-  { value: "/rentals", label: "대여 계약 현황" },
-  { value: "/returns", label: "반납/연장 현황" },
-  { value: "/new-asset", label: "신규 자산 등록" },
-  { value: "/dashboard", label: "대시보드" },
+  { value: "/assets", label: "Asset Status" },
+  { value: "/rentals", label: "Rental Contracts" },
+  { value: "/returns", label: "Returns / Issues" },
+  { value: "/new-asset", label: "New Asset" },
+  { value: "/new-rental", label: "New Rental" },
+  { value: "/new-issue", label: "New Issue" },
+  { value: "/dashboard", label: "Dashboard" },
 ];
 
 export default function Settings() {
@@ -34,7 +36,7 @@ export default function Settings() {
       <h1>Settings</h1>
       <div style={{ marginTop: 16 }}>
         <label htmlFor="default-landing" style={{ display: "block", marginBottom: 8 }}>
-          로그인 후 기본 랜딩
+          Default landing after login
         </label>
         <select
           id="default-landing"
@@ -49,9 +51,10 @@ export default function Settings() {
           ))}
         </select>
         {saved ? (
-          <span style={{ marginLeft: 12, color: "#2e7d32" }}>저장됨</span>
+          <span style={{ marginLeft: 12, color: "#2e7d32" }}>Saved</span>
         ) : null}
       </div>
     </div>
   );
 }
+
