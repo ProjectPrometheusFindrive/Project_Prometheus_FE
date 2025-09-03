@@ -5,10 +5,17 @@ import { assets } from "../data/assets";
 export default function AssetStatus() {
     const [q, setQ] = useState("");
     const [status, setStatus] = useState("all");
+    const [onlyToggleable, setOnlyToggleable] = useState(false);
+    // Work on a local copy so we can toggle status inline
+    const [rows, setRows] = useState(() => assets.map((a) => ({ ...a })));
+
+    const setStatusFor = (id, nextStatus) => {
+        setRows((prev) => prev.map((a) => (a.id === id ? { ...a, status: nextStatus } : a)));
+    };
 
     const filtered = useMemo(() => {
         const term = q.trim().toLowerCase();
-        return assets.filter((a) => {
+        return rows.filter((a) => {
             const matchesTerm = term
                 ? [
                       a.id,
@@ -31,9 +38,10 @@ export default function AssetStatus() {
                       .includes(term)
                 : true;
             const matchesStatus = status === "all" ? true : a.status === status;
-            return matchesTerm && matchesStatus;
+            const matchesToggleable = !onlyToggleable ? true : a.status !== "Rented";
+            return matchesTerm && matchesStatus && matchesToggleable;
         });
-    }, [q, status]);
+    }, [q, status, onlyToggleable, rows]);
 
     return (
         <div className="page">
@@ -47,6 +55,10 @@ export default function AssetStatus() {
                     <option value="Rented">Rented</option>
                     <option value="Maintenance">Maintenance</option>
                 </select>
+                <label className="asset-filter" style={{ display: "inline-flex", alignItems: "center", gap: "0.4rem" }}>
+                    <input type="checkbox" checked={onlyToggleable} onChange={(e) => setOnlyToggleable(e.target.checked)} />
+                    대여 중 제외
+                </label>
             </div>
 
             <div className="table-wrap">
@@ -80,6 +92,22 @@ export default function AssetStatus() {
                                 <td>{a.fuelType}</td>
                                 <td>
                                     <span className={`badge badge--${a.status.toLowerCase()}`}>{a.status}</span>
+                                    <div className="status-toggle" title={a.status === "Rented" ? "대여 중에는 상태를 변경할 수 없습니다" : undefined}>
+                                        <button
+                                            className={`toggle-btn ${a.status === "Available" ? "is-active" : ""}`}
+                                            onClick={() => setStatusFor(a.id, "Available")}
+                                            disabled={a.status === "Rented"}
+                                        >
+                                            대여 가능
+                                        </button>
+                                        <button
+                                            className={`toggle-btn ${a.status === "Maintenance" ? "is-active" : ""}`}
+                                            onClick={() => setStatusFor(a.id, "Maintenance")}
+                                            disabled={a.status === "Rented"}
+                                        >
+                                            점검 중
+                                        </button>
+                                    </div>
                                 </td>
                                 <td>{a.price.toLocaleString()}</td>
                                 <td>{a.insuranceName}</td>
@@ -97,4 +125,3 @@ export default function AssetStatus() {
         </div>
     );
 }
-
