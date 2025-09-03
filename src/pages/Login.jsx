@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -65,8 +65,14 @@ export default function Login() {
           <button type="submit" className="login-button">Login</button>
         </form>
         <p className="login-help">Any input logs in for now.</p>
+        <div className="login-help" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <Link to="/signup">회원가입</Link>
+          <span style={{ color: "#bbb" }}>|</span>
+          <Link to="/find-id">아이디 찾기</Link>
+          <span style={{ color: "#bbb" }}>|</span>
+          <Link to="/forgot-password">비밀번호 찾기</Link>
+        </div>
       </div>
     </div>
   );
 }
-

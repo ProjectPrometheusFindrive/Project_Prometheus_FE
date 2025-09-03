@@ -2,6 +2,9 @@ import React from "react";
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Login from "./pages/Login";
+import SignUp from "./pages/SignUp";
+import FindId from "./pages/FindId";
+import ForgotPassword from "./pages/ForgotPassword";
 import Settings from "./pages/Settings";
 import AssetStatus from "./pages/AssetStatusFixed";
 import RentalContracts from "./pages/RentalContracts";
@@ -15,6 +18,9 @@ function App() {
     <Router>
       <Routes>
         <Route path="/" element={<Login />} />
+        <Route path="/signup" element={<SignUp />} />
+        <Route path="/find-id" element={<FindId />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route element={<AppLayout />}>
           <Route path="/settings" element={<Settings />} />
           <Route path="/assets" element={<AssetStatus />} />
