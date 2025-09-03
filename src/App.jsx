@@ -7,6 +7,7 @@ import FindId from "./pages/FindId";
 import ForgotPassword from "./pages/ForgotPassword";
 import Settings from "./pages/Settings";
 import AssetStatus from "./pages/AssetStatusFixed";
+import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
 import ProblemVehicles from "./pages/ProblemVehicles";
 import Registration from "./pages/Registration";
@@ -22,6 +23,7 @@ function App() {
         <Route path="/find-id" element={<FindId />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route element={<AppLayout />}>
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/assets" element={<AssetStatus />} />
           <Route path="/rentals" element={<Navigate to="/rentals/table" replace />} />

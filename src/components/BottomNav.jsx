@@ -4,6 +4,9 @@ import { NavLink } from "react-router-dom";
 export default function BottomNav() {
   return (
     <nav className="bottom-nav" role="navigation" aria-label="Main Navigation">
+      <NavLink to="/dashboard" className={({ isActive }) => `bottom-nav__link ${isActive ? "is-active" : ""}`}>
+        <span className="bottom-nav__label">Home</span>
+      </NavLink>
       <NavLink to="/assets" className={({ isActive }) => `bottom-nav__link ${isActive ? "is-active" : ""}`}>
         <span className="bottom-nav__label">Assets</span>
       </NavLink>
@@ -19,4 +22,3 @@ export default function BottomNav() {
     </nav>
   );
 }
-

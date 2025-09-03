@@ -507,3 +507,53 @@ html {
 *::after {
     box-sizing: inherit;
 }
+
+/* Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+@media (min-width: 920px) {
+    .dashboard-grid { grid-template-columns: 1fr 1fr; }
+    .dashboard-grid--gauges { grid-template-columns: repeat(3, 1fr); }
+}
+.card {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 1rem;
+}
+.section-title {
+    margin: 0 0 0.5rem;
+    font-size: 1.1rem;
+}
+.chart-card .chart-wrap {
+    /* Responsive to both width and height; never exceed a fraction of viewport */
+    height: min(clamp(160px, 34vw, 260px), 38vh);
+}
+.gauge-card { text-align: center; }
+.gauge { width: 100%; max-width: 280px; margin: 0 auto; }
+.gauge svg { width: 100%; height: auto; display: block; }
+.gauge-title {
+    font-weight: 600;
+    margin-bottom: 0.25rem;
+}
+.gauge-sub {
+    display: block;
+    font-weight: 400;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+.gauge-footer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: -6px;
+}
+.gauge-value { font-size: 1.6rem; font-weight: 700; }
+.gauge-delta { font-size: 0.95rem; color: #374151; }
+.gauge-delta.up { color: #065f46; }
+.gauge-delta.down { color: #991b1b; }
