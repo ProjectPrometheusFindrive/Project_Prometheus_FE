@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Login from "./pages/Login";
 import Settings from "./pages/Settings";
@@ -23,6 +23,8 @@ function App() {
           <Route path="/register" element={<Registration />} />
           <Route path="/detail/:type/:id" element={<Detail />} />
         </Route>
+        {/* Fallback for unknown routes */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
   );
