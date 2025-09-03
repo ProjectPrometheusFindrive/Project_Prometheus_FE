@@ -1,10 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useMemo } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { rentals } from "../data/rentals";
 import RentalsMap from "../components/RentalsMap";
 
 export default function RentalContracts() {
-  const [mode, setMode] = useState("table");
+  const navigate = useNavigate();
+  const { mode: modeParam } = useParams();
+  const mode = modeParam === "map" ? "map" : "table";
 
   const rows = useMemo(() => {
     const now = new Date();
@@ -41,7 +43,7 @@ export default function RentalContracts() {
             type="button"
             role="tab"
             className={`toggle-btn ${mode === "table" ? "is-active" : ""}`}
-            onClick={() => setMode("table")}
+            onClick={() => navigate("/rentals/table", { replace: false })}
             aria-selected={mode === "table"}
           >
             Table
@@ -50,7 +52,7 @@ export default function RentalContracts() {
             type="button"
             role="tab"
             className={`toggle-btn ${mode === "map" ? "is-active" : ""}`}
-            onClick={() => setMode("map")}
+            onClick={() => navigate("/rentals/map", { replace: false })}
             aria-selected={mode === "map"}
           >
             Map

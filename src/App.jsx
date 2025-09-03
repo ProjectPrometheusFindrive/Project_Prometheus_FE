@@ -18,7 +18,8 @@ function App() {
         <Route element={<AppLayout />}>
           <Route path="/settings" element={<Settings />} />
           <Route path="/assets" element={<AssetStatus />} />
-          <Route path="/rentals" element={<RentalContracts />} />
+          <Route path="/rentals" element={<Navigate to="/rentals/table" replace />} />
+          <Route path="/rentals/:mode" element={<RentalContracts />} />
           <Route path="/returns" element={<ProblemVehicles />} />
           <Route path="/register" element={<Registration />} />
           <Route path="/detail/:type/:id" element={<Detail />} />
