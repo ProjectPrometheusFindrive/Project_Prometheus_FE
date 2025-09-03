@@ -4,10 +4,7 @@ const OPTIONS = [
   { value: "/assets", label: "Asset Status" },
   { value: "/rentals", label: "Rental Contracts" },
   { value: "/returns", label: "Returns / Issues" },
-  { value: "/new-asset", label: "New Asset" },
-  { value: "/new-rental", label: "New Rental" },
-  { value: "/new-issue", label: "New Issue" },
-  { value: "/dashboard", label: "Dashboard" },
+  { value: "/register", label: "Register" },
 ];
 
 export default function Settings() {
@@ -57,4 +54,3 @@ export default function Settings() {
     </div>
   );
 }
-

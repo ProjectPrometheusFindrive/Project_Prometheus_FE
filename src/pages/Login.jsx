@@ -6,56 +6,67 @@ export default function Login() {
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
 
+  function goToLanding() {
+    let dest = "/assets";
+    try {
+      const stored = localStorage.getItem("defaultLanding");
+      if (stored) dest = stored;
+    } catch {}
+    navigate(dest, { replace: true });
+  }
+
   useEffect(() => {
     try {
       const isLoggedIn = localStorage.getItem("isLoggedIn");
       if (isLoggedIn === "true") {
-        navigate("/dashboard", { replace: true });
+        goToLanding();
       }
     } catch {}
-  }, [navigate]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
     try {
       localStorage.setItem("isLoggedIn", "true");
     } catch {}
-    navigate("/dashboard", { replace: true });
+    goToLanding();
   }
 
   return (
     <div className="login-container">
       <div className="login-card">
-        <h1 className="login-title">로그인</h1>
+        <h1 className="login-title">Login</h1>
         <form onSubmit={handleSubmit} className="login-form">
-          <label className="login-label" htmlFor="login-id">아이디</label>
+          <label className="login-label" htmlFor="login-id">ID</label>
           <input
             id="login-id"
             type="text"
             className="login-input"
             value={id}
             onChange={(e) => setId(e.target.value)}
-            placeholder="아이디를 입력하세요"
+            placeholder="Enter ID"
             autoComplete="username"
             required
           />
 
-          <label className="login-label" htmlFor="login-pw">비밀번호</label>
+          <label className="login-label" htmlFor="login-pw">Password</label>
           <input
             id="login-pw"
             type="password"
             className="login-input"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="비밀번호를 입력하세요"
+            placeholder="Enter password"
             autoComplete="current-password"
             required
           />
 
-          <button type="submit" className="login-button">로그인</button>
+          <button type="submit" className="login-button">Login</button>
         </form>
-        <p className="login-help">지금은 어떤 값이든 로그인됩니다.</p>
+        <p className="login-help">Any input logs in for now.</p>
       </div>
     </div>
   );
 }
+
