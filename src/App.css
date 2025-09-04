@@ -612,3 +612,26 @@ html {
 .gauge-delta { font-size: 0.95rem; color: #374151; }
 .gauge-delta.up { color: #065f46; }
 .gauge-delta.down { color: #991b1b; }
+
+/* Simple modal styles */
+.modal-backdrop {
+    position: fixed;
+    left: 0; right: 0; top: 0; bottom: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 16px;
+    z-index: 1200;
+}
+.modal {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 720px;
+    padding: 16px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    max-height: calc(100vh - 80px);
+    overflow: auto;
+}
