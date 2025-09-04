@@ -14,6 +14,7 @@ import ProblemVehicles from "./pages/ProblemVehicles";
 import Registration from "./pages/Registration";
 import Detail from "./pages/Detail";
 import AppLayout from "./components/AppLayout";
+import RequireAuth from "./components/RequireAuth";
 
 function App() {
   return (
@@ -23,7 +24,7 @@ function App() {
         <Route path="/signup" element={<SignUp />} />
         <Route path="/find-id" element={<FindId />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
-        <Route element={<AppLayout />}>
+        <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/assets" element={<AssetStatus />} />

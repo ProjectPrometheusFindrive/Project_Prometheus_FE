@@ -7,12 +7,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
 
   function goToLanding() {
-    let dest = "/assets";
-    try {
-      const stored = localStorage.getItem("defaultLanding");
-      if (stored) dest = stored;
-    } catch {}
-    navigate(dest, { replace: true });
+    navigate("/dashboard", { replace: true });
   }
 
   useEffect(() => {
