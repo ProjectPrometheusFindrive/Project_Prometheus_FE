@@ -1,13 +1,11 @@
 import React from "react";
 
-/**
- * Simple semi-circle gauge using SVG.
- * Props:
- * - value: number (0-100)
- * - label: string
- * - color: string (stroke color for value arc)
- * - size: number (px, width of the SVG)
- */
+// Simple semi-circle gauge using SVG.
+// Props:
+// - value: number (0-100)
+// - label: string
+// - color: string (stroke color for value arc)
+// - size: number (px, width of the SVG)
 export default function Gauge({ value = 0, label = "", color = "#2563eb", size = 220 }) {
   const v = Math.max(0, Math.min(100, Number(value) || 0));
   const width = size;
@@ -60,8 +58,12 @@ export default function Gauge({ value = 0, label = "", color = "#2563eb", size =
   const ticks = Array.from({ length: 6 }, (_, i) => i * 20);
 
   return (
-    <div className="gauge" role="img" aria-label={`${label} ${v}점`}>
-      <svg viewBox={`0 0 ${width} ${height}`} style={{ width: "100%", height: "auto", display: "block" }} preserveAspectRatio="xMidYMid meet">
+    <div className="gauge" role="img" aria-label={`${label} ${v}`}>
+      <svg
+        viewBox={`0 0 ${width} ${height}`}
+        style={{ width: "100%", height: "auto", display: "block" }}
+        preserveAspectRatio="xMidYMid meet"
+      >
         {/* Track */}
         <path
           d={describeArc(cx, cy, r, startAngle, endAngle)}
@@ -70,6 +72,7 @@ export default function Gauge({ value = 0, label = "", color = "#2563eb", size =
           strokeWidth={strokeWidth}
           strokeLinecap="round"
         />
+
         {/* Value arc */}
         <path
           d={describeArc(cx, cy, r, startAngle, valueAngle)}
@@ -99,11 +102,12 @@ export default function Gauge({ value = 0, label = "", color = "#2563eb", size =
         <line x1={cx} y1={cy} x2={needle.x} y2={needle.y} stroke="#111827" strokeWidth="3" />
         <circle cx={cx} cy={cy} r="4" fill="#111827" />
 
-        {/* Value */}
-        <text x={cx} y={cy - 20} textAnchor="middle" fontSize="28" fontWeight="600" fill="#111827">
+        {/* Value (kept clear of label) */}
+        <text x={cx} y={cy - 18} textAnchor="middle" fontSize="28" fontWeight="600" fill="#111827">
           {v}
         </text>
-        <text x={cx} y={cy - 36} textAnchor="middle" fontSize="12" fill="#6b7280">
+        {/* Label moved further up to avoid overlap with value */}
+        <text x={cx} y={cy - 56} textAnchor="middle" fontSize="12" fill="#6b7280">
           SCORE
         </text>
       </svg>
@@ -115,3 +119,4 @@ export default function Gauge({ value = 0, label = "", color = "#2563eb", size =
     </div>
   );
 }
+
