@@ -19,7 +19,37 @@ export default function Detail() {
         }
         if (t === "rental" || t === "issue") {
             const rid = Number(id);
-            return rentals.find((r) => Number(r.rental_id) === rid);
+            try {
+                // Base list
+                const base = rentals.map((r) => ({ ...r }));
+                // Drafts
+                const draftsRaw = localStorage.getItem("rentalDrafts");
+                if (draftsRaw) {
+                    const drafts = JSON.parse(draftsRaw);
+                    if (Array.isArray(drafts)) {
+                        drafts.forEach((d) => {
+                            if (!d || !d.rental_id) return;
+                            if (!base.find((x) => String(x.rental_id) === String(d.rental_id))) {
+                                base.push({ ...d, rental_period: d.rental_period || { start: d.start || "", end: d.end || "" } });
+                            }
+                        });
+                    }
+                }
+                // Edits overlay
+                const editsRaw = localStorage.getItem("rentalEdits");
+                let found = base.find((r) => Number(r.rental_id) === rid) || null;
+                if (found && editsRaw) {
+                    const edits = JSON.parse(editsRaw) || {};
+                    const patch = edits[String(rid)];
+                    if (patch) {
+                        found = { ...found, ...patch };
+                        if (!found.rental_period) found.rental_period = { start: found.start || "", end: found.end || "" };
+                    }
+                }
+                return found;
+            } catch {
+                return rentals.find((r) => Number(r.rental_id) === rid);
+            }
         }
         return null;
     }, [t, id]);
@@ -117,7 +147,7 @@ export default function Detail() {
                         onSubmit={(form) => {
                             try {
                                 const edits = JSON.parse(localStorage.getItem("rentalEdits") || "{}");
-                                const { contract_file, ...rest } = form || {};
+                                const { contract_file, driver_license_file, ...rest } = form || {};
                                 edits[String(data.rental_id)] = { ...data, ...rest };
                                 localStorage.setItem("rentalEdits", JSON.stringify(edits));
                                 console.log("Rental saved:", edits[String(data.rental_id)]);

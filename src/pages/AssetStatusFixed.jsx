@@ -153,7 +153,7 @@ export default function AssetStatus() {
         <div className="modal-backdrop" onClick={() => setShowAssetModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2 style={{ marginTop: 0, marginBottom: 12 }}>자산 등록</h2>
-            <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} />
+            <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} showSubmit={false} />
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <button type="submit" className="form-button" form="asset-create">저장</button>
               <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowAssetModal(false)}>닫기</button>
@@ -166,7 +166,7 @@ export default function AssetStatus() {
         <div className="modal-backdrop" onClick={() => setShowDeviceModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
             <h2 style={{ marginTop: 0, marginBottom: 12 }}>단말정보 등록 - {activeAsset.id}</h2>
-            <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} />
+            <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <button type="submit" className="form-button" form="device-info">저장</button>
               <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowDeviceModal(false)}>닫기</button>
@@ -213,4 +213,3 @@ export default function AssetStatus() {
     </div>
   );
 }
-

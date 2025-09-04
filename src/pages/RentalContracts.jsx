@@ -1,11 +1,36 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { rentals } from "../data/rentals";
+import RentalForm from "../components/forms/RentalForm";
 
 export default function RentalContracts() {
+  const [items, setItems] = useState(() => rentals.map((r) => ({ ...r })));
+  const [showCreate, setShowCreate] = useState(false);
+
+  // Load drafts from localStorage and merge once
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("rentalDrafts");
+      if (!raw) return;
+      const drafts = JSON.parse(raw);
+      if (!Array.isArray(drafts)) return;
+      setItems((prev) => {
+        const existingIds = new Set(prev.map((x) => String(x.rental_id)));
+        const toAdd = drafts
+          .filter((d) => d && d.rental_id && !existingIds.has(String(d.rental_id)))
+          .map((d) => ({
+            ...d,
+            rental_period: d.rental_period || { start: d.start || "", end: d.end || "" },
+          }));
+        if (toAdd.length === 0) return prev;
+        return [...prev, ...toAdd];
+      });
+    } catch {}
+  }, []);
+
   const rows = useMemo(() => {
     const now = new Date();
-    return rentals.map((r) => {
+    return items.map((r) => {
       const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
       const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
       const isActive = start && end ? now >= start && now <= end : false;
@@ -26,12 +51,65 @@ export default function RentalContracts() {
       }
       return { ...r, isActive, isOverdue, isStolen, overdueDays, statusText, statusClass };
     });
-  }, []);
+  }, [items]);
+
+  const nextRentalId = () => {
+    let max = 0;
+    items.forEach((r) => {
+      const n = parseInt(String(r.rental_id || 0), 10);
+      if (!Number.isNaN(n)) max = Math.max(max, n);
+    });
+    return max + 1;
+  };
+
+  const handleCreateSubmit = (data) => {
+    const { contract_file, driver_license_file, ...rest } = data || {};
+    const rental_id = rest.rental_id && String(rest.rental_id).trim() ? rest.rental_id : nextRentalId();
+    const normalized = {
+      ...rest,
+      rental_id,
+      rental_period: { start: rest.start || "", end: rest.end || "" },
+    };
+    setItems((prev) => [normalized, ...prev]);
+    try {
+      const arr = JSON.parse(localStorage.getItem("rentalDrafts") || "[]");
+      arr.push({ ...rest, rental_id, createdAt: new Date().toISOString() });
+      localStorage.setItem("rentalDrafts", JSON.stringify(arr));
+    } catch {}
+    setShowCreate(false);
+  };
 
   return (
     <div className="page">
       <h1>Rental Contracts</h1>
       <div className="page-scroll">
+        <div className="asset-toolbar" style={{ marginBottom: 12 }}>
+          <div style={{ flex: 1 }} />
+          <button type="button" className="form-button" onClick={() => setShowCreate(true)}>
+            계약 등록
+          </button>
+        </div>
+
+        {showCreate && (
+          <div className="modal-backdrop" onClick={() => setShowCreate(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h2 style={{ marginTop: 0, marginBottom: 12 }}>대여 계약 등록</h2>
+              <>
+                <RentalForm
+                  formId="rental-create"
+                  initial={{ rental_id: nextRentalId() }}
+                  onSubmit={handleCreateSubmit}
+                  showSubmit={false}
+                />
+                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                  <button type="submit" className="form-button" form="rental-create">저장</button>
+                  <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowCreate(false)}>닫기</button>
+                </div>
+              </>
+            </div>
+          </div>
+        )}
+
         <div className="table-wrap">
           <table className="asset-table">
             <thead>
@@ -75,4 +153,3 @@ export default function RentalContracts() {
     </div>
   );
 }
-

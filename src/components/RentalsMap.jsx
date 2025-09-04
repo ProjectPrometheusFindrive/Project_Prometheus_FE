@@ -70,9 +70,32 @@ export default function RentalsMap({ rentals }) {
       }
       return inside;
     };
+    // Resolve company HQ location as fallback when current location is missing
+    const getCompanyLatLng = () => {
+      try {
+        const raw = localStorage.getItem('companyInfo');
+        const info = raw ? JSON.parse(raw) : null;
+        const addr = (info && info.address ? String(info.address) : '').toLowerCase();
+        const cityMap = [
+          { k: ['seoul', '서울'], lat: 37.5665, lng: 126.9780 },
+          { k: ['busan', '부산'], lat: 35.1796, lng: 129.0756 },
+          { k: ['incheon', '인천'], lat: 37.4563, lng: 126.7052 },
+          { k: ['daegu', '대구'], lat: 35.8714, lng: 128.6014 },
+          { k: ['daejeon', '대전'], lat: 36.3504, lng: 127.3845 },
+          { k: ['gwangju', '광주'], lat: 35.1595, lng: 126.8526 },
+          { k: ['ulsan', '울산'], lat: 35.5384, lng: 129.3114 },
+          { k: ['jeju', '제주'], lat: 33.4996, lng: 126.5312 },
+        ];
+        for (const c of cityMap) {
+          if (c.k.some((kw) => addr.includes(kw))) return { lat: c.lat, lng: c.lng };
+        }
+      } catch {}
+      // Default to Seoul City Hall
+      return { lat: 37.5665, lng: 126.9780 };
+    };
+
     rentals.forEach((r) => {
-      const cp = r.current_location;
-      if (!cp) return;
+      const cp = r.current_location || getCompanyLatLng();
 
       const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
       const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
@@ -211,7 +234,7 @@ export default function RentalsMap({ rentals }) {
 
     // Fit bounds to include current locations and geofences
     const points = rentals
-      .map((r) => r.current_location)
+      .map((r) => r.current_location || getCompanyLatLng())
       .filter(Boolean)
       .map((p) => [p.lat, p.lng]);
     const geofencePoints = geofences

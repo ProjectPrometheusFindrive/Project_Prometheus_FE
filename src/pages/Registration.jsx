@@ -103,8 +103,8 @@ export default function Registration() {
     const handleRentalSubmit = (data) => {
         try {
             const arr = JSON.parse(localStorage.getItem("rentalDrafts") || "[]");
-            // Omit non-serializable file object for now
-            const { contract_file, ...rest } = data || {};
+            // Omit non-serializable file objects for now
+            const { contract_file, driver_license_file, ...rest } = data || {};
             arr.push({ ...rest, createdAt: new Date().toISOString() });
             localStorage.setItem("rentalDrafts", JSON.stringify(arr));
         } catch {}
