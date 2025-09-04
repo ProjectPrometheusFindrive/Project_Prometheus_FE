@@ -110,7 +110,7 @@ export default function AssetStatus() {
       vehicleType: data.vehicleType || "",
       insuranceInfo: "",
       registrationDate: data.registrationDate || new Date().toISOString().slice(0, 10),
-      registrationStatus: data.registrationStatus || "전산등록 완료",
+      registrationStatus: data.registrationStatus || "자산등록 완료",
       installer: "",
       deviceSerial: "",
     };
@@ -126,22 +126,22 @@ export default function AssetStatus() {
 
   return (
     <div className="page">
-      <h1>차량 자산 등록 | 관리</h1>
+      <h1>차량 자산 등록/관리</h1>
 
       <div className="asset-toolbar">
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="검색 (차량번호, 차종, 상태, 일련번호...)"
+          placeholder="검색(차량번호, 차종, 상태, 일련번호...)"
           className="asset-search"
         />
         <select value={status} onChange={(e) => setStatus(e.target.value)} className="asset-filter">
           <option value="all">전체 상태</option>
-          <option value="전산등록 완료">전산등록 완료</option>
+          <option value="자산등록 완료">자산등록 완료</option>
           <option value="보험등록 완료">보험등록 완료</option>
-          <option value="상품화 완료">상품화 완료</option>
-          <option value="대여 가능">대여 가능</option>
-          <option value="점검중">점검중</option>
+          <option value="장비장착 완료">장비장착 완료</option>
+          <option value="장비장착 대기">장비장착 대기</option>
+          <option value="미등록">미등록</option>
         </select>
         <div style={{ flex: 1 }} />
         <button type="button" className="form-button" onClick={() => setShowAssetModal(true)}>
@@ -156,7 +156,7 @@ export default function AssetStatus() {
             <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} showSubmit={false} />
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <button type="submit" className="form-button" form="asset-create">저장</button>
-              <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowAssetModal(false)}>닫기</button>
+              <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowAssetModal(false)}>취소</button>
             </div>
           </div>
         </div>
@@ -165,11 +165,11 @@ export default function AssetStatus() {
       {showDeviceModal && activeAsset && (
         <div className="modal-backdrop" onClick={() => setShowDeviceModal(false)}>
           <div className="modal" onClick={(e) => e.stopPropagation()}>
-            <h2 style={{ marginTop: 0, marginBottom: 12 }}>단말정보 등록 - {activeAsset.id}</h2>
+            <h2 style={{ marginTop: 0, marginBottom: 12 }}>단말 정보 등록 - {activeAsset.id}</h2>
             <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
             <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
               <button type="submit" className="form-button" form="device-info">저장</button>
-              <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowDeviceModal(false)}>닫기</button>
+              <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowDeviceModal(false)}>취소</button>
             </div>
           </div>
         </div>
@@ -181,11 +181,11 @@ export default function AssetStatus() {
             <tr>
               <th>차량번호</th>
               <th>차종</th>
-              <th>보험가입정보</th>
-              <th>전산등록일</th>
+              <th>보험가입 정보</th>
+              <th>등록일</th>
               <th>차량등록상태</th>
               <th>장착자</th>
-              <th>단말일련번호</th>
+              <th>단말 일련번호</th>
             </tr>
           </thead>
           <tbody>
@@ -201,7 +201,7 @@ export default function AssetStatus() {
                   {a.deviceSerial ? (
                     a.deviceSerial
                   ) : (
-                    <button type="button" className="form-button" onClick={() => openDeviceModal(a)}>단말기 등록</button>
+                    <button type="button" className="form-button" onClick={() => openDeviceModal(a)}>단말 등록</button>
                   )}
                 </td>
               </tr>
@@ -213,3 +213,4 @@ export default function AssetStatus() {
     </div>
   );
 }
+

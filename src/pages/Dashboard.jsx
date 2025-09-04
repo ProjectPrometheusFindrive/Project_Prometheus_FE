@@ -7,9 +7,9 @@ import { rentals } from "../data/rentals";
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
 export default function Dashboard() {
-  // 차량등록상태 분포 (새 스키마 반영)
+  // 차량 등록상태 분포
   const vehicleStatus = useMemo(() => {
-    const ORDER = ["전산등록 완료", "보험등록 완료", "상품화 완료", "대여 가능", "점검중", "기타"];
+    const ORDER = ["자산등록 완료", "보험등록 완료", "장비장착 완료", "장비장착 대기", "미등록", "기타"];
     const counts = Object.fromEntries(ORDER.map((k) => [k, 0]));
     (assets || []).forEach((a) => {
       const s = a.registrationStatus || "기타";
@@ -19,13 +19,13 @@ export default function Dashboard() {
     return ORDER.map((name) => ({ name, value: counts[name] }));
   }, []);
 
-  // 대여 현황 요약 (기존 렌털 데이터 유지)
+  // 업무현황 요약
   const bizStatus = useMemo(() => {
     const now = new Date();
-    let reserved = 0; // 시작 전
-    let active = 0;   // 대여 중
+    let reserved = 0; // 예약(시작 전)
+    let active = 0;   // 진행 중
     let overdue = 0;  // 반납 지연
-    let incidents = 0; // 도난/사고 보고 수
+    let incidents = 0; // 도난/이슈
     (rentals || []).forEach((r) => {
       const start = new Date(r.rental_period.start);
       const end = new Date(r.rental_period.end);
@@ -34,10 +34,10 @@ export default function Dashboard() {
       else if (now >= start && now <= end) active += 1;
       else if (now > end) overdue += 1;
     });
-    const pad = (n) => (n === 0 ? 1 : n); // 빈 차트 방지용 최소값
+    const pad = (n) => (n === 0 ? 1 : n); // 0일 때 파이 조각 보이도록 최소 1
     return [
       { name: "예약", value: pad(reserved) },
-      { name: "대여 중", value: pad(active) },
+      { name: "진행", value: pad(active) },
       { name: "사고/이슈", value: pad(incidents) },
       { name: "반납 지연", value: pad(overdue) },
     ];
@@ -73,7 +73,7 @@ export default function Dashboard() {
           </section>
 
           <section className="card chart-card">
-            <h2 className="section-title">대여 현황</h2>
+            <h2 className="section-title">업무현황</h2>
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 10, right: 8, bottom: 28, left: 8 }}>
@@ -95,13 +95,13 @@ export default function Dashboard() {
             <section className="card gauge-card" key={s.key}>
               <div className="gauge-title">
                 {s.label}
-                <span className="gauge-sub">(데모 지표)</span>
+                <span className="gauge-sub">(샘플 지표)</span>
               </div>
               <Gauge value={s.value} label="" color={s.color} size={240} />
               <div className="gauge-footer" aria-live="polite">
                 <span className="gauge-value">{s.value}</span>
                 <span className={`gauge-delta ${s.delta >= 0 ? "up" : "down"}`}>
-                  {s.delta >= 0 ? "▲" : "▼"} {Math.abs(s.delta)}p {s.delta >= 0 ? "상승" : "하락"}
+                  {s.delta >= 0 ? "+" : "-"} {Math.abs(s.delta)}p {s.delta >= 0 ? "상승" : "하락"}
                 </span>
               </div>
             </section>

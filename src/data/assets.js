@@ -1,52 +1,5 @@
-export const assets = [
-    {
-        id: "VH-0001",
-        plate: "28가2345",
-        vehicleType: "싼타페 25년형",
-        insuranceInfo: "렌터카공제조합 24년",
-        registrationDate: "2024-11-01",
-        registrationStatus: "전산등록 완료",
-        installer: "김범기",
-        deviceSerial: "1abcd",
-    },
-    {
-        id: "VH-0002",
-        plate: "05주2960",
-        vehicleType: "스파크 19년형",
-        insuranceInfo: "렌터카공제조합 24년",
-        registrationDate: "2024-11-01",
-        registrationStatus: "보험등록 완료",
-        installer: "김범기",
-        deviceSerial: "1abce",
-    },
-    {
-        id: "VH-0003",
-        plate: "05주2961",
-        vehicleType: "아반떼 23년형",
-        insuranceInfo: "렌터카공제조합 24년",
-        registrationDate: "2024-11-01",
-        registrationStatus: "상품화 완료",
-        installer: "김범기",
-        deviceSerial: "1abcf",
-    },
-    {
-        id: "VH-0004",
-        plate: "05주2962",
-        vehicleType: "아반떼 24년형",
-        insuranceInfo: "렌터카공제조합 24년",
-        registrationDate: "2024-11-01",
-        registrationStatus: "대여 가능",
-        installer: "김범기",
-        deviceSerial: "1abcg",
-    },
-    {
-        id: "VH-0005",
-        plate: "34가1234",
-        vehicleType: "소나타 22년형",
-        insuranceInfo: "렌터카공제조합 24년",
-        registrationDate: "2024-10-21",
-        registrationStatus: "점검중",
-        installer: "",
-        deviceSerial: "",
-    },
-];
+import { seedVehicles } from "./seed";
+
+export const assets = Object.values(seedVehicles)
+  .map((v) => v && v.asset)
+  .filter(Boolean);
