@@ -241,50 +241,19 @@ export default function Registration() {
                 {mode === "rental" && <RentalForm onSubmit={handleRentalSubmit} />}
                 {mode === "issue" && <IssueForm onSubmit={handleIssueSubmit} />}
                 {mode === "geofence" && (
-                    <>
-                        <GeofenceGlobalForm
-                            initial={geofenceDraft}
-                            initialName={editingIdx !== null ? editingName : ""}
-                            onSubmit={handleGeofenceSubmit}
-                            onChange={(v) => setGeofenceDraft(v)}
-                            onNameChange={(v) => setEditingName(v)}
-                        />
-                        <div style={{ marginTop: 16 }}>
-                            <h2 style={{ margin: "0 0 8px" }}>Geofence 목록</h2>
-                            {(() => {
-                                const displayItems = toItems(geofenceList).filter(
-                                    (it) => Array.isArray(it.points) && it.points.length > 0
-                                );
-                                if (!displayItems || displayItems.length === 0) return <div className="empty">No geofences</div>;
-                                return (
-                                    <>
-                                        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 8 }}>
-                                            <span style={{ marginLeft: "auto", color: "#333" }}>{displayItems.length} polygon(s)</span>
-                                        </div>
-                                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 12 }}>
-                                            {displayItems.map((item, idx) => (
-                                                <div key={idx}>
-                                                    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                                                        <span className="badge badge--available">#{idx + 1}</span>
-                                                        <span style={{ flex: 1, color: "#333", fontWeight: 600 }}>{item.name}</span>
-                                                    </div>
-                                                    <GeofencePreview polygons={[item.points]} height={200} />
-                                                    <div className="form-actions" style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                                        <button className="form-button" type="button" onClick={() => handleGeofenceEditOne(idx)}>
-                                                            Edit
-                                                        </button>
-                                                        <button className="form-button" type="button" onClick={() => handleGeofenceDeleteOne(idx)} style={{ background: "#c62828" }}>
-                                                            Delete
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </>
-                                );
-                            })()}
-                        </div>
-                    </>
+                  <div className="card" style={{ maxWidth: 720 }}>
+                    <div className="header-row" style={{ marginBottom: 10 }}>
+                      <div><strong>Geofence 관리 위치 변경</strong></div>
+                    </div>
+                    <div className="form-grid">
+                      <div style={{ gridColumn: "1 / -1" }}>
+                        지금은 설정 페이지에서 지오펜스를 등록/수정할 수 있습니다.
+                      </div>
+                      <div className="form-actions">
+                        <a href="#/settings" className="form-button">설정으로 이동</a>
+                      </div>
+                    </div>
+                  </div>
                 )}
             </div>
         </div>

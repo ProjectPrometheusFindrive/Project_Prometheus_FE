@@ -145,6 +145,23 @@ export async function fetchRentalById(rentalId) {
 
 // Geofences
 export async function fetchGeofences() {
+  // Prefer companyInfo.geofences
+  try {
+    const ciRaw = localStorage.getItem("companyInfo");
+    if (ciRaw) {
+      const ci = JSON.parse(ciRaw);
+      const arr = Array.isArray(ci?.geofences) ? ci.geofences : [];
+      const items = arr
+        .map((it, i) => {
+          if (Array.isArray(it)) return { name: `Polygon ${i + 1}`, points: it };
+          if (it && Array.isArray(it.points)) return { name: it.name || `Polygon ${i + 1}`, points: it.points };
+          return null;
+        })
+        .filter(Boolean);
+      if (items.length > 0) return items;
+    }
+  } catch {}
+  // Fallback: legacy storage key
   try {
     const raw = localStorage.getItem("geofenceSets");
     if (raw) {

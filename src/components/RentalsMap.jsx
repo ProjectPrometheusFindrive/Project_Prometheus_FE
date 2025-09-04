@@ -20,8 +20,24 @@ export default function RentalsMap({ rentals }) {
 
     const map = mapInstanceRef.current;
 
-    // Load geofences from localStorage or fallback to dummy
+    // Load geofences from companyInfo or legacy key, fallback to dummy
     const loadGeofences = () => {
+      try {
+        // New location: companyInfo.geofences
+        const ciRaw = localStorage.getItem("companyInfo");
+        if (ciRaw) {
+          const ci = JSON.parse(ciRaw);
+          const arr = Array.isArray(ci?.geofences) ? ci.geofences : [];
+          const items = arr
+            .map((it, i) => {
+              if (Array.isArray(it)) return { name: `Polygon ${i + 1}`, points: it };
+              if (it && Array.isArray(it.points)) return { name: it.name || `Polygon ${i + 1}`, points: it.points };
+              return null;
+            })
+            .filter(Boolean);
+          if (items.length > 0) return items;
+        }
+      } catch {}
       try {
         const raw = localStorage.getItem("geofenceSets");
         if (raw) {
