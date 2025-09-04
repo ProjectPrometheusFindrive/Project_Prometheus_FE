@@ -145,6 +145,50 @@ body {
     overflow: hidden;
     /* no bottom padding; nav moved to left */
 }
+
+/* Left-side navigation bar */
+.navigation-bar {
+    flex: 0 0 80px; /* fixed sidebar width */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 12px 8px;
+    background: #fff;
+    border-right: 1px solid #e5e5e5;
+}
+
+.navigation-bar__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 10px 8px;
+    color: #444;
+    text-decoration: none;
+    background: transparent;
+    border-radius: 10px;
+    border: none; /* for button */
+    cursor: pointer;
+}
+
+.navigation-bar__link:hover {
+    background: #f5f5f5;
+}
+
+.navigation-bar__link.is-active {
+    background: #e8f0fe;
+    color: #1a73e8;
+}
+
+.navigation-bar__icon {
+    font-size: 20px;
+}
+
+.navigation-bar__label {
+    font-size: 12px;
+}
 .view-toggle {
     display: inline-flex;
     border: 1px solid #ddd;
