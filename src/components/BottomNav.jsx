@@ -74,16 +74,6 @@ export default function BottomNav() {
       </NavLink>
 
       <NavLink
-        to="/register"
-        className={({ isActive }) => `bottom-nav__link ${isActive ? "is-active" : ""}`}
-        aria-label="Register"
-        title="Register"
-      >
-        <FiPlus className="bottom-nav__icon" aria-hidden />
-        <span className="bottom-nav__label" role="tooltip">Register</span>
-      </NavLink>
-
-      <NavLink
         to="/settings"
         className={({ isActive }) => `bottom-nav__link ${isActive ? "is-active" : ""}`}
         aria-label="Settings"

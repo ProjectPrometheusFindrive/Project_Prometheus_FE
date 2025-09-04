@@ -11,7 +11,6 @@ import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
 import RentalsMapPage from "./pages/RentalsMapPage";
 import ProblemVehicles from "./pages/ProblemVehicles";
-import Registration from "./pages/Registration";
 import Detail from "./pages/Detail";
 import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
@@ -32,7 +31,6 @@ function App() {
           <Route path="/rentals/table" element={<RentalContracts />} />
           <Route path="/rentals/map" element={<RentalsMapPage />} />
           <Route path="/returns" element={<ProblemVehicles />} />
-          <Route path="/register" element={<Registration />} />
           <Route path="/detail/:type/:id" element={<Detail />} />
         </Route>
         {/* Fallback for unknown routes */}
