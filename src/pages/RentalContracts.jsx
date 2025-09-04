@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { rentals } from "../data/rentals";
 import RentalForm from "../components/forms/RentalForm";
 
@@ -40,13 +39,13 @@ export default function RentalContracts() {
       let statusText = "-";
       let statusClass = "";
       if (isStolen) {
-        statusText = "Stolen suspected";
+        statusText = "도난 의심";
         statusClass = "badge--maintenance";
       } else if (isOverdue) {
-        statusText = `Overdue ${overdueDays}d`;
+        statusText = `연체 ${overdueDays}일`;
         statusClass = "badge--rented";
       } else if (isActive) {
-        statusText = "Active";
+        statusText = "대여 중";
         statusClass = "badge--rented";
       }
       return { ...r, isActive, isOverdue, isStolen, overdueDays, statusText, statusClass };
@@ -114,36 +113,27 @@ export default function RentalContracts() {
           <table className="asset-table">
             <thead>
               <tr>
-                <th>Status</th>
-                <th>Rental ID</th>
-                <th>VIN</th>
-                <th>Renter</th>
-                <th>Contact</th>
-                <th>Period</th>
-                <th>Insurance</th>
-                <th>Current Loc</th>
+                <th>차량 번호</th>
+                <th>차종</th>
+                <th>고객 보험 정보</th>
+                <th>대여자</th>
+                <th>대여기간</th>
+                <th>대여자 연락처</th>
+                <th>대여 상태</th>
               </tr>
             </thead>
             <tbody>
               {rows.map((r) => (
                 <tr key={r.rental_id}>
-                  <td>{r.statusText !== "-" ? <span className={`badge ${r.statusClass}`}>{r.statusText}</span> : "-"}</td>
-                  <td>
-                    <Link to={`/detail/rental/${r.rental_id}`}>{r.rental_id}</Link>
-                  </td>
-                  <td>{r.vin}</td>
-                  <td>{r.renter_name}</td>
-                  <td>{r.contact_number}</td>
-                  <td>
-                    {r.rental_period?.start ? new Date(r.rental_period.start).toLocaleDateString() : "-"} ~{" "}
-                    {r.rental_period?.end ? new Date(r.rental_period.end).toLocaleDateString() : "-"}
-                  </td>
+                  <td>{r.plate || "-"}</td>
+                  <td>{r.vehicleType || "-"}</td>
                   <td>{r.insurance_name || "-"}</td>
+                  <td>{r.renter_name || "-"}</td>
                   <td>
-                    {r.current_location
-                      ? `${Number(r.current_location.lat).toFixed(4)}, ${Number(r.current_location.lng).toFixed(4)}`
-                      : "-"}
+                    {r.rental_period?.start ? new Date(r.rental_period.start).toLocaleDateString() : "-"} ~ {r.rental_period?.end ? new Date(r.rental_period.end).toLocaleDateString() : "-"}
                   </td>
+                  <td>{r.contact_number || "-"}</td>
+                  <td>{r.statusText !== "-" ? <span className={`badge ${r.statusClass}`}>{r.statusText}</span> : "-"}</td>
                 </tr>
               ))}
             </tbody>
