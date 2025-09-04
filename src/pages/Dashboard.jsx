@@ -7,6 +7,18 @@ import { rentals } from "../data/rentals";
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
 export default function Dashboard() {
+  const RAD = Math.PI / 180;
+  const renderDonutLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, payload }) => {
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const x = cx + radius * Math.cos(-midAngle * RAD);
+    const y = cy + radius * Math.sin(-midAngle * RAD);
+    const display = payload && payload.rawValue != null ? payload.rawValue : value;
+    return (
+      <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={600} style={{ pointerEvents: "none" }}>
+        {display}
+      </text>
+    );
+  };
   // 차량 등록상태 분포
   const vehicleStatus = useMemo(() => {
     const ORDER = ["자산등록 완료", "보험등록 완료", "장비장착 완료", "장비장착 대기", "미등록", "기타"];
@@ -43,6 +55,24 @@ export default function Dashboard() {
     ];
   }, []);
 
+  const bizStatusLabeled = useMemo(() => {
+    const now = new Date();
+    let reserved = 0;
+    let active = 0;
+    let overdue = 0;
+    let incidents = 0;
+    (rentals || []).forEach((r) => {
+      const start = new Date(r.rental_period.start);
+      const end = new Date(r.rental_period.end);
+      if (r.reported_stolen) incidents += 1;
+      if (now < start) reserved += 1;
+      else if (now >= start && now <= end) active += 1;
+      else if (now > end) overdue += 1;
+    });
+    const raw = [reserved, active, incidents, overdue];
+    return (bizStatus || []).map((d, i) => ({ ...d, rawValue: raw[i] }));
+  }, [bizStatus]);
+
   const scores = [
     { key: "safe", label: "고객 안전/보안 지수", value: 79, delta: +2, color: "#2563eb" },
     { key: "fleet", label: "차량 운영 지수", value: 62, delta: -14, color: "#10b981" },
@@ -60,7 +90,7 @@ export default function Dashboard() {
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 10, right: 8, bottom: 28, left: 8 }}>
-                  <Pie data={vehicleStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="55%" outerRadius="75%" paddingAngle={2}>
+                  <Pie data={vehicleStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="55%" outerRadius="75%" paddingAngle={2} label={renderDonutLabel} labelLine={false}>
                     {vehicleStatus.map((_, i) => (
                       <Cell key={`cell-v-${i}`} fill={COLORS[i % COLORS.length]} />
                     ))}
@@ -77,7 +107,7 @@ export default function Dashboard() {
             <div className="chart-wrap">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart margin={{ top: 10, right: 8, bottom: 28, left: 8 }}>
-                  <Pie data={bizStatus} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="55%" outerRadius="75%" paddingAngle={2}>
+                  <Pie data={bizStatusLabeled} dataKey="value" nameKey="name" cx="50%" cy="50%" innerRadius="55%" outerRadius="75%" paddingAngle={2} label={renderDonutLabel} labelLine={false}>
                     {bizStatus.map((_, i) => (
                       <Cell key={`cell-b-${i}`} fill={COLORS[(i + 1) % COLORS.length]} />
                     ))}
@@ -111,4 +141,3 @@ export default function Dashboard() {
     </div>
   );
 }
-
