@@ -56,6 +56,7 @@ export default function ProblemVehicles() {
               <th>대여기간</th>
               <th>대여자</th>
               <th>연락처</th>
+              <th>이슈</th>
             </tr>
           </thead>
           <tbody>
@@ -64,15 +65,32 @@ export default function ProblemVehicles() {
                 key={p.rental_id}
                 onClick={() => openIssueModal({ vin: p.vin, type: (p.issue || "").includes("stolen") ? "stolen" : "overdue" })}
                 style={{ cursor: "pointer" }}
-                title="이 행을 클릭하면 이슈 등록 창이 열립니다."
+                title="행을 클릭하면 이슈 등록 창이 열립니다."
               >
                 <td>{p.plate || (p.asset ? p.asset.plate : "-")}</td>
                 <td>{p.vehicleType || (p.asset ? p.asset.vehicleType : "-")}</td>
                 <td>
-                  {new Date(p?.rental_period?.start).toLocaleDateString()} ~ {new Date(p?.rental_period?.end).toLocaleDateString()}
+                  {p?.rental_period?.start ? new Date(p.rental_period.start).toLocaleDateString() : "-"} ~ {p?.rental_period?.end ? new Date(p.rental_period.end).toLocaleDateString() : "-"}
                 </td>
-                <td>{p.renter_name}</td>
-                <td>{p.contact_number}</td>
+                <td>{p.renter_name || "-"}</td>
+                <td>{p.contact_number || "-"}</td>
+                <td>
+                  {(() => {
+                    const issue = String(p.issue || "");
+                    const isStolen = issue.indexOf("stolen") !== -1;
+                    const m = issue.match(/overdue\((\d+)d\)/);
+                    let text = "-";
+                    let cls = "";
+                    if (isStolen) {
+                      text = "도난 의심";
+                      cls = "badge--maintenance";
+                    } else if (m) {
+                      text = "연체 " + m[1] + "일";
+                      cls = "badge--rented";
+                    }
+                    return text !== "-" ? <span className={"badge " + cls}>{text}</span> : "-";
+                  })()}
+                </td>
               </tr>
             ))}
           </tbody>

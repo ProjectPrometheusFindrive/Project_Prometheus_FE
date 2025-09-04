@@ -73,16 +73,11 @@ export default function Detail() {
                         <button type="button" className="toggle-btn" onClick={() => navigate(-1)}>
                             Back
                         </button>
-                        {!editing ? (
-                            <button type="button" className="toggle-btn" onClick={() => setEditing(true)}>
-                                Edit
-                            </button>
-                        ) : (
-                            // Use a programmatic submit for more reliable behavior from outside the form
-                            <button
-                                type="button"
-                                className="toggle-btn is-active"
-                                onClick={() => {
+                        <button
+                            type="button"
+                            className={`toggle-btn ${editing ? "is-active" : ""}`}
+                            onClick={() => {
+                                if (editing) {
                                     const f = document.getElementById("detail-form");
                                     if (f) {
                                         // prefer requestSubmit when available (triggers validation)
@@ -98,11 +93,13 @@ export default function Detail() {
                                         console.warn("detail form not found: unable to submit");
                                         setEditing(false);
                                     }
-                                }}
-                            >
-                                Save
-                            </button>
-                        )}
+                                } else {
+                                    setEditing(true);
+                                }
+                            }}
+                        >
+                            {editing ? "Save" : "Edit"}
+                        </button>
                     </div>
 
                     {saved && (

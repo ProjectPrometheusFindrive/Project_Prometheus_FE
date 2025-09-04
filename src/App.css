@@ -129,13 +129,13 @@ body {
     min-height: 100%;
     height: 100%;
     display: flex;
-    flex-direction: column;
+    flex-direction: row; /* left sidebar + main content */
 }
 .app-content {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
-    padding-bottom: calc(56px + env(safe-area-inset-bottom, 0px));
+    /* no bottom padding; nav moved to left */
 }
 .view-toggle {
     display: inline-flex;
@@ -324,19 +324,19 @@ body {
     z-index: 401;
 }
 
-/* Bottom navigation */
+/* Left navigation (converted from bottom nav) */
 .bottom-nav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 56px;
+    position: relative;
+    width: 72px;
+    min-width: 72px;
+    height: 100vh;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    justify-content: space-around;
-    border-top: 1px solid #e5e5e5;
+    justify-content: flex-start;
+    border-right: 1px solid #e5e5e5;
     background: #ffffff;
-    padding-bottom: env(safe-area-inset-bottom, 0);
+    padding: 8px 4px;
     z-index: 1000;
 }
 
@@ -384,12 +384,13 @@ body {
 }
 
 .bottom-nav__link {
-    flex: 1 1 0;
+    flex: 0 0 auto;
+    width: 100%;
     text-align: center;
     color: #444;
     text-decoration: none;
     font-size: 0.9rem;
-    padding: 0.4rem 0.3rem;
+    padding: 10px 4px;
     /* Make it work for both <a> and <button> */
     appearance: none;
     -webkit-appearance: none;
@@ -401,6 +402,7 @@ body {
     justify-content: center;
     gap: 2px;
     position: relative; /* for tooltip positioning */
+    border-radius: 10px;
 }
 
 .bottom-nav__link.is-active {
@@ -411,9 +413,9 @@ body {
 /* Tooltip label: hidden by default, shows on hover/focus */
 .bottom-nav__label {
     position: absolute;
-    left: 50%;
-    bottom: calc(100% + 8px);
-    transform: translate(-50%, 6px);
+    top: 50%;
+    left: calc(100% + 8px);
+    transform: translate(0, -50%);
     opacity: 0;
     pointer-events: none;
     background: #111;
@@ -430,21 +432,21 @@ body {
 .bottom-nav__label::after {
     content: "";
     position: absolute;
-    top: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    top: 50%;
+    left: 0;
+    transform: translate(-100%, -50%);
     width: 0;
     height: 0;
-    border-left: 6px solid transparent;
-    border-right: 6px solid transparent;
-    border-top: 6px solid #111;
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 6px solid #111;
 }
 .bottom-nav__link:hover .bottom-nav__label,
 .bottom-nav__link:focus .bottom-nav__label,
 .bottom-nav__link:focus-visible .bottom-nav__label,
 .bottom-nav__link:active .bottom-nav__label {
     opacity: 1;
-    transform: translate(-50%, 0);
+    transform: translate(0, -50%);
 }
 
 /* Icon for bottom nav items that use emojis or inline SVG */

@@ -4,7 +4,7 @@ import {
   FiHome,
   FiBox,
   FiFileText,
-  FiAlertCircle,
+  FiAlertTriangle,
   FiPlus,
   FiSettings,
   FiLogOut,
@@ -54,6 +54,16 @@ export default function BottomNav() {
       </NavLink>
 
       <NavLink
+        to="/returns"
+        className={({ isActive }) => `bottom-nav__link ${isActive ? "is-active" : ""}`}
+        aria-label="Issues"
+        title="Issues"
+      >
+        <FiAlertTriangle className="bottom-nav__icon" aria-hidden />
+        <span className="bottom-nav__label" role="tooltip">Issues</span>
+      </NavLink>
+
+      <NavLink
         to="/rentals/map"
         className={({ isActive }) => `bottom-nav__link ${isActive ? "is-active" : ""}`}
         aria-label="Map"
@@ -61,16 +71,6 @@ export default function BottomNav() {
       >
         <FiMap className="bottom-nav__icon" aria-hidden />
         <span className="bottom-nav__label" role="tooltip">Map</span>
-      </NavLink>
-
-      <NavLink
-        to="/returns"
-        className={({ isActive }) => `bottom-nav__link ${isActive ? "is-active" : ""}`}
-        aria-label="Issues"
-        title="Issues"
-      >
-        <FiAlertCircle className="bottom-nav__icon" aria-hidden />
-        <span className="bottom-nav__label" role="tooltip">Issues</span>
       </NavLink>
 
       <NavLink
