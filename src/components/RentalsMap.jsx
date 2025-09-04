@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { dummyGeofences } from "../data/geofences";
 
-export default function RentalsMap({ rentals }) {
+export default function RentalsMap({ rentals, filters = { active: true, overdue: true, stolen: true, other: true, geofence: true } }) {
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const geofenceLayersRef = useRef([]);
@@ -156,21 +156,13 @@ export default function RentalsMap({ rentals }) {
       else clusterOther.addLayer(m);
     });
 
-    map.addLayer(clusterActive);
-    map.addLayer(clusterOverdue);
-    map.addLayer(clusterStolen);
-    map.addLayer(clusterOther);
+    // Add clusters conditionally based on filters
+    if (filters.active) map.addLayer(clusterActive);
+    if (filters.overdue) map.addLayer(clusterOverdue);
+    if (filters.stolen) map.addLayer(clusterStolen);
+    if (filters.other) map.addLayer(clusterOther);
 
-    // Ensure legend shows geofence icon as well (DOM patch for existing legend block)
-    try {
-      const container = document.querySelector('.legend');
-      if (container && !container.querySelector('.legend__item--geo')) {
-        const item = document.createElement('span');
-        item.className = 'legend__item legend__item--geo';
-        item.innerHTML = '<span class="marker marker--geo">🔒</span> Geofence';
-        container.appendChild(item);
-      }
-    } catch {}
+    // Legend is rendered in JSX on the page; nothing to patch here.
 
     // Draw geofences with hatched fill
     const ensureHatchPattern = () => {
@@ -221,7 +213,10 @@ export default function RentalsMap({ rentals }) {
         weight: 2,
         fillOpacity: 0.1,
         fillColor: '#0b57d0',
-      }).addTo(map);
+      });
+      if (filters?.geofence) {
+        layer.addTo(map);
+      }
       try {
         // Ensure pattern exists after first vector creation
         if (!pattern) pattern = ensureHatchPattern();
@@ -241,7 +236,10 @@ export default function RentalsMap({ rentals }) {
         const sum = pts.reduce((acc, p) => ({ lat: acc.lat + p.lat, lng: acc.lng + p.lng }), { lat: 0, lng: 0 });
         const c = { lat: sum.lat / pts.length, lng: sum.lng / pts.length };
         const gIcon = L.divIcon({ className: 'marker marker--geo', html: '🔒', iconSize: [36, 36] });
-        const gm = L.marker([c.lat, c.lng], { icon: gIcon }).addTo(map);
+        const gm = L.marker([c.lat, c.lng], { icon: gIcon });
+        if (filters?.geofence) {
+          gm.addTo(map);
+        }
         gm.bindPopup(`<strong>🔒 ${name}</strong>`);
         geofenceLayers.push(gm);
       } catch {}
@@ -253,9 +251,11 @@ export default function RentalsMap({ rentals }) {
       .map((r) => r.current_location || getCompanyLatLng())
       .filter(Boolean)
       .map((p) => [p.lat, p.lng]);
-    const geofencePoints = geofences
-      .flatMap((g) => (Array.isArray(g.points) ? g.points : []))
-      .map((p) => [p.lat, p.lng]);
+    const geofencePoints = filters?.geofence
+      ? geofences
+          .flatMap((g) => (Array.isArray(g.points) ? g.points : []))
+          .map((p) => [p.lat, p.lng])
+      : [];
     const allPts = [...points, ...geofencePoints];
     if (allPts.length > 0) {
       map.fitBounds(allPts, { padding: [30, 30] });
@@ -271,7 +271,7 @@ export default function RentalsMap({ rentals }) {
       });
       geofenceLayersRef.current = [];
     };
-  }, [rentals]);
+  }, [rentals, filters]);
 
   // Fallback UI if Leaflet not loaded
   if (!window.L) {
