@@ -1,5 +1,0 @@
-﻿feat(returns): 현황 표 컬럼 정리 + 이슈 등록 버튼 통일
-
-- returns 페이지: 차량번호/차종/대여기간/대여자/연락처만 표시, 상단 우측에 '이슈차량 등록' 버튼 배치(form-button 사용)
-- 모달: 행 클릭/버튼으로 열기, 닫기 버튼 스타일 통일
-- api: fetchProblemVehicles에 plate/vehicleType 포함, createIssueDraft 추가(localStorage.issueDrafts 저장)
