@@ -158,6 +158,10 @@ body {
     border-right: 1px solid #e5e5e5;
 }
 
+.navigation-bar__logout {
+    margin-top: auto;
+}
+
 .navigation-bar__link {
     display: flex;
     flex-direction: column;
