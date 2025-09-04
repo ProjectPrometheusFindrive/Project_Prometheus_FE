@@ -197,6 +197,8 @@ export async function fetchProblemVehicles() {
       return {
         rental_id: r.rental_id,
         vin: r.vin,
+        plate: r.plate || a?.plate || "",
+        vehicleType: r.vehicleType || a?.vehicleType || "",
         renter_name: r.renter_name,
         contact_number: r.contact_number,
         rental_period: r.rental_period,
@@ -207,6 +209,20 @@ export async function fetchProblemVehicles() {
       };
     })
     .filter(Boolean);
+}
+
+// Create an issue draft entry in localStorage (simple fake persistence)
+export async function createIssueDraft(data) {
+  try {
+    const arr = JSON.parse(localStorage.getItem("issueDrafts") || "[]");
+    const payload = { ...data, createdAt: new Date().toISOString() };
+    arr.push(payload);
+    localStorage.setItem("issueDrafts", JSON.stringify(arr));
+    return { ok: true, data: payload };
+  } catch (e) {
+    console.error("createIssueDraft failed", e);
+    return { ok: false, error: e?.message || String(e) };
+  }
 }
 
 // Vehicle-centric view: resolve current/active/overdue/reserved/conflicts per VIN

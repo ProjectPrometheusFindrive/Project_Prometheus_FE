@@ -1,95 +1,78 @@
-import React, { useMemo } from "react";
-import { Link } from "react-router-dom";
-import { rentals } from "../data/rentals";
-import { assets } from "../data/assets";
+import React, { useEffect, useState } from "react";
+import IssueForm from "../components/forms/IssueForm";
+import { fetchProblemVehicles, createIssueDraft } from "../api/fakeApi";
 
 export default function ProblemVehicles() {
-  const assetByVin = useMemo(() => {
-    const m = new Map();
-    assets.forEach((a) => {
-      if (a.vin) m.set(a.vin, a);
-    });
-    return m;
+  const [problems, setProblems] = useState([]);
+  const [showIssueModal, setShowIssueModal] = useState(false);
+  const [issueInitial, setIssueInitial] = useState({});
+  const [saved, setSaved] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const list = await fetchProblemVehicles();
+        if (mounted) setProblems(list || []);
+      } catch (e) {
+        console.error("Failed to fetch problem vehicles", e);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  const today = new Date();
+  const openIssueModal = (prefill = {}) => {
+    setIssueInitial(prefill || {});
+    setShowIssueModal(true);
+  };
 
-  const problems = useMemo(() => {
-    return rentals
-      .map((r) => {
-        const end = new Date(r.rental_period.end);
-        const overdueDays = Math.floor((today - end) / (1000 * 60 * 60 * 24));
-        const isOverdue = overdueDays > 0;
-        const isStolen = Boolean(r.reported_stolen);
-        if (!(isOverdue || isStolen)) return null;
-        const a = assetByVin.get(r.vin);
-        return {
-          rental_id: r.rental_id,
-          vin: r.vin,
-          renter_name: r.renter_name,
-          contact_number: r.contact_number,
-          rental_period: r.rental_period,
-          insurance_name: r.insurance_name,
-          current_location: r.current_location,
-          issue:
-            isStolen ? "도난 의심" : `반납 지연 (${overdueDays}일)`,
-          asset: a || null,
-        };
-      })
-      .filter(Boolean);
-  }, [assetByVin]);
+  const handleIssueSubmit = async (data) => {
+    await createIssueDraft(data);
+    setShowIssueModal(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 1500);
+  };
 
   return (
     <div className="page">
-      <h1>반납 지연/도난 현황</h1>
+      <h1>반납지연/도난 현황</h1>
+
+      <div className="asset-toolbar" style={{ marginTop: 8 }}>
+        <div style={{ flex: 1 }} />
+        <button type="button" className="form-button" onClick={() => openIssueModal({})}>
+          이슈차량 등록
+        </button>
+        {saved && <span className="saved-indicator" aria-live="polite">Saved</span>}
+      </div>
 
       <div className="table-wrap">
         <table className="asset-table">
           <thead>
             <tr>
-              <th>Issue</th>
-              <th>Rental ID</th>
-              <th>VIN</th>
-              <th>Make/Model</th>
-              <th>Year</th>
-              <th>Fuel</th>
-              <th>Renter</th>
-              <th>Contact</th>
-              <th>Period</th>
-              <th>Insurance</th>
-              <th>Current Loc</th>
+              <th>차량번호</th>
+              <th>차종</th>
+              <th>대여기간</th>
+              <th>대여자</th>
+              <th>연락처</th>
             </tr>
           </thead>
           <tbody>
             {problems.map((p) => (
-              <tr key={p.rental_id}>
+              <tr
+                key={p.rental_id}
+                onClick={() => openIssueModal({ vin: p.vin, type: (p.issue || "").includes("stolen") ? "stolen" : "overdue" })}
+                style={{ cursor: "pointer" }}
+                title="이 행을 클릭하면 이슈 등록 창이 열립니다."
+              >
+                <td>{p.plate || (p.asset ? p.asset.plate : "-")}</td>
+                <td>{p.vehicleType || (p.asset ? p.asset.vehicleType : "-")}</td>
                 <td>
-                  <span className={`badge ${p.issue.includes("도난") ? "badge--maintenance" : "badge--rented"}`}>
-                    {p.issue}
-                  </span>
+                  {new Date(p?.rental_period?.start).toLocaleDateString()} ~ {new Date(p?.rental_period?.end).toLocaleDateString()}
                 </td>
-                <td>
-                  <Link to={`/detail/issue/${p.rental_id}`}>{p.rental_id}</Link>
-                </td>
-                <td>{p.vin}</td>
-                <td>
-                  {p.asset ? `${p.asset.make} ${p.asset.model}` : "-"}
-                </td>
-                <td>{p.asset ? p.asset.year : "-"}</td>
-                <td>{p.asset ? p.asset.fuelType : "-"}</td>
                 <td>{p.renter_name}</td>
                 <td>{p.contact_number}</td>
-                <td>
-                  {new Date(p.rental_period.start).toLocaleDateString()} ~
-                  {" "}
-                  {new Date(p.rental_period.end).toLocaleDateString()}
-                </td>
-                <td>{p.insurance_name}</td>
-                <td>
-                  {p.current_location
-                    ? `${p.current_location.lat.toFixed(4)}, ${p.current_location.lng.toFixed(4)}`
-                    : "-"}
-                </td>
               </tr>
             ))}
           </tbody>
@@ -98,6 +81,21 @@ export default function ProblemVehicles() {
       {problems.length === 0 && (
         <div className="empty">문제 차량이 없습니다.</div>
       )}
+
+      {showIssueModal && (
+        <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="이슈차량 등록">
+          <div className="modal">
+            <div className="header-row" style={{ marginBottom: 8 }}>
+              <strong>이슈차량 등록</strong>
+              <div style={{ marginLeft: "auto" }}>
+                <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowIssueModal(false)}>닫기</button>
+              </div>
+            </div>
+            <IssueForm initial={issueInitial} onSubmit={handleIssueSubmit} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
+
