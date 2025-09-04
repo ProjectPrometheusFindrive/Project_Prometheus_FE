@@ -653,9 +653,13 @@ html {
     max-width: 280px;
     margin: 0 auto;
 }
+.gauge {
+    /* Ensure the container keeps space for the semicircle so parent flex layouts don't squash it */
+    min-height: 140px; /* reasonable default for size ~280 */
+}
 .gauge svg {
     width: 100%;
-    height: auto;
+    height: 90%;
     display: block;
 }
 .gauge-title {

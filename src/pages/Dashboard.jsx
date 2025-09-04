@@ -14,7 +14,7 @@ export default function Dashboard() {
         const y = cy + radius * Math.sin(-midAngle * RAD);
         const display = payload && payload.rawValue != null ? payload.rawValue : value;
         return (
-            <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={12} fontWeight={600} style={{ pointerEvents: "none" }}>
+            <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600} style={{ pointerEvents: "none" }}>
                 {display}
             </text>
         );
@@ -75,7 +75,7 @@ export default function Dashboard() {
     }, [bizStatus]);
 
     const scores = [
-        { key: "safe", label: "고객 안전/보안 지수", value: 79, delta: +2, color: "#2563eb" },
+        { key: "safe", label: "고객 안전/보안 지수", value: 79, delta: +2, color: "#25cdebff" },
         { key: "fleet", label: "차량 운영 지수", value: 62, delta: -14, color: "#10b981" },
         { key: "sales", label: "매출 지수", value: 85, delta: +4, color: "#f59e0b" },
     ];
@@ -97,8 +97,8 @@ export default function Dashboard() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius="55%"
-                                        outerRadius="75%"
+                                        innerRadius="48%"
+                                        outerRadius="78%"
                                         paddingAngle={2}
                                         label={renderDonutLabel}
                                         labelLine={false}
@@ -125,8 +125,8 @@ export default function Dashboard() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius="55%"
-                                        outerRadius="75%"
+                                        innerRadius="48%"
+                                        outerRadius="78%"
                                         paddingAngle={2}
                                         label={renderDonutLabel}
                                         labelLine={false}
