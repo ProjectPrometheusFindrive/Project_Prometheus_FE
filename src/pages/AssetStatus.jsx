@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { assets as seedAssets } from "../data/assets";
-import { resolveVehicleRentals, fetchAssetById } from "../api/fakeApi";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets } from "../api";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import Modal from "../components/Modal";
@@ -12,7 +11,7 @@ import { formatDateShort } from "../utils/date";
 export default function AssetStatus() {
     const [q, setQ] = useState("");
     const [status, setStatus] = useState("all");
-    const [rows, setRows] = useState(() => seedAssets.map((a) => ({ ...a })));
+    const [rows, setRows] = useState([]);
     const [showAssetModal, setShowAssetModal] = useState(false);
     const [showDeviceModal, setShowDeviceModal] = useState(false);
     const [activeAsset, setActiveAsset] = useState(null);
@@ -27,16 +26,27 @@ export default function AssetStatus() {
     // Date formatting handled by utils/date
 
     useEffect(() => {
-        try {
-            const map = typedStorage.devices.getAll() || {};
-            setRows((prev) =>
-                prev.map((a) => {
-                    const info = map[a.id];
-                    if (info) return { ...a, deviceSerial: info.serial || a.deviceSerial, installer: info.installer || a.installer };
-                    return a;
-                })
-            );
-        } catch {}
+        let mounted = true;
+        (async () => {
+            try {
+                const list = await fetchAssets();
+                let next = Array.isArray(list) ? list.map((a) => ({ ...a })) : [];
+                try {
+                    const map = typedStorage.devices.getAll() || {};
+                    next = next.map((a) => {
+                        const info = map[a.id];
+                        return info ? { ...a, deviceSerial: info.serial || a.deviceSerial, installer: info.installer || a.installer } : a;
+                    });
+                } catch {}
+                if (mounted) setRows(next);
+            } catch (e) {
+                console.error("Failed to load assets", e);
+                if (mounted) setRows([]);
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
     }, []);
 
     const filtered = useMemo(() => {

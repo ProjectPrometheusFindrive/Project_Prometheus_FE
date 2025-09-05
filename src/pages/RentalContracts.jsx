@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { rentals } from "../data/rentals";
+import { fetchRentals } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
@@ -7,28 +7,41 @@ import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 export default function RentalContracts() {
-  const [items, setItems] = useState(() => rentals.map((r) => ({ ...r })));
+  const [items, setItems] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
 
-  // Load drafts from localStorage and merge once
+  // Initial load via fake API, then merge any local drafts once
   useEffect(() => {
-    try {
-      const raw = localStorage.getItem("rentalDrafts");
-      if (!raw) return;
-      const drafts = JSON.parse(raw);
-      if (!Array.isArray(drafts)) return;
-      setItems((prev) => {
-        const existingIds = new Set(prev.map((x) => String(x.rental_id)));
-        const toAdd = drafts
-          .filter((d) => d && d.rental_id && !existingIds.has(String(d.rental_id)))
-          .map((d) => ({
-            ...d,
-            rental_period: d.rental_period || { start: d.start || "", end: d.end || "" },
-          }));
-        if (toAdd.length === 0) return prev;
-        return [...prev, ...toAdd];
-      });
-    } catch {}
+    let mounted = true;
+    (async () => {
+      try {
+        const base = await fetchRentals();
+        let list = Array.isArray(base) ? base.map((r) => ({ ...r })) : [];
+        try {
+          const raw = localStorage.getItem("rentalDrafts");
+          if (raw) {
+            const drafts = JSON.parse(raw);
+            if (Array.isArray(drafts)) {
+              const existingIds = new Set(list.map((x) => String(x.rental_id)));
+              const toAdd = drafts
+                .filter((d) => d && d.rental_id && !existingIds.has(String(d.rental_id)))
+                .map((d) => ({
+                  ...d,
+                  rental_period: d.rental_period || { start: d.start || "", end: d.end || "" },
+                }));
+              if (toAdd.length > 0) list = [...list, ...toAdd];
+            }
+          }
+        } catch {}
+        if (mounted) setItems(list);
+      } catch (e) {
+        console.error("Failed to load rentals", e);
+        if (mounted) setItems([]);
+      }
+    })();
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   const rows = useMemo(() => {
@@ -181,4 +194,3 @@ export default function RentalContracts() {
     </div>
   );
 }
-

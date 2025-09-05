@@ -1,14 +1,32 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
-import { dummyGeofences } from "../data/geofences";
+import { fetchGeofences } from "../api";
 
 export default function RentalsMap({ rentals, filters = { active: true, overdue: true, stolen: true, geofence: true }, focusVin = "" }) {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const geofenceLayersRef = useRef([]);
     const markersRef = useRef({});
+    const [geofences, setGeofences] = useState([]);
+
+    // Load geofences once through fake API
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const g = await fetchGeofences();
+                if (mounted) setGeofences(Array.isArray(g) ? g : []);
+            } catch (e) {
+                console.error("Failed to load geofences", e);
+                if (mounted) setGeofences([]);
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     useEffect(() => {
         const L = window.L;
@@ -25,43 +43,7 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
         const map = mapInstanceRef.current;
         markersRef.current = {};
 
-        // Load geofences from companyInfo or legacy key, fallback to dummy
-        const loadGeofences = () => {
-            try {
-                // New location: companyInfo.geofences
-                const ciRaw = localStorage.getItem("companyInfo");
-                if (ciRaw) {
-                    const ci = JSON.parse(ciRaw);
-                    const arr = Array.isArray(ci?.geofences) ? ci.geofences : [];
-                    const items = arr
-                        .map((it, i) => {
-                            if (Array.isArray(it)) return { name: `Polygon ${i + 1}`, points: it };
-                            if (it && Array.isArray(it.points)) return { name: it.name || `Polygon ${i + 1}`, points: it.points };
-                            return null;
-                        })
-                        .filter(Boolean);
-                    if (items.length > 0) return items;
-                }
-            } catch {}
-            try {
-                const raw = localStorage.getItem("geofenceSets");
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    const arr = Array.isArray(parsed?.geofences) ? parsed.geofences : [];
-                    const items = arr
-                        .map((it, i) => {
-                            if (Array.isArray(it)) return { name: `Polygon ${i + 1}`, points: it };
-                            if (it && Array.isArray(it.points)) return { name: it.name || `Polygon ${i + 1}`, points: it.points };
-                            return null;
-                        })
-                        .filter(Boolean);
-                    if (items.length > 0) return items;
-                }
-            } catch {}
-            return dummyGeofences || [];
-        };
-
-        const geofences = loadGeofences();
+        // geofences are loaded via fakeApi and kept in state
 
         // Build separate clusters for each status with custom icons
         const makeClusterIcon = (type) => (cluster) =>
@@ -306,7 +288,7 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
             });
             geofenceLayersRef.current = [];
         };
-    }, [rentals, filters, focusVin]);
+    }, [rentals, filters, focusVin, geofences]);
 
     // Fallback UI if Leaflet not loaded
     if (!window.L) {

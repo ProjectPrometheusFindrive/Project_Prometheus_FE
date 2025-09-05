@@ -3,6 +3,7 @@
 // - Encapsulates logic for vehicles with multiple rentals
 
 import { db, buildIndexes } from "../data/db";
+import { loadCompanyInfo as _loadCompanyInfo, saveCompanyInfo as _saveCompanyInfo, defaultCompanyInfo as _defaultCompanyInfo } from "../data/company";
 
 const deepClone = (obj) => JSON.parse(JSON.stringify(obj));
 
@@ -341,4 +342,13 @@ export async function fetchVehicles() {
   }
 
   return vehicles;
+}
+
+// Company info (settings)
+export const defaultCompanyInfo = _defaultCompanyInfo;
+export async function fetchCompanyInfo() {
+  return _loadCompanyInfo();
+}
+export async function saveCompanyInfo(data) {
+  return _saveCompanyInfo(data);
 }

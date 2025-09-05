@@ -7,7 +7,7 @@ import { FiAlertTriangle } from "react-icons/fi";
 import IssueForm from "../components/forms/IssueForm";
 import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
-import { fetchProblemVehicles, createIssueDraft } from "../api/fakeApi";
+import { fetchProblemVehicles, createIssueDraft } from "../api";
 import { RentalStatusBadge, DeviceStatusBadge, EngineStatusBadge } from "../components/StatusBadge";
 
 export default function ProblemVehicles() {

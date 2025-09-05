@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import GeofencePreview from "../components/GeofencePreview";
-import { loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../data/company";
+import { fetchCompanyInfo as loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../api";
 import { COLORS, DIMENSIONS } from "../constants";
 import { FileBadge, CountBadge, GeofenceBadge } from "../components/StatusBadge";
 

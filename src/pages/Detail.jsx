@@ -1,7 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { assets } from "../data/assets";
-import { rentals } from "../data/rentals";
+import { fetchAssetById, fetchRentalById } from "../api";
 import AssetForm from "../components/forms/AssetForm";
 import RentalForm from "../components/forms/RentalForm";
 import IssueForm from "../components/forms/IssueForm";
@@ -12,46 +11,29 @@ export default function Detail() {
     const t = (type || "").toLowerCase();
     const [editing, setEditing] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [data, setData] = useState(null);
 
-    const data = useMemo(() => {
-        if (t === "asset") {
-            return assets.find((a) => String(a.id) === String(id));
-        }
-        if (t === "rental" || t === "issue") {
-            const rid = Number(id);
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
             try {
-                // Base list
-                const base = rentals.map((r) => ({ ...r }));
-                // Drafts
-                const draftsRaw = localStorage.getItem("rentalDrafts");
-                if (draftsRaw) {
-                    const drafts = JSON.parse(draftsRaw);
-                    if (Array.isArray(drafts)) {
-                        drafts.forEach((d) => {
-                            if (!d || !d.rental_id) return;
-                            if (!base.find((x) => String(x.rental_id) === String(d.rental_id))) {
-                                base.push({ ...d, rental_period: d.rental_period || { start: d.start || "", end: d.end || "" } });
-                            }
-                        });
-                    }
+                if (t === "asset") {
+                    const a = await fetchAssetById(id);
+                    if (mounted) setData(a || null);
+                } else if (t === "rental" || t === "issue") {
+                    const r = await fetchRentalById(id);
+                    if (mounted) setData(r || null);
+                } else {
+                    if (mounted) setData(null);
                 }
-                // Edits overlay
-                const editsRaw = localStorage.getItem("rentalEdits");
-                let found = base.find((r) => Number(r.rental_id) === rid) || null;
-                if (found && editsRaw) {
-                    const edits = JSON.parse(editsRaw) || {};
-                    const patch = edits[String(rid)];
-                    if (patch) {
-                        found = { ...found, ...patch };
-                        if (!found.rental_period) found.rental_period = { start: found.start || "", end: found.end || "" };
-                    }
-                }
-                return found;
-            } catch {
-                return rentals.find((r) => Number(r.rental_id) === rid);
+            } catch (e) {
+                console.error("Failed to fetch detail data", e);
+                if (mounted) setData(null);
             }
-        }
-        return null;
+        })();
+        return () => {
+            mounted = false;
+        };
     }, [t, id]);
 
     if (!data) {

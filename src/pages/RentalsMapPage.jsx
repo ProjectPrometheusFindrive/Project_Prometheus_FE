@@ -1,19 +1,36 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
-import { rentals } from "../data/rentals";
+import { fetchLatestRentals } from "../api";
 import RentalsMap from "../components/RentalsMap";
 
 export default function RentalsMapPage() {
     const [searchParams] = useSearchParams();
     const focusVin = searchParams.get("vin") || "";
+    const [rentals, setRentals] = useState([]);
     const [filters, setFilters] = useState({
         active: true,
         overdue: true,
         stolen: true,
         geofence: true,
     });
+
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const list = await fetchLatestRentals();
+                if (mounted) setRentals(Array.isArray(list) ? list : []);
+            } catch (e) {
+                console.error("Failed to load rentals for map", e);
+                if (mounted) setRentals([]);
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const toggle = useCallback((key) => {
         setFilters((prev) => ({ ...prev, [key]: !prev[key] }));

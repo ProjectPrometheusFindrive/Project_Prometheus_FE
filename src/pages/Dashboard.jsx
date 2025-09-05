@@ -1,8 +1,7 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Gauge from "../components/Gauge";
-import { assets } from "../data/assets";
-import { rentals } from "../data/rentals";
+import { fetchDashboardData } from "../api";
 
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
@@ -19,65 +18,48 @@ export default function Dashboard() {
             </text>
         );
     };
-    // 차량 등록상태 분포 (0 값은 필터링)
-    const vehicleStatus = useMemo(() => {
-        const ORDER = ["자산등록 완료", "보험등록 완료", "장비장착 완료", "장비장착 대기", "미등록", "기타"];
-        const counts = Object.fromEntries(ORDER.map((k) => [k, 0]));
-        (assets || []).forEach((a) => {
-            const s = a.registrationStatus || "기타";
-            if (Object.prototype.hasOwnProperty.call(counts, s)) counts[s] += 1;
-            else counts["기타"] += 1;
-        });
-        return ORDER.map((name) => ({ name, value: counts[name] })).filter((d) => d.value > 0);
-    }, []);
 
-    // 업무현황 요약 (실제 값 사용, 0 값은 렌더링 전 필터링)
-    const bizStatus = useMemo(() => {
-        const now = new Date();
-        let reserved = 0; // 예약(시작 전)
-        let active = 0; // 진행 중
-        let overdue = 0; // 반납 지연
-        let incidents = 0; // 도난/이슈
-        (rentals || []).forEach((r) => {
-            const start = new Date(r.rental_period.start);
-            const end = new Date(r.rental_period.end);
-            if (r.reported_stolen) incidents += 1;
-            if (now < start) reserved += 1;
-            else if (now >= start && now <= end) active += 1;
-            else if (now > end) overdue += 1;
-        });
-        return [
-            { name: "예약", value: reserved },
-            { name: "진행", value: active },
-            { name: "사고/이슈", value: incidents },
-            { name: "반납 지연", value: overdue },
-        ].filter((d) => d.value > 0);
-    }, []);
+    const [vehicleStatus, setVehicleStatus] = useState([]);
+    const [bizStatusLabeled, setBizStatusLabeled] = useState([]);
 
-    const bizStatusLabeled = useMemo(() => {
-        // 원래의 raw 값을 보존하여 툴팁/라벨에 사용 가능하게 함
-        const now = new Date();
-        let reserved = 0,
-            active = 0,
-            overdue = 0,
-            incidents = 0;
-        (rentals || []).forEach((r) => {
-            const start = new Date(r.rental_period.start);
-            const end = new Date(r.rental_period.end);
-            if (r.reported_stolen) incidents += 1;
-            if (now < start) reserved += 1;
-            else if (now >= start && now <= end) active += 1;
-            else if (now > end) overdue += 1;
-        });
-        const raw = [reserved, active, incidents, overdue];
-        const labels = ["예약", "진행", "사고/이슈", "반납 지연"];
-        return labels.map((name, i) => ({ name, value: raw[i], rawValue: raw[i] })).filter((d) => d.value > 0);
-    }, [bizStatus]);
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const data = await fetchDashboardData();
+                if (!mounted) return;
+                const vs = Array.isArray(data?.vehicleStatus) ? data.vehicleStatus : [];
+                const bs = Array.isArray(data?.bizStatus) ? data.bizStatus : [];
+                // Map backend keys to Korean labels for chart display
+                const labelMap = {
+                    reserved: "예약",
+                    active: "진행",
+                    incidents: "사고/이슈",
+                    overdue: "반납 지연",
+                };
+                setVehicleStatus(vs.map((d) => ({ ...d, rawValue: d.value })).filter((d) => (d?.value ?? 0) > 0));
+                setBizStatusLabeled(
+                    bs
+                        .map((d) => ({ name: labelMap[d.name] || d.name, value: d.value, rawValue: d.value }))
+                        .filter((d) => (d?.value ?? 0) > 0)
+                );
+            } catch (e) {
+                console.error("Failed to fetch dashboard data", e);
+                if (mounted) {
+                    setVehicleStatus([]);
+                    setBizStatusLabeled([]);
+                }
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, []);
 
     const scores = [
-        { key: "safe", label: "고객 안전/보안 지수", value: 79, delta: +2, color: "#25cdebff" },
-        { key: "fleet", label: "차량 운영 지수", value: 62, delta: -14, color: "#10b981" },
-        { key: "sales", label: "매출 지수", value: 85, delta: +4, color: "#f59e0b" },
+        { key: "safe", label: "고객 안전/보안 지표", value: 79, delta: +2, color: "#25cdebff" },
+        { key: "fleet", label: "차량 운영 지표", value: 62, delta: -14, color: "#10b981" },
+        { key: "sales", label: "매출 지표", value: 85, delta: +4, color: "#f59e0b" },
     ];
 
     return (
