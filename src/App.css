@@ -75,6 +75,16 @@
     color: #b71c1c;
 }
 
+/* Simple ON/OFF badges for device/engine */
+.badge--on {
+    background: #e9f8ee;
+    color: #177245;
+}
+.badge--off {
+    background: #f3f4f6;
+    color: #374151;
+}
+
 .empty {
     color: #666;
     padding: 1rem 0;
@@ -718,6 +728,22 @@ body {
 }
 .form-button:hover {
     background: #064dc9;
+}
+
+/* Small inline button for table actions */
+.mini-button {
+    background: #f3f4f6;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    cursor: pointer;
+}
+.mini-button.is-on {
+    background: #0b57d0;
+    color: #fff;
+    border-color: #0b57d0;
 }
 
 /* Scroll containers between sticky header and bottom nav */

@@ -3,11 +3,16 @@ import { rentals } from "../data/rentals";
 import RentalForm from "../components/forms/RentalForm";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
+import { seedVehicles } from "../data/seed";
 
 export default function RentalContracts() {
     const [items, setItems] = useState(() => rentals.map((r) => ({ ...r })));
     const [showCreate, setShowCreate] = useState(false);
     const [selected, setSelected] = useState(new Set());
+    const [noRestartMap, setNoRestartMap] = useState({});
+    const [engineMap, setEngineMap] = useState({});
+    const navigate = useNavigate();
 
     // Load drafts from localStorage and merge once
     useEffect(() => {
@@ -27,6 +32,18 @@ export default function RentalContracts() {
                 if (toAdd.length === 0) return prev;
                 return [...prev, ...toAdd];
             });
+        } catch {}
+    }, []);
+
+    // Load persisted restart lock and engine status overrides
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem("noRestartMap");
+            if (raw) setNoRestartMap(JSON.parse(raw));
+        } catch {}
+        try {
+            const raw2 = localStorage.getItem("engineStatusMap");
+            if (raw2) setEngineMap(JSON.parse(raw2));
         } catch {}
     }, []);
 
@@ -51,9 +68,13 @@ export default function RentalContracts() {
                 statusText = "대여 중";
                 statusClass = "badge--rented";
             }
-            return { ...r, isActive, isOverdue, isStolen, overdueDays, statusText, statusClass };
+            const deviceSerial = seedVehicles?.[r.vin]?.asset?.deviceSerial || "";
+            const deviceInstalled = Boolean(deviceSerial && String(deviceSerial).trim());
+            const engineOn = typeof engineMap?.[r.vin] === "boolean" ? engineMap[r.vin] : isActive;
+            const restartLocked = Boolean(noRestartMap?.[r.vin]);
+            return { ...r, isActive, isOverdue, isStolen, overdueDays, statusText, statusClass, deviceInstalled, engineOn, restartLocked };
         });
-    }, [items]);
+    }, [items, engineMap, noRestartMap]);
 
     const allVisibleSelected = useMemo(() => {
         if (!rows || rows.length === 0) return false;
@@ -85,6 +106,21 @@ export default function RentalContracts() {
         if (!ok) return;
         setItems((prev) => prev.filter((r) => !selected.has(r.rental_id)));
         setSelected(new Set());
+    };
+
+    const toggleRestartLock = (vin) => {
+        setNoRestartMap((prev) => {
+            const next = { ...prev, [vin]: !prev?.[vin] };
+            try {
+                localStorage.setItem("noRestartMap", JSON.stringify(next));
+            } catch {}
+            return next;
+        });
+    };
+
+    const gotoMapFor = (vin) => {
+        if (!vin) return;
+        navigate(`/rentals/map?vin=${encodeURIComponent(vin)}`);
     };
 
     const nextRentalId = () => {
@@ -169,6 +205,10 @@ export default function RentalContracts() {
                                 <th>대여기간</th>
                                 <th>대여자 연락처</th>
                                 <th>대여 상태</th>
+                                <th>단말상태</th>
+                                <th>엔진상태</th>
+                                <th>재시동금지</th>
+                                <th>현위치</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -200,6 +240,33 @@ export default function RentalContracts() {
                                         ) : (
                                             "-"
                                         )}
+                                    </td>
+                                    <td>
+                                        <span className={`badge ${r.deviceInstalled ? "badge--on" : "badge--off"}`}>{r.deviceInstalled ? "설치됨" : "없음"}</span>
+                                    </td>
+                                    <td>
+                                        <span className={`badge ${r.engineOn ? "badge--on" : "badge--off"}`}>{r.engineOn ? "ON" : "OFF"}</span>
+                                    </td>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            className={`mini-button ${r.restartLocked ? "is-on" : ""}`}
+                                            onClick={() => toggleRestartLock(r.vin)}
+                                            aria-pressed={r.restartLocked}
+                                            title="재시동 금지 토글"
+                                        >
+                                            {r.restartLocked ? "ON" : "OFF"}
+                                        </button>
+                                    </td>
+                                    <td>
+                                        <button
+                                            type="button"
+                                            className="mini-button"
+                                            onClick={() => gotoMapFor(r.vin)}
+                                            title="지도에서 보기"
+                                        >
+                                            지도
+                                        </button>
                                     </td>
                                 </tr>
                             ))}

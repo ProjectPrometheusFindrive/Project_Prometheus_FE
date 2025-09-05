@@ -1,10 +1,13 @@
 import React, { useState, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 import { rentals } from "../data/rentals";
 import RentalsMap from "../components/RentalsMap";
 
 export default function RentalsMapPage() {
+    const [searchParams] = useSearchParams();
+    const focusVin = searchParams.get("vin") || "";
     const [filters, setFilters] = useState({
         active: true,
         overdue: true,
@@ -72,10 +75,9 @@ export default function RentalsMapPage() {
                             <span className="legend__label">지오펜스</span>
                         </button>
                     </div>
-                    <RentalsMap rentals={rentals} filters={filters} />
+                    <RentalsMap rentals={rentals} filters={filters} focusVin={focusVin} />
                 </div>
             </div>
         </div>
     );
 }
-

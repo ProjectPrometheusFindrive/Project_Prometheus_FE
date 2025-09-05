@@ -4,10 +4,11 @@ import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 import { dummyGeofences } from "../data/geofences";
 
-export default function RentalsMap({ rentals, filters = { active: true, overdue: true, stolen: true, geofence: true } }) {
+export default function RentalsMap({ rentals, filters = { active: true, overdue: true, stolen: true, geofence: true }, focusVin = "" }) {
     const mapRef = useRef(null);
     const mapInstanceRef = useRef(null);
     const geofenceLayersRef = useRef([]);
+    const markersRef = useRef({});
 
     useEffect(() => {
         const L = window.L;
@@ -22,6 +23,7 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
         }
 
         const map = mapInstanceRef.current;
+        markersRef.current = {};
 
         // Load geofences from companyInfo or legacy key, fallback to dummy
         const loadGeofences = () => {
@@ -156,6 +158,9 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
                     : "",
             ].filter(Boolean);
             m.bindPopup(lines.join("<br/>"));
+            try {
+                if (r.vin) markersRef.current[r.vin] = m;
+            } catch {}
 
             // Add to the appropriate cluster group based on status and filters
             if (isStolen) {
@@ -247,15 +252,41 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
         });
         geofenceLayersRef.current = geofenceLayers;
 
-        // Fit bounds to include current locations and geofences
-        const points = rentals
-            .map((r) => r.current_location || getCompanyLatLng())
-            .filter(Boolean)
-            .map((p) => [p.lat, p.lng]);
-        const geofencePoints = filters?.geofence ? geofences.flatMap((g) => (Array.isArray(g.points) ? g.points : [])).map((p) => [p.lat, p.lng]) : [];
-        const allPts = [...points, ...geofencePoints];
-        if (allPts.length > 0) {
-            map.fitBounds(allPts, { padding: [30, 30] });
+        // When a specific VIN is requested, zoom to that vehicle and open popup.
+        if (focusVin) {
+            const marker = markersRef.current[focusVin];
+            if (marker) {
+                const zoomToMarker = () => {
+                    try {
+                        map.setView(marker.getLatLng(), 15);
+                        marker.openPopup();
+                    } catch {}
+                };
+                // Ask each cluster group to reveal the marker if clustered
+                try { clusterRented.zoomToShowLayer(marker, zoomToMarker); } catch {}
+                try { clusterOverdue.zoomToShowLayer(marker, zoomToMarker); } catch {}
+                try { clusterSuspicious.zoomToShowLayer(marker, zoomToMarker); } catch {}
+                // As a fallback, still try to set view directly
+                zoomToMarker();
+            } else {
+                // No marker created (e.g., missing current_location). Use known/fallback coords.
+                try {
+                    const r = rentals.find((x) => x.vin === focusVin);
+                    const cp = r?.current_location || getCompanyLatLng();
+                    if (cp) map.setView([cp.lat, cp.lng], 15);
+                } catch {}
+            }
+        } else {
+            // Fit bounds to include current locations and geofences
+            const points = rentals
+                .map((r) => r.current_location || getCompanyLatLng())
+                .filter(Boolean)
+                .map((p) => [p.lat, p.lng]);
+            const geofencePoints = filters?.geofence ? geofences.flatMap((g) => (Array.isArray(g.points) ? g.points : [])).map((p) => [p.lat, p.lng]) : [];
+            const allPts = [...points, ...geofencePoints];
+            if (allPts.length > 0) {
+                map.fitBounds(allPts, { padding: [30, 30] });
+            }
         }
 
         return () => {
@@ -275,7 +306,7 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
             });
             geofenceLayersRef.current = [];
         };
-    }, [rentals, filters]);
+    }, [rentals, filters, focusVin]);
 
     // Fallback UI if Leaflet not loaded
     if (!window.L) {
