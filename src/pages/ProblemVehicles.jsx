@@ -8,6 +8,7 @@ import IssueForm from "../components/forms/IssueForm";
 import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
 import { fetchProblemVehicles, createIssueDraft } from "../api/fakeApi";
+import { RentalStatusBadge, DeviceStatusBadge, EngineStatusBadge } from "../components/StatusBadge";
 
 export default function ProblemVehicles() {
     const [problems, setProblems] = useState([]);
@@ -247,21 +248,21 @@ export default function ProblemVehicles() {
                                             text = "연체 " + m[1] + "일";
                                             cls = "badge--overdue";
                                         }
-                                        return text !== "-" ? <span className={"badge " + cls}>{text}</span> : "-";
+                                        return <RentalStatusBadge status={text} />;
                                     })()}
                                 </td>
                                 <td>
                                     {(() => {
                                         const deviceSerial = p?.asset?.deviceSerial || seedVehicles?.[p.vin]?.asset?.deviceSerial || "";
                                         const installed = Boolean(deviceSerial && String(deviceSerial).trim());
-                                        return <span className={`badge ${installed ? "badge--on" : "badge--off"}`}>{installed ? "설치됨" : "없음"}</span>;
+                                        return <DeviceStatusBadge installed={installed} />;
                                     })()}
                                 </td>
                                 <td>
                                     {(() => {
                                         const override = typeof engineMap?.[p.vin] === "boolean" ? engineMap[p.vin] : null;
                                         const engineOn = override ?? false;
-                                        return <span className={`badge ${engineOn ? "badge--on" : "badge--off"}`}>{engineOn ? "ON" : "OFF"}</span>;
+                                        return <EngineStatusBadge engineOn={engineOn} />;
                                     })()}
                                 </td>
                                 <td>

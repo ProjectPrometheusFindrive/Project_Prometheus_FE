@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
+import { DeviceStatusBadge, EngineStatusBadge } from "../components/StatusBadge";
 
 export default function RentalContracts() {
     const [items, setItems] = useState(() => rentals.map((r) => ({ ...r })));
@@ -187,10 +188,10 @@ export default function RentalContracts() {
                                         )}
                                     </td>
                                     <td>
-                                        <span className={`badge ${r.deviceInstalled ? "badge--on" : "badge--off"}`}>{r.deviceInstalled ? "설치됨" : "없음"}</span>
+                                        <DeviceStatusBadge installed={r.deviceInstalled} />
                                     </td>
                                     <td>
-                                        <span className={`badge ${r.engineOn ? "badge--on" : "badge--off"}`}>{r.engineOn ? "ON" : "OFF"}</span>
+                                        <EngineStatusBadge engineOn={r.engineOn} />
                                     </td>
                                     <td>
                                         <button

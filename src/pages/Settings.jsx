@@ -3,6 +3,7 @@ import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import GeofencePreview from "../components/GeofencePreview";
 import { loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../data/company";
 import { COLORS, DIMENSIONS } from "../constants";
+import { FileBadge, CountBadge, GeofenceBadge } from "../components/StatusBadge";
 
 export default function Settings() {
   const [viewData, setViewData] = useState({ ...defaultCompanyInfo });
@@ -218,7 +219,7 @@ export default function Settings() {
               <div>
                 {viewData.certDataUrl ? (
                   String(viewData.certDataUrl).startsWith("data:application/pdf") ? (
-                    <span className="badge" style={{ background: "#eef2ff", color: "#1e40af" }}>PDF 업로드됨</span>
+                    <FileBadge>PDF 업로드됨</FileBadge>
                   ) : (
                     <img src={viewData.certDataUrl} alt="사업자등록증" style={{ maxWidth: 280, maxHeight: 180, objectFit: "contain", border: "1px solid #eee", borderRadius: 8 }} />
                   )
@@ -267,7 +268,7 @@ export default function Settings() {
                 {editData.certDataUrl ? (
                   <div style={{ marginTop: 8 }}>
                     {String(editData.certDataUrl).startsWith("data:application/pdf") ? (
-                      <span className="badge" style={{ background: "#eef2ff", color: "#1e40af" }}>PDF 선택됨</span>
+                      <FileBadge>PDF 선택됨</FileBadge>
                     ) : (
                       <img src={editData.certDataUrl} alt="사업자등록증 미리보기" style={{ maxWidth: 280, maxHeight: 180, objectFit: "contain", border: "1px solid #eee", borderRadius: 8 }} />
                     )}
@@ -290,7 +291,7 @@ export default function Settings() {
             </div>
             <div>
               {Array.isArray(viewData?.geofences) && viewData.geofences.length > 0 ? (
-                <span className="badge">{viewData.geofences.length}개 저장됨</span>
+                <CountBadge count={viewData.geofences.length} label="개 저장됨" />
               ) : (
                 <span className="empty">지오펜스 없음</span>
               )}
@@ -325,7 +326,7 @@ export default function Settings() {
                     {displayItems.map((item, idx) => (
                       <div key={idx}>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                          <span className="badge badge--available">#{idx + 1}</span>
+                          <GeofenceBadge index={idx} />
                           <input
                             className="form-input"
                             value={item.name || ""}

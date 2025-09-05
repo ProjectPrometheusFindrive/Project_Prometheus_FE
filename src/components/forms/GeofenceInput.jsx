@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { GeofenceBadge } from "../StatusBadge";
 
 /**
  * GeofenceInput
@@ -256,7 +257,7 @@ export default function GeofenceInput({ value = [], onChange, readOnly = false, 
             <div style={{ display: "grid", gap: 6, marginTop: 6 }}>
               {polygons.map((poly, idx) => (
                 <div key={idx} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span className="badge badge--available">#{idx + 1}</span>
+                  <GeofenceBadge index={idx} />
                   <span style={{ color: "#555" }}>{poly.length} vertices</span>
                   {!readOnly && (
                     <button type="button" className="form-button" onClick={() => removePolygon(idx)} style={{ marginLeft: "auto" }}>
