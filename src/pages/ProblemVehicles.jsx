@@ -60,14 +60,7 @@ export default function ProblemVehicles() {
         setTimeout(() => setSaved(false), 1500);
     };
 
-    const {
-        selected,
-        toggleSelect,
-        toggleSelectAllVisible,
-        selectedCount,
-        allVisibleSelected,
-        clearSelection
-    } = useTableSelection(problems, 'rental_id');
+    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(problems, "rental_id");
 
     const handleDeleteSelected = () => {
         if (selectedCount === 0) return;
@@ -163,7 +156,7 @@ export default function ProblemVehicles() {
                 <div style={{ flex: 1 }} />
                 <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
                     <button type="button" className="form-button" onClick={() => openIssueModal({})}>
-                        이슈차량 등록
+                        이슈 등록
                     </button>
                     <button
                         type="button"
@@ -173,7 +166,7 @@ export default function ProblemVehicles() {
                         disabled={selectedCount === 0}
                         title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
                     >
-                        삭제
+                        선택 삭제
                     </button>
                     {saved && (
                         <span className="saved-indicator" aria-live="polite">
@@ -188,12 +181,7 @@ export default function ProblemVehicles() {
                     <thead>
                         <tr>
                             <th style={{ width: 36, textAlign: "center" }}>
-                                <input
-                                    type="checkbox"
-                                    aria-label="현재 목록 전체 선택"
-                                    checked={allVisibleSelected}
-                                    onChange={toggleSelectAllVisible}
-                                />
+                                <input type="checkbox" aria-label="현재 목록 전체 선택" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
                             </th>
                             <th>차량번호</th>
                             <th>차종</th>
@@ -329,13 +317,7 @@ export default function ProblemVehicles() {
             </Modal>
             {problems.length === 0 && <div className="empty">문제 차량이 없습니다.</div>}
 
-            <Modal
-                isOpen={showIssueModal}
-                onClose={() => setShowIssueModal(false)}
-                title="이슈차량 등록"
-                showFooter={false}
-                ariaLabel="이슈차량 등록"
-            >
+            <Modal isOpen={showIssueModal} onClose={() => setShowIssueModal(false)} title="이슈차량 등록" showFooter={false} ariaLabel="이슈차량 등록">
                 <IssueForm initial={issueInitial} onSubmit={handleIssueSubmit} />
             </Modal>
         </div>

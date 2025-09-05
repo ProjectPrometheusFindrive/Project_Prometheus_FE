@@ -60,14 +60,7 @@ export default function AssetStatus() {
         });
     }, [q, status, rows]);
 
-    const {
-        selected,
-        toggleSelect,
-        toggleSelectAllVisible,
-        selectedCount,
-        allVisibleSelected,
-        clearSelection
-    } = useTableSelection(filtered, 'id');
+    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(filtered, "id");
 
     const handleDeleteSelected = () => {
         if (selectedCount === 0) return;
@@ -104,7 +97,7 @@ export default function AssetStatus() {
 
     const handleDeviceInfoSubmit = (form) => {
         if (!activeAsset) return;
-        
+
         const deviceInfo = {
             supplier: form.supplier || "",
             installDate: form.installDate || "",
@@ -112,7 +105,7 @@ export default function AssetStatus() {
             serial: form.serial || "",
             updatedAt: new Date().toISOString(),
         };
-        
+
         typedStorage.devices.setInfo(activeAsset.id, deviceInfo);
         setRows((prev) => prev.map((a) => (a.id === activeAsset.id ? { ...a, deviceSerial: form.serial || a.deviceSerial, installer: form.installer || a.installer } : a)));
         setShowDeviceModal(false);
@@ -177,24 +170,18 @@ export default function AssetStatus() {
                     disabled={selectedCount === 0}
                     title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
                 >
-                    삭제
+                    선택 삭제
                 </button>
             </div>
 
-            <Modal
-                isOpen={showAssetModal}
-                onClose={() => setShowAssetModal(false)}
-                title="자산 등록"
-                formId="asset-create"
-                onSubmit={handleAssetSubmit}
-            >
+            <Modal isOpen={showAssetModal} onClose={() => setShowAssetModal(false)} title="자산 등록" formId="asset-create" onSubmit={handleAssetSubmit}>
                 <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} showSubmit={false} />
             </Modal>
 
             <Modal
                 isOpen={showDeviceModal && activeAsset}
                 onClose={() => setShowDeviceModal(false)}
-                title={`단말 정보 등록 - ${activeAsset?.id || ''}`}
+                title={`단말 정보 등록 - ${activeAsset?.id || ""}`}
                 formId="device-info"
                 onSubmit={handleDeviceInfoSubmit}
             >
@@ -264,72 +251,71 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showInfoModal && infoVehicle}
                 onClose={() => setShowInfoModal(false)}
-                title={`차량 상세 정보${infoVehicle?.asset?.plate ? ` - ${infoVehicle.asset.plate}` : ''}`}
+                title={`차량 상세 정보${infoVehicle?.asset?.plate ? ` - ${infoVehicle.asset.plate}` : ""}`}
                 showFooter={false}
                 ariaLabel="차량 상세 정보"
             >
-
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: DIMENSIONS.GRID_GAP }}>
-                            <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
-                                <h3 className="section-title" style={{ marginTop: 0 }}>
-                                    자산 정보
-                                </h3>
-                                <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
-                                    <div>차량번호</div>
-                                    <div>
-                                        <strong>{infoVehicle?.asset?.plate || "-"}</strong>
-                                    </div>
-                                    <div>차종</div>
-                                    <div>{infoVehicle?.asset?.vehicleType || "-"}</div>
-                                    <div>제조사/모델</div>
-                                    <div>{[infoVehicle?.asset?.make, infoVehicle?.asset?.model].filter(Boolean).join(" ") || "-"}</div>
-                                    <div>연식/연료</div>
-                                    <div>{[infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType].filter(Boolean).join(" / ") || "-"}</div>
-                                    <div>VIN</div>
-                                    <div>{infoVehicle?.asset?.vin || infoVehicle?.vin || "-"}</div>
-                                    <div>보험/공제</div>
-                                    <div>{infoVehicle?.asset?.insuranceInfo || "-"}</div>
-                                    <div>차량 등록일</div>
-                                    <div>{infoVehicle?.asset?.registrationDate ? new Date(infoVehicle.asset.registrationDate).toLocaleDateString() : "-"}</div>
-                                    <div>등록 상태</div>
-                                    <div>{infoVehicle?.asset?.registrationStatus || "-"}</div>
-                                    <div>설치자</div>
-                                    <div>{infoVehicle?.asset?.installer || "-"}</div>
-                                    <div>기기 시리얼</div>
-                                    <div>{infoVehicle?.asset?.deviceSerial || "-"}</div>
-                                </div>
-                            </section>
-
-                            <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
-                                <h3 className="section-title" style={{ marginTop: 0 }}>
-                                    대여 정보
-                                </h3>
-                                <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
-                                    <div>계약번호</div>
-                                    <div>{infoVehicle?.rental?.rental_id || "-"}</div>
-                                    <div>대여자</div>
-                                    <div>{infoVehicle?.rental?.renter_name || "-"}</div>
-                                    <div>연락처</div>
-                                    <div>{infoVehicle?.rental?.contact_number || "-"}</div>
-                                    <div>주소</div>
-                                    <div>{infoVehicle?.rental?.address || "-"}</div>
-                                    <div>대여 기간</div>
-                                    <div>
-                                        {infoVehicle?.rental?.rental_period?.start ? new Date(infoVehicle.rental.rental_period.start).toLocaleDateString() : "-"}
-                                        {" ~ "}
-                                        {infoVehicle?.rental?.rental_period?.end ? new Date(infoVehicle.rental.rental_period.end).toLocaleDateString() : "-"}
-                                    </div>
-                                    <div>보험사</div>
-                                    <div>{infoVehicle?.rental?.insurance_name || "-"}</div>
-                                    <div>대여 위치</div>
-                                    <div>{infoVehicle?.rental?.rental_location ? `${infoVehicle.rental.rental_location.lat}, ${infoVehicle.rental.rental_location.lng}` : "-"}</div>
-                                    <div>반납 위치</div>
-                                    <div>{infoVehicle?.rental?.return_location ? `${infoVehicle.rental.return_location.lat}, ${infoVehicle.rental.return_location.lng}` : "-"}</div>
-                                    <div>현재 위치</div>
-                                    <div>{infoVehicle?.rental?.current_location ? `${infoVehicle.rental.current_location.lat}, ${infoVehicle.rental.current_location.lng}` : "-"}</div>
-                                </div>
-                            </section>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: DIMENSIONS.GRID_GAP }}>
+                    <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
+                        <h3 className="section-title" style={{ marginTop: 0 }}>
+                            자산 정보
+                        </h3>
+                        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
+                            <div>차량번호</div>
+                            <div>
+                                <strong>{infoVehicle?.asset?.plate || "-"}</strong>
+                            </div>
+                            <div>차종</div>
+                            <div>{infoVehicle?.asset?.vehicleType || "-"}</div>
+                            <div>제조사/모델</div>
+                            <div>{[infoVehicle?.asset?.make, infoVehicle?.asset?.model].filter(Boolean).join(" ") || "-"}</div>
+                            <div>연식/연료</div>
+                            <div>{[infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType].filter(Boolean).join(" / ") || "-"}</div>
+                            <div>VIN</div>
+                            <div>{infoVehicle?.asset?.vin || infoVehicle?.vin || "-"}</div>
+                            <div>보험/공제</div>
+                            <div>{infoVehicle?.asset?.insuranceInfo || "-"}</div>
+                            <div>차량 등록일</div>
+                            <div>{infoVehicle?.asset?.registrationDate ? new Date(infoVehicle.asset.registrationDate).toLocaleDateString() : "-"}</div>
+                            <div>등록 상태</div>
+                            <div>{infoVehicle?.asset?.registrationStatus || "-"}</div>
+                            <div>설치자</div>
+                            <div>{infoVehicle?.asset?.installer || "-"}</div>
+                            <div>기기 시리얼</div>
+                            <div>{infoVehicle?.asset?.deviceSerial || "-"}</div>
                         </div>
+                    </section>
+
+                    <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
+                        <h3 className="section-title" style={{ marginTop: 0 }}>
+                            대여 정보
+                        </h3>
+                        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
+                            <div>계약번호</div>
+                            <div>{infoVehicle?.rental?.rental_id || "-"}</div>
+                            <div>대여자</div>
+                            <div>{infoVehicle?.rental?.renter_name || "-"}</div>
+                            <div>연락처</div>
+                            <div>{infoVehicle?.rental?.contact_number || "-"}</div>
+                            <div>주소</div>
+                            <div>{infoVehicle?.rental?.address || "-"}</div>
+                            <div>대여 기간</div>
+                            <div>
+                                {infoVehicle?.rental?.rental_period?.start ? new Date(infoVehicle.rental.rental_period.start).toLocaleDateString() : "-"}
+                                {" ~ "}
+                                {infoVehicle?.rental?.rental_period?.end ? new Date(infoVehicle.rental.rental_period.end).toLocaleDateString() : "-"}
+                            </div>
+                            <div>보험사</div>
+                            <div>{infoVehicle?.rental?.insurance_name || "-"}</div>
+                            <div>대여 위치</div>
+                            <div>{infoVehicle?.rental?.rental_location ? `${infoVehicle.rental.rental_location.lat}, ${infoVehicle.rental.rental_location.lng}` : "-"}</div>
+                            <div>반납 위치</div>
+                            <div>{infoVehicle?.rental?.return_location ? `${infoVehicle.rental.return_location.lat}, ${infoVehicle.rental.return_location.lng}` : "-"}</div>
+                            <div>현재 위치</div>
+                            <div>{infoVehicle?.rental?.current_location ? `${infoVehicle.rental.current_location.lat}, ${infoVehicle.rental.current_location.lng}` : "-"}</div>
+                        </div>
+                    </section>
+                </div>
             </Modal>
         </div>
     );
