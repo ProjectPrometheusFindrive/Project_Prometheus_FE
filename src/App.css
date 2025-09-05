@@ -1,44 +1,6 @@
 .page {
     padding: 1rem; /* top/bottom 1rem; bottom nav spacing handled by .app-content */
 }
-
-.grid {
-    display: grid;
-    gap: 1rem;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-}
-
-.grid a {
-    padding: 1rem;
-    text-align: center;
-    background: #f0f0f0;
-    text-decoration: none;
-    color: inherit;
-    border-radius: 4px;
-}
-
-@media (min-width: 768px) {
-    .page {
-        max-width: 90%;
-        margin: 0 auto;
-    }
-}
-
-/* Asset table styles */
-.asset-toolbar {
-    display: flex;
-    gap: 0.5rem;
-    margin: 0.5rem 0 1rem;
-}
-
-.asset-search,
-.asset-filter {
-    padding: 0.5rem 0.6rem;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    font-size: 0.95rem;
-}
-
 .table-wrap {
     overflow-x: auto;
 }
@@ -98,15 +60,15 @@
 }
 .badge--rented {
     background: #e3f2fd;
-    color: #1565c0;
+    color: #0b57d0; /* match marker--rented (blue) */
 }
 .badge--overdue {
     background: #fff4e5;
-    color: #d35400;
+    color: #f59e0b; /* match marker--overdue */
 }
 .badge--suspicious {
     background: #ff1744;
-    color: #fff;
+    color: #c62828; /* match marker--suspicious */
 }
 .badge--maintenance {
     background: #fdecef;
@@ -331,15 +293,14 @@ body {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 36px !important;
-    height: 36px !important;
+    width: 28px !important;
+    height: 28px !important;
     border-radius: 50%;
-    font-size: 18px;
-    font-weight: 700;
+    /* font-size no longer needed for svg icons */
     color: #fff;
     line-height: 1;
     border: 2px solid #fff;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 .marker--car {
     background: #6b7280;
@@ -348,7 +309,7 @@ body {
     background: #6b7280;
 }
 .marker--rental {
-    background: #2e7d32;
+    background: #0b57d0;
 }
 .marker--return {
     background: #c62828;
@@ -356,34 +317,55 @@ body {
 .marker--current {
     background: #1565c0;
 }
-.marker--active {
-    background: #2e7d32;
+.marker--rented {
+    background: #0b57d0;
 }
 .marker--overdue {
     background: #f59e0b;
 }
-.marker--stolen {
+.marker--suspicious {
     background: #c62828;
 }
 .leaflet-marker-icon.marker.marker--current {
     background: #1565c0;
 }
-.leaflet-marker-icon.marker.marker--active {
-    background: #2e7d32;
+.leaflet-marker-icon.marker.marker--rented {
+    background: #0b57d0;
 }
 .leaflet-marker-icon.marker.marker--overdue {
     background: #f59e0b;
 }
-.leaflet-marker-icon.marker.marker--stolen {
+.leaflet-marker-icon.marker.marker--suspicious {
     background: #c62828;
 }
 
-/* Geofence marker */
-.marker--geo {
-    background: #6a1b9a; /* purple */
-}
+/* Geofence marker: hatch pattern inside circle (gray, 45deg) */
+.marker--geo,
 .leaflet-marker-icon.marker.marker--geo {
-    background: #6a1b9a;
+    background-color: #f3f4f6; /* light gray base */
+    background-image: repeating-linear-gradient(
+        45deg,
+        rgba(107, 114, 128, 0.32) 0px, /* gray line */
+        rgba(107, 114, 128, 0.32) 2px,
+        transparent 2px,
+        transparent 8px /* 2px line + 6px gap => 8px period */
+    );
+    border-color: #6b7280; /* gray border */
+}
+
+/* Small SVG icons inside markers and legend items */
+.map-icon-svg {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    color: inherit; /* inherit marker background color for fill via currentColor */
+}
+
+/* Ensure svg paths use currentColor when bundled - some icon svgs already support this */
+.map-icon-svg svg {
+    width: 16px;
+    height: 16px;
 }
 
 /* MarkerCluster custom cluster icons */
@@ -406,7 +388,47 @@ body {
     font-size: 14px;
 }
 .cluster--active {
-    background: #2e7d32;
+    background: #0b57d0;
+}
+.cluster--mixed {
+    background: linear-gradient(180deg, #0b57d0, #0b57d0);
+    color: #fff;
+    position: relative;
+}
+.cluster__count {
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 1;
+}
+.cluster__parts {
+    display: flex;
+    gap: 4px;
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+.cluster-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 99px;
+    font-size: 11px;
+    color: #fff;
+    font-weight: 700;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+.cluster-badge--rented {
+    background: #0b57d0;
+}
+.cluster-badge--overdue {
+    background: #f59e0b;
+}
+.cluster-badge--suspicious {
+    background: #c62828;
 }
 .cluster--overdue {
     background: #f59e0b;
@@ -414,27 +436,25 @@ body {
 .cluster--stolen {
     background: #c62828;
 }
-.cluster--other {
-    background: #6b7280;
-}
 
-/* Offset clusters so different status groups at same position don't overlap */
+/* Offset clusters so different status groups at same position don't overlap
+   Note: Leaflet positions markers using inline transform; use margins here so offsets apply additively. */
 .leaflet-marker-icon.cluster.cluster--active {
-    transform: translate(-20px, -20px);
-    z-index: 403;
+    margin-left: -50px;
+    margin-top: -50px;
+    z-index: 402 !important;
 }
 .leaflet-marker-icon.cluster.cluster--overdue {
-    transform: translate(20px, -20px);
-    z-index: 402;
+    margin-left: 50px;
+    margin-top: -50px;
+    z-index: 403 !important;
 }
 .leaflet-marker-icon.cluster.cluster--stolen {
-    transform: translate(20px, 20px);
-    z-index: 404;
+    margin-left: 50px;
+    margin-top: 50px;
+    z-index: 404 !important;
 }
-.leaflet-marker-icon.cluster.cluster--other {
-    transform: translate(-20px, 20px);
-    z-index: 401;
-}
+
 
 /* Left navigation (converted from bottom nav) */
 .bottom-nav {
@@ -462,6 +482,8 @@ body {
     right: 10px; /* avoid overlapping Leaflet zoom (top-left) */
     left: auto;
     display: flex;
+    flex-direction: column; /* vertical legend */
+    align-items: flex-start; /* left-align items */
     gap: 8px;
     background: rgba(255, 255, 255, 0.9);
     border: 1px solid #e5e7eb;
@@ -494,6 +516,8 @@ body {
 .legend__label {
     font-size: 12px;
 }
+
+/* Removed old geofence legend box styles (now using circular marker) */
 
 .bottom-nav__link {
     flex: 0 0 auto;

@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { rentals } from "../data/rentals";
 import RentalForm from "../components/forms/RentalForm";
+import { FaCar } from "react-icons/fa";
+import { FiAlertTriangle } from "react-icons/fi";
 
 export default function RentalContracts() {
     const [items, setItems] = useState(() => rentals.map((r) => ({ ...r })));
@@ -158,12 +160,7 @@ export default function RentalContracts() {
                         <thead>
                             <tr>
                                 <th style={{ width: 36, textAlign: "center" }}>
-                                    <input
-                                        type="checkbox"
-                                        aria-label="현재 목록 전체 선택"
-                                        checked={allVisibleSelected}
-                                        onChange={toggleSelectAllVisible}
-                                    />
+                                    <input type="checkbox" aria-label="현재 목록 전체 선택" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
                                 </th>
                                 <th>차량 번호</th>
                                 <th>차종</th>
@@ -178,12 +175,7 @@ export default function RentalContracts() {
                             {rows.map((r) => (
                                 <tr key={r.rental_id}>
                                     <td style={{ textAlign: "center" }}>
-                                        <input
-                                            type="checkbox"
-                                            aria-label={`선택: ${r.plate || r.rental_id}`}
-                                            checked={selected.has(r.rental_id)}
-                                            onChange={() => toggleSelect(r.rental_id)}
-                                        />
+                                        <input type="checkbox" aria-label={`선택: ${r.plate || r.rental_id}`} checked={selected.has(r.rental_id)} onChange={() => toggleSelect(r.rental_id)} />
                                     </td>
                                     <td>{r.plate || "-"}</td>
                                     <td>{r.vehicleType || "-"}</td>
@@ -194,7 +186,21 @@ export default function RentalContracts() {
                                         {r.rental_period?.end ? new Date(r.rental_period.end).toLocaleDateString() : "-"}
                                     </td>
                                     <td>{r.contact_number || "-"}</td>
-                                    <td>{r.statusText !== "-" ? <span className={`badge ${r.statusClass}`}>{r.statusText}</span> : "-"}</td>
+                                    <td>
+                                        {r.statusText !== "-" ? (
+                                            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                                <span
+                                                    className={`marker ${r.isStolen ? "marker--suspicious" : r.isOverdue ? "marker--overdue" : r.isActive ? "marker--rented" : "marker--car"}`}
+                                                    aria-hidden
+                                                >
+                                                    {r.isStolen ? <FiAlertTriangle className="map-icon-svg" /> : <FaCar className="map-icon-svg" />}
+                                                </span>
+                                                <span className={`badge ${r.statusClass}`}>{r.statusText}</span>
+                                            </div>
+                                        ) : (
+                                            "-"
+                                        )}
+                                    </td>
                                 </tr>
                             ))}
                         </tbody>
