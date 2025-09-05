@@ -75,11 +75,7 @@
     color: #b71c1c;
 }
 
-/* Hide mistakenly added extra columns on rentals table only */
-.rentals-table th:nth-last-child(-n + 4),
-.rentals-table td:nth-last-child(-n + 4) {
-    display: none;
-}
+/* rentals-table now renders only required columns; no hidden columns needed */
 
 /* Simple ON/OFF badges for device/engine */
 .badge--on {

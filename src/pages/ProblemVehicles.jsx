@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { seedVehicles } from "../data/seed";
+import { typedStorage } from "../utils/storage";
 import { renderToStaticMarkup } from "react-dom/server";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
@@ -41,12 +41,10 @@ export default function ProblemVehicles() {
     // Load persisted restart lock and engine status overrides
     useEffect(() => {
         try {
-            const raw = localStorage.getItem("noRestartMap");
-            if (raw) setNoRestartMap(JSON.parse(raw));
+            setNoRestartMap(typedStorage.vehicles.getNoRestartMap() || {});
         } catch {}
         try {
-            const raw2 = localStorage.getItem("engineStatusMap");
-            if (raw2) setEngineMap(JSON.parse(raw2));
+            setEngineMap(typedStorage.vehicles.getEngineStatusMap() || {});
         } catch {}
     }, []);
 
@@ -83,7 +81,7 @@ export default function ProblemVehicles() {
         setNoRestartMap((prev) => {
             const next = { ...prev, [vin]: !prev?.[vin] };
             try {
-                localStorage.setItem("noRestartMap", JSON.stringify(next));
+                typedStorage.vehicles.setNoRestartMap(next);
             } catch {}
             return next;
         });
@@ -253,7 +251,7 @@ export default function ProblemVehicles() {
                                 </td>
                                 <td>
                                     {(() => {
-                                        const deviceSerial = p?.asset?.deviceSerial || seedVehicles?.[p.vin]?.asset?.deviceSerial || "";
+                                        const deviceSerial = p?.asset?.deviceSerial || "";
                                         const installed = Boolean(deviceSerial && String(deviceSerial).trim());
                                         return <DeviceStatusBadge installed={installed} />;
                                     })()}

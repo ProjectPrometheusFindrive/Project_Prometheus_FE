@@ -247,6 +247,9 @@ export const typedStorage = {
       const map = storageUtils.get(STORAGE_KEYS.DEVICE_INFO_BY_ASSET, {});
       return map[assetId] || {};
     },
+    getAll: () => {
+      return storageUtils.get(STORAGE_KEYS.DEVICE_INFO_BY_ASSET, {}) || {};
+    },
     setInfo: (assetId, info) => {
       const map = storageUtils.get(STORAGE_KEYS.DEVICE_INFO_BY_ASSET, {});
       map[assetId] = info;

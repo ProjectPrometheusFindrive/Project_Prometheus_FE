@@ -1,12 +1,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { assets as seedAssets } from "../data/assets";
-import { seedVehicles } from "../data/seed";
+import { resolveVehicleRentals, fetchAssetById } from "../api/fakeApi";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
 import { typedStorage } from "../utils/storage";
 import { COLORS, DIMENSIONS, ASSET } from "../constants";
+import { formatDateShort } from "../utils/date";
 
 export default function AssetStatus() {
     const [q, setQ] = useState("");
@@ -23,23 +24,11 @@ export default function AssetStatus() {
         return typedStorage.devices.getInfo(activeAsset.id);
     }, [activeAsset]);
 
-    const fmtDateShort = (s) => {
-        try {
-            const d = new Date(s);
-            const yy = String(d.getFullYear()).slice(-2);
-            const mm = String(d.getMonth() + 1).padStart(2, "0");
-            const dd = String(d.getDate()).padStart(2, "0");
-            return `'${yy}.${mm}.${dd}`;
-        } catch {
-            return s || "";
-        }
-    };
+    // Date formatting handled by utils/date
 
     useEffect(() => {
         try {
-            const raw = localStorage.getItem("deviceInfoByAsset");
-            if (!raw) return;
-            const map = JSON.parse(raw) || {};
+            const map = typedStorage.devices.getAll() || {};
             setRows((prev) =>
                 prev.map((a) => {
                     const info = map[a.id];
@@ -78,11 +67,23 @@ export default function AssetStatus() {
         clearSelection();
     };
 
-    const openInfoModal = (asset) => {
+    const openInfoModal = async (asset) => {
         if (!asset) return;
-        const vin = asset.vin;
-        const bundle = (vin && seedVehicles[vin]) || { asset, rental: undefined, vin };
-        setInfoVehicle(bundle);
+        let assetFull = asset;
+        try {
+            if (asset?.id) {
+                const fetched = await fetchAssetById(asset.id);
+                if (fetched) assetFull = fetched;
+            }
+        } catch {}
+        let rental = null;
+        try {
+            if (assetFull?.vin) {
+                const status = await resolveVehicleRentals(assetFull.vin);
+                rental = status?.current || null;
+            }
+        } catch {}
+        setInfoVehicle({ asset: assetFull, rental, vin: assetFull?.vin || asset?.vin || null });
         setShowInfoModal(true);
     };
 
@@ -232,7 +233,7 @@ export default function AssetStatus() {
                                 </td>
                                 <td>{a.vehicleType}</td>
                                 <td>{a.insuranceInfo || "-"}</td>
-                                <td>{fmtDateShort(a.registrationDate)}</td>
+                                <td>{formatDateShort(a.registrationDate)}</td>
                                 <td>{a.registrationStatus}</td>
                                 <td>{a.installer || "-"}</td>
                                 <td>

@@ -10,8 +10,8 @@ const Modal = ({
   footerContent,
   formId,
   onSubmit,
-  submitText = "저장",
-  cancelText = "취소",
+  submitText = "OK",
+  cancelText = "Cancel",
   ariaLabel,
   customHeaderContent,
   className = ""
@@ -51,7 +51,6 @@ const Modal = ({
       aria-label={ariaLabel || title}
     >
       <div className={`modal ${className}`} onClick={(e) => e.stopPropagation()}>
-        {/* Header */}
         {(title || customHeaderContent) && (
           <div className="header-row" style={{ marginBottom: 8 }}>
             {customHeaderContent ? (
@@ -66,7 +65,7 @@ const Modal = ({
                     style={{ background: COLORS.GRAY_900 }} 
                     onClick={onClose}
                   >
-                    닫기
+                    Close
                   </button>
                 </div>
               </>
@@ -74,17 +73,12 @@ const Modal = ({
           </div>
         )}
 
-        {/* Legacy h2 title support for backward compatibility */}
         {!title && !customHeaderContent && (
-          <h2 style={{ marginTop: 0, marginBottom: 12 }}>
-            {/* This will be passed via children for legacy modals */}
-          </h2>
+          <h2 style={{ marginTop: 0, marginBottom: 12 }} />
         )}
 
-        {/* Content */}
         {children}
 
-        {/* Footer */}
         {showFooter && (
           footerContent || renderDefaultFooter()
         )}
@@ -94,3 +88,4 @@ const Modal = ({
 };
 
 export default Modal;
+
