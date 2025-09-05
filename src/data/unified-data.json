@@ -1,0 +1,561 @@
+{
+  "vehicles": {
+    "KMHDH41EX6U123456": {
+      "vin": "KMHDH41EX6U123456",
+      "asset": {
+        "id": "VH-0001",
+        "plate": "28가2345",
+        "vehicleType": "쏘나타 25년형",
+        "make": "Hyundai",
+        "model": "Sonata",
+        "year": 2025,
+        "fuelType": "가솔린",
+        "vin": "KMHDH41EX6U123456",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2024-11-01",
+        "registrationStatus": "장비장착 완료",
+        "installer": "김범기",
+        "deviceSerial": "1ABCD-SONATA-25"
+      },
+      "rental": {
+        "rental_id": 100000000001,
+        "vin": "KMHDH41EX6U123456",
+        "vehicleType": "쏘나타 25년형",
+        "plate": "28가2345",
+        "renter_name": "김민수",
+        "contact_number": "+82-10-1234-5678",
+        "address": "서울시 종로구 삼청로 12",
+        "rental_period": { "start": "2025-08-20", "end": "2025-08-30" },
+        "insurance_name": "현대해상화재보험",
+        "rental_location": { "lat": 37.5665, "lng": 126.978 },
+        "return_location": { "lat": 37.4563, "lng": 126.7052 },
+        "current_location": { "lat": 37.55, "lng": 126.99 }
+      }
+    },
+    "KNDPB3AC7H7123456": {
+      "vin": "KNDPB3AC7H7123456",
+      "asset": {
+        "id": "VH-0002",
+        "plate": "05가0960",
+        "vehicleType": "스포티지 19년형",
+        "make": "Kia",
+        "model": "Sportage",
+        "year": 2019,
+        "fuelType": "가솔린",
+        "vin": "KNDPB3AC7H7123456",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2024-11-01",
+        "registrationStatus": "장비장착 완료",
+        "installer": "김범기",
+        "deviceSerial": "KIA-SPTG-19-ABCE"
+      },
+      "rental": {
+        "rental_id": 100000000002,
+        "vin": "KNDPB3AC7H7123456",
+        "vehicleType": "스포티지 19년형",
+        "plate": "05가0960",
+        "renter_name": "이지영",
+        "contact_number": "+82-10-2222-3333",
+        "address": "부산시 해운대구 센텀서로 45",
+        "rental_period": { "start": "2025-08-28", "end": "2025-09-05" },
+        "insurance_name": "삼성화재해상보험",
+        "rental_location": { "lat": 35.1796, "lng": 129.0756 },
+        "return_location": { "lat": 35.1796, "lng": 129.0756 },
+        "current_location": { "lat": 35.2, "lng": 129.08 }
+      }
+    },
+    "5YJ3E1EA7KF123456": {
+      "vin": "5YJ3E1EA7KF123456",
+      "asset": {
+        "id": "VH-0003",
+        "plate": "05가0961",
+        "vehicleType": "그랜저 23년형",
+        "make": "Hyundai",
+        "model": "Grandeur",
+        "year": 2023,
+        "fuelType": "가솔린",
+        "vin": "5YJ3E1EA7KF123456",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2024-11-01",
+        "registrationStatus": "장비장착 완료",
+        "installer": "김범기",
+        "deviceSerial": "HYU-GRAN-23-ABCF"
+      },
+      "rental": {
+        "rental_id": 100000000003,
+        "vin": "5YJ3E1EA7KF123456",
+        "vehicleType": "그랜저 23년형",
+        "plate": "05가0961",
+        "renter_name": "박진호",
+        "contact_number": "+82-10-4444-5555",
+        "address": "인천시 남동구 인주대로 585",
+        "rental_period": { "start": "2025-09-03", "end": "2025-09-12" },
+        "insurance_name": "DB손해보험",
+        "rental_location": { "lat": 37.4563, "lng": 126.7052 },
+        "return_location": { "lat": 37.5665, "lng": 126.978 },
+        "current_location": { "lat": 37.48, "lng": 126.74 }
+      }
+    },
+    "WAUZZZF40LA123456": {
+      "vin": "WAUZZZF40LA123456",
+      "asset": {
+        "id": "VH-0004",
+        "plate": "05가0962",
+        "vehicleType": "쏘렌토 24년형",
+        "make": "Kia",
+        "model": "Sorento",
+        "year": 2024,
+        "fuelType": "가솔린",
+        "vin": "WAUZZZF40LA123456",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2024-11-01",
+        "registrationStatus": "장비장착 완료",
+        "installer": "김범기",
+        "deviceSerial": "KIA-SORE-24-ABCG"
+      },
+      "rental": {
+        "rental_id": 100000000004,
+        "vin": "WAUZZZF40LA123456",
+        "vehicleType": "쏘렌토 24년형",
+        "plate": "05가0962",
+        "renter_name": "최아라",
+        "contact_number": "+82-10-7777-8888",
+        "address": "대구시 수성구 범어로 60",
+        "rental_period": { "start": "2025-08-30", "end": "2025-09-08" },
+        "insurance_name": "메리츠화재해상보험",
+        "rental_location": { "lat": 35.8714, "lng": 128.6014 },
+        "return_location": { "lat": 35.8714, "lng": 128.6014 },
+        "current_location": null
+      }
+    },
+    "JTMBFREV8GJ123456": {
+      "vin": "JTMBFREV8GJ123456",
+      "asset": {
+        "id": "VH-0005",
+        "plate": "34가1234",
+        "vehicleType": "아반떼 22년형",
+        "make": "Hyundai",
+        "model": "Avante",
+        "year": 2022,
+        "fuelType": "가솔린",
+        "vin": "JTMBFREV8GJ123456",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2024-10-21",
+        "registrationStatus": "보험등록 완료",
+        "installer": "",
+        "deviceSerial": ""
+      },
+      "rental": {
+        "rental_id": 100000000005,
+        "vin": "JTMBFREV8GJ123456",
+        "vehicleType": "아반떼 22년형",
+        "plate": "34가1234",
+        "renter_name": "한소윤",
+        "contact_number": "+82-10-9999-0000",
+        "address": "대전시 서구 둔산로 144",
+        "rental_period": { "start": "2025-09-02", "end": "2025-09-15" },
+        "insurance_name": "현대해상화재보험",
+        "rental_location": { "lat": 36.3504, "lng": 127.3845 },
+        "return_location": { "lat": 36.3504, "lng": 127.3845 },
+        "current_location": null
+      }
+    },
+    "SALVP2BG3FH123456": {
+      "vin": "SALVP2BG3FH123456",
+      "asset": {
+        "id": "VH-0006",
+        "plate": "48다7722",
+        "vehicleType": "이보크 24년형",
+        "make": "Land Rover",
+        "model": "Evoque",
+        "year": 2024,
+        "fuelType": "가솔린",
+        "vin": "SALVP2BG3FH123456",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2023-01-01",
+        "registrationStatus": "장비장착 완료",
+        "installer": "원격 설치",
+        "deviceSerial": "LR-EVOQ-24-7722"
+      },
+      "rental": {
+        "rental_id": 100000000006,
+        "vin": "SALVP2BG3FH123456",
+        "vehicleType": "이보크 24년형",
+        "plate": "48다7722",
+        "renter_name": "오도윤",
+        "contact_number": "+82-10-1111-2222",
+        "address": "광주시 서구 상무중앙로 101",
+        "rental_period": { "start": "2025-09-05", "end": "2025-09-20" },
+        "insurance_name": "삼성화재해상보험",
+        "rental_location": { "lat": 35.1595, "lng": 126.8526 },
+        "return_location": { "lat": 35.1595, "lng": 126.8526 },
+        "current_location": { "lat": 35.17, "lng": 126.86 }
+      }
+    },
+    "WBA8E1G52GNT12345": {
+      "vin": "WBA8E1G52GNT12345",
+      "asset": {
+        "id": "VH-0007",
+        "plate": "19가9931",
+        "vehicleType": "카니발 23년형",
+        "make": "Kia",
+        "model": "Carnival",
+        "year": 2023,
+        "fuelType": "가솔린",
+        "vin": "WBA8E1G52GNT12345",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2022-05-10",
+        "registrationStatus": "보험등록 완료",
+        "installer": "",
+        "deviceSerial": ""
+      },
+      "rental": {
+        "rental_id": 100000000007,
+        "vin": "WBA8E1G52GNT12345",
+        "vehicleType": "카니발 23년형",
+        "plate": "19가9931",
+        "renter_name": "서지우",
+        "contact_number": "+82-10-3333-4444",
+        "address": "울산시 남구 삼산로 123",
+        "rental_period": { "start": "2025-09-01", "end": "2025-09-07" },
+        "insurance_name": "DB손해보험",
+        "rental_location": { "lat": 35.5384, "lng": 129.3114 },
+        "return_location": { "lat": 35.5384, "lng": 129.3114 },
+        "current_location": null
+      }
+    },
+    "WP0ZZZ99ZTS123456": {
+      "vin": "WP0ZZZ99ZTS123456",
+      "asset": {
+        "id": "VH-0008",
+        "plate": "12나3456",
+        "vehicleType": "모닝 20년형",
+        "make": "Kia",
+        "model": "Morning",
+        "year": 2020,
+        "fuelType": "가솔린",
+        "vin": "WP0ZZZ99ZTS123456",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2022-03-15",
+        "registrationStatus": "장비장착 완료",
+        "installer": "지사 A",
+        "deviceSerial": "KIA-MORN-20-3456"
+      },
+      "rental": {
+        "rental_id": 100000000008,
+        "vin": "WP0ZZZ99ZTS123456",
+        "vehicleType": "모닝 20년형",
+        "plate": "12나3456",
+        "renter_name": "장혜진",
+        "contact_number": "+82-10-5555-6666",
+        "address": "제주시 연동 232번지",
+        "rental_period": { "start": "2025-08-20", "end": "2025-08-25" },
+        "insurance_name": "메리츠화재해상보험",
+        "rental_location": { "lat": 33.4996, "lng": 126.5312 },
+        "return_location": { "lat": 33.4996, "lng": 126.5312 },
+        "current_location": { "lat": 33.51, "lng": 126.54 },
+        "reported_stolen": true
+      }
+    },
+    "KMHAB51DBMU123457": {
+      "vin": "KMHAB51DBMU123457",
+      "asset": {
+        "id": "VH-0009",
+        "plate": "29가0234",
+        "vehicleType": "GV80 24년형",
+        "make": "Genesis",
+        "model": "GV80",
+        "year": 2024,
+        "fuelType": "가솔린",
+        "vin": "KMHAB51DBMU123457",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2025-01-15",
+        "registrationStatus": "장비장착 완료",
+        "installer": "지사 B",
+        "deviceSerial": "GEN-GV80-24-0234"
+      },
+      "rental": {
+        "rental_id": 100000000009,
+        "vin": "KMHAB51DBMU123457",
+        "vehicleType": "GV80 24년형",
+        "plate": "29가0234",
+        "renter_name": "김수진",
+        "contact_number": "+82-10-1010-1010",
+        "address": "서울시",
+        "rental_period": { "start": "2025-09-04", "end": "2025-09-11" },
+        "insurance_name": "현대해상화재보험",
+        "rental_location": { "lat": 37.5665, "lng": 126.978 },
+        "return_location": { "lat": 37.5665, "lng": 126.978 },
+        "current_location": { "lat": 37.5665, "lng": 126.978 }
+      }
+    },
+    "KMHAB51DBMU123458": {
+      "vin": "KMHAB51DBMU123458",
+      "asset": {
+        "id": "VH-0010",
+        "plate": "30가0345",
+        "vehicleType": "G80 23년형",
+        "make": "Genesis",
+        "model": "G80",
+        "year": 2023,
+        "fuelType": "가솔린",
+        "vin": "KMHAB51DBMU123458",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2025-02-20",
+        "registrationStatus": "보험등록 완료",
+        "installer": "",
+        "deviceSerial": ""
+      },
+      "rental": {
+        "rental_id": 100000000010,
+        "vin": "KMHAB51DBMU123458",
+        "vehicleType": "G80 23년형",
+        "plate": "30가0345",
+        "renter_name": "이동현",
+        "contact_number": "+82-10-2020-2020",
+        "address": "서울시",
+        "rental_period": { "start": "2025-08-25", "end": "2025-08-31" },
+        "insurance_name": "현대해상화재보험",
+        "rental_location": { "lat": 37.5665, "lng": 126.978 },
+        "return_location": { "lat": 37.5665, "lng": 126.978 },
+        "current_location": null
+      }
+    },
+    "KMHAB51DBMU123459": {
+      "vin": "KMHAB51DBMU123459",
+      "asset": {
+        "id": "VH-0011",
+        "plate": "31가0456",
+        "vehicleType": "그랜저 22년형",
+        "make": "Hyundai",
+        "model": "Grandeur",
+        "year": 2022,
+        "fuelType": "가솔린",
+        "vin": "KMHAB51DBMU123459",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2021-12-05",
+        "registrationStatus": "장비장착 완료",
+        "installer": "지사 C",
+        "deviceSerial": "HYU-GRAN-22-0456"
+      },
+      "rental": {
+        "rental_id": 100000000011,
+        "vin": "KMHAB51DBMU123459",
+        "vehicleType": "그랜저 22년형",
+        "plate": "31가0456",
+        "renter_name": "박은영",
+        "contact_number": "+82-10-3030-3030",
+        "address": "서울시",
+        "rental_period": { "start": "2025-08-28", "end": "2025-09-01" },
+        "insurance_name": "현대해상화재보험",
+        "rental_location": { "lat": 37.5665, "lng": 126.978 },
+        "return_location": { "lat": 37.5665, "lng": 126.978 },
+        "current_location": { "lat": 37.566, "lng": 126.9775 }
+      }
+    },
+    "KMHAB51DBMU123460": {
+      "vin": "KMHAB51DBMU123460",
+      "asset": {
+        "id": "VH-0012",
+        "plate": "32가0567",
+        "vehicleType": "아이오닉5 24년형",
+        "make": "Hyundai",
+        "model": "Ioniq 5",
+        "year": 2024,
+        "fuelType": "전기",
+        "vin": "KMHAB51DBMU123460",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2024-06-18",
+        "registrationStatus": "보험등록 완료",
+        "installer": "",
+        "deviceSerial": ""
+      },
+      "rental": {
+        "rental_id": 100000000012,
+        "vin": "KMHAB51DBMU123460",
+        "vehicleType": "아이오닉5 24년형",
+        "plate": "32가0567",
+        "renter_name": "최준호",
+        "contact_number": "+82-10-4040-4040",
+        "address": "서울시",
+        "rental_period": { "start": "2025-09-04", "end": "2025-09-11" },
+        "insurance_name": "현대해상화재보험",
+        "rental_location": { "lat": 37.5665, "lng": 126.978 },
+        "return_location": { "lat": 37.5665, "lng": 126.978 },
+        "current_location": null
+      }
+    },
+    "KMHAB51DBMU123461": {
+      "vin": "KMHAB51DBMU123461",
+      "asset": {
+        "id": "VH-0013",
+        "plate": "33가0678",
+        "vehicleType": "코나 23년형",
+        "make": "Hyundai",
+        "model": "Kona",
+        "year": 2023,
+        "fuelType": "가솔린",
+        "vin": "KMHAB51DBMU123461",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2024-07-22",
+        "registrationStatus": "장비장착 완료",
+        "installer": "지사 D",
+        "deviceSerial": "HYU-KONA-23-0678"
+      },
+      "rental": {
+        "rental_id": 100000000013,
+        "vin": "KMHAB51DBMU123461",
+        "vehicleType": "코나 23년형",
+        "plate": "33가0678",
+        "renter_name": "김서연",
+        "contact_number": "+82-10-5050-5050",
+        "address": "서울시",
+        "rental_period": { "start": "2025-09-04", "end": "2025-09-11" },
+        "insurance_name": "현대해상화재보험",
+        "rental_location": { "lat": 37.5665, "lng": 126.978 },
+        "return_location": { "lat": 37.5665, "lng": 126.978 },
+        "current_location": { "lat": 37.565, "lng": 126.979 }
+      }
+    },
+    "KMHAB51DBMU123462": {
+      "vin": "KMHAB51DBMU123462",
+      "asset": {
+        "id": "VH-0014",
+        "plate": "24부1234",
+        "vehicleType": "K5 22년형",
+        "make": "Kia",
+        "model": "K5",
+        "year": 2022,
+        "fuelType": "가솔린",
+        "vin": "KMHAB51DBMU123462",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2023-11-30",
+        "registrationStatus": "장비장착 완료",
+        "installer": "지사 E",
+        "deviceSerial": "KIA-K5-22-1234"
+      },
+      "rental": {
+        "rental_id": 100000000014,
+        "vin": "KMHAB51DBMU123462",
+        "vehicleType": "K5 22년형",
+        "plate": "24부1234",
+        "renter_name": "이민주",
+        "contact_number": "+82-10-6060-6060",
+        "address": "부산시",
+        "rental_period": { "start": "2025-09-04", "end": "2025-09-11" },
+        "insurance_name": "삼성화재해상보험",
+        "rental_location": { "lat": 35.1796, "lng": 129.0756 },
+        "return_location": { "lat": 35.1796, "lng": 129.0756 },
+        "current_location": { "lat": 35.1796, "lng": 129.0756 }
+      }
+    },
+    "KMHAB51DBMU123463": {
+      "vin": "KMHAB51DBMU123463",
+      "asset": {
+        "id": "VH-0015",
+        "plate": "25부2345",
+        "vehicleType": "K7 21년형",
+        "make": "Kia",
+        "model": "K7",
+        "year": 2021,
+        "fuelType": "가솔린",
+        "vin": "KMHAB51DBMU123463",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2023-12-15",
+        "registrationStatus": "보험등록 완료",
+        "installer": "",
+        "deviceSerial": ""
+      },
+      "rental": {
+        "rental_id": 100000000015,
+        "vin": "KMHAB51DBMU123463",
+        "vehicleType": "K7 21년형",
+        "plate": "25부2345",
+        "renter_name": "박성하",
+        "contact_number": "+82-10-7070-7070",
+        "address": "부산시",
+        "rental_period": { "start": "2025-09-04", "end": "2025-09-11" },
+        "insurance_name": "삼성화재해상보험",
+        "rental_location": { "lat": 35.1796, "lng": 129.0756 },
+        "return_location": { "lat": 35.1796, "lng": 129.0756 },
+        "current_location": null
+      }
+    },
+    "KMHAB51DBMU123464": {
+      "vin": "KMHAB51DBMU123464",
+      "asset": {
+        "id": "VH-0016",
+        "plate": "26부3456",
+        "vehicleType": "스포티지 22년형",
+        "make": "Kia",
+        "model": "Sportage",
+        "year": 2022,
+        "fuelType": "가솔린",
+        "vin": "KMHAB51DBMU123464",
+        "insuranceInfo": "렌터카공제조합 2024",
+        "registrationDate": "2021-08-30",
+        "registrationStatus": "장비장착 완료",
+        "installer": "지사 F",
+        "deviceSerial": "KIA-SPTG-22-3456"
+      },
+      "rental": {
+        "rental_id": 100000000016,
+        "vin": "KMHAB51DBMU123464",
+        "vehicleType": "스포티지 22년형",
+        "plate": "26부3456",
+        "renter_name": "김은지",
+        "contact_number": "+82-10-8080-8080",
+        "address": "부산시",
+        "rental_period": { "start": "2025-08-26", "end": "2025-08-29" },
+        "insurance_name": "삼성화재해상보험",
+        "rental_location": { "lat": 35.1796, "lng": 129.0756 },
+        "return_location": { "lat": 35.1796, "lng": 129.0756 },
+        "current_location": { "lat": 35.179, "lng": 129.076 },
+        "reported_stolen": true
+      }
+    }
+  },
+  "geofences": [
+    {
+      "name": "Seoul Center",
+      "points": [
+        { "lat": 37.5665, "lng": 126.978 },
+        { "lat": 37.575, "lng": 126.995 },
+        { "lat": 37.553, "lng": 126.99 }
+      ]
+    },
+    {
+      "name": "Busan Harbor",
+      "points": [
+        { "lat": 35.1796, "lng": 129.0756 },
+        { "lat": 35.195, "lng": 129.095 },
+        { "lat": 35.165, "lng": 129.09 }
+      ]
+    },
+    {
+      "name": "Daejeon District",
+      "points": [
+        { "lat": 36.35, "lng": 127.35 },
+        { "lat": 36.36, "lng": 127.39 },
+        { "lat": 36.33, "lng": 127.4 },
+        { "lat": 36.325, "lng": 127.36 }
+      ]
+    },
+    {
+      "name": "Seoul Center 2",
+      "points": [
+        { "lat": 37.5665, "lng": 125.978 },
+        { "lat": 35.575, "lng": 126.995 },
+        { "lat": 37.553, "lng": 124.99 }
+      ]
+    },
+    {
+      "name": "Seoul Center 3",
+      "points": [
+        { "lat": 37.5665, "lng": 126.978 },
+        { "lat": 34.575, "lng": 125.995 },
+        { "lat": 32.553, "lng": 127.99 }
+      ]
+    }
+  ]
+}
