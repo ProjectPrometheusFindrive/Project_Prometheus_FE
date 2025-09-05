@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
+import useFormState from "../../hooks/useFormState";
 
 const STATUS_OPTIONS = ["자산등록 완료", "보험등록 완료", "장비장착 완료", "장비장착 대기", "미등록"];
 
 export default function AssetForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
-    const [form, setForm] = useState({
+    const initialFormValues = {
         plate: initial.plate || "",
         vehicleType: initial.vehicleType || "",
         registrationDate: initial.registrationDate || "",
         registrationStatus: initial.registrationStatus || STATUS_OPTIONS[0],
         registrationDoc: initial.registrationDoc || null,
         insuranceDoc: initial.insuranceDoc || null,
-    });
+    };
+
+    const { form, update, handleSubmit, setForm } = useFormState(initialFormValues, { onSubmit });
 
     useEffect(() => {
         if (!form.vehicleType) {
@@ -20,13 +23,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 if (vt) setForm((p) => ({ ...p, vehicleType: vt }));
             }
         }
-    }, [initial]);
-
-    const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (onSubmit) onSubmit(form);
-    };
+    }, [initial, form.vehicleType, setForm]);
 
     return (
         <form id={formId} className="form-grid" onSubmit={handleSubmit}>

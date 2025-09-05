@@ -1,19 +1,15 @@
-import React, { useState } from "react";
+import React from "react";
+import useFormState from "../../hooks/useFormState";
 
 export default function IssueForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
-    const [form, setForm] = useState({
+    const initialFormValues = {
         vin: initial.vin || "",
         type: initial.type || "overdue",
         severity: initial.severity || "medium",
         description: initial.description || "",
-    });
-
-    const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (onSubmit) onSubmit(form);
     };
+
+    const { form, update, handleSubmit } = useFormState(initialFormValues, { onSubmit });
 
     return (
         <form id={formId} className="form-grid" onSubmit={handleSubmit}>

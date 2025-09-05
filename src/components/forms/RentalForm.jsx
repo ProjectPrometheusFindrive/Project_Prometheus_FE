@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React from "react";
+import useFormState from "../../hooks/useFormState";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
-    const [form, setForm] = useState({
+    const initialFormValues = {
         rental_id: initial.rental_id || "",
         vin: initial.vin || "",
         // New: vehicle type and plate number (대여 차종, 대여 차량 번호)
@@ -18,14 +19,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
         // Uploads
         contract_file: initial.contract_file || null, // 대여 계약서 업로드
         driver_license_file: initial.driver_license_file || null, // 운전면허증 업로드
-    });
-
-    const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
-
-    const handleSubmit = (e) => {
-        e.preventDefault();
-        if (onSubmit) onSubmit(form);
     };
+
+    const { form, update, handleSubmit } = useFormState(initialFormValues, { onSubmit });
 
     return (
         <form id={formId} className="form-grid" onSubmit={handleSubmit}>

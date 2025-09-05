@@ -1,25 +1,26 @@
 import React, { useState } from "react";
+import useFormState from "../../hooks/useFormState";
 import GeofenceInput from "./GeofenceInput";
 
 export default function GeofenceGlobalForm({ initial = {}, initialName = "", readOnly = false, onSubmit, onChange, onNameChange, formId, showSubmit = true }) {
-  const [form, setForm] = useState({
+  const initialFormValues = {
     geofences: Array.isArray(initial.geofences) ? initial.geofences : [],
-  });
+  };
+  
+  const { form, update, setFormValues } = useFormState(initialFormValues);
   const [name, setName] = useState(initialName || "");
 
   // Sync when parent initial changes (for Edit flows)
   React.useEffect(() => {
     const next = { geofences: Array.isArray(initial.geofences) ? initial.geofences : [] };
-    setForm(next);
+    setFormValues(next);
     if ((!initialName || initialName === "") && (!next.geofences || next.geofences.length === 0)) {
       setName("");
     }
-  }, [initial, initialName]);
+  }, [initial, initialName, setFormValues]);
   React.useEffect(() => {
     setName(initialName || "");
   }, [initialName]);
-
-  const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
 
   const handleSubmit = (e) => {
     e.preventDefault();

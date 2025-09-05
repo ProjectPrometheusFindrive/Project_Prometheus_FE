@@ -1,24 +1,20 @@
-import React, { useState } from "react";
+import React from "react";
+import useFormState from "../../hooks/useFormState";
 
 export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = false, formId, showSubmit = true }) {
-  const [form, setForm] = useState({
+  const initialFormValues = {
     supplier: initial.supplier || "",
     installDate: initial.installDate || "",
     installer: initial.installer || "",
     serial: initial.serial || "",
     photos: initial.photos || [], // in-memory only
-  });
+  };
 
-  const update = (k, v) => setForm((p) => ({ ...p, [k]: v }));
+  const { form, update, handleSubmit } = useFormState(initialFormValues, { onSubmit });
 
   const handlePhotos = (e) => {
     const files = Array.from(e.target.files || []);
     update("photos", files);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (onSubmit) onSubmit(form);
   };
 
   return (
