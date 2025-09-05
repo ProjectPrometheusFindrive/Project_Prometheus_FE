@@ -151,6 +151,7 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
                 maxWidth: 300,
                 className: "custom-popup",
             });
+            m.bindTooltip(`${r.plate || r.vin}`, { permanent: false, direction: "top" });
             try {
                 if (r.vin) markersRef.current[r.vin] = m;
             } catch {}
