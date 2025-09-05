@@ -1,12 +1,10 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
+import { typedStorage } from "../utils/storage";
 
 export default function RequireAuth({ children }) {
   const location = useLocation();
-  let loggedIn = false;
-  try {
-    loggedIn = localStorage.getItem("isLoggedIn") === "true";
-  } catch {}
+  const loggedIn = typedStorage.auth.isLoggedIn();
 
   if (!loggedIn) {
     return (

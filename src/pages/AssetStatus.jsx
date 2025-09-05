@@ -3,6 +3,9 @@ import { assets as seedAssets } from "../data/assets";
 import { seedVehicles } from "../data/seed";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
+import Modal from "../components/Modal";
+import useTableSelection from "../hooks/useTableSelection";
+import { typedStorage } from "../utils/storage";
 
 export default function AssetStatus() {
     const [q, setQ] = useState("");
@@ -11,19 +14,12 @@ export default function AssetStatus() {
     const [showAssetModal, setShowAssetModal] = useState(false);
     const [showDeviceModal, setShowDeviceModal] = useState(false);
     const [activeAsset, setActiveAsset] = useState(null);
-    const [selected, setSelected] = useState(new Set());
     const [showInfoModal, setShowInfoModal] = useState(false);
     const [infoVehicle, setInfoVehicle] = useState(null);
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
-        try {
-            const raw = localStorage.getItem("deviceInfoByAsset");
-            const map = raw ? JSON.parse(raw) : {};
-            return map[activeAsset.id] || {};
-        } catch {
-            return {};
-        }
+        return typedStorage.devices.getInfo(activeAsset.id);
     }, [activeAsset]);
 
     const fmtDateShort = (s) => {
@@ -64,39 +60,21 @@ export default function AssetStatus() {
         });
     }, [q, status, rows]);
 
-    const allVisibleSelected = useMemo(() => {
-        if (!filtered || filtered.length === 0) return false;
-        return filtered.every((a) => selected.has(a.id));
-    }, [filtered, selected]);
-
-    const toggleSelect = (id) => {
-        setSelected((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
-    };
-
-    const toggleSelectAllVisible = () => {
-        setSelected((prev) => {
-            const next = new Set(prev);
-            const allSelected = filtered.every((a) => next.has(a.id));
-            if (allSelected) {
-                filtered.forEach((a) => next.delete(a.id));
-            } else {
-                filtered.forEach((a) => next.add(a.id));
-            }
-            return next;
-        });
-    };
+    const {
+        selected,
+        toggleSelect,
+        toggleSelectAllVisible,
+        selectedCount,
+        allVisibleSelected,
+        clearSelection
+    } = useTableSelection(filtered, 'id');
 
     const handleDeleteSelected = () => {
-        if (!selected || selected.size === 0) return;
+        if (selectedCount === 0) return;
         const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
         if (!ok) return;
         setRows((prev) => prev.filter((a) => !selected.has(a.id)));
-        setSelected(new Set());
+        clearSelection();
     };
 
     const openInfoModal = (asset) => {
@@ -114,17 +92,16 @@ export default function AssetStatus() {
 
     const handleDeviceInfoSubmit = (form) => {
         if (!activeAsset) return;
-        try {
-            const raw = localStorage.getItem("deviceInfoByAsset");
-            const map = raw ? JSON.parse(raw) : {};
-            map[activeAsset.id] = {
-                supplier: form.supplier || "",
-                installDate: form.installDate || "",
-                installer: form.installer || "",
-                serial: form.serial || "",
-            };
-            localStorage.setItem("deviceInfoByAsset", JSON.stringify(map));
-        } catch {}
+        
+        const deviceInfo = {
+            supplier: form.supplier || "",
+            installDate: form.installDate || "",
+            installer: form.installer || "",
+            serial: form.serial || "",
+            updatedAt: new Date().toISOString(),
+        };
+        
+        typedStorage.devices.setInfo(activeAsset.id, deviceInfo);
         setRows((prev) => prev.map((a) => (a.id === activeAsset.id ? { ...a, deviceSerial: form.serial || a.deviceSerial, installer: form.installer || a.installer } : a)));
         setShowDeviceModal(false);
         setActiveAsset(null);
@@ -156,12 +133,9 @@ export default function AssetStatus() {
             deviceSerial: "",
         };
         setRows((prev) => [next, ...prev]);
-        try {
-            const arr = JSON.parse(localStorage.getItem("assetDrafts") || "[]");
-            const { registrationDoc, insuranceDoc, ...rest } = data || {};
-            arr.push({ ...rest, createdAt: new Date().toISOString(), id });
-            localStorage.setItem("assetDrafts", JSON.stringify(arr));
-        } catch {}
+        const { registrationDoc, insuranceDoc, ...rest } = data || {};
+        const draft = { ...rest, createdAt: new Date().toISOString(), id };
+        typedStorage.drafts.addAsset(draft);
         setShowAssetModal(false);
     };
 
@@ -188,46 +162,32 @@ export default function AssetStatus() {
                     className="form-button"
                     style={{ background: "#c62828" }}
                     onClick={handleDeleteSelected}
-                    disabled={selected.size === 0}
-                    title={selected.size === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
+                    disabled={selectedCount === 0}
+                    title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
                 >
                     삭제
                 </button>
             </div>
 
-            {showAssetModal && (
-                <div className="modal-backdrop" onClick={() => setShowAssetModal(false)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <h2 style={{ marginTop: 0, marginBottom: 12 }}>자산 등록</h2>
-                        <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} showSubmit={false} />
-                        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                            <button type="submit" className="form-button" form="asset-create">
-                                저장
-                            </button>
-                            <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowAssetModal(false)}>
-                                취소
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                isOpen={showAssetModal}
+                onClose={() => setShowAssetModal(false)}
+                title="자산 등록"
+                formId="asset-create"
+                onSubmit={handleAssetSubmit}
+            >
+                <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} showSubmit={false} />
+            </Modal>
 
-            {showDeviceModal && activeAsset && (
-                <div className="modal-backdrop" onClick={() => setShowDeviceModal(false)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <h2 style={{ marginTop: 0, marginBottom: 12 }}>단말 정보 등록 - {activeAsset.id}</h2>
-                        <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
-                        <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                            <button type="submit" className="form-button" form="device-info">
-                                저장
-                            </button>
-                            <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowDeviceModal(false)}>
-                                취소
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <Modal
+                isOpen={showDeviceModal && activeAsset}
+                onClose={() => setShowDeviceModal(false)}
+                title={`단말 정보 등록 - ${activeAsset?.id || ''}`}
+                formId="device-info"
+                onSubmit={handleDeviceInfoSubmit}
+            >
+                <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
+            </Modal>
 
             <div className="table-wrap">
                 <table className="asset-table">
@@ -289,17 +249,13 @@ export default function AssetStatus() {
                 </table>
                 {filtered.length === 0 && <div className="empty">조건에 맞는 차량 자산이 없습니다.</div>}
             </div>
-            {showInfoModal && infoVehicle && (
-                <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="차량 상세 정보" onClick={() => setShowInfoModal(false)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="header-row" style={{ marginBottom: 8 }}>
-                            <strong>차량 상세 정보 {infoVehicle?.asset?.plate ? `- ${infoVehicle.asset.plate}` : ""}</strong>
-                            <div style={{ marginLeft: "auto" }}>
-                                <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowInfoModal(false)}>
-                                    닫기
-                                </button>
-                            </div>
-                        </div>
+            <Modal
+                isOpen={showInfoModal && infoVehicle}
+                onClose={() => setShowInfoModal(false)}
+                title={`차량 상세 정보${infoVehicle?.asset?.plate ? ` - ${infoVehicle.asset.plate}` : ''}`}
+                showFooter={false}
+                ariaLabel="차량 상세 정보"
+            >
 
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
                             <section className="card" style={{ padding: 12 }}>
@@ -362,9 +318,7 @@ export default function AssetStatus() {
                                 </div>
                             </section>
                         </div>
-                    </div>
-                </div>
-            )}
+            </Modal>
         </div>
     );
 }

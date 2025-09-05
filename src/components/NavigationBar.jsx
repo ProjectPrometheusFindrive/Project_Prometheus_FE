@@ -2,14 +2,13 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiHome, FiFileText, FiAlertTriangle, FiSettings, FiLogOut, FiMap } from "react-icons/fi";
 import { FaCar } from "react-icons/fa";
+import { typedStorage } from "../utils/storage";
 
 export default function NavigationBar() {
     const navigate = useNavigate();
 
     function handleLogout() {
-        try {
-            localStorage.removeItem("isLoggedIn");
-        } catch {}
+        typedStorage.auth.logout();
         navigate("/", { replace: true });
     }
 

@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { rentals } from "../data/rentals";
 import RentalForm from "../components/forms/RentalForm";
+import Modal from "../components/Modal";
+import useTableSelection from "../hooks/useTableSelection";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 export default function RentalContracts() {
     const [items, setItems] = useState(() => rentals.map((r) => ({ ...r })));
     const [showCreate, setShowCreate] = useState(false);
-    const [selected, setSelected] = useState(new Set());
 
     // Load drafts from localStorage and merge once
     useEffect(() => {
@@ -57,36 +58,21 @@ export default function RentalContracts() {
         });
     }, [items]);
 
-    const allVisibleSelected = useMemo(() => {
-        if (!rows || rows.length === 0) return false;
-        return rows.every((r) => selected.has(r.rental_id));
-    }, [rows, selected]);
-
-    const toggleSelect = (id) => {
-        setSelected((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
-    };
-
-    const toggleSelectAllVisible = () => {
-        setSelected((prev) => {
-            const next = new Set(prev);
-            const allSelected = rows.every((r) => next.has(r.rental_id));
-            if (allSelected) rows.forEach((r) => next.delete(r.rental_id));
-            else rows.forEach((r) => next.add(r.rental_id));
-            return next;
-        });
-    };
+    const {
+        selected,
+        toggleSelect,
+        toggleSelectAllVisible,
+        selectedCount,
+        allVisibleSelected,
+        clearSelection
+    } = useTableSelection(rows, 'rental_id');
 
     const handleDeleteSelected = () => {
-        if (!selected || selected.size === 0) return;
+        if (selectedCount === 0) return;
         const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
         if (!ok) return;
         setItems((prev) => prev.filter((r) => !selected.has(r.rental_id)));
-        setSelected(new Set());
+        clearSelection();
     };
 
     
@@ -132,32 +118,23 @@ export default function RentalContracts() {
                             className="form-button"
                             style={{ background: "#c62828" }}
                             onClick={handleDeleteSelected}
-                            disabled={selected.size === 0}
-                            title={selected.size === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
+                            disabled={selectedCount === 0}
+                            title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
                         >
                             삭제
                         </button>
                     </div>
                 </div>
 
-                {showCreate && (
-                    <div className="modal-backdrop" onClick={() => setShowCreate(false)}>
-                        <div className="modal" onClick={(e) => e.stopPropagation()}>
-                            <h2 style={{ marginTop: 0, marginBottom: 12 }}>대여 계약 등록</h2>
-                            <>
-                                <RentalForm formId="rental-create" initial={{ rental_id: nextRentalId() }} onSubmit={handleCreateSubmit} showSubmit={false} />
-                                <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                    <button type="submit" className="form-button" form="rental-create">
-                                        저장
-                                    </button>
-                                    <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowCreate(false)}>
-                                        닫기
-                                    </button>
-                                </div>
-                            </>
-                        </div>
-                    </div>
-                )}
+                <Modal
+                    isOpen={showCreate}
+                    onClose={() => setShowCreate(false)}
+                    title="대여 계약 등록"
+                    formId="rental-create"
+                    onSubmit={handleCreateSubmit}
+                >
+                    <RentalForm formId="rental-create" initial={{ rental_id: nextRentalId() }} onSubmit={handleCreateSubmit} showSubmit={false} />
+                </Modal>
 
                 <div className="table-wrap">
                     <table className="asset-table rentals-table">

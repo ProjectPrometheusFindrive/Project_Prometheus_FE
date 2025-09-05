@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { typedStorage } from "../utils/storage";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -11,20 +12,15 @@ export default function Login() {
   }
 
   useEffect(() => {
-    try {
-      const isLoggedIn = localStorage.getItem("isLoggedIn");
-      if (isLoggedIn === "true") {
-        goToLanding();
-      }
-    } catch {}
+    if (typedStorage.auth.isLoggedIn()) {
+      goToLanding();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   function handleSubmit(e) {
     e.preventDefault();
-    try {
-      localStorage.setItem("isLoggedIn", "true");
-    } catch {}
+    typedStorage.auth.setLoggedIn(true);
     goToLanding();
   }
 

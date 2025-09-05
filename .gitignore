@@ -48,3 +48,7 @@ temp/
 
 ### Yarn Plug'n'Play
 .pnp.*
+
+### Claude code
+.claude/
+CLAUDE.md

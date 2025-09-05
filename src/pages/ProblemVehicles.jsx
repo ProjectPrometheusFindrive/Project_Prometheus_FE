@@ -5,6 +5,8 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 import IssueForm from "../components/forms/IssueForm";
+import Modal from "../components/Modal";
+import useTableSelection from "../hooks/useTableSelection";
 import { fetchProblemVehicles, createIssueDraft } from "../api/fakeApi";
 
 export default function ProblemVehicles() {
@@ -12,7 +14,6 @@ export default function ProblemVehicles() {
     const [showIssueModal, setShowIssueModal] = useState(false);
     const [issueInitial, setIssueInitial] = useState({});
     const [saved, setSaved] = useState(false);
-    const [selected, setSelected] = useState(new Set());
     const [noRestartMap, setNoRestartMap] = useState({});
     const [engineMap, setEngineMap] = useState({});
     const navigate = useNavigate();
@@ -60,36 +61,21 @@ export default function ProblemVehicles() {
         setTimeout(() => setSaved(false), 1500);
     };
 
-    const allVisibleSelected = useMemo(() => {
-        if (!problems || problems.length === 0) return false;
-        return problems.every((p) => selected.has(p.rental_id));
-    }, [problems, selected]);
-
-    const toggleSelect = (id) => {
-        setSelected((prev) => {
-            const next = new Set(prev);
-            if (next.has(id)) next.delete(id);
-            else next.add(id);
-            return next;
-        });
-    };
-
-    const toggleSelectAllVisible = () => {
-        setSelected((prev) => {
-            const next = new Set(prev);
-            const allSelected = problems.every((p) => next.has(p.rental_id));
-            if (allSelected) problems.forEach((p) => next.delete(p.rental_id));
-            else problems.forEach((p) => next.add(p.rental_id));
-            return next;
-        });
-    };
+    const {
+        selected,
+        toggleSelect,
+        toggleSelectAllVisible,
+        selectedCount,
+        allVisibleSelected,
+        clearSelection
+    } = useTableSelection(problems, 'rental_id');
 
     const handleDeleteSelected = () => {
-        if (!selected || selected.size === 0) return;
+        if (selectedCount === 0) return;
         const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
         if (!ok) return;
         setProblems((prev) => prev.filter((p) => !selected.has(p.rental_id)));
-        setSelected(new Set());
+        clearSelection();
     };
 
     const toggleRestartLock = (vin) => {
@@ -185,8 +171,8 @@ export default function ProblemVehicles() {
                         className="form-button"
                         style={{ background: "#c62828" }}
                         onClick={handleDeleteSelected}
-                        disabled={selected.size === 0}
-                        title={selected.size === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
+                        disabled={selectedCount === 0}
+                        title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
                     >
                         삭제
                     </button>
@@ -310,52 +296,49 @@ export default function ProblemVehicles() {
                     </tbody>
                 </table>
             </div>
-            {!!locationVin && (
-                <div className="modal-backdrop" onClick={() => setLocationVin(null)}>
-                    <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="header-row has-overlay" style={{ marginBottom: 8, position: "relative" }}>
-                            <strong>현 위치</strong>
-                            <div style={{ marginLeft: "auto" }}>
-                                <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setLocationVin(null)}>
-                                    닫기
-                                </button>
-                            </div>
-                            <div className="modal-title-overlay">
-                                {(() => {
-                                    const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
-                                    const label = p?.plate || p?.vin || "";
-                                    return label ? `${label}의 현재 위치` : "현재 위치";
-                                })()}
-                            </div>
+            <Modal
+                isOpen={!!locationVin}
+                onClose={() => setLocationVin(null)}
+                showFooter={false}
+                className="has-overlay"
+                customHeaderContent={
+                    <div className="header-row has-overlay" style={{ marginBottom: 8, position: "relative" }}>
+                        <strong>현 위치</strong>
+                        <div style={{ marginLeft: "auto" }}>
+                            <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setLocationVin(null)}>
+                                닫기
+                            </button>
                         </div>
-                        {(() => {
-                            const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
-                            const cp = p?.current_location;
-                            if (!cp || typeof cp.lat !== "number" || typeof cp.lng !== "number") {
-                                return <div className="empty">현재 위치 정보가 없습니다.</div>;
-                            }
-                            return <div ref={miniMapRef} className="map-container mini-map" />;
-                        })()}
+                        <div className="modal-title-overlay">
+                            {(() => {
+                                const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
+                                const label = p?.plate || p?.vin || "";
+                                return label ? `${label}의 현재 위치` : "현재 위치";
+                            })()}
+                        </div>
                     </div>
-                </div>
-            )}
+                }
+            >
+                {(() => {
+                    const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
+                    const cp = p?.current_location;
+                    if (!cp || typeof cp.lat !== "number" || typeof cp.lng !== "number") {
+                        return <div className="empty">현재 위치 정보가 없습니다.</div>;
+                    }
+                    return <div ref={miniMapRef} className="map-container mini-map" />;
+                })()}
+            </Modal>
             {problems.length === 0 && <div className="empty">문제 차량이 없습니다.</div>}
 
-            {showIssueModal && (
-                <div className="modal-backdrop" role="dialog" aria-modal="true" aria-label="이슈차량 등록">
-                    <div className="modal">
-                        <div className="header-row" style={{ marginBottom: 8 }}>
-                            <strong>이슈차량 등록</strong>
-                            <div style={{ marginLeft: "auto" }}>
-                                <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setShowIssueModal(false)}>
-                                    닫기
-                                </button>
-                            </div>
-                        </div>
-                        <IssueForm initial={issueInitial} onSubmit={handleIssueSubmit} />
-                    </div>
-                </div>
-            )}
+            <Modal
+                isOpen={showIssueModal}
+                onClose={() => setShowIssueModal(false)}
+                title="이슈차량 등록"
+                showFooter={false}
+                ariaLabel="이슈차량 등록"
+            >
+                <IssueForm initial={issueInitial} onSubmit={handleIssueSubmit} />
+            </Modal>
         </div>
     );
 }
