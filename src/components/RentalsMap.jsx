@@ -127,17 +127,6 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
             const inside = geofences.map((g) => ({ name: g.name, inside: pointInPolygon(cp, g.points || []) })).filter((x) => x.inside);
             const hasGeofenceProblem = inside.length > 0;
 
-            let statusBadge = "";
-            if (isStolen) {
-                statusBadge = `<span class="status-badge" style="background:#fef2f2; color:#c62828;">🚨 도난 의심</span>`;
-            } else if (isOverdue) {
-                statusBadge = `<span class="status-badge" style="background:#fef3c7; color:#d97706;">⏰ 반납 지연 ${overdueDays}일</span>`;
-            } else if (hasGeofenceProblem) {
-                statusBadge = `<span class="status-badge" style="background:#fef2f2; color:#c62828;">⚠️ 제한구역 침입</span>`;
-            } else if (isActive) {
-                statusBadge = `<span class="status-badge" style="background:#dcfce7; color:#16a34a;">✅ 정상 운행</span>`;
-            }
-
             const popupContent = `
                 <div class="popup-content" style="font-size: 12px; line-height: 1.3; white-space: nowrap;">
                     <div><strong style="font-size: 12px;">대여 계약</strong> #${r.rental_id} </br> <strong>차량번호:</strong> ${r.plate || r.vin} </br> <strong>대여자:</strong> ${
