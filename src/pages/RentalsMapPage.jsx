@@ -38,7 +38,7 @@ export default function RentalsMapPage() {
 
     return (
         <div className="page">
-            <h1>Rental Map</h1>
+            <h1>대여 차량 위치</h1>
             <div className="page-scroll">
                 <div className="map-view">
                     <div className="legend" role="group" aria-label="Marker filters">

@@ -125,21 +125,32 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
 
             const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
             const inside = geofences.map((g) => ({ name: g.name, inside: pointInPolygon(cp, g.points || []) })).filter((x) => x.inside);
-            const lines = [
-                `<strong>Rental #${r.rental_id}</strong>`,
-                `VIN: ${r.vin}`,
-                `Renter: ${r.renter_name}`,
-                `Period: ${r.rental_period?.start ?? "-"} ~ ${r.rental_period?.end ?? "-"}`,
-                inside.length > 0 ? `<span style=\"color:#0b57d0;\">Inside geofence: ${inside.map((x) => x.name).join(", ")}</span>` : `<span style=\"color:#666;\">Inside geofence: None</span>`,
-                isStolen
-                    ? `<span style=\"color:#c62828;font-weight:600;\">Stolen suspected</span>`
-                    : isOverdue
-                    ? `<span style=\"color:#f59e0b;font-weight:600;\">Overdue ${overdueDays} day(s)</span>`
-                    : isActive
-                    ? `<span style=\"color:#177245;font-weight:600;\">Active</span>`
-                    : "",
-            ].filter(Boolean);
-            m.bindPopup(lines.join("<br/>"));
+            const hasGeofenceProblem = inside.length > 0;
+
+            let statusBadge = "";
+            if (isStolen) {
+                statusBadge = `<span class="status-badge" style="background:#fef2f2; color:#c62828;">🚨 도난 의심</span>`;
+            } else if (isOverdue) {
+                statusBadge = `<span class="status-badge" style="background:#fef3c7; color:#d97706;">⏰ 반납 지연 ${overdueDays}일</span>`;
+            } else if (hasGeofenceProblem) {
+                statusBadge = `<span class="status-badge" style="background:#fef2f2; color:#c62828;">⚠️ 제한구역 침입</span>`;
+            } else if (isActive) {
+                statusBadge = `<span class="status-badge" style="background:#dcfce7; color:#16a34a;">✅ 정상 운행</span>`;
+            }
+
+            const popupContent = `
+                <div class="popup-content" style="font-size: 12px; line-height: 1.3; white-space: nowrap;">
+                    <div><strong style="font-size: 12px;">대여 계약</strong> #${r.rental_id} </br> <strong>차량번호:</strong> ${r.plate || r.vin} </br> <strong>대여자:</strong> ${
+                r.renter_name
+            } </br> <strong>대여기간:</strong> ${r.rental_period?.start ?? "-"} ~ ${r.rental_period?.end ?? "-"} </br> <strong>지오펜스:</strong> ${
+                hasGeofenceProblem ? `<span style="color:#dc2626; font-weight:600;">제한구역 침입: ${inside.map((x) => x.name).join(", ")}</span>` : `<span style="color:#16a34a;">정상 범위</span>`
+            }</div>
+                </div>
+            `;
+            m.bindPopup(popupContent, {
+                maxWidth: 300,
+                className: "custom-popup",
+            });
             try {
                 if (r.vin) markersRef.current[r.vin] = m;
             } catch {}
@@ -227,7 +238,14 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
             } catch {}
             const name = g.name || "Geofence";
             layer.bindTooltip(name, { sticky: true, className: "leaflet-tooltip" });
-            layer.bindPopup(`<strong>🔒 ${name}</strong>`);
+            layer.bindPopup(`
+                <div class="popup-content">
+                    <strong>⚠️ 제한구역: ${name}</strong>
+                    <div style="margin-top: 8px; color: #dc2626; font-size: 13px; font-weight: 500;">
+                        차량이 진입하면 안 되는 제한구역입니다.
+                    </div>
+                </div>
+            `);
             geofenceLayers.push(layer);
 
             // centroid marker intentionally removed; only polygon is shown for geofences
@@ -245,9 +263,15 @@ export default function RentalsMap({ rentals, filters = { active: true, overdue:
                     } catch {}
                 };
                 // Ask each cluster group to reveal the marker if clustered
-                try { clusterRented.zoomToShowLayer(marker, zoomToMarker); } catch {}
-                try { clusterOverdue.zoomToShowLayer(marker, zoomToMarker); } catch {}
-                try { clusterSuspicious.zoomToShowLayer(marker, zoomToMarker); } catch {}
+                try {
+                    clusterRented.zoomToShowLayer(marker, zoomToMarker);
+                } catch {}
+                try {
+                    clusterOverdue.zoomToShowLayer(marker, zoomToMarker);
+                } catch {}
+                try {
+                    clusterSuspicious.zoomToShowLayer(marker, zoomToMarker);
+                } catch {}
                 // As a fallback, still try to set view directly
                 zoomToMarker();
             } else {

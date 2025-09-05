@@ -289,13 +289,11 @@ export default function ProblemVehicles() {
                 showFooter={false}
                 className="has-overlay"
                 customHeaderContent={
-                    <div className="header-row has-overlay" style={{ marginBottom: 8, position: "relative" }}>
+                    <div className="header-row has-overlay">
                         <strong>현 위치</strong>
-                        <div style={{ marginLeft: "auto" }}>
-                            <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setLocationVin(null)}>
-                                닫기
-                            </button>
-                        </div>
+                        <button type="button" className="form-button" onClick={() => setLocationVin(null)}>
+                            닫기
+                        </button>
                         <div className="modal-title-overlay">
                             {(() => {
                                 const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
