@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import GeofencePreview from "../components/GeofencePreview";
 import { loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../data/company";

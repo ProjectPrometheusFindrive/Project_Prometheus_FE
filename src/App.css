@@ -882,3 +882,16 @@ html {
     max-height: calc(100vh - 80px);
     overflow: auto;
 }
+
+/* ProblemVehicles current-location modal dynamic title */
+.header-row.has-overlay {
+    position: relative;
+}
+.header-row.has-overlay strong {
+    color: transparent;
+}
+.header-row.has-overlay .modal-title-overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+}

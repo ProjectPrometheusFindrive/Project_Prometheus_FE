@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FiHome, FiFileText, FiAlertTriangle, FiPlus, FiSettings, FiLogOut, FiMap } from "react-icons/fi";
+import { FiHome, FiFileText, FiAlertTriangle, FiSettings, FiLogOut, FiMap } from "react-icons/fi";
 import { FaCar } from "react-icons/fa";
 
 export default function NavigationBar() {

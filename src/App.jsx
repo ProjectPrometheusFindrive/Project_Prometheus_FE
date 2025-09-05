@@ -6,7 +6,7 @@ import SignUp from "./pages/SignUp";
 import FindId from "./pages/FindId";
 import ForgotPassword from "./pages/ForgotPassword";
 import Settings from "./pages/Settings";
-import AssetStatus from "./pages/AssetStatusFixed";
+import AssetStatus from "./pages/AssetStatus";
 import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
 import RentalsMapPage from "./pages/RentalsMapPage";

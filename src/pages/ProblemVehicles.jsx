@@ -313,12 +313,19 @@ export default function ProblemVehicles() {
             {!!locationVin && (
                 <div className="modal-backdrop" onClick={() => setLocationVin(null)}>
                     <div className="modal" onClick={(e) => e.stopPropagation()}>
-                        <div className="header-row" style={{ marginBottom: 8 }}>
+                        <div className="header-row has-overlay" style={{ marginBottom: 8, position: "relative" }}>
                             <strong>현 위치</strong>
                             <div style={{ marginLeft: "auto" }}>
                                 <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setLocationVin(null)}>
                                     닫기
                                 </button>
+                            </div>
+                            <div className="modal-title-overlay">
+                                {(() => {
+                                    const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
+                                    const label = p?.plate || p?.vin || "";
+                                    return label ? `${label}의 현재 위치` : "현재 위치";
+                                })()}
                             </div>
                         </div>
                         {(() => {
