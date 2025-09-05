@@ -10,6 +10,7 @@ export default function AssetStatus() {
   const [showAssetModal, setShowAssetModal] = useState(false);
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [activeAsset, setActiveAsset] = useState(null);
+  const [selected, setSelected] = useState(new Set());
 
   const deviceInitial = useMemo(() => {
     if (!activeAsset) return {};
@@ -63,6 +64,41 @@ export default function AssetStatus() {
       return matchesTerm && matchesStatus;
     });
   }, [q, status, rows]);
+
+  const allVisibleSelected = useMemo(() => {
+    if (!filtered || filtered.length === 0) return false;
+    return filtered.every((a) => selected.has(a.id));
+  }, [filtered, selected]);
+
+  const toggleSelect = (id) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const toggleSelectAllVisible = () => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      const allSelected = filtered.every((a) => next.has(a.id));
+      if (allSelected) {
+        filtered.forEach((a) => next.delete(a.id));
+      } else {
+        filtered.forEach((a) => next.add(a.id));
+      }
+      return next;
+    });
+  };
+
+  const handleDeleteSelected = () => {
+    if (!selected || selected.size === 0) return;
+    const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
+    if (!ok) return;
+    setRows((prev) => prev.filter((a) => !selected.has(a.id)));
+    setSelected(new Set());
+  };
 
   const openDeviceModal = (asset) => {
     setActiveAsset(asset);
@@ -147,6 +183,16 @@ export default function AssetStatus() {
         <button type="button" className="form-button" onClick={() => setShowAssetModal(true)}>
           자산 등록
         </button>
+        <button
+          type="button"
+          className="form-button"
+          style={{ background: "#c62828" }}
+          onClick={handleDeleteSelected}
+          disabled={selected.size === 0}
+          title={selected.size === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
+        >
+          삭제
+        </button>
       </div>
 
       {showAssetModal && (
@@ -179,6 +225,14 @@ export default function AssetStatus() {
         <table className="asset-table">
           <thead>
             <tr>
+              <th style={{ width: 36, textAlign: "center" }}>
+                <input
+                  type="checkbox"
+                  aria-label="현재 목록 전체 선택"
+                  checked={allVisibleSelected}
+                  onChange={toggleSelectAllVisible}
+                />
+              </th>
               <th>차량번호</th>
               <th>차종</th>
               <th>보험가입 정보</th>
@@ -191,6 +245,14 @@ export default function AssetStatus() {
           <tbody>
             {filtered.map((a) => (
               <tr key={a.id}>
+                <td style={{ textAlign: "center" }}>
+                  <input
+                    type="checkbox"
+                    aria-label={`선택: ${a.plate || a.id}`}
+                    checked={selected.has(a.id)}
+                    onChange={() => toggleSelect(a.id)}
+                  />
+                </td>
                 <td>{a.plate}</td>
                 <td>{a.vehicleType}</td>
                 <td>{a.insuranceInfo || '-'}</td>
