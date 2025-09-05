@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import GeofencePreview from "../components/GeofencePreview";
 import { loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../data/company";
+import { COLORS, DIMENSIONS } from "../constants";
 
 export default function Settings() {
   const [viewData, setViewData] = useState({ ...defaultCompanyInfo });

@@ -6,6 +6,7 @@ import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
 import { typedStorage } from "../utils/storage";
+import { COLORS, DIMENSIONS, ASSET } from "../constants";
 
 export default function AssetStatus() {
     const [q, setQ] = useState("");
@@ -108,7 +109,7 @@ export default function AssetStatus() {
     };
 
     const nextAssetId = () => {
-        const prefix = "VH-";
+        const prefix = ASSET.ID_PREFIX;
         let max = 0;
         for (const a of rows) {
             const m = String(a.id || "").match(/(\d{1,})$/);
@@ -160,7 +161,7 @@ export default function AssetStatus() {
                 <button
                     type="button"
                     className="form-button"
-                    style={{ background: "#c62828" }}
+                    style={{ background: COLORS.DANGER }}
                     onClick={handleDeleteSelected}
                     disabled={selectedCount === 0}
                     title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
@@ -193,7 +194,7 @@ export default function AssetStatus() {
                 <table className="asset-table">
                     <thead>
                         <tr>
-                            <th style={{ width: 36, textAlign: "center" }}>
+                            <th style={{ width: DIMENSIONS.ICON_SIZE_LG, textAlign: "center" }}>
                                 <input type="checkbox" aria-label="현재 목록 전체 선택" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
                             </th>
                             <th>차량번호</th>
@@ -218,7 +219,7 @@ export default function AssetStatus() {
                                         style={{
                                             background: "none",
                                             border: "none",
-                                            color: "#0057e7",
+                                            color: COLORS.SECONDARY,
                                             textDecoration: "underline",
                                             cursor: "pointer",
                                             padding: 0,
@@ -257,8 +258,8 @@ export default function AssetStatus() {
                 ariaLabel="차량 상세 정보"
             >
 
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-                            <section className="card" style={{ padding: 12 }}>
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: DIMENSIONS.GRID_GAP }}>
+                            <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
                                 <h3 className="section-title" style={{ marginTop: 0 }}>
                                     자산 정보
                                 </h3>
@@ -288,7 +289,7 @@ export default function AssetStatus() {
                                 </div>
                             </section>
 
-                            <section className="card" style={{ padding: 12 }}>
+                            <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
                                 <h3 className="section-title" style={{ marginTop: 0 }}>
                                     대여 정보
                                 </h3>

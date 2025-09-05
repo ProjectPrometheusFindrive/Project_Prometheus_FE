@@ -1,4 +1,5 @@
 import React from "react";
+import { COLORS } from "../constants";
 
 const Modal = ({
   isOpen,
@@ -33,7 +34,7 @@ const Modal = ({
       <button 
         type="button" 
         className="form-button" 
-        style={{ background: "#777" }} 
+        style={{ background: COLORS.GRAY_900 }} 
         onClick={onClose}
       >
         {cancelText}
@@ -62,7 +63,7 @@ const Modal = ({
                   <button 
                     type="button" 
                     className="form-button" 
-                    style={{ background: "#777" }} 
+                    style={{ background: COLORS.GRAY_900 }} 
                     onClick={onClose}
                   >
                     닫기
