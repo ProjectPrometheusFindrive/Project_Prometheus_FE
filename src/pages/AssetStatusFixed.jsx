@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { assets as seedAssets } from "../data/assets";
+import { seedVehicles } from "../data/seed";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 
@@ -11,6 +12,8 @@ export default function AssetStatus() {
   const [showDeviceModal, setShowDeviceModal] = useState(false);
   const [activeAsset, setActiveAsset] = useState(null);
   const [selected, setSelected] = useState(new Set());
+  const [showInfoModal, setShowInfoModal] = useState(false);
+  const [infoVehicle, setInfoVehicle] = useState(null);
 
   const deviceInitial = useMemo(() => {
     if (!activeAsset) return {};
@@ -98,6 +101,14 @@ export default function AssetStatus() {
     if (!ok) return;
     setRows((prev) => prev.filter((a) => !selected.has(a.id)));
     setSelected(new Set());
+  };
+
+  const openInfoModal = (asset) => {
+    if (!asset) return;
+    const vin = asset.vin;
+    const bundle = (vin && seedVehicles[vin]) || { asset, rental: undefined, vin };
+    setInfoVehicle(bundle);
+    setShowInfoModal(true);
   };
 
   const openDeviceModal = (asset) => {
@@ -253,7 +264,24 @@ export default function AssetStatus() {
                     onChange={() => toggleSelect(a.id)}
                   />
                 </td>
-                <td>{a.plate}</td>
+                <td>
+                  <button
+                    type="button"
+                    onClick={() => openInfoModal(a)}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#0057e7",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      padding: 0,
+                      font: "inherit",
+                    }}
+                    title="차량 정보 보기"
+                  >
+                    {a.plate}
+                  </button>
+                </td>
                 <td>{a.vehicleType}</td>
                 <td>{a.insuranceInfo || '-'}</td>
                 <td>{fmtDateShort(a.registrationDate)}</td>
@@ -272,6 +300,105 @@ export default function AssetStatus() {
         </table>
         {filtered.length === 0 && <div className="empty">조건에 맞는 차량 자산이 없습니다.</div>}
       </div>
+      {showInfoModal && infoVehicle && (
+        <div
+          className="modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          aria-label="차량 상세 정보"
+          onClick={() => setShowInfoModal(false)}
+        >
+          <div className="modal" onClick={(e) => e.stopPropagation()}>
+            <div className="header-row" style={{ marginBottom: 8 }}>
+              <strong>
+                차량 상세 정보 {infoVehicle?.asset?.plate ? `- ${infoVehicle.asset.plate}` : ""}
+              </strong>
+              <div style={{ marginLeft: "auto" }}>
+                <button
+                  type="button"
+                  className="form-button"
+                  style={{ background: "#777" }}
+                  onClick={() => setShowInfoModal(false)}
+                >
+                  닫기
+                </button>
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+              <section className="card" style={{ padding: 12 }}>
+                <h3 className="section-title" style={{ marginTop: 0 }}>자산 정보</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
+                  <div>차량번호</div>
+                  <div><strong>{infoVehicle?.asset?.plate || '-'}</strong></div>
+                  <div>차종</div>
+                  <div>{infoVehicle?.asset?.vehicleType || '-'}</div>
+                  <div>제조사/모델</div>
+                  <div>{[infoVehicle?.asset?.make, infoVehicle?.asset?.model].filter(Boolean).join(' ') || '-'}</div>
+                  <div>연식/연료</div>
+                  <div>{[infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType].filter(Boolean).join(' / ') || '-'}</div>
+                  <div>VIN</div>
+                  <div>{infoVehicle?.asset?.vin || infoVehicle?.vin || '-'}</div>
+                  <div>보험/공제</div>
+                  <div>{infoVehicle?.asset?.insuranceInfo || '-'}</div>
+                  <div>차량 등록일</div>
+                  <div>{infoVehicle?.asset?.registrationDate ? new Date(infoVehicle.asset.registrationDate).toLocaleDateString() : '-'}</div>
+                  <div>등록 상태</div>
+                  <div>{infoVehicle?.asset?.registrationStatus || '-'}</div>
+                  <div>설치자</div>
+                  <div>{infoVehicle?.asset?.installer || '-'}</div>
+                  <div>기기 시리얼</div>
+                  <div>{infoVehicle?.asset?.deviceSerial || '-'}</div>
+                </div>
+              </section>
+
+              <section className="card" style={{ padding: 12 }}>
+                <h3 className="section-title" style={{ marginTop: 0 }}>대여 정보</h3>
+                <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
+                  <div>계약번호</div>
+                  <div>{infoVehicle?.rental?.rental_id || '-'}</div>
+                  <div>대여자</div>
+                  <div>{infoVehicle?.rental?.renter_name || '-'}</div>
+                  <div>연락처</div>
+                  <div>{infoVehicle?.rental?.contact_number || '-'}</div>
+                  <div>주소</div>
+                  <div>{infoVehicle?.rental?.address || '-'}</div>
+                  <div>대여 기간</div>
+                  <div>
+                    {infoVehicle?.rental?.rental_period?.start
+                      ? new Date(infoVehicle.rental.rental_period.start).toLocaleDateString()
+                      : '-'}
+                    {" ~ "}
+                    {infoVehicle?.rental?.rental_period?.end
+                      ? new Date(infoVehicle.rental.rental_period.end).toLocaleDateString()
+                      : '-'}
+                  </div>
+                  <div>보험사</div>
+                  <div>{infoVehicle?.rental?.insurance_name || '-'}</div>
+                  <div>대여 위치</div>
+                  <div>
+                    {infoVehicle?.rental?.rental_location
+                      ? `${infoVehicle.rental.rental_location.lat}, ${infoVehicle.rental.rental_location.lng}`
+                      : '-'}
+                  </div>
+                  <div>반납 위치</div>
+                  <div>
+                    {infoVehicle?.rental?.return_location
+                      ? `${infoVehicle.rental.return_location.lat}, ${infoVehicle.rental.return_location.lng}`
+                      : '-'}
+                  </div>
+                  <div>현재 위치</div>
+                  <div>
+                    {infoVehicle?.rental?.current_location
+                      ? `${infoVehicle.rental.current_location.lat}, ${infoVehicle.rental.current_location.lng}`
+                      : '-'}
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
