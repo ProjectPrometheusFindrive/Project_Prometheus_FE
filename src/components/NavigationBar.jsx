@@ -36,7 +36,7 @@ export default function NavigationBar() {
                 </span>
             </NavLink>
 
-            <NavLink to="/returns" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Issues" title="Issues">
+            <NavLink to="/issue" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Issues" title="Issues">
                 <FiAlertTriangle className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
                     Issues

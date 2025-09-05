@@ -30,7 +30,7 @@ function App() {
           <Route path="/rentals" element={<Navigate to="/rentals/table" replace />} />
           <Route path="/rentals/table" element={<RentalContracts />} />
           <Route path="/rentals/map" element={<RentalsMapPage />} />
-          <Route path="/returns" element={<ProblemVehicles />} />
+          <Route path="/issue" element={<ProblemVehicles />} />
           <Route path="/detail/:type/:id" element={<Detail />} />
         </Route>
         {/* Fallback for unknown routes */}

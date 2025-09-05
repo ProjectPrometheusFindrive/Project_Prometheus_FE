@@ -117,7 +117,7 @@ npm run preview
 -   `/` - 로그인 페이지
 -   `/assets` - 자산 현황 (차량 목록 및 상태)
 -   `/rentals` - 렌탈 계약 관리
--   `/returns` - 문제 차량 관리
+-   `/issue` - 문제 차량 관리
 -   `/register` - 신규 등록 (자산/렌탈/문제)
 -   `/detail/:type/:id` - 상세 정보 및 수정
 -   `/settings` - 설정
