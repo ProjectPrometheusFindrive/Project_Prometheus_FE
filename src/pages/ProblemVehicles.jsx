@@ -1,6 +1,9 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { seedVehicles } from "../data/seed";
+import { renderToStaticMarkup } from "react-dom/server";
+import { FaCar } from "react-icons/fa";
+import { FiAlertTriangle } from "react-icons/fi";
 import IssueForm from "../components/forms/IssueForm";
 import { fetchProblemVehicles, createIssueDraft } from "../api/fakeApi";
 
@@ -13,6 +16,10 @@ export default function ProblemVehicles() {
     const [noRestartMap, setNoRestartMap] = useState({});
     const [engineMap, setEngineMap] = useState({});
     const navigate = useNavigate();
+    const [locationVin, setLocationVin] = useState(null);
+    const miniMapRef = useRef(null);
+    const miniMapInstanceRef = useRef(null);
+    const miniLayerRef = useRef(null);
 
     useEffect(() => {
         let mounted = true;
@@ -99,6 +106,69 @@ export default function ProblemVehicles() {
         if (!vin) return;
         navigate(`/rentals/map?vin=${encodeURIComponent(vin)}`);
     };
+
+    const openLocationPopup = (vin) => {
+        setLocationVin(vin || null);
+    };
+
+    // Initialize/Update mini map for location popup
+    useEffect(() => {
+        const L = window.L;
+        if (!locationVin) {
+            // Cleanup map when closing
+            try {
+                if (miniMapInstanceRef.current) {
+                    miniMapInstanceRef.current.remove();
+                }
+            } catch {}
+            miniMapInstanceRef.current = null;
+            miniLayerRef.current = null;
+            return;
+        }
+        if (!L) return; // Leaflet not loaded
+        const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
+        const cp = p?.current_location;
+        if (!cp || typeof cp.lat !== "number" || typeof cp.lng !== "number") return;
+
+        let map = miniMapInstanceRef.current;
+        if (!map) {
+            map = L.map(miniMapRef.current, { zoomControl: true, attributionControl: true });
+            L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+                maxZoom: 19,
+                attribution: "&copy; OpenStreetMap contributors",
+            }).addTo(map);
+            miniMapInstanceRef.current = map;
+        }
+        try {
+            map.invalidateSize();
+        } catch {}
+        map.setView([cp.lat, cp.lng], 15);
+
+        // Clear previous layer group
+        try {
+            if (miniLayerRef.current) {
+                map.removeLayer(miniLayerRef.current);
+            }
+        } catch {}
+
+        const lg = L.layerGroup();
+        miniLayerRef.current = lg;
+
+        const issue = String(p.issue || "");
+        const isStolen = issue.indexOf("stolen") !== -1;
+        const className = isStolen ? "marker marker--suspicious" : "marker marker--rented";
+        const IconComp = isStolen ? FiAlertTriangle : FaCar;
+        const svg = renderToStaticMarkup(<IconComp className="map-icon-svg" aria-hidden />);
+        const icon = L.divIcon({ className, html: svg, iconSize: [28, 28] });
+        const m = L.marker([cp.lat, cp.lng], { icon, zIndexOffset: isStolen ? 3000 : 1000 });
+        m.bindTooltip(`${p.plate || p.vin || "Vehicle"}`, { permanent: false, direction: "top" });
+        lg.addLayer(m);
+        try {
+            const circle = L.circle([cp.lat, cp.lng], { radius: 60, color: "#0b57d0", fillColor: "#0b57d0", fillOpacity: 0.08, weight: 1 });
+            lg.addLayer(circle);
+        } catch {}
+        lg.addTo(map);
+    }, [locationVin, problems]);
 
     return (
         <div className="page">
@@ -228,11 +298,11 @@ export default function ProblemVehicles() {
                                         className="mini-button"
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            gotoMapFor(p.vin);
+                                            openLocationPopup(p.vin);
                                         }}
-                                        title="지도에서 보기"
+                                        title="현 위치 보기"
                                     >
-                                        지도
+                                        현 위치
                                     </button>
                                 </td>
                             </tr>
@@ -240,6 +310,28 @@ export default function ProblemVehicles() {
                     </tbody>
                 </table>
             </div>
+            {!!locationVin && (
+                <div className="modal-backdrop" onClick={() => setLocationVin(null)}>
+                    <div className="modal" onClick={(e) => e.stopPropagation()}>
+                        <div className="header-row" style={{ marginBottom: 8 }}>
+                            <strong>현 위치</strong>
+                            <div style={{ marginLeft: "auto" }}>
+                                <button type="button" className="form-button" style={{ background: "#777" }} onClick={() => setLocationVin(null)}>
+                                    닫기
+                                </button>
+                            </div>
+                        </div>
+                        {(() => {
+                            const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
+                            const cp = p?.current_location;
+                            if (!cp || typeof cp.lat !== "number" || typeof cp.lng !== "number") {
+                                return <div className="empty">현재 위치 정보가 없습니다.</div>;
+                            }
+                            return <div ref={miniMapRef} className="map-container mini-map" />;
+                        })()}
+                    </div>
+                </div>
+            )}
             {problems.length === 0 && <div className="empty">문제 차량이 없습니다.</div>}
 
             {showIssueModal && (
