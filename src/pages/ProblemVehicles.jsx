@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import IssueForm from "../components/forms/IssueForm";
 import { fetchProblemVehicles, createIssueDraft } from "../api/fakeApi";
 
@@ -7,6 +7,7 @@ export default function ProblemVehicles() {
     const [showIssueModal, setShowIssueModal] = useState(false);
     const [issueInitial, setIssueInitial] = useState({});
     const [saved, setSaved] = useState(false);
+    const [selected, setSelected] = useState(new Set());
 
     useEffect(() => {
         let mounted = true;
@@ -35,26 +36,78 @@ export default function ProblemVehicles() {
         setTimeout(() => setSaved(false), 1500);
     };
 
+    const allVisibleSelected = useMemo(() => {
+        if (!problems || problems.length === 0) return false;
+        return problems.every((p) => selected.has(p.rental_id));
+    }, [problems, selected]);
+
+    const toggleSelect = (id) => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const toggleSelectAllVisible = () => {
+        setSelected((prev) => {
+            const next = new Set(prev);
+            const allSelected = problems.every((p) => next.has(p.rental_id));
+            if (allSelected) problems.forEach((p) => next.delete(p.rental_id));
+            else problems.forEach((p) => next.add(p.rental_id));
+            return next;
+        });
+    };
+
+    const handleDeleteSelected = () => {
+        if (!selected || selected.size === 0) return;
+        const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
+        if (!ok) return;
+        setProblems((prev) => prev.filter((p) => !selected.has(p.rental_id)));
+        setSelected(new Set());
+    };
+
     return (
         <div className="page">
             <h1>반납지연/도난 현황</h1>
 
             <div className="asset-toolbar" style={{ marginTop: 8 }}>
                 <div style={{ flex: 1 }} />
-                <button type="button" className="form-button" onClick={() => openIssueModal({})}>
-                    이슈차량 등록
-                </button>
-                {saved && (
-                    <span className="saved-indicator" aria-live="polite">
-                        Saved
-                    </span>
-                )}
+                <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <button type="button" className="form-button" onClick={() => openIssueModal({})}>
+                        이슈차량 등록
+                    </button>
+                    <button
+                        type="button"
+                        className="form-button"
+                        style={{ background: "#c62828" }}
+                        onClick={handleDeleteSelected}
+                        disabled={selected.size === 0}
+                        title={selected.size === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
+                    >
+                        삭제
+                    </button>
+                    {saved && (
+                        <span className="saved-indicator" aria-live="polite">
+                            Saved
+                        </span>
+                    )}
+                </div>
             </div>
 
             <div className="table-wrap">
                 <table className="asset-table">
                     <thead>
                         <tr>
+                            <th style={{ width: 36, textAlign: "center" }}>
+                                <input
+                                    type="checkbox"
+                                    aria-label="현재 목록 전체 선택"
+                                    checked={allVisibleSelected}
+                                    onChange={toggleSelectAllVisible}
+                                />
+                            </th>
                             <th>차량번호</th>
                             <th>차종</th>
                             <th>대여기간</th>
@@ -71,6 +124,15 @@ export default function ProblemVehicles() {
                                 style={{ cursor: "pointer" }}
                                 title="행을 클릭하면 이슈 등록 창이 열립니다."
                             >
+                                <td style={{ textAlign: "center" }}>
+                                    <input
+                                        type="checkbox"
+                                        aria-label={`선택: ${p.plate || p.rental_id}`}
+                                        checked={selected.has(p.rental_id)}
+                                        onChange={() => toggleSelect(p.rental_id)}
+                                        onClick={(e) => e.stopPropagation()}
+                                    />
+                                </td>
                                 <td>{p.plate || (p.asset ? p.asset.plate : "-")}</td>
                                 <td>{p.vehicleType || (p.asset ? p.asset.vehicleType : "-")}</td>
                                 <td>
