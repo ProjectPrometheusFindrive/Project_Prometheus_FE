@@ -1,5 +1,9 @@
 import React from "react";
 import useFormState from "../../hooks/useFormState";
+import FormGrid from "./FormGrid";
+import FormField from "./FormField";
+import FormActions from "./FormActions";
+import { ISSUE_TYPE_OPTIONS, SEVERITY_OPTIONS } from "../../constants/forms";
 
 export default function IssueForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
     const initialFormValues = {
@@ -12,51 +16,55 @@ export default function IssueForm({ initial = {}, readOnly = false, onSubmit, fo
     const { form, update, handleSubmit } = useFormState(initialFormValues, { onSubmit });
 
     return (
-        <form id={formId} className="form-grid" onSubmit={handleSubmit}>
-            <label className="form-label" htmlFor="vin">
-                VIN
-            </label>
-            <input id="vin" className="form-input" value={form.vin} onChange={(e) => update("vin", e.target.value)} placeholder="e.g. 1HGCM82633A004352" required disabled={readOnly} />
+        <FormGrid id={formId} onSubmit={handleSubmit}>
+            <FormField
+                id="vin"
+                label="VIN"
+                value={form.vin}
+                onChange={(value) => update("vin", value)}
+                placeholder="e.g. 1HGCM82633A004352"
+                required
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="type">
-                Type
-            </label>
-            <select id="type" className="form-input" value={form.type} onChange={(e) => update("type", e.target.value)} disabled={readOnly}>
-                <option value="overdue">Overdue Return</option>
-                <option value="stolen">Suspected Theft</option>
-                <option value="damage">Damage</option>
-                <option value="other">Other</option>
-            </select>
+            <FormField
+                id="type"
+                label="Type"
+                type="select"
+                value={form.type}
+                onChange={(value) => update("type", value)}
+                options={ISSUE_TYPE_OPTIONS}
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="severity">
-                Severity
-            </label>
-            <select id="severity" className="form-input" value={form.severity} onChange={(e) => update("severity", e.target.value)} disabled={readOnly}>
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-            </select>
+            <FormField
+                id="severity"
+                label="Severity"
+                type="select"
+                value={form.severity}
+                onChange={(value) => update("severity", value)}
+                options={SEVERITY_OPTIONS}
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="description">
-                Description
-            </label>
-            <textarea
+            <FormField
                 id="description"
-                rows="4"
-                className="form-input"
+                label="Description"
+                type="textarea"
                 value={form.description}
-                onChange={(e) => update("description", e.target.value)}
+                onChange={(value) => update("description", value)}
                 placeholder="Enter details"
+                rows={4}
                 disabled={readOnly}
             />
 
             {!readOnly && showSubmit && (
-                <div className="form-actions">
+                <FormActions>
                     <button type="submit" className="form-button">
                         등록
                     </button>
-                </div>
+                </FormActions>
             )}
-        </form>
+        </FormGrid>
     );
 }

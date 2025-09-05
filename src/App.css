@@ -353,6 +353,113 @@ body {
     font-size: 0.9rem;
 }
 
+/* Utility Classes for Inline Style Replacements */
+.link-button {
+    background: none;
+    border: none;
+    color: #2563eb;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+    font: inherit;
+}
+
+.link-button:hover {
+    color: #1d4ed8;
+}
+
+.file-info {
+    font-size: 12px;
+    color: #555;
+}
+
+.grid-2col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+}
+
+.grid-info {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    row-gap: 6px;
+    column-gap: 8px;
+}
+
+.section-margin-0 {
+    margin-top: 0;
+}
+
+.card-padding {
+    padding: 16px;
+}
+
+/* Error Boundary Styles */
+.error-boundary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 2rem;
+    background-color: #fef2f2;
+    border: 1px solid #fed7d7;
+    border-radius: 8px;
+    margin: 1rem 0;
+}
+
+.error-boundary-content {
+    text-align: center;
+    max-width: 500px;
+}
+
+.error-boundary h2 {
+    color: #c53030;
+    margin-bottom: 1rem;
+}
+
+.error-boundary p {
+    color: #4a5568;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.error-details {
+    text-align: left;
+    margin: 1rem 0;
+    padding: 1rem;
+    background-color: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+}
+
+.error-details summary {
+    cursor: pointer;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.error-stack {
+    font-family: 'Courier New', monospace;
+    font-size: 0.875rem;
+    color: #2d3748;
+}
+
+.error-stack pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+    margin-top: 0.5rem;
+}
+
+.error-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.error-actions .form-button {
+    min-width: 120px;
+}
+
 /* Simple text-based markers for Leaflet */
 /* Leaflet divIcon markers: ensure our CSS wins regardless of load order */
 .marker,

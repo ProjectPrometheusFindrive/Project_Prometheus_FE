@@ -3,6 +3,7 @@ import { resolveVehicleRentals, fetchAssetById, fetchAssets } from "../api";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import Modal from "../components/Modal";
+import Table from "../components/Table";
 import useTableSelection from "../hooks/useTableSelection";
 import { typedStorage } from "../utils/storage";
 import { COLORS, DIMENSIONS, ASSET } from "../constants";
@@ -60,7 +61,8 @@ export default function AssetStatus() {
         });
     }, [q, status, rows]);
 
-    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(filtered, "id");
+    const selection = useTableSelection(filtered, "id");
+    const { selected, selectedCount, clearSelection } = selection;
 
     const handleDeleteSelected = () => {
         if (selectedCount === 0) return;
@@ -188,66 +190,35 @@ export default function AssetStatus() {
                 <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
             </Modal>
 
-            <div className="table-wrap">
-                <table className="asset-table">
-                    <thead>
-                        <tr>
-                            <th style={{ width: DIMENSIONS.ICON_SIZE_LG, textAlign: "center" }}>
-                                <input type="checkbox" aria-label="현재 목록 전체 선택" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
-                            </th>
-                            <th>차량번호</th>
-                            <th>차종</th>
-                            <th>보험가입 정보</th>
-                            <th>등록일</th>
-                            <th>차량등록상태</th>
-                            <th>장착자</th>
-                            <th>단말 일련번호</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filtered.map((a) => (
-                            <tr key={a.id}>
-                                <td style={{ textAlign: "center" }}>
-                                    <input type="checkbox" aria-label={`선택: ${a.plate || a.id}`} checked={selected.has(a.id)} onChange={() => toggleSelect(a.id)} />
-                                </td>
-                                <td>
-                                    <button
-                                        type="button"
-                                        onClick={() => openInfoModal(a)}
-                                        style={{
-                                            background: "none",
-                                            border: "none",
-                                            color: COLORS.SECONDARY,
-                                            textDecoration: "underline",
-                                            cursor: "pointer",
-                                            padding: 0,
-                                            font: "inherit",
-                                        }}
-                                        title="차량 정보 보기"
-                                    >
-                                        {a.plate}
-                                    </button>
-                                </td>
-                                <td>{a.vehicleType}</td>
-                                <td>{a.insuranceInfo || "-"}</td>
-                                <td>{formatDateShort(a.registrationDate)}</td>
-                                <td>{a.registrationStatus}</td>
-                                <td>{a.installer || "-"}</td>
-                                <td>
-                                    {a.deviceSerial ? (
-                                        a.deviceSerial
-                                    ) : (
-                                        <button type="button" className="form-button" onClick={() => openDeviceModal(a)}>
-                                            단말 등록
-                                        </button>
-                                    )}
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-                {filtered.length === 0 && <div className="empty">조건에 맞는 차량 자산이 없습니다.</div>}
-            </div>
+            <Table
+                columns={[
+                    { key: "plate", label: "차량번호", render: (row) => (
+                        <button
+                            type="button"
+                            onClick={() => openInfoModal(row)}
+                            className="link-button"
+                            title="차량 정보 보기"
+                        >
+                            {row.plate}
+                        </button>
+                    )},
+                    { key: "vehicleType", label: "차종" },
+                    { key: "insuranceInfo", label: "보험가입 정보", render: (row) => row.insuranceInfo || "-" },
+                    { key: "registrationDate", label: "등록일", render: (row) => formatDateShort(row.registrationDate) },
+                    { key: "registrationStatus", label: "차량등록상태" },
+                    { key: "installer", label: "장착자", render: (row) => row.installer || "-" },
+                    { key: "deviceSerial", label: "단말 일련번호", render: (row) => 
+                        row.deviceSerial ? row.deviceSerial : (
+                            <button type="button" className="form-button" onClick={() => openDeviceModal(row)}>
+                                단말 등록
+                            </button>
+                        )
+                    }
+                ]}
+                data={filtered}
+                selection={selection}
+                emptyMessage="조건에 맞는 차량 자산이 없습니다."
+            />
             <Modal
                 isOpen={showInfoModal && infoVehicle}
                 onClose={() => setShowInfoModal(false)}
@@ -255,12 +226,12 @@ export default function AssetStatus() {
                 showFooter={false}
                 ariaLabel="차량 상세 정보"
             >
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: DIMENSIONS.GRID_GAP }}>
-                    <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
-                        <h3 className="section-title" style={{ marginTop: 0 }}>
+                <div className="grid-2col">
+                    <section className="card card-padding">
+                        <h3 className="section-title section-margin-0">
                             자산 정보
                         </h3>
-                        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
+                        <div className="grid-info">
                             <div>차량번호</div>
                             <div>
                                 <strong>{infoVehicle?.asset?.plate || "-"}</strong>
@@ -286,11 +257,11 @@ export default function AssetStatus() {
                         </div>
                     </section>
 
-                    <section className="card" style={{ padding: DIMENSIONS.CARD_PADDING }}>
-                        <h3 className="section-title" style={{ marginTop: 0 }}>
+                    <section className="card card-padding">
+                        <h3 className="section-title section-margin-0">
                             대여 정보
                         </h3>
-                        <div style={{ display: "grid", gridTemplateColumns: "140px 1fr", rowGap: 6, columnGap: 8 }}>
+                        <div className="grid-info">
                             <div>계약번호</div>
                             <div>{infoVehicle?.rental?.rental_id || "-"}</div>
                             <div>대여자</div>

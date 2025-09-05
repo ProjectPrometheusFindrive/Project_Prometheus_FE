@@ -1,122 +1,153 @@
 import React from "react";
 import useFormState from "../../hooks/useFormState";
+import FormGrid from "./FormGrid";
+import FormField from "./FormField";
+import FormActions from "./FormActions";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
     const initialFormValues = {
         rental_id: initial.rental_id || "",
         vin: initial.vin || "",
-        // New: vehicle type and plate number (대여 차종, 대여 차량 번호)
         vehicleType: initial.vehicleType || "",
         plate: initial.plate || "",
-        // Renter info (계약자)
         renter_name: initial.renter_name || "",
         contact_number: initial.contact_number || "",
         address: initial.address || "",
-        // Period (대여 기간)
         start: initial.start || initial?.rental_period?.start || "",
         end: initial.end || initial?.rental_period?.end || "",
         insurance_name: initial.insurance_name || "",
-        // Uploads
-        contract_file: initial.contract_file || null, // 대여 계약서 업로드
-        driver_license_file: initial.driver_license_file || null, // 운전면허증 업로드
+        contract_file: initial.contract_file || null,
+        driver_license_file: initial.driver_license_file || null,
     };
 
     const { form, update, handleSubmit } = useFormState(initialFormValues, { onSubmit });
 
     return (
-        <form id={formId} className="form-grid" onSubmit={handleSubmit}>
-            <label className="form-label" htmlFor="rental_id">
-                Rental ID
-            </label>
-            <input id="rental_id" className="form-input" value={form.rental_id} onChange={(e) => update("rental_id", e.target.value)} placeholder="e.g. 100000000017" required disabled={readOnly} />
+        <FormGrid id={formId} onSubmit={handleSubmit}>
+            <FormField
+                id="rental_id"
+                label="Rental ID"
+                value={form.rental_id}
+                onChange={(value) => update("rental_id", value)}
+                placeholder="e.g. 100000000017"
+                required
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="vin">
-                VIN
-            </label>
-            <input id="vin" className="form-input" value={form.vin} onChange={(e) => update("vin", e.target.value)} placeholder="e.g. 1HGCM82633A004352" required disabled={readOnly} />
+            <FormField
+                id="vin"
+                label="VIN"
+                value={form.vin}
+                onChange={(value) => update("vin", value)}
+                placeholder="e.g. 1HGCM82633A004352"
+                required
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="vehicleType">
-                차종
-            </label>
-            <input id="vehicleType" className="form-input" value={form.vehicleType} onChange={(e) => update("vehicleType", e.target.value)} placeholder="예: 싼타페 25년형" disabled={readOnly} />
+            <FormField
+                id="vehicleType"
+                label="차종"
+                value={form.vehicleType}
+                onChange={(value) => update("vehicleType", value)}
+                placeholder="예: 싼타페 25년형"
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="plate">
-                차량번호
-            </label>
-            <input id="plate" className="form-input" value={form.plate} onChange={(e) => update("plate", e.target.value)} placeholder="예: 28가2345" disabled={readOnly} />
+            <FormField
+                id="plate"
+                label="차량번호"
+                value={form.plate}
+                onChange={(value) => update("plate", value)}
+                placeholder="예: 28가2345"
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="renter_name">
-                계약자 이름
-            </label>
-            <input id="renter_name" className="form-input" value={form.renter_name} onChange={(e) => update("renter_name", e.target.value)} placeholder="예: 홍길동" required disabled={readOnly} />
+            <FormField
+                id="renter_name"
+                label="계약자 이름"
+                value={form.renter_name}
+                onChange={(value) => update("renter_name", value)}
+                placeholder="예: 홍길동"
+                required
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="contact_number">
-                계약자 연락처
-            </label>
-            <input
+            <FormField
                 id="contact_number"
-                className="form-input"
+                label="계약자 연락처"
                 value={form.contact_number}
-                onChange={(e) => update("contact_number", e.target.value)}
+                onChange={(value) => update("contact_number", value)}
                 placeholder="예: 010-1234-5678"
                 disabled={readOnly}
             />
 
-            <label className="form-label" htmlFor="address">
-                계약자 주소
-            </label>
-            <input id="address" className="form-input" value={form.address} onChange={(e) => update("address", e.target.value)} placeholder="예: 서울 종로구 ..." disabled={readOnly} />
+            <FormField
+                id="address"
+                label="계약자 주소"
+                value={form.address}
+                onChange={(value) => update("address", value)}
+                placeholder="예: 서울 종로구 ..."
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="start">
-                대여 시작일
-            </label>
-            <input id="start" type="date" className="form-input" value={form.start} onChange={(e) => update("start", e.target.value)} required disabled={readOnly} />
+            <FormField
+                id="start"
+                label="대여 시작일"
+                type="date"
+                value={form.start}
+                onChange={(value) => update("start", value)}
+                required
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="end">
-                대여 종료일
-            </label>
-            <input id="end" type="date" className="form-input" value={form.end} onChange={(e) => update("end", e.target.value)} required disabled={readOnly} />
+            <FormField
+                id="end"
+                label="대여 종료일"
+                type="date"
+                value={form.end}
+                onChange={(value) => update("end", value)}
+                required
+                disabled={readOnly}
+            />
 
-            <label className="form-label" htmlFor="insurance_name">
-                보험사
-            </label>
-            <input id="insurance_name" className="form-input" value={form.insurance_name} onChange={(e) => update("insurance_name", e.target.value)} placeholder="예: ABC 보험" disabled={readOnly} />
+            <FormField
+                id="insurance_name"
+                label="보험사"
+                value={form.insurance_name}
+                onChange={(value) => update("insurance_name", value)}
+                placeholder="예: ABC 보험"
+                disabled={readOnly}
+            />
 
-            {/* 대여 계약서 업로드 */}
-            <label className="form-label" htmlFor="contract_file">
-                대여 계약서 업로드
-            </label>
-            <input
+            <FormField
                 id="contract_file"
+                label="대여 계약서 업로드"
                 type="file"
-                className="form-input"
                 accept="image/*,application/pdf"
-                onChange={(e) => update("contract_file", e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+                onChange={(value) => update("contract_file", value)}
                 disabled={readOnly}
-            />
-            {form.contract_file && <div style={{ fontSize: 12, color: "#555" }}>{form.contract_file.name}</div>}
+            >
+                {form.contract_file && <div className="file-info">{form.contract_file.name}</div>}
+            </FormField>
 
-            {/* 운전면허증 업로드 */}
-            <label className="form-label" htmlFor="driver_license_file">
-                운전면허증 업로드
-            </label>
-            <input
+            <FormField
                 id="driver_license_file"
+                label="운전면허증 업로드"
                 type="file"
-                className="form-input"
                 accept="image/*,application/pdf"
-                onChange={(e) => update("driver_license_file", e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+                onChange={(value) => update("driver_license_file", value)}
                 disabled={readOnly}
-            />
-            {form.driver_license_file && <div style={{ fontSize: 12, color: "#555" }}>{form.driver_license_file.name}</div>}
+            >
+                {form.driver_license_file && <div className="file-info">{form.driver_license_file.name}</div>}
+            </FormField>
 
             {!readOnly && showSubmit && (
-                <div className="form-actions">
+                <FormActions>
                     <button type="submit" className="form-button">
                         저장
                     </button>
-                </div>
+                </FormActions>
             )}
-        </form>
+        </FormGrid>
     );
 }
