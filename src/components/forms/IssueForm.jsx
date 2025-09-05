@@ -22,14 +22,14 @@ export default function IssueForm({ initial = {}, readOnly = false, onSubmit, fo
                 label="VIN"
                 value={form.vin}
                 onChange={(value) => update("vin", value)}
-                placeholder="e.g. 1HGCM82633A004352"
+                placeholder="예: 1HGCM82633A004352"
                 required
                 disabled={readOnly}
             />
 
             <FormField
                 id="type"
-                label="Type"
+                label="문제 유형"
                 type="select"
                 value={form.type}
                 onChange={(value) => update("type", value)}
@@ -39,7 +39,7 @@ export default function IssueForm({ initial = {}, readOnly = false, onSubmit, fo
 
             <FormField
                 id="severity"
-                label="Severity"
+                label="심각도"
                 type="select"
                 value={form.severity}
                 onChange={(value) => update("severity", value)}
@@ -49,11 +49,11 @@ export default function IssueForm({ initial = {}, readOnly = false, onSubmit, fo
 
             <FormField
                 id="description"
-                label="Description"
+                label="설명"
                 type="textarea"
                 value={form.description}
                 onChange={(value) => update("description", value)}
-                placeholder="Enter details"
+                placeholder="상세 내용을 입력하세요"
                 rows={4}
                 disabled={readOnly}
             />

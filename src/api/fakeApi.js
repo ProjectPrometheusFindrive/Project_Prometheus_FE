@@ -296,10 +296,10 @@ export async function fetchDashboardData() {
     else if (end && t > end) overdue += 1;
   }
   const bizStatus = [
-    { name: "reserved", value: reserved || 1 },
-    { name: "active", value: active || 1 },
-    { name: "incidents", value: incidents || 1 },
-    { name: "overdue", value: overdue || 1 },
+    { name: "예약", value: reserved || 1 },
+    { name: "진행", value: active || 1 },
+    { name: "사고/이슈", value: incidents || 1 },
+    { name: "반납 지연", value: overdue || 1 },
   ];
 
   return { vehicleStatus, bizStatus };

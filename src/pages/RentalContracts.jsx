@@ -56,13 +56,13 @@ export default function RentalContracts() {
             let statusText = "-";
             let statusClass = "";
             if (isStolen) {
-                statusText = "Suspicious";
+                statusText = "도난 의심";
                 statusClass = "badge--suspicious";
             } else if (isOverdue) {
-                statusText = `Overdue ${overdueDays}d`;
+                statusText = `연체 ${overdueDays}d`;
                 statusClass = "badge--overdue";
             } else if (isActive) {
-                statusText = "Active";
+                statusText = "정상";
                 statusClass = "badge--rented";
             }
             return { ...r, isActive, isOverdue, isStolen, overdueDays, statusText, statusClass };

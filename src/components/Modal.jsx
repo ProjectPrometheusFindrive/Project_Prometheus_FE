@@ -10,8 +10,8 @@ const Modal = ({
   footerContent,
   formId,
   onSubmit,
-  submitText = "OK",
-  cancelText = "Cancel",
+  submitText = "확인",
+  cancelText = "취소",
   ariaLabel,
   customHeaderContent,
   className = ""

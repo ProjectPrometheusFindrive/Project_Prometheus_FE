@@ -30,17 +30,10 @@ export default function Dashboard() {
                 if (!mounted) return;
                 const vs = Array.isArray(data?.vehicleStatus) ? data.vehicleStatus : [];
                 const bs = Array.isArray(data?.bizStatus) ? data.bizStatus : [];
-                // Map backend keys to Korean labels for chart display
-                const labelMap = {
-                    reserved: "예약",
-                    active: "진행",
-                    incidents: "사고/이슈",
-                    overdue: "반납 지연",
-                };
                 setVehicleStatus(vs.map((d) => ({ ...d, rawValue: d.value })).filter((d) => (d?.value ?? 0) > 0));
                 setBizStatusLabeled(
                     bs
-                        .map((d) => ({ name: labelMap[d.name] || d.name, value: d.value, rawValue: d.value }))
+                        .map((d) => ({ name: d.name, value: d.value, rawValue: d.value }))
                         .filter((d) => (d?.value ?? 0) > 0)
                 );
             } catch (e) {

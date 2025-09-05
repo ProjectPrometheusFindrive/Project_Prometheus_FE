@@ -26,10 +26,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
         <FormGrid id={formId} onSubmit={handleSubmit}>
             <FormField
                 id="rental_id"
-                label="Rental ID"
+                label="대여 계약번호"
                 value={form.rental_id}
                 onChange={(value) => update("rental_id", value)}
-                placeholder="e.g. 100000000017"
+                placeholder="예: 100000000017"
                 required
                 disabled={readOnly}
             />
@@ -39,7 +39,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 label="VIN"
                 value={form.vin}
                 onChange={(value) => update("vin", value)}
-                placeholder="e.g. 1HGCM82633A004352"
+                placeholder="예: 1HGCM82633A004352"
                 required
                 disabled={readOnly}
             />

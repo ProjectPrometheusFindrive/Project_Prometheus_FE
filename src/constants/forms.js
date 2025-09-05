@@ -7,14 +7,14 @@ export const STATUS_OPTIONS = [
 ];
 
 export const ISSUE_TYPE_OPTIONS = [
-    { value: "overdue", label: "Overdue Return" },
-    { value: "stolen", label: "Suspected Theft" },
-    { value: "damage", label: "Damage" },
-    { value: "other", label: "Other" }
+    { value: "overdue", label: "반납 지연" },
+    { value: "stolen", label: "도난 의심" },
+    { value: "damage", label: "파손" },
+    { value: "other", label: "기타" }
 ];
 
 export const SEVERITY_OPTIONS = [
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" }
+    { value: "low", label: "낮음" },
+    { value: "medium", label: "보통" },
+    { value: "high", label: "높음" }
 ];

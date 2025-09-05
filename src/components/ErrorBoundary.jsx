@@ -40,9 +40,9 @@ class ErrorBoundary extends React.Component {
                             <details className="error-details">
                                 <summary>오류 세부 정보 (개발 모드)</summary>
                                 <div className="error-stack">
-                                    <strong>Error:</strong> {this.state.error && this.state.error.toString()}
+                                    <strong>오류:</strong> {this.state.error && this.state.error.toString()}
                                     <br />
-                                    <strong>Stack trace:</strong>
+                                    <strong>스택 트레이스:</strong>
                                     <pre>{this.state.errorInfo && this.state.errorInfo.componentStack}</pre>
                                 </div>
                             </details>
