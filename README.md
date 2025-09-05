@@ -1,96 +1,41 @@
 # Project Prometheus Frontend
 
-프로메테우스 프로젝트 프론트엔드 - 차량 관리 및 렌탈 시스템
+차량 자산 관리 및 렌탈 비즈니스 운영을 위한 프론트엔드 애플리케이션입니다. 대시보드, 자산/렌탈 관리, 문제 차량 모니터링, 지도 시각화, 설정(회사·지오펜스) 등을 제공합니다.
 
-## 프로젝트 개요
+## 소개
 
-Project Prometheus는 차량 자산 관리와 렌탈 서비스를 위한 웹 애플리케이션입니다. 차량 등록, 렌탈 계약 관리, 문제 차량 추적, 실시간 위치 모니터링 등의 기능을 제공합니다.
+본 저장소는 React + Vite 기반의 SPA입니다. 기본값으로 로컬 더미 데이터와 `localStorage`를 사용하며, 환경 변수로 실제 백엔드 API를 사용할 수도 있습니다.
 
 ## 주요 기능
 
-### 🚗 자산 관리 (Asset Management)
-
--   차량 등록 및 정보 관리
--   차량 상태 모니터링 (Available, Rented, Maintenance)
--   보험 정보 및 디바이스 ID 관리
--   주행거리 및 연료 타입 추적
-
-### 📋 렌탈 계약 관리 (Rental Contracts)
-
--   렌탈 계약 등록 및 조회
--   고객 정보 관리 (이름, 연락처, 주소)
--   렌탈 기간 및 위치 정보 관리
--   보험 정보 연동
-
-### 🗺️ 실시간 위치 추적
-
--   차량의 현재 위치 실시간 모니터링
--   렌탈 시작 위치 및 반납 예정 위치 표시
--   지도 기반 시각화
-
-### ⚠️ 문제 차량 관리 (Problem Vehicles)
-
--   도난 신고 차량 추적
--   연체 차량 관리
--   기타 문제 상황 보고 및 처리
-
-### 📱 반응형 UI
-
--   모바일 친화적 인터페이스
--   하단 네비게이션
--   직관적인 폼 입력 시스템
+- 대시보드: 등록/운영 현황 차트와 지표 게이지 제공
+- 자산 현황: 차량/자산 목록과 상태 조회
+- 렌탈 계약: 테이블/지도 보기, 상태별 필터링 및 팝업 정보
+- 문제 차량: 연체·도난 의심 등 이슈 집중 보기
+- 설정: 회사 정보, 로고/인증서, 지오펜스(다각형) 관리
+- 반응형 UI: 내비게이션 바, 간결한 카드형 레이아웃
 
 ## 기술 스택
 
--   **Frontend Framework**: React 18.2.0
--   **Build Tool**: Vite 5.4.0
--   **Routing**: React Router DOM 6.23.0
--   **Styling**: CSS (custom styles)
--   **Development**: Node.js, npm
+- React 18, React Router v6
+- Vite 5 (개발/빌드)
+- Recharts (차트)
+- React Icons (아이콘)
+- Leaflet + MarkerCluster (지도, CDN 로드)
 
-## 프로젝트 구조
+## 빠른 시작
 
-```
-src/
-├── App.jsx              # 메인 애플리케이션 컴포넌트
-├── main.jsx             # 애플리케이션 진입점
-├── App.css              # 글로벌 스타일
-├── components/          # 재사용 가능한 컴포넌트
-│   ├── AppLayout.jsx    # 레이아웃 컴포넌트
-│   ├── BottomNav.jsx    # 하단 네비게이션
-│   ├── RentalsMap.jsx   # 렌탈 지도 컴포넌트
-│   ├── TopRightControls.jsx # 상단 우측 컨트롤
-│   └── forms/           # 폼 컴포넌트
-│       ├── AssetForm.jsx    # 자산 등록/수정 폼
-│       ├── RentalForm.jsx   # 렌탈 등록/수정 폼
-│       └── IssueForm.jsx    # 문제 신고 폼
-├── pages/               # 페이지 컴포넌트
-│   ├── Login.jsx        # 로그인 페이지
-│   ├── AssetStatus.jsx  # 자산 현황 페이지
-│   ├── RentalContracts.jsx # 렌탈 계약 페이지
-│   ├── ProblemVehicles.jsx # 문제 차량 페이지
-│   ├── Registration.jsx     # 등록 페이지
-│   ├── Detail.jsx       # 상세 정보 페이지
-│   └── Settings.jsx     # 설정 페이지
-└── data/                # 샘플 데이터
-    ├── assets.js        # 자산 데이터
-    └── rentals.js       # 렌탈 데이터
-```
+필수 요구사항
 
-## 설치 및 실행
+- Node.js LTS 권장, npm
 
-### 필수 요구사항
-
--   Node.js (최신 LTS 버전 권장)
--   npm 또는 yarn
-
-### 설치
+설치
 
 ```bash
 npm install
 ```
 
-### 개발 서버 실행
+개발 서버 실행
 
 ```bash
 npm run dev
@@ -98,50 +43,93 @@ npm run dev
 npm start
 ```
 
-개발 서버는 기본적으로 `http://localhost:5173`에서 실행됩니다.
+기본 접속: http://localhost:5173
 
-### 빌드
+프로덕션 빌드
 
 ```bash
 npm run build
 ```
 
-### 프리뷰
+빌드 미리보기
 
 ```bash
 npm run preview
 ```
 
-## 주요 페이지 및 라우팅
+배포
 
--   `/` - 로그인 페이지
--   `/assets` - 자산 현황 (차량 목록 및 상태)
--   `/rentals` - 렌탈 계약 관리
--   `/issue` - 문제 차량 관리
--   `/register` - 신규 등록 (자산/렌탈/문제)
--   `/detail/:type/:id` - 상세 정보 및 수정
--   `/settings` - 설정
+- `dist/`를 정적 호스팅에 업로드하면 됩니다. HashRouter 사용으로 서브 경로에서도 안정적으로 동작합니다.
 
-## 데이터 관리
+## 환경 변수(.env*)
 
-현재 애플리케이션은 로컬 스토리지와 정적 데이터를 사용합니다:
+`src/api/index.js`에서 환경 변수로 실제/가짜 API를 전환합니다.
 
--   **로그인 상태**: `localStorage.isLoggedIn`
--   **기본 랜딩 페이지**: `localStorage.defaultLanding`
--   **임시 저장**: `localStorage.assetDrafts`, `localStorage.rentalDrafts`, `localStorage.issueDrafts`
--   **수정 내용**: `localStorage.assetEdits`, `localStorage.rentalEdits`, `localStorage.issueEdits`
+- `VITE_USE_REAL_API`: `true`면 실제 API(`realApi.js`) 사용, 그 외는 가짜 API(`fakeApi.js`)
+- `VITE_API_BASE_URL`: 실제 API 기본 URL (끝의 `/`는 생략 권장)
 
-## 개발 환경
+예시(.env.development)
 
--   **포트**: 5173 (기본값)
--   **자동 브라우저 열기**: 활성화
--   **핫 리로드**: 지원
+```env
+VITE_USE_REAL_API=false
+VITE_API_BASE_URL=http://localhost:3000
+```
 
-## 향후 개선사항
+가짜 API 모드에서는 모든 데이터가 브라우저 `localStorage`와 시드 데이터로 관리됩니다.
 
--   백엔드 API 연동
--   실제 인증 시스템 구현
--   데이터베이스 연동
--   실시간 GPS 추적 시스템
--   푸시 알림 기능
--   다국어 지원 확장
+## 라우팅
+
+- 공개: `/`, `/signup`, `/find-id`, `/forgot-password`
+- 보호(로그인 필요):
+  - `/dashboard`, `/assets`, `/settings`
+  - `/rentals` → `/rentals/table` 리다이렉트
+  - `/rentals/table`, `/rentals/map`
+  - `/issue`, `/detail/:type/:id`
+
+인증 가드: `src/components/RequireAuth.jsx`가 `localStorage.isLoggedIn` 값을 확인합니다. 라우터는 HashRouter를 사용합니다.
+
+## 프로젝트 구조(요약)
+
+```
+src/
+  App.jsx, main.jsx, App.css
+  api/            # index.js(스위치), fakeApi.js, realApi.js
+  components/
+    AppLayout.jsx, NavigationBar.jsx, RentalsMap.jsx
+    forms/        # AssetForm.jsx, RentalForm.jsx, IssueForm.jsx 등
+  pages/
+    Dashboard.jsx, AssetStatus.jsx, RentalContracts.jsx, RentalsMapPage.jsx
+    ProblemVehicles.jsx, Detail.jsx
+    Login.jsx, SignUp.jsx, FindId.jsx, ForgotPassword.jsx, Settings.jsx
+  data/           # db.js, seed.js, geofences.js, company.js 등
+  utils/          # storage.js, date.js, map.js
+  constants/      # 상수 모음
+```
+
+## 로컬 스토리지 키(요약)
+
+- 인증/사용자: `isLoggedIn`, `registeredUsers`, `defaultLanding`
+- 자산/렌탈/이슈 임시저장: `assetDrafts`, `rentalDrafts`, `issueDrafts`
+- 자산/렌탈/이슈 편집본: `assetEdits`, `rentalEdits`, `issueEdits`
+- 회사/지오펜스: `companyInfo`(권장), `geofenceSets`(레거시)
+- 디바이스/차량 제어 맵: `deviceInfoByAsset`, `noRestartMap`, `engineStatusMap`
+
+## 지도 뷰 참고
+
+- `index.html`에서 Leaflet 및 MarkerCluster를 CDN으로 로드합니다.
+- 지오펜스는 `companyInfo.geofences`(없으면 시드)에서 불러오며, 다각형은 해치 패턴으로 채워집니다.
+- 렌탈 마커는 상태(진행/연체/의심)에 따라 다른 클러스터와 아이콘을 사용합니다.
+
+## 개발 메모
+
+- 테스트: 현재 별도 테스트 스위트 없음(`npm test`는 placeholder)
+- 스타일: 기본 CSS만 사용(프레임워크 미사용)
+- 브라우저: 최신 Evergreen 브라우저 권장
+
+## 향후 개선
+
+- 실제 백엔드 API 연동 및 인증/권한 구현
+- 영속 저장소(DB) 연동, 파일 업로드 처리
+- GPS/실시간 추적(WebSocket) 및 알림
+- i18n(다국어), 접근성 보완, 에러/로딩 상태 표준화
+
