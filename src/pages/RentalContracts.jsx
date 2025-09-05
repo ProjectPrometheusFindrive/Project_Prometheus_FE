@@ -3,16 +3,11 @@ import { rentals } from "../data/rentals";
 import RentalForm from "../components/forms/RentalForm";
 import { FaCar } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
-import { useNavigate } from "react-router-dom";
-import { seedVehicles } from "../data/seed";
 
 export default function RentalContracts() {
     const [items, setItems] = useState(() => rentals.map((r) => ({ ...r })));
     const [showCreate, setShowCreate] = useState(false);
     const [selected, setSelected] = useState(new Set());
-    const [noRestartMap, setNoRestartMap] = useState({});
-    const [engineMap, setEngineMap] = useState({});
-    const navigate = useNavigate();
 
     // Load drafts from localStorage and merge once
     useEffect(() => {
@@ -35,17 +30,7 @@ export default function RentalContracts() {
         } catch {}
     }, []);
 
-    // Load persisted restart lock and engine status overrides
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem("noRestartMap");
-            if (raw) setNoRestartMap(JSON.parse(raw));
-        } catch {}
-        try {
-            const raw2 = localStorage.getItem("engineStatusMap");
-            if (raw2) setEngineMap(JSON.parse(raw2));
-        } catch {}
-    }, []);
+    
 
     const rows = useMemo(() => {
         const now = new Date();
@@ -68,13 +53,9 @@ export default function RentalContracts() {
                 statusText = "대여 중";
                 statusClass = "badge--rented";
             }
-            const deviceSerial = seedVehicles?.[r.vin]?.asset?.deviceSerial || "";
-            const deviceInstalled = Boolean(deviceSerial && String(deviceSerial).trim());
-            const engineOn = typeof engineMap?.[r.vin] === "boolean" ? engineMap[r.vin] : isActive;
-            const restartLocked = Boolean(noRestartMap?.[r.vin]);
-            return { ...r, isActive, isOverdue, isStolen, overdueDays, statusText, statusClass, deviceInstalled, engineOn, restartLocked };
+            return { ...r, isActive, isOverdue, isStolen, overdueDays, statusText, statusClass };
         });
-    }, [items, engineMap, noRestartMap]);
+    }, [items]);
 
     const allVisibleSelected = useMemo(() => {
         if (!rows || rows.length === 0) return false;
@@ -108,20 +89,7 @@ export default function RentalContracts() {
         setSelected(new Set());
     };
 
-    const toggleRestartLock = (vin) => {
-        setNoRestartMap((prev) => {
-            const next = { ...prev, [vin]: !prev?.[vin] };
-            try {
-                localStorage.setItem("noRestartMap", JSON.stringify(next));
-            } catch {}
-            return next;
-        });
-    };
-
-    const gotoMapFor = (vin) => {
-        if (!vin) return;
-        navigate(`/rentals/map?vin=${encodeURIComponent(vin)}`);
-    };
+    
 
     const nextRentalId = () => {
         let max = 0;
@@ -192,7 +160,7 @@ export default function RentalContracts() {
                 )}
 
                 <div className="table-wrap">
-                    <table className="asset-table">
+                    <table className="asset-table rentals-table">
                         <thead>
                             <tr>
                                 <th style={{ width: 36, textAlign: "center" }}>

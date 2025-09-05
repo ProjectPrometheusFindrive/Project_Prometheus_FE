@@ -1,4 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { seedVehicles } from "../data/seed";
 import IssueForm from "../components/forms/IssueForm";
 import { fetchProblemVehicles, createIssueDraft } from "../api/fakeApi";
 
@@ -8,6 +10,9 @@ export default function ProblemVehicles() {
     const [issueInitial, setIssueInitial] = useState({});
     const [saved, setSaved] = useState(false);
     const [selected, setSelected] = useState(new Set());
+    const [noRestartMap, setNoRestartMap] = useState({});
+    const [engineMap, setEngineMap] = useState({});
+    const navigate = useNavigate();
 
     useEffect(() => {
         let mounted = true;
@@ -22,6 +27,18 @@ export default function ProblemVehicles() {
         return () => {
             mounted = false;
         };
+    }, []);
+
+    // Load persisted restart lock and engine status overrides
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem("noRestartMap");
+            if (raw) setNoRestartMap(JSON.parse(raw));
+        } catch {}
+        try {
+            const raw2 = localStorage.getItem("engineStatusMap");
+            if (raw2) setEngineMap(JSON.parse(raw2));
+        } catch {}
     }, []);
 
     const openIssueModal = (prefill = {}) => {
@@ -66,6 +83,21 @@ export default function ProblemVehicles() {
         if (!ok) return;
         setProblems((prev) => prev.filter((p) => !selected.has(p.rental_id)));
         setSelected(new Set());
+    };
+
+    const toggleRestartLock = (vin) => {
+        setNoRestartMap((prev) => {
+            const next = { ...prev, [vin]: !prev?.[vin] };
+            try {
+                localStorage.setItem("noRestartMap", JSON.stringify(next));
+            } catch {}
+            return next;
+        });
+    };
+
+    const gotoMapFor = (vin) => {
+        if (!vin) return;
+        navigate(`/rentals/map?vin=${encodeURIComponent(vin)}`);
     };
 
     return (
@@ -114,6 +146,10 @@ export default function ProblemVehicles() {
                             <th>대여자</th>
                             <th>연락처</th>
                             <th>이슈</th>
+                            <th>단말상태</th>
+                            <th>엔진상태</th>
+                            <th>재시동금지</th>
+                            <th>현위치</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -157,6 +193,47 @@ export default function ProblemVehicles() {
                                         }
                                         return text !== "-" ? <span className={"badge " + cls}>{text}</span> : "-";
                                     })()}
+                                </td>
+                                <td>
+                                    {(() => {
+                                        const deviceSerial = p?.asset?.deviceSerial || seedVehicles?.[p.vin]?.asset?.deviceSerial || "";
+                                        const installed = Boolean(deviceSerial && String(deviceSerial).trim());
+                                        return <span className={`badge ${installed ? "badge--on" : "badge--off"}`}>{installed ? "설치됨" : "없음"}</span>;
+                                    })()}
+                                </td>
+                                <td>
+                                    {(() => {
+                                        const override = typeof engineMap?.[p.vin] === "boolean" ? engineMap[p.vin] : null;
+                                        const engineOn = override ?? false;
+                                        return <span className={`badge ${engineOn ? "badge--on" : "badge--off"}`}>{engineOn ? "ON" : "OFF"}</span>;
+                                    })()}
+                                </td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        className={`mini-button ${noRestartMap?.[p.vin] ? "is-on" : ""}`}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            toggleRestartLock(p.vin);
+                                        }}
+                                        aria-pressed={!!noRestartMap?.[p.vin]}
+                                        title="재시동 금지 토글"
+                                    >
+                                        {noRestartMap?.[p.vin] ? "ON" : "OFF"}
+                                    </button>
+                                </td>
+                                <td>
+                                    <button
+                                        type="button"
+                                        className="mini-button"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            gotoMapFor(p.vin);
+                                        }}
+                                        title="지도에서 보기"
+                                    >
+                                        지도
+                                    </button>
                                 </td>
                             </tr>
                         ))}
