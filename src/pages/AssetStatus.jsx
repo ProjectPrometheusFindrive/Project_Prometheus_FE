@@ -8,6 +8,7 @@ import useTableSelection from "../hooks/useTableSelection";
 import { typedStorage } from "../utils/storage";
 import { COLORS, DIMENSIONS, ASSET } from "../constants";
 import { formatDateShort } from "../utils/date";
+import InfoGrid from "../components/InfoGrid";
 
 export default function AssetStatus() {
     const [q, setQ] = useState("");
@@ -231,60 +232,35 @@ export default function AssetStatus() {
                         <h3 className="section-title section-margin-0">
                             자산 정보
                         </h3>
-                        <div className="grid-info">
-                            <div>차량번호</div>
-                            <div>
-                                <strong>{infoVehicle?.asset?.plate || "-"}</strong>
-                            </div>
-                            <div>차종</div>
-                            <div>{infoVehicle?.asset?.vehicleType || "-"}</div>
-                            <div>제조사/모델</div>
-                            <div>{[infoVehicle?.asset?.make, infoVehicle?.asset?.model].filter(Boolean).join(" ") || "-"}</div>
-                            <div>연식/연료</div>
-                            <div>{[infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType].filter(Boolean).join(" / ") || "-"}</div>
-                            <div>VIN</div>
-                            <div>{infoVehicle?.asset?.vin || infoVehicle?.vin || "-"}</div>
-                            <div>보험/공제</div>
-                            <div>{infoVehicle?.asset?.insuranceInfo || "-"}</div>
-                            <div>차량 등록일</div>
-                            <div>{infoVehicle?.asset?.registrationDate ? new Date(infoVehicle.asset.registrationDate).toLocaleDateString() : "-"}</div>
-                            <div>등록 상태</div>
-                            <div>{infoVehicle?.asset?.registrationStatus || "-"}</div>
-                            <div>설치자</div>
-                            <div>{infoVehicle?.asset?.installer || "-"}</div>
-                            <div>기기 시리얼</div>
-                            <div>{infoVehicle?.asset?.deviceSerial || "-"}</div>
-                        </div>
+                        <InfoGrid items={[
+                            { key: 'plate', label: '차량번호', value: <strong>{infoVehicle?.asset?.plate || "-"}</strong> },
+                            { key: 'vehicleType', label: '차종', value: infoVehicle?.asset?.vehicleType },
+                            { key: 'makeModel', label: '제조사/모델', value: [infoVehicle?.asset?.make, infoVehicle?.asset?.model], type: 'makeModel' },
+                            { key: 'yearFuel', label: '연식/연료', value: [infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType], type: 'yearFuel' },
+                            { key: 'vin', label: 'VIN', value: infoVehicle?.asset?.vin || infoVehicle?.vin },
+                            { key: 'insurance', label: '보험/공제', value: infoVehicle?.asset?.insuranceInfo },
+                            { key: 'registrationDate', label: '차량 등록일', value: infoVehicle?.asset?.registrationDate, type: 'date' },
+                            { key: 'status', label: '등록 상태', value: infoVehicle?.asset?.registrationStatus },
+                            { key: 'installer', label: '설치자', value: infoVehicle?.asset?.installer },
+                            { key: 'deviceSerial', label: '기기 시리얼', value: infoVehicle?.asset?.deviceSerial }
+                        ]} />
                     </section>
 
                     <section className="card card-padding">
                         <h3 className="section-title section-margin-0">
                             대여 정보
                         </h3>
-                        <div className="grid-info">
-                            <div>계약번호</div>
-                            <div>{infoVehicle?.rental?.rental_id || "-"}</div>
-                            <div>대여자</div>
-                            <div>{infoVehicle?.rental?.renter_name || "-"}</div>
-                            <div>연락처</div>
-                            <div>{infoVehicle?.rental?.contact_number || "-"}</div>
-                            <div>주소</div>
-                            <div>{infoVehicle?.rental?.address || "-"}</div>
-                            <div>대여 기간</div>
-                            <div>
-                                {infoVehicle?.rental?.rental_period?.start ? new Date(infoVehicle.rental.rental_period.start).toLocaleDateString() : "-"}
-                                {" ~ "}
-                                {infoVehicle?.rental?.rental_period?.end ? new Date(infoVehicle.rental.rental_period.end).toLocaleDateString() : "-"}
-                            </div>
-                            <div>보험사</div>
-                            <div>{infoVehicle?.rental?.insurance_name || "-"}</div>
-                            <div>대여 위치</div>
-                            <div>{infoVehicle?.rental?.rental_location ? `${infoVehicle.rental.rental_location.lat}, ${infoVehicle.rental.rental_location.lng}` : "-"}</div>
-                            <div>반납 위치</div>
-                            <div>{infoVehicle?.rental?.return_location ? `${infoVehicle.rental.return_location.lat}, ${infoVehicle.rental.return_location.lng}` : "-"}</div>
-                            <div>현재 위치</div>
-                            <div>{infoVehicle?.rental?.current_location ? `${infoVehicle.rental.current_location.lat}, ${infoVehicle.rental.current_location.lng}` : "-"}</div>
-                        </div>
+                        <InfoGrid items={[
+                            { key: 'rentalId', label: '계약번호', value: infoVehicle?.rental?.rental_id },
+                            { key: 'renterName', label: '대여자', value: infoVehicle?.rental?.renter_name },
+                            { key: 'contact', label: '연락처', value: infoVehicle?.rental?.contact_number },
+                            { key: 'address', label: '주소', value: infoVehicle?.rental?.address },
+                            { key: 'period', label: '대여 기간', value: infoVehicle?.rental?.rental_period, type: 'dateRange' },
+                            { key: 'insurance', label: '보험사', value: infoVehicle?.rental?.insurance_name },
+                            { key: 'rentalLocation', label: '대여 위치', value: infoVehicle?.rental?.rental_location, type: 'location' },
+                            { key: 'returnLocation', label: '반납 위치', value: infoVehicle?.rental?.return_location, type: 'location' },
+                            { key: 'currentLocation', label: '현재 위치', value: infoVehicle?.rental?.current_location, type: 'location' }
+                        ]} />
                     </section>
                 </div>
             </Modal>
