@@ -180,15 +180,37 @@ app.get('/api/dashboard', async (req, res) => {
 
   const stolenVehicles = rentals.filter(r => r.reported_stolen);
 
+  // Calculate registration status distribution
+  const registered = assets.filter(a => a.registrationStatus === '장비장착 완료').length;
+  const pending = assets.filter(a => a.registrationStatus === '등록 대기').length;
+  const installing = assets.filter(a => a.registrationStatus === '장비장착 중').length;
+  const available = assets.length - activeRentals.length;
+
   res.json({
     totalAssets: assets.length,
-    availableAssets: assets.filter(a => a.registrationStatus === '장비장착 완료').length,
+    availableAssets: registered,
     activeRentals: activeRentals.length,
     problemVehicles: problems.length,
     overdueRentals: overdueRentals.length,
     stolenVehicles: stolenVehicles.length,
     deviceInstalled: assets.filter(a => a.deviceSerial && a.deviceSerial.trim()).length,
     insuranceRegistered: assets.filter(a => a.registrationStatus !== '등록 대기').length,
+    
+    // Chart data for donut charts
+    vehicleStatus: [
+      { name: '등록완료', value: registered },
+      { name: '등록대기', value: pending },
+      { name: '장착중', value: installing }
+    ].filter(item => item.value > 0),
+    
+    bizStatus: [
+      { name: '렌탈중', value: activeRentals.length },
+      { name: '이용가능', value: available },
+      { name: '연체', value: overdueRentals.length },
+      { name: '도난', value: stolenVehicles.length },
+      { name: '문제차량', value: problems.length }
+    ].filter(item => item.value > 0),
+    
     recentActivities: [
       { id: 1, type: 'rental', message: '새 대여 계약이 등록되었습니다.', timestamp: new Date().toISOString() },
       { id: 2, type: 'asset', message: '차량 장비 설치가 완료되었습니다.', timestamp: new Date().toISOString() },
