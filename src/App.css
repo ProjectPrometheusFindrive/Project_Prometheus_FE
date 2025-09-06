@@ -197,6 +197,46 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
+/* Branding section at top of navigation */
+.navigation-bar__branding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 12px;
+    width: 100%;
+}
+
+.navigation-bar__service-name {
+    font-weight: 600;
+    font-size: 12px;
+    color: #1a73e8;
+    text-align: center;
+}
+
+.navigation-bar__company {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+}
+
+.navigation-bar__company-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
+.navigation-bar__company-name {
+    font-size: 10px;
+    color: #666;
+    text-align: center;
+    line-height: 1.2;
+    word-break: break-word;
+    max-width: 64px;
+}
+
 .navigation-bar__logout {
     margin-top: auto;
 }
@@ -273,6 +313,37 @@ body {
 
     .navigation-bar__logout {
         margin-top: 0; /* reset vertical auto push in horizontal layout */
+    }
+
+    /* Branding adjustments for mobile/portrait */
+    .navigation-bar__branding {
+        flex-direction: row;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 0;
+        margin-right: auto; /* push to left side */
+        order: 1; /* ensure branding comes first */
+    }
+
+    .navigation-bar__service-name {
+        font-size: 14px;
+        font-weight: 700;
+    }
+
+    .navigation-bar__company {
+        flex-direction: row;
+        gap: 8px;
+    }
+
+    .navigation-bar__company-logo {
+        width: 28px;
+        height: 28px;
+    }
+
+    .navigation-bar__company-name {
+        font-size: 11px;
+        max-width: none;
+        white-space: nowrap;
     }
 }
 .view-toggle {
