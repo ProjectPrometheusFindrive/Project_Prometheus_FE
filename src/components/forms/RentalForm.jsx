@@ -124,6 +124,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 label="대여 계약서 업로드"
                 type="file"
                 accept="image/*,application/pdf"
+                capture="environment"
                 onChange={(value) => update("contract_file", value)}
                 disabled={readOnly}
             >
@@ -135,6 +136,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 label="운전면허증 업로드"
                 type="file"
                 accept="image/*,application/pdf"
+                capture="environment"
                 onChange={(value) => update("driver_license_file", value)}
                 disabled={readOnly}
             >

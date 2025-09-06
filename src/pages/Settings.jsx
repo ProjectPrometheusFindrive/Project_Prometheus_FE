@@ -254,7 +254,7 @@ export default function Settings() {
 
               <label htmlFor="logoUpload" className="form-label">회사 로고 업로드</label>
               <div>
-                <input id="logoUpload" type="file" accept="image/*" onChange={(e) => onFileChange("logoDataUrl", e.target.files?.[0])} />
+                <input id="logoUpload" type="file" accept="image/*" capture="environment" onChange={(e) => onFileChange("logoDataUrl", e.target.files?.[0])} />
                 {editData.logoDataUrl ? (
                   <div style={{ marginTop: 8 }}>
                     <img src={editData.logoDataUrl} alt="로고 미리보기" style={{ height: 64, width: 64, objectFit: "contain", border: "1px solid #eee", borderRadius: 8 }} />
@@ -264,7 +264,7 @@ export default function Settings() {
 
               <label htmlFor="certUpload" className="form-label">사업자등록증 업로드</label>
               <div>
-                <input id="certUpload" type="file" accept="image/*,.pdf" onChange={(e) => onFileChange("certDataUrl", e.target.files?.[0])} />
+                <input id="certUpload" type="file" accept="image/*,.pdf" capture="environment" onChange={(e) => onFileChange("certDataUrl", e.target.files?.[0])} />
                 {editData.certDataUrl ? (
                   <div style={{ marginTop: 8 }}>
                     {String(editData.certDataUrl).startsWith("data:application/pdf") ? (

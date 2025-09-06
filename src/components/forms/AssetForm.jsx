@@ -74,6 +74,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 label="자동차등록증 첨부"
                 type="file"
                 accept="image/*,application/pdf"
+                capture="environment"
                 onChange={(value) => update("registrationDoc", value)}
                 disabled={readOnly}
             >
@@ -85,6 +86,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 label="보험가입증명서 첨부"
                 type="file"
                 accept="image/*,application/pdf"
+                capture="environment"
                 onChange={(value) => update("insuranceDoc", value)}
                 disabled={readOnly}
             >

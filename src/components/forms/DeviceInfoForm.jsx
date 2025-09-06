@@ -32,7 +32,7 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
       <input id="serial" className="form-input" value={form.serial} onChange={(e) => update("serial", e.target.value)} placeholder="예: DEV-2024-0001" disabled={readOnly} required />
 
       <label className="form-label" htmlFor="photos">장착 단말 정보 (사진 업로드)</label>
-      <input id="photos" type="file" className="form-input" accept="image/*" multiple onChange={handlePhotos} disabled={readOnly} />
+      <input id="photos" type="file" className="form-input" accept="image/*" capture="environment" multiple onChange={handlePhotos} disabled={readOnly} />
       {Array.isArray(form.photos) && form.photos.length > 0 && (
         <div style={{ fontSize: 12, color: "#555" }}>{form.photos.map((f) => f.name).join(", ")}</div>
       )}

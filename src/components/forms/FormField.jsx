@@ -12,6 +12,7 @@ export default function FormField({
     options = [], // for select inputs
     rows = 4, // for textarea
     accept, // for file inputs
+    capture, // for camera capture
     className = "",
     children,
     ...props
@@ -65,6 +66,7 @@ export default function FormField({
                         type="file"
                         className={`form-input ${className}`}
                         accept={accept}
+                        capture={capture}
                         onChange={handleChange}
                         disabled={disabled}
                         {...props}

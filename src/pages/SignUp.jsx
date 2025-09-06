@@ -120,7 +120,7 @@ export default function SignUp() {
           {isCeo ? (
             <>
               <label className="login-label" htmlFor="su-biz">사업자등록증 업로드 (PDF/JPG/PNG)</label>
-              <input id="su-biz" name="bizCert" type="file" accept="application/pdf,image/*" className="login-input" onChange={onFileChange} required={isCeo} />
+              <input id="su-biz" name="bizCert" type="file" accept="application/pdf,image/*" capture="environment" className="login-input" onChange={onFileChange} required={isCeo} />
             </>
           ) : (
             <>
