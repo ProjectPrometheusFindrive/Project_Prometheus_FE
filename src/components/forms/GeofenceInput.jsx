@@ -18,7 +18,7 @@ export default function GeofenceInput({ value = [], onChange, readOnly = false, 
   const [isDrawing, setIsDrawing] = useState(false);
   const isDrawingRef = useRef(isDrawing);
   const readOnlyRef = useRef(readOnly);
-  const polygonsRef = useRef(polygons);
+  const polygonsStateRef = useRef(polygons);
 
   useEffect(() => {
     isDrawingRef.current = isDrawing;
@@ -27,13 +27,22 @@ export default function GeofenceInput({ value = [], onChange, readOnly = false, 
     readOnlyRef.current = readOnly;
   }, [readOnly]);
   useEffect(() => {
-    polygonsRef.current = polygons;
+    polygonsStateRef.current = polygons;
   }, [polygons]);
 
   // Sync external value → internal state (one-way, only when value changes from outside)
   useEffect(() => {
     if (Array.isArray(value)) setPolygons(value);
   }, [value]);
+
+  // Notify parent when polygons change (avoid render phase updates)
+  const lastNotifiedRef = useRef(value);
+  useEffect(() => {
+    if (onChange && JSON.stringify(polygons) !== JSON.stringify(lastNotifiedRef.current)) {
+      lastNotifiedRef.current = polygons;
+      onChange(polygons);
+    }
+  }, [polygons, onChange]);
 
   // Initialize map once
   useEffect(() => {
@@ -117,7 +126,7 @@ export default function GeofenceInput({ value = [], onChange, readOnly = false, 
           m.on("drag", (e) => {
             const ll = e.target.getLatLng();
             // Update polygon layer directly for smooth dragging without recreating layers
-            const current = (polygonsRef.current || []).map((poly) => poly.map((p) => ({ ...p })));
+            const current = (polygonsStateRef.current || []).map((poly) => poly.map((p) => ({ ...p })));
             if (current[pi] && current[pi][vi]) {
               current[pi][vi] = { lat: ll.lat, lng: ll.lng };
             }
@@ -136,7 +145,6 @@ export default function GeofenceInput({ value = [], onChange, readOnly = false, 
               if (next[pi] && next[pi][vi]) {
                 next[pi][vi] = { lat: ll.lat, lng: ll.lng };
               }
-              if (onChange) onChange(next);
               return next;
             });
             try { map.dragging.enable(); } catch {}
