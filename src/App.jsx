@@ -9,8 +9,6 @@ import Settings from "./pages/Settings";
 import AssetStatus from "./pages/AssetStatus";
 import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
-import RentalsMapPage from "./pages/RentalsMapPage";
-import ProblemVehicles from "./pages/ProblemVehicles";
 import Detail from "./pages/Detail";
 import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
@@ -45,16 +43,6 @@ function App() {
             <Route path="/rentals/table" element={
               <ErrorBoundary>
                 <RentalContracts />
-              </ErrorBoundary>
-            } />
-            <Route path="/rentals/map" element={
-              <ErrorBoundary>
-                <RentalsMapPage />
-              </ErrorBoundary>
-            } />
-            <Route path="/issue" element={
-              <ErrorBoundary>
-                <ProblemVehicles />
               </ErrorBoundary>
             } />
             <Route path="/detail/:type/:id" element={

@@ -107,7 +107,7 @@ export default function RentalContracts() {
 
     return (
         <div className="page">
-            <h1>Rental Contracts</h1>
+            <h1>계약등록관리</h1>
             <div className="page-scroll">
                 <div className="asset-toolbar" style={{ marginBottom: 12 }}>
                     <div style={{ flex: 1 }} />

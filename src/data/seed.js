@@ -17,10 +17,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHDH41EX6U123456",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-11-01",
             registrationDate: "2024-11-01",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "대여중",
             installer: "김범기",
             deviceSerial: "1ABCD-SONATA-25",
+            memo: "정기점검 완료",
+            diagnosticCodes: {
+                category1: 0,
+                category2: 0,
+                category3: 0,
+                category4: 0
+            },
         },
         rental: {
             rental_id: 100000000001,
@@ -49,10 +58,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KNDPB3AC7H7123456",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-10-15",
             registrationDate: "2024-11-01",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "대여중",
             installer: "김범기",
             deviceSerial: "KIA-SPTG-19-ABCE",
+            memo: "배터리 교체 예정",
+            diagnosticCodes: {
+                category1: 2,
+                category2: 1,
+                category3: 0,
+                category4: 3
+            },
         },
         rental: {
             rental_id: 100000000002,
@@ -81,10 +99,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "5YJ3E1EA7KF123456",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-11-01",
             registrationDate: "2024-11-01",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "대여중",
             installer: "김범기",
             deviceSerial: "HYU-GRAN-23-ABCF",
+            memo: "엔진오일 교체 완료",
+            diagnosticCodes: {
+                category1: 0,
+                category2: 2,
+                category3: 1,
+                category4: 0
+            },
         },
         rental: {
             rental_id: 100000000003,
@@ -113,10 +140,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "WAUZZZF40LA123456",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-11-01",
             registrationDate: "2024-11-01",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "반납대기",
             installer: "김범기",
             deviceSerial: "KIA-SORE-24-ABCG",
+            memo: "타이어 점검 예정",
+            diagnosticCodes: {
+                category1: 1,
+                category2: 0,
+                category3: 4,
+                category4: 1
+            },
         },
         rental: {
             rental_id: 100000000004,
@@ -145,10 +181,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "JTMBFREV8GJ123456",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-10-21",
             registrationDate: "2024-10-21",
             registrationStatus: "보험등록 완료",
+            vehicleStatus: "점검중",
             installer: "",
             deviceSerial: "",
+            memo: "장비 설치 대기 중",
+            diagnosticCodes: {
+                category1: 5,
+                category2: 3,
+                category3: 2,
+                category4: 1
+            },
         },
         rental: {
             rental_id: 100000000005,
@@ -177,10 +222,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "SALVP2BG3FH123456",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-01-01",
             registrationDate: "2023-01-01",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "대여중",
             installer: "원격 설치",
             deviceSerial: "LR-EVOQ-24-7722",
+            memo: "프리미엄 서비스 적용",
+            diagnosticCodes: {
+                category1: 0,
+                category2: 0,
+                category3: 0,
+                category4: 0
+            },
         },
         rental: {
             rental_id: 100000000006,
@@ -209,10 +263,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "WBA8E1G52GNT12345",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-05-10",
             registrationDate: "2022-05-10",
             registrationStatus: "보험등록 완료",
+            vehicleStatus: "수리중",
             installer: "",
             deviceSerial: "",
+            memo: "에어컨 수리 진행 중",
+            diagnosticCodes: {
+                category1: 6,
+                category2: 4,
+                category3: 3,
+                category4: 2
+            },
         },
         rental: {
             rental_id: 100000000007,
@@ -241,10 +304,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "WP0ZZZ99ZTS123456",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-03-15",
             registrationDate: "2022-03-15",
-            registrationStatus: "장비장착 완료",
+            registrationStatus: "장비장착 완룼",
+            vehicleStatus: "대기중",
             installer: "지사 A",
             deviceSerial: "KIA-MORN-20-3456",
+            memo: "브레이크 점검 완룼",
+            diagnosticCodes: {
+                category1: 8,
+                category2: 7,
+                category3: 5,
+                category4: 9
+            },
         },
         rental: {
             rental_id: 100000000008,
@@ -274,10 +346,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHAB51DBMU123457",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2026-01-15",
             registrationDate: "2025-01-15",
-            registrationStatus: "장비장착 완료",
+            registrationStatus: "장비장착 완룋",
+            vehicleStatus: "대여중",
             installer: "지사 B",
             deviceSerial: "GEN-GV80-24-0234",
+            memo: "신차 초기 점검 완룫",
+            diagnosticCodes: {
+                category1: 0,
+                category2: 0,
+                category3: 0,
+                category4: 0
+            },
         },
         rental: {
             rental_id: 100000000009,
@@ -306,10 +387,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHAB51DBMU123458",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2026-02-20",
             registrationDate: "2025-02-20",
             registrationStatus: "보험등록 완료",
+            vehicleStatus: "대기중",
             installer: "",
             deviceSerial: "",
+            memo: "장비 설치 일정 조율 중",
+            diagnosticCodes: {
+                category1: 3,
+                category2: 0,
+                category3: 2,
+                category4: 4
+            },
         },
         rental: {
             rental_id: 100000000010,
@@ -338,10 +428,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHAB51DBMU123459",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-12-05",
             registrationDate: "2021-12-05",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "정상",
             installer: "지사 C",
             deviceSerial: "HYU-GRAN-22-0456",
+            memo: "정기 검진 예정",
+            diagnosticCodes: {
+                category1: 0,
+                category2: 0,
+                category3: 0,
+                category4: 0
+            },
         },
         rental: {
             rental_id: 100000000011,
@@ -370,10 +469,19 @@ export const seedVehicles = {
             fuelType: "전기",
             vin: "KMHAB51DBMU123460",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-06-18",
             registrationDate: "2024-06-18",
             registrationStatus: "보험등록 완료",
+            vehicleStatus: "점검중",
             installer: "",
             deviceSerial: "",
+            memo: "전기차 충전 시설 점검",
+            diagnosticCodes: {
+                category1: 2,
+                category2: 5,
+                category3: 1,
+                category4: 3
+            },
         },
         rental: {
             rental_id: 100000000012,
@@ -402,10 +510,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHAB51DBMU123461",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-07-22",
             registrationDate: "2024-07-22",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "대기중",
             installer: "지사 D",
             deviceSerial: "HYU-KONA-23-0678",
+            memo: "하이브리드 시스템 점검 완료",
+            diagnosticCodes: {
+                category1: 1,
+                category2: 0,
+                category3: 3,
+                category4: 0
+            },
         },
         rental: {
             rental_id: 100000000013,
@@ -434,10 +551,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHAB51DBMU123462",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-11-30",
             registrationDate: "2023-11-30",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "정비완료",
             installer: "지사 E",
             deviceSerial: "KIA-K5-22-1234",
+            memo: "미션 오일 교체 예정",
+            diagnosticCodes: {
+                category1: 0,
+                category2: 1,
+                category3: 0,
+                category4: 2
+            },
         },
         rental: {
             rental_id: 100000000014,
@@ -466,10 +592,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHAB51DBMU123463",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-12-15",
             registrationDate: "2023-12-15",
             registrationStatus: "보험등록 완료",
+            vehicleStatus: "수리중",
             installer: "",
             deviceSerial: "",
+            memo: "변속기 점검 및 수리",
+            diagnosticCodes: {
+                category1: 7,
+                category2: 8,
+                category3: 6,
+                category4: 5
+            },
         },
         rental: {
             rental_id: 100000000015,
@@ -498,10 +633,19 @@ export const seedVehicles = {
             fuelType: "가솔린",
             vin: "KMHAB51DBMU123464",
             insuranceInfo: "렌터카공제조합 2024",
+            insuranceExpiryDate: "2025-08-30",
             registrationDate: "2021-08-30",
             registrationStatus: "장비장착 완료",
+            vehicleStatus: "운행중지",
             installer: "지사 F",
             deviceSerial: "KIA-SPTG-22-3456",
+            memo: "도난 신고 차량 - 추적 중",
+            diagnosticCodes: {
+                category1: 10,
+                category2: 9,
+                category3: 8,
+                category4: 7
+            },
         },
         rental: {
             rental_id: 100000000016,

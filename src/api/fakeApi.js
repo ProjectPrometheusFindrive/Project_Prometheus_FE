@@ -58,7 +58,14 @@ const deleteRequest = async (url) => {
 
 // Assets
 export async function fetchAssets() {
-  return await fetchJSON(`${API_BASE_URL}/assets`);
+  try {
+    return await fetchJSON(`${API_BASE_URL}/assets`);
+  } catch (error) {
+    // Fallback to local seed data if server is not available
+    console.warn('Falling back to local seed data for assets');
+    const { assets } = await import('../data/assets');
+    return assets;
+  }
 }
 
 export async function fetchAssetById(id) {

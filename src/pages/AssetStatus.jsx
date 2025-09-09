@@ -10,6 +10,89 @@ import { COLORS, DIMENSIONS, ASSET } from "../constants";
 import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
 
+// 진단 코드 분류별 개수를 계산하는 함수
+const calculateDiagnosticCodes = (vehicle) => {
+    // 각 차량의 진단 코드 데이터를 기반으로 분류별 개수 계산
+    const codes = vehicle.diagnosticCodes || {};
+    return {
+        "분류1": codes.category1 || 0,
+        "분류2": codes.category2 || 0,
+        "분류3": codes.category3 || 0,
+        "분류4": codes.category4 || 0
+    };
+};
+
+// 진단 코드 세부 정보를 생성하는 함수
+const generateDiagnosticDetails = (category, count, vehicleInfo) => {
+    const categoryNames = {
+        "분류1": "엔진/동력계",
+        "분류2": "브레이크/안전",
+        "분류3": "전기/전자",
+        "분류4": "편의/기타"
+    };
+
+    const sampleIssues = {
+        "분류1": ["엔진 온도 이상", "연료 시스템 경고", "배기가스 수치 높음", "터보차저 압력 부족", "점화 플러그 교체 필요"],
+        "분류2": ["브레이크 패드 마모", "ABS 센서 오류", "타이어 공기압 부족", "안전벨트 센서 이상", "에어백 경고등"],
+        "분류3": ["배터리 전압 부족", "충전 시스템 이상", "ECU 통신 오류", "센서 데이터 불일치", "전조등 오작동"],
+        "분류4": ["에어컨 냉매 부족", "파워 스티어링 오일", "와이퍼 교체 필요", "오디오 시스템 오류", "도어락 작동 불량"]
+    };
+
+    const issues = sampleIssues[category] || [];
+    const selectedIssues = issues.slice(0, Math.min(count, issues.length));
+    
+    return {
+        category,
+        categoryName: categoryNames[category] || category,
+        count,
+        vehicleInfo,
+        issues: selectedIssues.map((issue, index) => ({
+            id: `${category}-${index}`,
+            code: `${category.slice(-1)}${String(index + 1).padStart(3, '0')}`,
+            description: issue,
+            severity: Math.random() > 0.7 ? "높음" : Math.random() > 0.4 ? "보통" : "낮음",
+            detectedDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+        }))
+    };
+};
+
+// 관리단계를 결정하는 함수
+const getManagementStage = (vehicle) => {
+    // 차량의 상태에 따라 관리단계 결정
+    const { registrationStatus, deviceSerial, vehicleStatus, diagnosticCodes } = vehicle;
+    
+    // 우선순위에 따른 단계 결정
+    if (vehicleStatus === "수리중" || vehicleStatus === "점검중") {
+        return "수리/점검 중";
+    }
+    
+    if (vehicleStatus === "대여중") {
+        return "대여 중";
+    }
+    
+    if (!deviceSerial) {
+        if (registrationStatus === "자산등록 완료") {
+            return "입고대상";
+        }
+        return "전산등록완료";
+    }
+    
+    if (deviceSerial && registrationStatus === "장비장착 완료") {
+        const codes = diagnosticCodes || {};
+        const totalIssues = (codes.category1 || 0) + (codes.category2 || 0) + (codes.category3 || 0) + (codes.category4 || 0);
+        
+        if (totalIssues > 5) {
+            return "수리/점검 중";
+        } else if (totalIssues > 0) {
+            return "수리/점검 완료";
+        } else {
+            return vehicleStatus === "대기중" ? "대여 가능" : "단말 장착 완료";
+        }
+    }
+    
+    return "전산등록완료";
+};
+
 export default function AssetStatus() {
     const [q, setQ] = useState("");
     const [status, setStatus] = useState("all");
@@ -19,6 +102,8 @@ export default function AssetStatus() {
     const [activeAsset, setActiveAsset] = useState(null);
     const [showInfoModal, setShowInfoModal] = useState(false);
     const [infoVehicle, setInfoVehicle] = useState(null);
+    const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
+    const [diagnosticDetail, setDiagnosticDetail] = useState(null);
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
@@ -55,7 +140,7 @@ export default function AssetStatus() {
         const term = q.trim().toLowerCase();
         return rows.filter((a) => {
             const matchesTerm = term
-                ? [a.plate, a.vehicleType, a.insuranceInfo, a.registrationDate, a.registrationStatus, a.installer, a.deviceSerial, a.id].filter(Boolean).join(" ").toLowerCase().includes(term)
+                ? [a.plate, a.vehicleType, a.insuranceInfo, a.registrationDate, a.registrationStatus, a.installer, a.deviceSerial, a.id, a.memo].filter(Boolean).join(" ").toLowerCase().includes(term)
                 : true;
             const matchesStatus = status === "all" ? true : a.registrationStatus === status;
             return matchesTerm && matchesStatus;
@@ -96,6 +181,16 @@ export default function AssetStatus() {
     const openDeviceModal = (asset) => {
         setActiveAsset(asset);
         setShowDeviceModal(true);
+    };
+
+    const openDiagnosticModal = (vehicle, category, count) => {
+        const detail = generateDiagnosticDetails(category, count, {
+            plate: vehicle.plate,
+            vehicleType: vehicle.vehicleType,
+            id: vehicle.id
+        });
+        setDiagnosticDetail(detail);
+        setShowDiagnosticModal(true);
     };
 
     const handleDeviceInfoSubmit = (form) => {
@@ -149,7 +244,8 @@ export default function AssetStatus() {
 
     return (
         <div className="page">
-            <h1>차량 자산 등록/관리</h1>
+            <h1>자산등록관리</h1>
+
 
             <div className="asset-toolbar">
                 <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="검색(차량번호, 차종, 상태, 일련번호...)" className="asset-search" />
@@ -204,17 +300,57 @@ export default function AssetStatus() {
                         </button>
                     )},
                     { key: "vehicleType", label: "차종" },
-                    { key: "insuranceInfo", label: "보험가입 정보", render: (row) => row.insuranceInfo || "-" },
-                    { key: "registrationDate", label: "등록일", render: (row) => formatDateShort(row.registrationDate) },
-                    { key: "registrationStatus", label: "차량등록상태" },
-                    { key: "installer", label: "장착자", render: (row) => row.installer || "-" },
-                    { key: "deviceSerial", label: "단말 일련번호", render: (row) => 
-                        row.deviceSerial ? row.deviceSerial : (
-                            <button type="button" className="form-button" onClick={() => openDeviceModal(row)}>
-                                단말 등록
-                            </button>
-                        )
-                    }
+                    { key: "registrationDate", label: "차량등록일", render: (row) => formatDateShort(row.registrationDate) },
+                    { key: "insuranceExpiryDate", label: "보험만료일", render: (row) => 
+                        row.insuranceExpiryDate ? formatDateShort(row.insuranceExpiryDate) : "-"
+                    },
+                    { key: "diagnosticCodes", label: "차량 상태", render: (row) => {
+                        const codes = calculateDiagnosticCodes(row);
+                        return (
+                            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                                {Object.entries(codes).map(([category, count]) => (
+                                    count > 0 && (
+                                        <button 
+                                            key={category} 
+                                            type="button"
+                                            className="badge badge--diagnostic badge--clickable"
+                                            style={{ fontSize: "10px", padding: "2px 6px", cursor: "pointer", border: "none" }}
+                                            onClick={() => openDiagnosticModal(row, category, count)}
+                                            title={`${category} 세부 진단 보기`}
+                                        >
+                                            {category} {count}개
+                                        </button>
+                                    )
+                                ))}
+                                {Object.values(codes).every(count => count === 0) && (
+                                    <span className="badge badge--normal">정상</span>
+                                )}
+                            </div>
+                        );
+                    }},
+                    { key: "deviceStatus", label: "단말 상태", render: (row) => {
+                        const hasDevice = row.deviceSerial;
+                        const status = hasDevice ? "연결됨" : "미연결";
+                        return <span className={`badge ${hasDevice ? 'badge--on' : 'badge--off'}`}>{status}</span>;
+                    }},
+                    { key: "managementStage", label: "관리단계", render: (row) => {
+                        const stage = getManagementStage(row);
+                        const stageClass = {
+                            "수리/점검 중": "badge--maintenance",
+                            "입고대상": "badge--pending",
+                            "대여 가능": "badge--available", 
+                            "대여 중": "badge--rented",
+                            "수리/점검 완료": "badge--completed",
+                            "단말 장착 완료": "badge--installed",
+                            "전산등록완료": "badge--registered"
+                        };
+                        return (
+                            <span className={`badge ${stageClass[stage] || 'badge--default'}`}>
+                                {stage}
+                            </span>
+                        );
+                    }},
+                    { key: "memo", label: "메모", render: (row) => row.memo || "-" }
                 ]}
                 data={filtered}
                 selection={selection}
@@ -263,6 +399,53 @@ export default function AssetStatus() {
                         ]} />
                     </section>
                 </div>
+            </Modal>
+            
+            <Modal
+                isOpen={showDiagnosticModal && diagnosticDetail}
+                onClose={() => setShowDiagnosticModal(false)}
+                title={`진단 코드 상세 - ${diagnosticDetail?.categoryName || ""} (${diagnosticDetail?.vehicleInfo?.plate || ""})`}
+                showFooter={false}
+                ariaLabel="진단 코드 상세 정보"
+            >
+                {diagnosticDetail && (
+                    <div className="diagnostic-detail">
+                        <div className="diagnostic-header">
+                            <div className="diagnostic-info">
+                                <h3>{diagnosticDetail.categoryName}</h3>
+                                <p>차량: {diagnosticDetail.vehicleInfo.vehicleType} ({diagnosticDetail.vehicleInfo.plate})</p>
+                                <p>총 {diagnosticDetail.count}개의 진단 코드가 발견되었습니다.</p>
+                            </div>
+                        </div>
+                        
+                        <div className="diagnostic-issues">
+                            {diagnosticDetail.issues.length > 0 ? (
+                                <div className="diagnostic-table">
+                                    <div className="diagnostic-table-header">
+                                        <div>코드</div>
+                                        <div>내용</div>
+                                        <div>심각도</div>
+                                        <div>발견일</div>
+                                    </div>
+                                    {diagnosticDetail.issues.map((issue) => (
+                                        <div key={issue.id} className="diagnostic-table-row">
+                                            <div className="diagnostic-code">{issue.code}</div>
+                                            <div className="diagnostic-description">{issue.description}</div>
+                                            <div>
+                                                <span className={`badge diagnostic-severity diagnostic-severity--${issue.severity === '높음' ? 'high' : issue.severity === '보통' ? 'medium' : 'low'}`}>
+                                                    {issue.severity}
+                                                </span>
+                                            </div>
+                                            <div className="diagnostic-date">{issue.detectedDate}</div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ) : (
+                                <p>진단 코드 상세 정보를 불러오는 중...</p>
+                            )}
+                        </div>
+                    </div>
+                )}
             </Modal>
         </div>
     );

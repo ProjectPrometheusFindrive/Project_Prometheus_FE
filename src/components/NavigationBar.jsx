@@ -1,68 +1,44 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
-import { FiHome, FiFileText, FiAlertTriangle, FiSettings, FiLogOut, FiMap } from "react-icons/fi";
+import { FiHome, FiFileText, FiInfo } from "react-icons/fi";
 import { FaCar } from "react-icons/fa";
 import { typedStorage } from "../utils/storage";
 
 export default function NavigationBar() {
     const navigate = useNavigate();
 
-    function handleLogout() {
-        typedStorage.auth.logout();
-        navigate("/", { replace: true });
-    }
 
     return (
         <nav className="navigation-bar" role="navigation" aria-label="Main Navigation">
 
-            <NavLink to="/dashboard" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Dashboard" title="Dashboard">
+            <NavLink to="/dashboard" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Home" title="Home">
                 <FiHome className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    Dashboard
+                    Home
                 </span>
             </NavLink>
 
-            <NavLink to="/assets" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Assets" title="Assets">
+            <NavLink to="/assets" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="자산등록관리" title="자산등록관리">
                 <FaCar className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    Assets
+                    자산등록관리
                 </span>
             </NavLink>
 
-            <NavLink to="/rentals/table" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Contracts" title="Contracts">
+            <NavLink to="/rentals/table" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="계약등록관리" title="계약등록관리">
                 <FiFileText className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    Contracts
+                    계약등록관리
                 </span>
             </NavLink>
 
-            <NavLink to="/issue" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Issues" title="Issues">
-                <FiAlertTriangle className="navigation-bar__icon" aria-hidden />
+
+            <NavLink to="/settings" className={({ isActive }) => `navigation-bar__link navigation-bar__info ${isActive ? "is-active" : ""}`} aria-label="Info" title="Info">
+                <FiInfo className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    Issues
+                    Info
                 </span>
             </NavLink>
-
-            <NavLink to="/rentals/map" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Map" title="Map">
-                <FiMap className="navigation-bar__icon" aria-hidden />
-                <span className="navigation-bar__label" role="tooltip">
-                    Map
-                </span>
-            </NavLink>
-
-            <NavLink to="/settings" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Settings" title="Settings">
-                <FiSettings className="navigation-bar__icon" aria-hidden />
-                <span className="navigation-bar__label" role="tooltip">
-                    Settings
-                </span>
-            </NavLink>
-
-            <button type="button" className="navigation-bar__link navigation-bar__logout" aria-label="Logout" title="Logout" onClick={handleLogout}>
-                <FiLogOut className="navigation-bar__icon" aria-hidden />
-                <span className="navigation-bar__label" role="tooltip">
-                    Logout
-                </span>
-            </button>
         </nav>
     );
 }

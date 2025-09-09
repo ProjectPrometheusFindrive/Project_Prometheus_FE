@@ -57,7 +57,7 @@ export default function Dashboard() {
 
     return (
         <div className="page">
-            <h1>대시보드</h1>
+            <h1>홈</h1>
 
             <div className="page-scroll">
                 <div className="dashboard-grid">
