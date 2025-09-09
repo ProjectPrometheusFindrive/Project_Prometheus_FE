@@ -163,21 +163,99 @@ body {
     min-height: 100%;
     height: 100%;
     display: flex;
-    flex-direction: row; /* left sidebar + main content by default */
+    flex-direction: column;
 }
+
+.app-main {
+    flex: 1;
+    display: flex;
+    flex-direction: row;
+    min-height: 0;
+}
+
 .app-content {
     flex: 1 1 auto;
     min-height: 0;
     min-width: 0; /* prevent flex overflow in row layout */
     overflow: hidden;
-    /* no bottom padding; nav moved to left */
+}
+
+/* Top Header Bar */
+.top-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 60px;
+    padding: 0 24px;
+    background: #fff;
+    border-bottom: 1px solid #e5e5e5;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.top-header__left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.top-header__logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    object-fit: contain;
+}
+
+.top-header__service-name {
+    font-weight: 700;
+    font-size: 18px;
+    color: #1a73e8;
+}
+
+.top-header__right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.top-header__user-id {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.top-header__logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #666;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.top-header__logout-btn:hover {
+    background: #e8f0fe;
+    border-color: #1a73e8;
+    color: #1a73e8;
+}
+
+.top-header__icon {
+    font-size: 16px;
 }
 
 /* Left-side navigation bar */
 .navigation-bar {
     /* Fix width without causing flex overflow (padding/border included) */
     box-sizing: border-box;
-    width: 80px; /* fixed sidebar width */
+    width: 80px; /* back to original width */
     flex: 0 0 auto;
     display: flex;
     flex-direction: column;
@@ -187,55 +265,13 @@ body {
     background: #fff;
     border-right: 1px solid #e5e5e5;
     /* Make sidebar handle small landscape heights gracefully */
-    position: sticky;
-    top: 0;
-    max-height: 100vh; /* fallback */
-    max-height: 100dvh; /* modern mobile browsers */
+    max-height: calc(100vh - 60px); /* subtract header height */
     overflow-y: auto; /* vertical scroll only when needed */
     overflow-x: hidden; /* avoid horizontal scrollbar in sidebar */
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
 
-/* Branding section at top of navigation */
-.navigation-bar__branding {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    width: 100%;
-}
-
-.navigation-bar__service-name {
-    font-weight: 600;
-    font-size: 12px;
-    color: #1a73e8;
-    text-align: center;
-}
-
-.navigation-bar__company {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-}
-
-.navigation-bar__company-logo {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    object-fit: contain;
-}
-
-.navigation-bar__company-name {
-    font-size: 10px;
-    color: #666;
-    text-align: center;
-    line-height: 1.2;
-    word-break: break-word;
-    max-width: 64px;
-}
 
 .navigation-bar__logout {
     margin-top: auto;
@@ -279,7 +315,7 @@ body {
     - Give content the full width
 */
 @media (orientation: portrait) and (max-width: 768px) {
-    .app-layout {
+    .app-main {
         flex-direction: column; /* content above, nav below */
     }
 
@@ -287,6 +323,7 @@ body {
         order: 2;
         flex: 0 0 auto;
         width: 100%;
+        max-height: none;
         flex-direction: row;
         justify-content: space-around;
         align-items: center;
@@ -296,10 +333,8 @@ body {
         border-top: 1px solid #e5e5e5;
         /* Stick to bottom without covering content (still occupies layout space) */
         position: sticky;
-        top: auto;
         bottom: 0;
         height: auto;
-        max-height: none;
         overflow: visible;
         backdrop-filter: saturate(140%) blur(2px);
         background: rgba(255, 255, 255, 0.98);
@@ -315,35 +350,27 @@ body {
         margin-top: 0; /* reset vertical auto push in horizontal layout */
     }
 
-    /* Branding adjustments for mobile/portrait */
-    .navigation-bar__branding {
-        flex-direction: row;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 0;
-        margin-right: auto; /* push to left side */
-        order: 1; /* ensure branding comes first */
+    .app-content {
+        order: 1;
+    }
+    
+    /* Top header adjustments for mobile */
+    .top-header {
+        padding: 0 16px;
+        height: 56px;
     }
 
-    .navigation-bar__service-name {
-        font-size: 14px;
-        font-weight: 700;
+    .top-header__service-name {
+        font-size: 16px;
     }
 
-    .navigation-bar__company {
-        flex-direction: row;
-        gap: 8px;
+    .top-header__user-id {
+        font-size: 13px;
     }
 
-    .navigation-bar__company-logo {
-        width: 28px;
-        height: 28px;
-    }
-
-    .navigation-bar__company-name {
-        font-size: 11px;
-        max-width: none;
-        white-space: nowrap;
+    .top-header__logout-btn {
+        padding: 6px 12px;
+        font-size: 13px;
     }
 }
 .view-toggle {

@@ -1,26 +1,11 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiHome, FiFileText, FiAlertTriangle, FiSettings, FiLogOut, FiMap } from "react-icons/fi";
 import { FaCar } from "react-icons/fa";
 import { typedStorage } from "../utils/storage";
-import { fetchCompanyInfo } from "../api";
-import defaultLogo from "../assets/default-logo.svg";
 
 export default function NavigationBar() {
     const navigate = useNavigate();
-    const [companyInfo, setCompanyInfo] = useState(null);
-
-    useEffect(() => {
-        const loadCompanyInfo = async () => {
-            try {
-                const info = await fetchCompanyInfo();
-                setCompanyInfo(info);
-            } catch (error) {
-                console.error('Failed to load company info:', error);
-            }
-        };
-        loadCompanyInfo();
-    }, []);
 
     function handleLogout() {
         typedStorage.auth.logout();
@@ -29,23 +14,6 @@ export default function NavigationBar() {
 
     return (
         <nav className="navigation-bar" role="navigation" aria-label="Main Navigation">
-            {/* Service name and company info */}
-            <div className="navigation-bar__branding">
-                <div className="navigation-bar__service-name">Findrive</div>
-                <div className="navigation-bar__company">
-                    <img 
-                        src={companyInfo?.logoDataUrl || defaultLogo} 
-                        alt="Company Logo" 
-                        className="navigation-bar__company-logo"
-                        onError={(e) => {
-                            e.target.src = defaultLogo;
-                        }}
-                    />
-                    <span className="navigation-bar__company-name">
-                        {companyInfo?.corpName || "회사명"}
-                    </span>
-                </div>
-            </div>
 
             <NavLink to="/dashboard" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Dashboard" title="Dashboard">
                 <FiHome className="navigation-bar__icon" aria-hidden />
