@@ -87,7 +87,7 @@ export default function RentalContracts() {
                 hasUnpaid,
                 engineOn: r.engine_status === "on",
                 restartBlocked: Boolean(r.restart_blocked),
-                memo: r.memo || ""
+                memo: r.memo || "",
             };
         });
     }, [items]);
@@ -134,13 +134,7 @@ export default function RentalContracts() {
     };
 
     const handleToggleRestart = (rentalId) => {
-        setItems((prev) =>
-            prev.map((item) =>
-                item.rental_id === rentalId
-                    ? { ...item, restart_blocked: !item.restart_blocked }
-                    : item
-            )
-        );
+        setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, restart_blocked: !item.restart_blocked } : item)));
     };
 
     const handleMemoEdit = (rentalId, currentMemo) => {
@@ -149,11 +143,7 @@ export default function RentalContracts() {
     };
 
     const handleMemoSave = (rentalId) => {
-        setItems((prev) =>
-            prev.map((item) =>
-                item.rental_id === rentalId ? { ...item, memo: memoText } : item
-            )
-        );
+        setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, memo: memoText } : item)));
         setEditingMemo(null);
         setMemoText("");
     };
@@ -171,22 +161,22 @@ export default function RentalContracts() {
             prev.map((item) =>
                 item.rental_id === rentalId
                     ? {
-                        ...item,
-                        accident_reported: true,
-                        memo: item.memo ? `${item.memo} / 사고 접수됨 (${new Date().toLocaleDateString()})` : `사고 접수됨 (${new Date().toLocaleDateString()})`
-                    }
+                          ...item,
+                          accident_reported: true,
+                          memo: item.memo ? `${item.memo} / 사고 접수됨 (${new Date().toLocaleDateString()})` : `사고 접수됨 (${new Date().toLocaleDateString()})`,
+                      }
                     : item
             )
         );
 
         // 팝업 새로고침을 위해 selectedContract도 업데이트
-        setSelectedContract(prev =>
+        setSelectedContract((prev) =>
             prev && prev.rental_id === rentalId
                 ? {
-                    ...prev,
-                    accident_reported: true,
-                    memo: prev.memo ? `${prev.memo} / 사고 접수됨 (${new Date().toLocaleDateString()})` : `사고 접수됨 (${new Date().toLocaleDateString()})`
-                }
+                      ...prev,
+                      accident_reported: true,
+                      memo: prev.memo ? `${prev.memo} / 사고 접수됨 (${new Date().toLocaleDateString()})` : `사고 접수됨 (${new Date().toLocaleDateString()})`,
+                  }
                 : prev
         );
 
@@ -217,17 +207,13 @@ export default function RentalContracts() {
     const getContractStatusBadge = (status) => {
         const statusMap = {
             "예약 중": { type: "pending", color: "#2196f3" },
-            "대여중": { type: "rented", color: "#4caf50" },
-            "사고접수": { type: "accident", color: "#ff9800" },
-            "반납지연": { type: "overdue", color: "#f44336" },
-            "도난의심": { type: "suspicious", color: "#9c27b0" }
+            대여중: { type: "rented", color: "#4caf50" },
+            사고접수: { type: "accident", color: "#ff9800" },
+            반납지연: { type: "overdue", color: "#f44336" },
+            도난의심: { type: "suspicious", color: "#9c27b0" },
         };
         const config = statusMap[status] || { type: "default", color: "#757575" };
-        return (
-            <StatusBadge style={{ backgroundColor: config.color, color: "white", fontSize: "0.8rem" }}>
-                {status}
-            </StatusBadge>
-        );
+        return <StatusBadge style={{ backgroundColor: config.color, color: "white", fontSize: "0.8rem" }}>{status}</StatusBadge>;
     };
 
     const getRentalAmountBadges = (row) => {
@@ -236,25 +222,21 @@ export default function RentalContracts() {
 
         return (
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>
-                    ₩{formattedAmount}
-                </div>
+                <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>₩{formattedAmount}</div>
                 <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                    <StatusBadge style={{
-                        backgroundColor: row.isLongTerm ? "#e3f2fd" : "#fff3e0",
-                        color: row.isLongTerm ? "#1976d2" : "#f57c00",
-                        fontSize: "0.7rem"
-                    }}>
+                    <StatusBadge
+                        style={{
+                            backgroundColor: row.isLongTerm ? "#e3f2fd" : "#fff3e0",
+                            color: row.isLongTerm ? "#1976d2" : "#f57c00",
+                            fontSize: "0.7rem",
+                        }}
+                    >
                         {row.isLongTerm ? "장기" : "단기"}
                     </StatusBadge>
                     <StatusBadge style={{ backgroundColor: "#f5f5f5", color: "#424242", fontSize: "0.7rem" }}>
                         {row.isLongTerm ? "월" + new Intl.NumberFormat("ko-KR").format(Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30)))) : "총" + formattedAmount}
                     </StatusBadge>
-                    {row.hasUnpaid && (
-                        <StatusBadge style={{ backgroundColor: "#ffebee", color: "#c62828", fontSize: "0.7rem" }}>
-                            미납
-                        </StatusBadge>
-                    )}
+                    {row.hasUnpaid && <StatusBadge style={{ backgroundColor: "#ffebee", color: "#c62828", fontSize: "0.7rem" }}>미납</StatusBadge>}
                 </div>
             </div>
         );
@@ -316,7 +298,7 @@ export default function RentalContracts() {
                                                 cursor: "pointer",
                                                 textDecoration: "underline",
                                                 padding: 0,
-                                                font: "inherit"
+                                                font: "inherit",
                                             }}
                                             onClick={() => handlePlateClick(r)}
                                         >
@@ -334,21 +316,18 @@ export default function RentalContracts() {
                                     <td>{getRentalAmountBadges(r)}</td>
                                     <td>{getContractStatusBadge(r.contractStatus)}</td>
                                     <td>
-                                        <StatusBadge style={{
-                                            backgroundColor: r.engineOn ? "#4caf50" : "#f44336",
-                                            color: "white"
-                                        }}>
+                                        <StatusBadge
+                                            style={{
+                                                backgroundColor: r.engineOn ? "#4caf50" : "#f44336",
+                                                color: "white",
+                                            }}
+                                        >
                                             {r.engineOn ? "ON" : "OFF"}
                                         </StatusBadge>
                                     </td>
                                     <td>
                                         <label className="status-toggle" style={{ margin: 0, display: "inline-flex" }}>
-                                            <input
-                                                type="checkbox"
-                                                checked={r.restartBlocked}
-                                                onChange={() => handleToggleRestart(r.rental_id)}
-                                                style={{ display: "none" }}
-                                            />
+                                            <input type="checkbox" checked={r.restartBlocked} onChange={() => handleToggleRestart(r.rental_id)} style={{ display: "none" }} />
                                             <span
                                                 className="toggle-btn"
                                                 style={{
@@ -357,7 +336,7 @@ export default function RentalContracts() {
                                                     cursor: "pointer",
                                                     minWidth: "60px",
                                                     textAlign: "center",
-                                                    fontSize: "0.8rem"
+                                                    fontSize: "0.8rem",
                                                 }}
                                             >
                                                 {r.restartBlocked ? "차단" : "허용"}
@@ -376,7 +355,7 @@ export default function RentalContracts() {
                                                         padding: "4px",
                                                         border: "1px solid #ddd",
                                                         borderRadius: "4px",
-                                                        fontSize: "0.85rem"
+                                                        fontSize: "0.85rem",
                                                     }}
                                                     autoFocus
                                                 />
@@ -387,7 +366,7 @@ export default function RentalContracts() {
                                                         border: "none",
                                                         color: "#4caf50",
                                                         cursor: "pointer",
-                                                        padding: "2px"
+                                                        padding: "2px",
                                                     }}
                                                 >
                                                     <FaSave size={12} />
@@ -399,7 +378,7 @@ export default function RentalContracts() {
                                                         border: "none",
                                                         color: "#f44336",
                                                         cursor: "pointer",
-                                                        padding: "2px"
+                                                        padding: "2px",
                                                     }}
                                                 >
                                                     <FaTimes size={12} />
@@ -413,7 +392,7 @@ export default function RentalContracts() {
                                                         overflow: "hidden",
                                                         textOverflow: "ellipsis",
                                                         whiteSpace: "nowrap",
-                                                        maxWidth: "100px"
+                                                        maxWidth: "100px",
                                                     }}
                                                     title={r.memo}
                                                 >
@@ -426,7 +405,7 @@ export default function RentalContracts() {
                                                         border: "none",
                                                         color: "#1976d2",
                                                         cursor: "pointer",
-                                                        padding: "2px"
+                                                        padding: "2px",
                                                     }}
                                                 >
                                                     <FaEdit size={12} />
@@ -449,18 +428,18 @@ export default function RentalContracts() {
                 {selectedContract && (
                     <div style={{ padding: "20px" }}>
                         {/* 상단 액션 버튼들 */}
-                        <div style={{
-                            display: "flex",
-                            gap: "10px",
-                            marginBottom: "20px",
-                            padding: "15px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "8px",
-                            alignItems: "center"
-                        }}>
-                            <div style={{ flex: 1, fontSize: "0.9rem", color: "#666" }}>
-                                빠른 액션
-                            </div>
+                        <div
+                            style={{
+                                display: "flex",
+                                gap: "10px",
+                                marginBottom: "20px",
+                                padding: "15px",
+                                backgroundColor: "#f8f9fa",
+                                borderRadius: "8px",
+                                alignItems: "center",
+                            }}
+                        >
+                            <div style={{ flex: 1, fontSize: "0.9rem", color: "#666" }}>빠른 액션</div>
                             {/* 현재 위치 보기 버튼 */}
                             <button
                                 onClick={handleShowLocation}
@@ -477,7 +456,7 @@ export default function RentalContracts() {
                                     gap: "6px",
                                     fontSize: "0.85rem",
                                     fontWeight: "500",
-                                    opacity: selectedContract.current_location ? 1 : 0.6
+                                    opacity: selectedContract.current_location ? 1 : 0.6,
                                 }}
                                 onMouseOver={(e) => {
                                     if (selectedContract.current_location) {
@@ -509,21 +488,23 @@ export default function RentalContracts() {
                                         alignItems: "center",
                                         gap: "6px",
                                         fontSize: "0.85rem",
-                                        fontWeight: "500"
+                                        fontWeight: "500",
                                     }}
-                                    onMouseOver={(e) => e.target.style.background = "#e64919"}
-                                    onMouseOut={(e) => e.target.style.background = "#ff5722"}
+                                    onMouseOver={(e) => (e.target.style.background = "#e64919")}
+                                    onMouseOut={(e) => (e.target.style.background = "#ff5722")}
                                 >
                                     <FaExclamationTriangle size={14} />
                                     사고 접수
                                 </button>
                             ) : (
-                                <StatusBadge style={{
-                                    backgroundColor: "#ff9800",
-                                    color: "white",
-                                    fontSize: "0.8rem",
-                                    padding: "6px 12px"
-                                }}>
+                                <StatusBadge
+                                    style={{
+                                        backgroundColor: "#ff9800",
+                                        color: "white",
+                                        fontSize: "0.8rem",
+                                        padding: "6px 12px",
+                                    }}
+                                >
                                     <FaExclamationTriangle size={12} style={{ marginRight: "4px" }} />
                                     사고 접수됨
                                 </StatusBadge>
@@ -533,21 +514,41 @@ export default function RentalContracts() {
                             <div>
                                 <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>기본 정보</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <div><strong>차량번호:</strong> {selectedContract.plate || "-"}</div>
-                                    <div><strong>차종:</strong> {selectedContract.vehicleType || "-"}</div>
-                                    <div><strong>예약자명:</strong> {selectedContract.renter_name || "-"}</div>
-                                    <div><strong>연락처:</strong> {selectedContract.contact_number || "-"}</div>
-                                    <div><strong>면허번호:</strong> {selectedContract.license_number || "-"}</div>
+                                    <div>
+                                        <strong>차량번호:</strong> {selectedContract.plate || "-"}
+                                    </div>
+                                    <div>
+                                        <strong>차종:</strong> {selectedContract.vehicleType || "-"}
+                                    </div>
+                                    <div>
+                                        <strong>예약자명:</strong> {selectedContract.renter_name || "-"}
+                                    </div>
+                                    <div>
+                                        <strong>연락처:</strong> {selectedContract.contact_number || "-"}
+                                    </div>
+                                    <div>
+                                        <strong>면허번호:</strong> {selectedContract.license_number || "-"}
+                                    </div>
                                 </div>
                             </div>
                             <div>
                                 <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>계약 정보</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <div><strong>계약 상태:</strong> {getContractStatusBadge(selectedContract.accident_reported ? "사고접수" : selectedContract.contractStatus)}</div>
-                                    <div><strong>대여 시작:</strong> {formatDateTime(selectedContract.rental_period?.start)}</div>
-                                    <div><strong>대여 종료:</strong> {formatDateTime(selectedContract.rental_period?.end)}</div>
-                                    <div><strong>대여 기간:</strong> {selectedContract.rental_duration_days || "-"}일</div>
-                                    <div><strong>보험사:</strong> {selectedContract.insurance_name || "-"}</div>
+                                    <div>
+                                        <strong>계약 상태:</strong> {getContractStatusBadge(selectedContract.accident_reported ? "사고접수" : selectedContract.contractStatus)}
+                                    </div>
+                                    <div>
+                                        <strong>대여 시작:</strong> {formatDateTime(selectedContract.rental_period?.start)}
+                                    </div>
+                                    <div>
+                                        <strong>대여 종료:</strong> {formatDateTime(selectedContract.rental_period?.end)}
+                                    </div>
+                                    <div>
+                                        <strong>대여 기간:</strong> {selectedContract.rental_duration_days || "-"}일
+                                    </div>
+                                    <div>
+                                        <strong>보험사:</strong> {selectedContract.insurance_name || "-"}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -557,44 +558,66 @@ export default function RentalContracts() {
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <div>
                                         <strong>엔진 상태:</strong>
-                                        <StatusBadge style={{
-                                            backgroundColor: selectedContract.engineOn ? "#4caf50" : "#f44336",
-                                            color: "white",
-                                            marginLeft: "8px"
-                                        }}>
+                                        <StatusBadge
+                                            style={{
+                                                backgroundColor: selectedContract.engineOn ? "#4caf50" : "#f44336",
+                                                color: "white",
+                                                marginLeft: "8px",
+                                            }}
+                                        >
                                             {selectedContract.engineOn ? "ON" : "OFF"}
                                         </StatusBadge>
                                     </div>
                                     <div>
                                         <strong>재시동 금지:</strong>
-                                        <StatusBadge style={{
-                                            backgroundColor: selectedContract.restartBlocked ? "#f44336" : "#4caf50",
-                                            color: "white",
-                                            marginLeft: "8px"
-                                        }}>
+                                        <StatusBadge
+                                            style={{
+                                                backgroundColor: selectedContract.restartBlocked ? "#f44336" : "#4caf50",
+                                                color: "white",
+                                                marginLeft: "8px",
+                                            }}
+                                        >
                                             {selectedContract.restartBlocked ? "차단" : "허용"}
                                         </StatusBadge>
                                     </div>
-                                    <div><strong>위치:</strong> {selectedContract.location || "정보 없음"}</div>
-                                    <div><strong>주행 거리:</strong> {selectedContract.mileage ? `${new Intl.NumberFormat("ko-KR").format(selectedContract.mileage)} km` : "-"}</div>
+                                    <div>
+                                        <strong>위치:</strong> {selectedContract.location || "정보 없음"}
+                                    </div>
+                                    <div>
+                                        <strong>주행 거리:</strong> {selectedContract.mileage ? `${new Intl.NumberFormat("ko-KR").format(selectedContract.mileage)} km` : "-"}
+                                    </div>
                                 </div>
                             </div>
                             <div>
                                 <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>금액 정보</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <div><strong>대여 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.rental_amount || 0)}</div>
-                                    <div><strong>보증금:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.deposit || 0)}</div>
-                                    <div><strong>미납 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.unpaid_amount || 0)}</div>
-                                    <div><strong>결제 방법:</strong> {selectedContract.payment_method || "-"}</div>
+                                    <div>
+                                        <strong>대여 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.rental_amount || 0)}
+                                    </div>
+                                    <div>
+                                        <strong>보증금:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.deposit || 0)}
+                                    </div>
+                                    <div>
+                                        <strong>미납 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.unpaid_amount || 0)}
+                                    </div>
+                                    <div>
+                                        <strong>결제 방법:</strong> {selectedContract.payment_method || "-"}
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div>
                             <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>추가 정보</h3>
                             <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                <div><strong>메모:</strong> {selectedContract.memo || "메모가 없습니다."}</div>
-                                <div><strong>특이사항:</strong> {selectedContract.special_notes || "없음"}</div>
-                                <div><strong>등록일:</strong> {selectedContract.created_at ? new Date(selectedContract.created_at).toLocaleString("ko-KR") : "-"}</div>
+                                <div>
+                                    <strong>메모:</strong> {selectedContract.memo || "메모가 없습니다."}
+                                </div>
+                                <div>
+                                    <strong>특이사항:</strong> {selectedContract.special_notes || "없음"}
+                                </div>
+                                <div>
+                                    <strong>등록일:</strong> {selectedContract.created_at ? new Date(selectedContract.created_at).toLocaleString("ko-KR") : "-"}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -606,21 +629,25 @@ export default function RentalContracts() {
                 {selectedContract && (
                     <div style={{ padding: "20px" }}>
                         {/* 상단 정보 */}
-                        <div style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            marginBottom: "20px",
-                            padding: "15px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "8px"
-                        }}>
+                        <div
+                            style={{
+                                display: "flex",
+                                justifyContent: "space-between",
+                                alignItems: "center",
+                                marginBottom: "20px",
+                                padding: "15px",
+                                backgroundColor: "#f8f9fa",
+                                borderRadius: "8px",
+                            }}
+                        >
                             <div>
-                                <div style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "4px" }}>
+                                <div style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "8px" }}>
                                     {selectedContract.plate} ({selectedContract.vehicleType})
                                 </div>
-                                <div style={{ fontSize: "0.9rem", color: "#666" }}>
-                                    대여자: {selectedContract.renter_name}
+                                <div style={{ fontSize: "0.9rem", color: "#555", lineHeight: 1.6 }}>
+                                    <div>
+                                        <strong>대여자 정보:</strong> {selectedContract.renter_name || "-"}, {selectedContract.contact_number || "-"}, {selectedContract.address || "-"}
+                                    </div>
                                 </div>
                             </div>
                             <button
@@ -632,10 +659,10 @@ export default function RentalContracts() {
                                     padding: "8px 16px",
                                     borderRadius: "6px",
                                     cursor: "pointer",
-                                    fontSize: "0.85rem"
+                                    fontSize: "0.85rem",
                                 }}
-                                onMouseOver={(e) => e.target.style.background = "#5a6268"}
-                                onMouseOut={(e) => e.target.style.background = "#6c757d"}
+                                onMouseOver={(e) => (e.target.style.background = "#5a6268")}
+                                onMouseOut={(e) => (e.target.style.background = "#6c757d")}
                             >
                                 상세정보로 돌아가기
                             </button>
@@ -643,111 +670,39 @@ export default function RentalContracts() {
 
                         {/* 지도 영역 */}
                         {selectedContract.current_location ? (
-                            <div>
+                            <div style={{ position: "relative", height: "400px" }}>
                                 <KakaoMap
                                     latitude={selectedContract.current_location.lat}
                                     longitude={selectedContract.current_location.lng}
+                                    vehicleNumber={selectedContract.plate}
+                                    lastUpdateTime={selectedContract.location_updated_at || "업데이트 시간 없음"}
                                     markerTitle={`${selectedContract.plate} (${selectedContract.vehicleType})`}
                                     width="100%"
-                                    height="400px"
+                                    height="100%"
+                                    renterName={selectedContract.renter_name}
+                                    engineOn={selectedContract.engineOn}
+                                    isOnline={!!selectedContract.current_location}
                                 />
-                                <div style={{
-                                    marginTop: "10px",
-                                    padding: "10px",
-                                    backgroundColor: "#f8f9fa",
-                                    borderRadius: "6px",
-                                    fontSize: "0.85rem",
-                                    color: "#666",
-                                    textAlign: "center"
-                                }}>
-                                    <div><strong>좌표:</strong> 위도 {selectedContract.current_location.lat}, 경도 {selectedContract.current_location.lng}</div>
-                                </div>
                             </div>
                         ) : (
-                            <div style={{
-                                width: "100%",
-                                height: "400px",
-                                backgroundColor: "#f8f9fa",
-                                borderRadius: "8px",
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                border: "2px dashed #dee2e6"
-                            }}>
+                            <div
+                                style={{
+                                    width: "100%",
+                                    height: "400px",
+                                    backgroundColor: "#f8f9fa",
+                                    borderRadius: "8px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    border: "2px dashed #dee2e6",
+                                }}
+                            >
                                 <FaMapMarkerAlt size={48} color="#adb5bd" style={{ marginBottom: "16px" }} />
-                                <div style={{ fontSize: "1.1rem", fontWeight: "600", color: "#6c757d", marginBottom: "8px" }}>
-                                    위치 정보 없음
-                                </div>
-                                <div style={{ fontSize: "0.9rem", color: "#adb5bd" }}>
-                                    현재 차량의 위치 정보를 받을 수 없습니다.
-                                </div>
+                                <div style={{ fontSize: "1.1rem", fontWeight: "600", color: "#6c757d", marginBottom: "8px" }}>위치 정보 없음</div>
+                                <div style={{ fontSize: "0.9rem", color: "#adb5bd" }}>현재 차량의 위치 정보를 받을 수 없습니다.</div>
                             </div>
                         )}
-
-                        {/* 계약자 정보 */}
-                        <div style={{
-                            marginTop: "20px",
-                            padding: "15px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "8px"
-                        }}>
-                            <div style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "10px" }}>
-                                계약자 정보
-                            </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem" }}>
-                                <div><strong>계약자 이름:</strong> {selectedContract.renter_name || "-"}</div>
-                                <div><strong>연락처:</strong> {selectedContract.contact_number || "-"}</div>
-                                <div style={{ gridColumn: "1 / -1" }}>
-                                    <strong>계약자 주소:</strong> {selectedContract.address || "-"}
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* 차량 및 단말 상태 정보 */}
-                        <div style={{
-                            marginTop: "15px",
-                            padding: "15px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "8px"
-                        }}>
-                            <div style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "10px" }}>
-                                차량 및 단말 상태
-                            </div>
-                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem" }}>
-                                <div><strong>엔진 상태:</strong>
-                                    <StatusBadge style={{
-                                        backgroundColor: selectedContract.engineOn ? "#4caf50" : "#f44336",
-                                        color: "white",
-                                        marginLeft: "6px",
-                                        fontSize: "0.7rem",
-                                        padding: "2px 6px"
-                                    }}>
-                                        {selectedContract.engineOn ? "ON" : "OFF"}
-                                    </StatusBadge>
-                                </div>
-                                <div><strong>단말 상태:</strong>
-                                    <StatusBadge style={{
-                                        backgroundColor: selectedContract.current_location ? "#4caf50" : "#f44336",
-                                        color: "white",
-                                        marginLeft: "6px",
-                                        fontSize: "0.7rem",
-                                        padding: "2px 6px"
-                                    }}>
-                                        {selectedContract.current_location ? "온라인" : "오프라인"}
-                                    </StatusBadge>
-                                </div>
-                                <div style={{ gridColumn: "1 / -1" }}>
-                                    <strong>마지막 위치 업데이트:</strong> {
-                                        selectedContract.current_location
-                                            ? selectedContract.location_updated_at
-                                                ? new Date(selectedContract.location_updated_at).toLocaleString("ko-KR")
-                                                : new Date(Date.now() - Math.random() * 30 * 60 * 1000).toLocaleString("ko-KR")
-                                            : "정보 없음"
-                                    }
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 )}
             </Modal>
