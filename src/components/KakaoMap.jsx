@@ -3,154 +3,104 @@ import React, { useEffect, useRef, useState } from "react";
 const KakaoMap = ({ latitude, longitude, markerTitle = "현재 위치", width = "100%", height = "400px" }) => {
     const mapContainer = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [mapInstance, setMapInstance] = useState(null);
     const [error, setError] = useState(null);
+    const [isScriptLoaded, setIsScriptLoaded] = useState(false);
 
+    // 카카오 스크립트 로딩을 위한 별도 useEffect
     useEffect(() => {
-        let mounted = true;
+        if (window.kakao && window.kakao.maps) {
+            setIsScriptLoaded(true);
+            return;
+        }
 
-        const initMap = async () => {
-            if (!mapContainer.current) return;
+        const script = document.createElement('script');
+        const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY || '4c8883615b01fddf76310cc10535008a';
+        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
 
+        script.onload = () => {
+            if (window.kakao && window.kakao.maps) {
+                setIsScriptLoaded(true);
+            } else {
+                setError('카카오 지도 API를 불러올 수 없습니다');
+                setIsLoading(false);
+            }
+        };
+
+        script.onerror = () => {
+            console.error('카카오 지도 스크립트 로드 실패');
+            setError('카카오 지도 API 로드 실패 - 도메인 등록을 확인해주세요');
+            setIsLoading(false);
+        };
+
+        document.head.appendChild(script);
+
+        return () => {
+            // cleanup: 스크립트 제거는 하지 않음 (다른 컴포넌트가 사용할 수 있음)
+        };
+    }, []);
+
+    // 지도 초기화를 위한 별도 useEffect
+    useEffect(() => {
+        if (!isScriptLoaded || !mapContainer.current) {
+            return;
+        }
+
+        const initializeMap = () => {
             try {
-                setIsLoading(true);
-                setError(null);
-
-                // 카카오 지도 API 확인
-                if (!window.kakao || !window.kakao.maps) {
-                    throw new Error("Kakao Maps API not loaded");
-                }
-
-                // 지도 초기화
+                // 지도를 생성할 때 필요한 기본 옵션
                 const options = {
                     center: new window.kakao.maps.LatLng(latitude, longitude),
                     level: 3
                 };
 
+                // 지도 생성
                 const map = new window.kakao.maps.Map(mapContainer.current, options);
 
                 // 마커 생성
+                const markerPosition = new window.kakao.maps.LatLng(latitude, longitude);
                 const marker = new window.kakao.maps.Marker({
-                    position: new window.kakao.maps.LatLng(latitude, longitude),
-                    title: markerTitle
+                    position: markerPosition
                 });
 
+                // 마커를 지도에 표시
                 marker.setMap(map);
 
-                // 정보창 생성
-                const infoWindow = new window.kakao.maps.InfoWindow({
-                    content: `<div style="padding:8px;font-size:12px;text-align:center;">${markerTitle}</div>`
+                // 인포윈도우 생성
+                const infowindow = new window.kakao.maps.InfoWindow({
+                    content: `<div style="width:150px;text-align:center;padding:6px 0;">${markerTitle}</div>`
                 });
+                infowindow.open(map, marker);
 
-                // 이벤트 등록
-                window.kakao.maps.event.addListener(marker, 'mouseover', () => {
-                    infoWindow.open(map, marker);
-                });
-
-                window.kakao.maps.event.addListener(marker, 'mouseout', () => {
-                    infoWindow.close();
-                });
-
-                if (mounted) {
-                    setMapInstance({ map, marker, infoWindow });
-                    setIsLoading(false);
-                }
+                setIsLoading(false);
+                setError(null);
 
             } catch (err) {
-                console.warn("카카오 지도 로드 실패:", err);
-                if (mounted) {
-                    setError(err.message);
+                console.error('카카오 지도 생성 실패:', err);
+                setError('지도를 불러올 수 없습니다');
+                setIsLoading(false);
+            }
+        };
+
+        // kakao.maps.load를 사용하여 지도 라이브러리가 완전히 로드된 후 초기화
+        window.kakao.maps.load(() => {
+            // 약간의 지연을 두어 DOM이 완전히 준비될 때까지 기다림
+            setTimeout(() => {
+                if (mapContainer.current) {
+                    initializeMap();
+                } else {
+                    setError('지도 컨테이너를 찾을 수 없습니다');
                     setIsLoading(false);
                 }
-            }
-        };
+            }, 50);
+        });
 
-        // API 로드 후 지도 초기화
-        const loadAndInit = () => {
-            if (window.kakao && window.kakao.maps) {
-                initMap();
-            } else {
-                // API 스크립트 동적 로딩
-                const script = document.createElement('script');
-                const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY || '4c8883615b01fddf76310cc10535008a';
-                script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&autoload=false`;
-                script.onload = () => {
-                    if (window.kakao && window.kakao.maps) {
-                        window.kakao.maps.load(() => {
-                            initMap();
-                        }, (error) => {
-                            console.error('카카오 maps 초기화 실패:', error);
-                            if (mounted) {
-                                setError(`카카오 maps 초기화 실패: ${error}`);
-                                setIsLoading(false);
-                            }
-                        });
-                    } else {
-                        console.error('카카오 maps 객체가 없음', window.kakao);
-                        if (mounted) {
-                            setError("카카오 maps 객체 로드 실패");
-                            setIsLoading(false);
-                        }
-                    }
-                };
-                script.onerror = (err) => {
-                    console.error('카카오 스크립트 로드 실패:', err);
-                    console.error('도메인 등록 필요: https://developers.kakao.com/console/app 에서 Web 플랫폼에 현재 도메인을 등록해주세요');
-                    if (mounted) {
-                        setError("카카오 지도 API 인증 실패 - 도메인 등록 필요");
-                        setIsLoading(false);
-                    }
-                };
-                document.head.appendChild(script);
-            }
-        };
+    }, [isScriptLoaded, latitude, longitude, markerTitle]);
 
-        loadAndInit();
+    // 로딩 상태일 때도 지도 컨테이너를 렌더링하되, 로딩 오버레이를 표시
+    const showLoading = isLoading && !error;
 
-        return () => {
-            mounted = false;
-            setMapInstance(null);
-        };
-    }, [latitude, longitude, markerTitle]);
-
-    // 위치 업데이트
-    useEffect(() => {
-        if (mapInstance && window.kakao && window.kakao.maps) {
-            try {
-                const { map, marker } = mapInstance;
-                const newPosition = new window.kakao.maps.LatLng(latitude, longitude);
-
-                map.setCenter(newPosition);
-                marker.setPosition(newPosition);
-            } catch (err) {
-                console.warn("지도 위치 업데이트 실패:", err);
-            }
-        }
-    }, [latitude, longitude, mapInstance]);
-
-    // 로딩 상태
-    if (isLoading) {
-        return (
-            <div style={{
-                width,
-                height,
-                borderRadius: "8px",
-                border: "2px solid #dee2e6",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                backgroundColor: "#f8f9fa"
-            }}>
-                <div style={{ textAlign: "center", color: "#666" }}>
-                    <div style={{ fontSize: "24px", marginBottom: "8px" }}>🗺️</div>
-                    <div>카카오 지도 로딩 중...</div>
-                </div>
-            </div>
-        );
-    }
-
-    // 에러 상태 또는 폴백 지도
-    if (error || !mapInstance) {
+    // 에러 상태 (데모 모드)
+    if (error) {
         return (
             <div style={{
                 width,
@@ -183,7 +133,7 @@ const KakaoMap = ({ latitude, longitude, markerTitle = "현재 위치", width = 
                         카카오 지도 (데모 모드)
                     </div>
                     <div style={{ fontSize: "12px", color: "#ff5722", marginBottom: "8px" }}>
-                        도메인 등록 필요: developers.kakao.com
+                        {error}
                     </div>
                     <div style={{ fontSize: "14px", color: "#666", marginBottom: "4px" }}>
                         {markerTitle}
@@ -208,17 +158,42 @@ const KakaoMap = ({ latitude, longitude, markerTitle = "현재 위치", width = 
         );
     }
 
-    // 정상적인 지도 컨테이너
+    // 지도 컨테이너 (항상 렌더링)
     return (
-        <div
-            ref={mapContainer}
-            style={{
-                width,
-                height,
-                borderRadius: "8px",
-                border: "2px solid #dee2e6"
-            }}
-        />
+        <div style={{ position: "relative", width, height }}>
+            {/* 지도 컨테이너 */}
+            <div
+                ref={mapContainer}
+                style={{
+                    width: "100%",
+                    height: "100%",
+                    borderRadius: "8px",
+                    border: "2px solid #dee2e6"
+                }}
+            />
+
+            {/* 로딩 오버레이 */}
+            {showLoading && (
+                <div style={{
+                    position: "absolute",
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    borderRadius: "8px",
+                    backgroundColor: "#f8f9fa",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    zIndex: 1000
+                }}>
+                    <div style={{ textAlign: "center", color: "#666" }}>
+                        <div style={{ fontSize: "24px", marginBottom: "8px" }}>🗺️</div>
+                        <div>카카오 지도 로딩 중...</div>
+                    </div>
+                </div>
+            )}
+        </div>
     );
 };
 
