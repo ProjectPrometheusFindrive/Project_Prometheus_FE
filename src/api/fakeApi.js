@@ -74,7 +74,14 @@ export async function fetchAssetById(id) {
 
 // Rentals
 export async function fetchRentals() {
-  return await fetchJSON(`${API_BASE_URL}/rentals`);
+  try {
+    return await fetchJSON(`${API_BASE_URL}/rentals`);
+  } catch (error) {
+    // Fallback to local seed data if server is not available
+    console.warn('Falling back to local seed data for rentals');
+    const { rentals } = await import('../data/rentals');
+    return rentals;
+  }
 }
 
 export async function fetchRentalById(rentalId) {
