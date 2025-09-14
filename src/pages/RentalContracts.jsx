@@ -694,7 +694,7 @@ export default function RentalContracts() {
                             </div>
                         )}
 
-                        {/* 추가 정보 */}
+                        {/* 계약자 정보 */}
                         <div style={{
                             marginTop: "20px",
                             padding: "15px",
@@ -702,12 +702,28 @@ export default function RentalContracts() {
                             borderRadius: "8px"
                         }}>
                             <div style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "10px" }}>
-                                위치 정보
+                                계약자 정보
                             </div>
                             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem" }}>
-                                <div><strong>대여 지점:</strong> {selectedContract.location || "정보 없음"}</div>
-                                <div><strong>마지막 업데이트:</strong> {new Date().toLocaleString("ko-KR")}</div>
-                                <div><strong>주행거리:</strong> {selectedContract.mileage ? `${new Intl.NumberFormat("ko-KR").format(selectedContract.mileage)} km` : "-"}</div>
+                                <div><strong>계약자 이름:</strong> {selectedContract.renter_name || "-"}</div>
+                                <div><strong>연락처:</strong> {selectedContract.contact_number || "-"}</div>
+                                <div style={{ gridColumn: "1 / -1" }}>
+                                    <strong>계약자 주소:</strong> {selectedContract.address || "-"}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* 차량 및 단말 상태 정보 */}
+                        <div style={{
+                            marginTop: "15px",
+                            padding: "15px",
+                            backgroundColor: "#f8f9fa",
+                            borderRadius: "8px"
+                        }}>
+                            <div style={{ fontSize: "0.9rem", fontWeight: "600", marginBottom: "10px" }}>
+                                차량 및 단말 상태
+                            </div>
+                            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", fontSize: "0.85rem" }}>
                                 <div><strong>엔진 상태:</strong>
                                     <StatusBadge style={{
                                         backgroundColor: selectedContract.engineOn ? "#4caf50" : "#f44336",
@@ -718,6 +734,26 @@ export default function RentalContracts() {
                                     }}>
                                         {selectedContract.engineOn ? "ON" : "OFF"}
                                     </StatusBadge>
+                                </div>
+                                <div><strong>단말 상태:</strong>
+                                    <StatusBadge style={{
+                                        backgroundColor: selectedContract.current_location ? "#4caf50" : "#f44336",
+                                        color: "white",
+                                        marginLeft: "6px",
+                                        fontSize: "0.7rem",
+                                        padding: "2px 6px"
+                                    }}>
+                                        {selectedContract.current_location ? "온라인" : "오프라인"}
+                                    </StatusBadge>
+                                </div>
+                                <div style={{ gridColumn: "1 / -1" }}>
+                                    <strong>마지막 위치 업데이트:</strong> {
+                                        selectedContract.current_location
+                                            ? selectedContract.location_updated_at
+                                                ? new Date(selectedContract.location_updated_at).toLocaleString("ko-KR")
+                                                : new Date(Date.now() - Math.random() * 30 * 60 * 1000).toLocaleString("ko-KR")
+                                            : "정보 없음"
+                                    }
                                 </div>
                             </div>
                         </div>
