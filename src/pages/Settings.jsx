@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
-import GeofencePreview from "../components/GeofencePreview";
+import KakaoMap from "../components/KakaoMap";
 import { fetchCompanyInfo as loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../api";
 import { COLORS, DIMENSIONS } from "../constants";
 import { FileBadge, CountBadge, GeofenceBadge } from "../components/StatusBadge";
@@ -361,7 +361,7 @@ export default function Settings() {
                                                     <GeofenceBadge index={idx} />
                                                     <input className="form-input" value={item.name || ""} onChange={(e) => handleRenameOne(idx, e.target.value)} style={{ flex: 1 }} />
                                                 </div>
-                                                <GeofencePreview polygons={[item.points]} height={200} />
+                                                <KakaoMap polygons={[item.points]} height="200px" />
                                                 <div className="form-actions" style={{ display: "flex", gap: 8, marginTop: 8 }}>
                                                     <button className="form-button" type="button" onClick={() => handleGeofenceEditOne(idx)}>
                                                         Edit

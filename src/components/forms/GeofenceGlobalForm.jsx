@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import useFormState from "../../hooks/useFormState";
-import GeofenceInput from "./GeofenceInput";
+import KakaoGeofenceInput from "./KakaoGeofenceInput";
 
 export default function GeofenceGlobalForm({ initial = {}, initialName = "", readOnly = false, onSubmit, onChange, onNameChange, formId, showSubmit = true }) {
   const initialFormValues = {
@@ -32,7 +32,7 @@ export default function GeofenceGlobalForm({ initial = {}, initialName = "", rea
   return (
     <form id={formId} className="form-grid" onSubmit={handleSubmit}>
       <label className="form-label">Global Geofence(s)</label>
-      <GeofenceInput
+      <KakaoGeofenceInput
         value={form.geofences}
         onChange={(polys) => {
           update("geofences", polys);
