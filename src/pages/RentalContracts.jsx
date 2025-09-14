@@ -5,6 +5,7 @@ import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
+import { sampleTrackingData } from "../data/seed";
 import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
@@ -682,6 +683,7 @@ export default function RentalContracts() {
                                     renterName={selectedContract.renter_name}
                                     engineOn={selectedContract.engineOn}
                                     isOnline={!!selectedContract.current_location}
+                                    trackingData={sampleTrackingData}
                                 />
                             </div>
                         ) : (

@@ -13,11 +13,44 @@ const KakaoMap = ({
     engineOn,
     isOnline,
     polygons = [], // [[{lat, lng}, ...], ...]
+    trackingData = [], // 이동 경로 데이터 배열
 }) => {
     const mapContainer = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+
+    // 속도에 따른 색상 계산 (3단계)
+    const getSpeedColor = (speed) => {
+        if (speed < 30) return "#4CAF50"; // 저속 - 초록 (30km/h 미만)
+        if (speed <= 100) return "#FFC107"; // 중속 - 노랑 (30-100km/h)
+        return "#F44336"; // 고속 - 빨강 (100km/h 초과)
+    };
+
+    // 경로 데이터 처리 및 그룹화
+    const processTrackingData = (data) => {
+        if (!data || data.length < 2) return [];
+        
+        // 시간순 정렬
+        const sortedData = [...data].sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
+        
+        // 속도별로 세그먼트 그룹화
+        const segments = [];
+        for (let i = 0; i < sortedData.length - 1; i++) {
+            const current = sortedData[i];
+            const next = sortedData[i + 1];
+            
+            segments.push({
+                start: { lat: current.latitude, lng: current.longitude },
+                end: { lat: next.latitude, lng: next.longitude },
+                speed: current.speed,
+                color: getSpeedColor(current.speed),
+                dateTime: current.dateTime
+            });
+        }
+        
+        return segments;
+    };
 
     // 카카오 스크립트 로딩
     useEffect(() => {
@@ -51,7 +84,7 @@ const KakaoMap = ({
         const initializeMap = () => {
             try {
                 const mapOption = {
-                    center: new window.kakao.maps.LatLng(latitude || 37.5665, longitude || 126.9780),
+                    center: new window.kakao.maps.LatLng(latitude || 37.5665, longitude || 126.978),
                     level: latitude && longitude ? 3 : 7,
                 };
                 const map = new window.kakao.maps.Map(mapContainer.current, mapOption);
@@ -60,10 +93,10 @@ const KakaoMap = ({
 
                 // 폴리곤 그리기
                 if (polygons && polygons.length > 0) {
-                    polygons.forEach(polyPoints => {
+                    polygons.forEach((polyPoints) => {
                         if (!Array.isArray(polyPoints) || polyPoints.length === 0) return;
 
-                        const path = polyPoints.map(p => new window.kakao.maps.LatLng(p.lat, p.lng));
+                        const path = polyPoints.map((p) => new window.kakao.maps.LatLng(p.lat, p.lng));
                         const polygon = new window.kakao.maps.Polygon({
                             path: path,
                             strokeWeight: 3,
@@ -74,14 +107,40 @@ const KakaoMap = ({
                             fillOpacity: 0.1,
                         });
                         polygon.setMap(map);
+                        path.forEach((p) => bounds.extend(p));
+                    });
+                }
+
+                // 이동 경로 표시
+                if (trackingData && trackingData.length > 0) {
+                    const segments = processTrackingData(trackingData);
+                    
+                    segments.forEach((segment) => {
+                        const path = [
+                            new window.kakao.maps.LatLng(segment.start.lat, segment.start.lng),
+                            new window.kakao.maps.LatLng(segment.end.lat, segment.end.lng)
+                        ];
+                        
+                        const polyline = new window.kakao.maps.Polyline({
+                            path: path,
+                            strokeWeight: 5,
+                            strokeColor: segment.color,
+                            strokeOpacity: 0.8,
+                            strokeStyle: 'solid'
+                        });
+                        
+                        polyline.setMap(map);
+                        
+                        // 경로 범위에 추가
                         path.forEach(p => bounds.extend(p));
                     });
+
                 }
 
                 // 마커 표시 (위치 정보가 있을 경우에만)
                 if (latitude && longitude) {
                     const markerPosition = new window.kakao.maps.LatLng(latitude, longitude);
-                    const markerImage = new window.kakao.maps.MarkerImage(carIcon, new window.kakao.maps.Size(20, 15), { offset: new window.kakao.maps.Point(10, 7.5) });
+                    const markerImage = new window.kakao.maps.MarkerImage(carIcon, new window.kakao.maps.Size(30, 20), { offset: new window.kakao.maps.Point(10, 7.5) });
                     const marker = new window.kakao.maps.Marker({ position: markerPosition, image: markerImage });
                     marker.setMap(map);
                     bounds.extend(markerPosition);
@@ -154,7 +213,7 @@ const KakaoMap = ({
         };
 
         window.kakao.maps.load(initializeMap);
-    }, [isScriptLoaded, latitude, longitude, polygons]); // polygons를 의존성 배열에 추가
+    }, [isScriptLoaded, latitude, longitude, polygons, trackingData]); // trackingData를 의존성 배열에 추가
 
     const showLoading = isLoading && !error;
 
@@ -164,20 +223,90 @@ const KakaoMap = ({
 
     return (
         <div style={{ position: "relative", width, height }}>
-            {(renterName || typeof engineOn !== 'undefined') && (
-                 <div style={{
-                    position: "absolute", top: "10px", left: "10px", zIndex: 10, background: "rgba(255, 255, 255, 0.9)",
-                    padding: "10px", borderRadius: "8px", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", display: "flex",
-                    flexDirection: "column", gap: "5px", fontSize: "12px", fontFamily: "Arial, sans-serif",
-                }}>
+            {/* 속도 범례 */}
+            {trackingData && trackingData.length > 0 && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "10px",
+                        right: "10px",
+                        zIndex: 10,
+                        background: "rgba(255, 255, 255, 0.95)",
+                        padding: "12px",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
+                        fontSize: "11px",
+                        fontFamily: "Arial, sans-serif",
+                        minWidth: "120px"
+                    }}
+                >
+                    <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#333" }}>속도 범례</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div style={{ width: "12px", height: "3px", backgroundColor: "#4CAF50" }}></div>
+                            <span>저속 (30km/h 미만)</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div style={{ width: "12px", height: "3px", backgroundColor: "#FFC107" }}></div>
+                            <span>중속 (30-100km/h)</span>
+                        </div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div style={{ width: "12px", height: "3px", backgroundColor: "#F44336" }}></div>
+                            <span>고속 (100km/h 초과)</span>
+                        </div>
+                    </div>
+                </div>
+            )}
+            {(renterName || typeof engineOn !== "undefined") && (
+                <div
+                    style={{
+                        position: "absolute",
+                        top: "10px",
+                        left: "10px",
+                        zIndex: 10,
+                        background: "rgba(255, 255, 255, 0.9)",
+                        padding: "10px",
+                        borderRadius: "8px",
+                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: "5px",
+                        fontSize: "12px",
+                        fontFamily: "Arial, sans-serif",
+                    }}
+                >
                     {renterName && <div style={{ fontWeight: "bold" }}>대여자: {renterName}</div>}
-                    {typeof engineOn !== 'undefined' && <div><span>엔진: </span><span style={{ color: engineOn ? "green" : "red", fontWeight: "bold" }}>{engineOn ? "ON" : "OFF"}</span></div>}
-                    {typeof isOnline !== 'undefined' && <div><span>단말기: </span><span style={{ color: isOnline ? "green" : "red", fontWeight: "bold" }}>{isOnline ? "온라인" : "오프라인"}</span></div>}
+                    {typeof engineOn !== "undefined" && (
+                        <div>
+                            <span>엔진: </span>
+                            <span style={{ color: engineOn ? "green" : "red", fontWeight: "bold" }}>{engineOn ? "ON" : "OFF"}</span>
+                        </div>
+                    )}
+                    {typeof isOnline !== "undefined" && (
+                        <div>
+                            <span>단말기: </span>
+                            <span style={{ color: isOnline ? "green" : "red", fontWeight: "bold" }}>{isOnline ? "온라인" : "오프라인"}</span>
+                        </div>
+                    )}
                 </div>
             )}
             <div ref={mapContainer} style={{ width: "100%", height: "100%", borderRadius: "8px", border: "2px solid #dee2e6" }} />
             {showLoading && (
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, borderRadius: "8px", backgroundColor: "#f8f9fa", display: "flex", alignItems: "center", justifyContent: "center", zIndex: 1000 }}>
+                <div
+                    style={{
+                        position: "absolute",
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        borderRadius: "8px",
+                        backgroundColor: "#f8f9fa",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        zIndex: 1000,
+                    }}
+                >
                     <div style={{ textAlign: "center", color: "#666" }}>
                         <div style={{ fontSize: "24px", marginBottom: "8px" }}>🗺️</div>
                         <div>카카오 지도 로딩 중...</div>

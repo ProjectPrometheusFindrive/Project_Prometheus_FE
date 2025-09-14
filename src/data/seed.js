@@ -738,3 +738,157 @@ export const seedVehicles = {
         },
     },
 };
+
+// 더미 이동 경로 데이터
+export const sampleTrackingData = [
+    {
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "speed": 0,
+        "dateTime": "2025-09-14T09:00:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track001"
+    },
+    {
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "speed": 0,
+        "dateTime": "2025-09-14T09:05:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track002"
+    },
+    {
+        "latitude": 37.5665,
+        "longitude": 126.978,
+        "speed": 15,
+        "dateTime": "2025-09-14T09:10:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track003"
+    },
+    {
+        "latitude": 37.5675,
+        "longitude": 126.9785,
+        "speed": 25,
+        "dateTime": "2025-09-14T09:12:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track004"
+    },
+    {
+        "latitude": 37.5685,
+        "longitude": 126.979,
+        "speed": 35,
+        "dateTime": "2025-09-14T09:14:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track005"
+    },
+    {
+        "latitude": 37.5695,
+        "longitude": 126.9795,
+        "speed": 45,
+        "dateTime": "2025-09-14T09:16:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track006"
+    },
+    {
+        "latitude": 37.5705,
+        "longitude": 126.98,
+        "speed": 55,
+        "dateTime": "2025-09-14T09:18:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track007"
+    },
+    {
+        "latitude": 37.5715,
+        "longitude": 126.9805,
+        "speed": 70,
+        "dateTime": "2025-09-14T09:20:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track008"
+    },
+    {
+        "latitude": 37.5725,
+        "longitude": 126.981,
+        "speed": 85,
+        "dateTime": "2025-09-14T09:22:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track009"
+    },
+    {
+        "latitude": 37.5735,
+        "longitude": 126.9815,
+        "speed": 95,
+        "dateTime": "2025-09-14T09:24:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track010"
+    },
+    {
+        "latitude": 37.5745,
+        "longitude": 126.982,
+        "speed": 110,
+        "dateTime": "2025-09-14T09:26:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track011"
+    },
+    {
+        "latitude": 37.5755,
+        "longitude": 126.9825,
+        "speed": 75,
+        "dateTime": "2025-09-14T09:28:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track012"
+    },
+    {
+        "latitude": 37.5765,
+        "longitude": 126.983,
+        "speed": 45,
+        "dateTime": "2025-09-14T09:30:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track013"
+    },
+    {
+        "latitude": 37.5775,
+        "longitude": 126.9835,
+        "speed": 25,
+        "dateTime": "2025-09-14T09:32:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track014"
+    },
+    {
+        "latitude": 37.5785,
+        "longitude": 126.984,
+        "speed": 0,
+        "dateTime": "2025-09-14T09:35:00.000Z",
+        "device": {
+            "id": "b1"
+        },
+        "id": "track015"
+    }
+];
