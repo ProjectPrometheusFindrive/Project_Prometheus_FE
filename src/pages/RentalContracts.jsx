@@ -4,6 +4,7 @@ import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
+import KakaoMap from "../components/KakaoMap";
 import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
@@ -642,34 +643,24 @@ export default function RentalContracts() {
 
                         {/* 지도 영역 */}
                         {selectedContract.current_location ? (
-                            <div style={{
-                                width: "100%",
-                                height: "400px",
-                                backgroundColor: "#e9ecef",
-                                borderRadius: "8px",
-                                display: "flex",
-                                flexDirection: "column",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                border: "2px solid #dee2e6"
-                            }}>
-                                <FaMapMarkerAlt size={48} color="#dc3545" style={{ marginBottom: "16px" }} />
-                                <div style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "8px" }}>
-                                    현재 위치
-                                </div>
-                                <div style={{ fontSize: "0.95rem", color: "#666", marginBottom: "4px" }}>
-                                    위도: {selectedContract.current_location.lat}
-                                </div>
-                                <div style={{ fontSize: "0.95rem", color: "#666", marginBottom: "16px" }}>
-                                    경도: {selectedContract.current_location.lng}
-                                </div>
+                            <div>
+                                <KakaoMap
+                                    latitude={selectedContract.current_location.lat}
+                                    longitude={selectedContract.current_location.lng}
+                                    markerTitle={`${selectedContract.plate} (${selectedContract.vehicleType})`}
+                                    width="100%"
+                                    height="400px"
+                                />
                                 <div style={{
+                                    marginTop: "10px",
+                                    padding: "10px",
+                                    backgroundColor: "#f8f9fa",
+                                    borderRadius: "6px",
                                     fontSize: "0.85rem",
-                                    color: "#6c757d",
-                                    textAlign: "center",
-                                    maxWidth: "300px"
+                                    color: "#666",
+                                    textAlign: "center"
                                 }}>
-                                    실제 구현에서는 Google Maps, Naver Maps 등을 통해 실제 지도가 표시됩니다.
+                                    <div><strong>좌표:</strong> 위도 {selectedContract.current_location.lat}, 경도 {selectedContract.current_location.lng}</div>
                                 </div>
                             </div>
                         ) : (
