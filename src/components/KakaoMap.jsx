@@ -14,11 +14,14 @@ const KakaoMap = ({
     isOnline,
     polygons = [], // [[{lat, lng}, ...], ...]
     trackingData = [], // 이동 경로 데이터 배열
+    editable = false, // 폴리곤 편집 가능 여부
+    onPolygonChange = null, // 폴리곤 변경 콜백
 }) => {
     const mapContainer = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isScriptLoaded, setIsScriptLoaded] = useState(false);
+    const editablePolygonsRef = useRef([]);
 
     // 속도에 따른 색상 계산 (3단계)
     const getSpeedColor = (speed) => {
@@ -93,21 +96,123 @@ const KakaoMap = ({
 
                 // 폴리곤 그리기
                 if (polygons && polygons.length > 0) {
-                    polygons.forEach((polyPoints) => {
+                    polygons.forEach((polyPoints, index) => {
                         if (!Array.isArray(polyPoints) || polyPoints.length === 0) return;
 
                         const path = polyPoints.map((p) => new window.kakao.maps.LatLng(p.lat, p.lng));
                         const polygon = new window.kakao.maps.Polygon({
                             path: path,
                             strokeWeight: 3,
-                            strokeColor: "#0b57d0",
+                            strokeColor: editable ? "#ff6b6b" : "#0b57d0",
                             strokeOpacity: 0.8,
                             strokeStyle: "solid",
-                            fillColor: "#0b57d0",
-                            fillOpacity: 0.1,
+                            fillColor: editable ? "#ff6b6b" : "#0b57d0",
+                            fillOpacity: editable ? 0.2 : 0.1,
+                            draggable: editable,
+                            editable: editable,
+                            removable: editable
                         });
+
                         polygon.setMap(map);
                         path.forEach((p) => bounds.extend(p));
+
+                        // 편집 가능한 경우 이벤트 리스너와 편집점 표시
+                        if (editable && onPolygonChange) {
+                            editablePolygonsRef.current.push(polygon);
+
+                            // 꼭짓점 마커 표시
+                            const vertexMarkers = [];
+                            path.forEach((point, vertexIndex) => {
+                                const marker = new window.kakao.maps.Marker({
+                                    position: point,
+                                    image: new window.kakao.maps.MarkerImage(
+                                        'data:image/svg+xml;base64,' + btoa(`
+                                            <svg width="8" height="8" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
+                                                <rect width="8" height="8" fill="#ffffff" stroke="#ff6b6b" stroke-width="2"/>
+                                            </svg>
+                                        `),
+                                        new window.kakao.maps.Size(8, 8),
+                                        { offset: new window.kakao.maps.Point(4, 4) }
+                                    ),
+                                    draggable: true
+                                });
+
+                                marker.setMap(map);
+                                vertexMarkers.push(marker);
+
+                                // 마커 드래그 이벤트
+                                window.kakao.maps.event.addListener(marker, 'dragend', function() {
+                                    const newPosition = marker.getPosition();
+                                    const currentPath = polygon.getPath();
+                                    currentPath[vertexIndex] = newPosition;
+                                    polygon.setPath(currentPath);
+
+                                    const newPoints = currentPath.map(point => ({
+                                        lat: point.getLat(),
+                                        lng: point.getLng()
+                                    }));
+                                    onPolygonChange(newPoints, index);
+
+                                    // 다른 꼭짓점 마커들 위치 업데이트
+                                    vertexMarkers.forEach((vm, vmIndex) => {
+                                        if (vmIndex !== vertexIndex) {
+                                            vm.setPosition(currentPath[vmIndex]);
+                                        }
+                                    });
+                                });
+                            });
+
+                            // 중간점 마커 표시
+                            const midPointMarkers = [];
+                            for (let i = 0; i < path.length; i++) {
+                                const current = path[i];
+                                const next = path[(i + 1) % path.length];
+
+                                const midLat = (current.getLat() + next.getLat()) / 2;
+                                const midLng = (current.getLng() + next.getLng()) / 2;
+                                const midPoint = new window.kakao.maps.LatLng(midLat, midLng);
+
+                                const midMarker = new window.kakao.maps.Marker({
+                                    position: midPoint,
+                                    image: new window.kakao.maps.MarkerImage(
+                                        'data:image/svg+xml;base64,' + btoa(`
+                                            <svg width="6" height="6" viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg">
+                                                <circle cx="3" cy="3" r="3" fill="#ff6b6b" stroke="#ffffff" stroke-width="1"/>
+                                            </svg>
+                                        `),
+                                        new window.kakao.maps.Size(6, 6),
+                                        { offset: new window.kakao.maps.Point(3, 3) }
+                                    ),
+                                    draggable: true
+                                });
+
+                                midMarker.setMap(map);
+                                midPointMarkers.push({ marker: midMarker, segmentIndex: i });
+
+                                // 중간점 드래그로 새 점 추가
+                                window.kakao.maps.event.addListener(midMarker, 'dragend', (function(segmentIdx) {
+                                    return function() {
+                                        const newPosition = midMarker.getPosition();
+                                        const currentPath = polygon.getPath();
+
+                                        // 새 점을 해당 세그먼트 다음에 삽입
+                                        currentPath.splice(segmentIdx + 1, 0, newPosition);
+                                        polygon.setPath(currentPath);
+
+                                        const newPoints = currentPath.map(point => ({
+                                            lat: point.getLat(),
+                                            lng: point.getLng()
+                                        }));
+                                        onPolygonChange(newPoints, index);
+                                    };
+                                })(i));
+                            }
+
+                            // 폴리곤 클릭 이벤트
+                            window.kakao.maps.event.addListener(polygon, 'click', function() {
+                                // Polygon clicked for editing
+                            });
+                        }
                     });
                 }
 

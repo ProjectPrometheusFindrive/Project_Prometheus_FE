@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
-import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import KakaoMap from "../components/KakaoMap";
+import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import { fetchCompanyInfo as loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../api";
 import { COLORS, DIMENSIONS } from "../constants";
 import { FileBadge, CountBadge, GeofenceBadge } from "../components/StatusBadge";
@@ -12,16 +12,16 @@ export default function Settings() {
     const [saved, setSaved] = useState(false);
 
     // Geofence edit state
-    const [geofenceDraft, setGeofenceDraft] = useState({ geofences: [] });
     const [geofenceList, setGeofenceList] = useState([]);
-    const [editingIdx, setEditingIdx] = useState(null);
-    const [editingName, setEditingName] = useState("");
+    const [newGeofenceDraft, setNewGeofenceDraft] = useState({ geofences: [] });
+    const [newGeofenceName, setNewGeofenceName] = useState("");
 
     // Load company info and migrate legacy geofences
     useEffect(() => {
         let mounted = true;
         (async () => {
             let base = await loadCompanyInfo();
+
             try {
                 const raw = localStorage.getItem("geofenceSets");
                 if (raw) {
@@ -46,10 +46,30 @@ export default function Settings() {
             } catch (e) {
                 console.error("Failed to load or migrate company info", e);
             }
+
             if (mounted) {
                 setViewData(base);
                 setEditData(base);
-                setGeofenceList(Array.isArray(base?.geofences) ? base.geofences : []);
+                let geofences = Array.isArray(base?.geofences) ? base.geofences : [];
+
+                // 지오펜스가 없으면 기본 데이터 로드
+                if (geofences.length === 0) {
+                    try {
+                        const { dummyGeofences } = await import("../data/geofences");
+                        geofences = Array.isArray(dummyGeofences) ? dummyGeofences : [];
+
+                        if (geofences.length > 0) {
+                            const updatedBase = { ...base, geofences: geofences };
+                            await saveCompanyInfo(updatedBase);
+                            setViewData(updatedBase);
+                            setEditData(updatedBase);
+                        }
+                    } catch (error) {
+                        console.error('Failed to load default geofences:', error);
+                    }
+                }
+
+                setGeofenceList(geofences);
             }
         })();
         return () => {
@@ -110,58 +130,6 @@ export default function Settings() {
         setEditData(next);
     };
 
-    const handleGeofenceSubmit = async (data) => {
-        try {
-            let newList;
-            if (editingIdx !== null) {
-                const list = toItems(geofenceList || []);
-                const incoming = Array.isArray(data?.geofences) && data.geofences[0] ? data.geofences[0] : null;
-                if (list[editingIdx] && incoming) {
-                    list[editingIdx] = { name: editingName || list[editingIdx].name, points: incoming };
-                }
-                newList = list;
-                setEditingIdx(null);
-                setEditingName("");
-            } else {
-                const polys = Array.isArray(data?.geofences) ? data.geofences : [];
-                if (polys.length === 1) {
-                    const nm = (data?.name && data.name.trim()) || `Polygon 1`;
-                    newList = [{ name: nm, points: polys[0] }];
-                } else {
-                    newList = polys.map((pts, i) => ({ name: `Polygon ${i + 1}`, points: pts }));
-                }
-                setEditingName("");
-            }
-            setGeofenceList(newList);
-            await saveGeofencesIntoCompany(newList);
-            setGeofenceDraft({ geofences: [] });
-        } catch (e) {
-            console.error("Error submitting geofence:", e);
-        }
-    };
-
-    const handleGeofenceDelete = async () => {
-        const items = [];
-        setGeofenceList(items);
-        await saveGeofencesIntoCompany(items);
-    };
-
-    const handleGeofenceEditAll = () => {
-        const set = geofenceList || [];
-        const points = toItems(set).map((it) => it.points);
-        setGeofenceDraft({ geofences: points });
-        setEditingIdx(null);
-        setEditingName("");
-    };
-
-    const handleGeofenceEditOne = (idx) => {
-        const items = toItems(geofenceList || []);
-        const it = items[idx];
-        if (!it) return;
-        setEditingIdx(idx);
-        setEditingName(it.name || "");
-        setGeofenceDraft({ geofences: [it.points] });
-    };
 
     const handleGeofenceDeleteOne = async (idx) => {
         const next = (geofenceList || []).filter((_, i) => i !== idx);
@@ -177,10 +145,40 @@ export default function Settings() {
         await saveGeofencesIntoCompany(list);
     };
 
-    // useCallback으로 함수를 메모이제이션하여 불필요한 리렌더링을 방지합니다.
-    const handleGeofenceDraftChange = useCallback((v) => {
-        setGeofenceDraft(v);
+    const handleNewGeofenceSubmit = async (data) => {
+        try {
+            const polys = Array.isArray(data?.geofences) ? data.geofences : [];
+            if (polys.length === 0) {
+                return;
+            }
+
+            let newList = [...geofenceList];
+
+            if (polys.length === 1) {
+                const name = (data?.name && data.name.trim()) || newGeofenceName.trim() || `Polygon ${newList.length + 1}`;
+                newList.push({ name, points: polys[0] });
+            } else {
+                polys.forEach((pts, i) => {
+                    newList.push({ name: `Polygon ${newList.length + i + 1}`, points: pts });
+                });
+            }
+
+            setGeofenceList(newList);
+            await saveGeofencesIntoCompany(newList);
+
+            // Reset form
+            setNewGeofenceDraft({ geofences: [] });
+            setNewGeofenceName("");
+
+        } catch (e) {
+            console.error("Error adding new geofence:", e);
+        }
+    };
+
+    const handleNewGeofenceDraftChange = useCallback((v) => {
+        setNewGeofenceDraft(v);
     }, []);
+
 
     return (
         <div className="page">
@@ -331,7 +329,7 @@ export default function Settings() {
                         <div className="card">
                             <div className="header-row" style={{ marginBottom: 10 }}>
                                 <div>
-                                    <strong>지오펜스 설정</strong>
+                                    <strong>지오펜스 관리</strong>
                                 </div>
                                 <div>
                                     {Array.isArray(viewData?.geofences) && viewData.geofences.length > 0 ? (
@@ -342,25 +340,26 @@ export default function Settings() {
                                 </div>
                             </div>
 
-                            <GeofenceGlobalForm
-                                initial={geofenceDraft}
-                                initialName={editingIdx !== null ? editingName : ""}
-                                onSubmit={handleGeofenceSubmit}
-                                onChange={handleGeofenceDraftChange}
-                                onNameChange={(v) => setEditingName(v)}
-                            />
-
-                            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                <button className="form-button" type="button" onClick={handleGeofenceEditAll} disabled={(toItems(geofenceList).length || 0) === 0}>
-                                    전체 수정
-                                </button>
-                                <button className="form-button" type="button" onClick={handleGeofenceDelete} style={{ background: "#c62828" }}>
-                                    전체 삭제
-                                </button>
+                            <div style={{ marginBottom: 16 }}>
+                                <h3 style={{ margin: "0 0 8px", fontSize: "14px", fontWeight: "600" }}>신규 지오펜스 추가</h3>
+                                <GeofenceGlobalForm
+                                    initial={newGeofenceDraft}
+                                    initialName={newGeofenceName}
+                                    onSubmit={handleNewGeofenceSubmit}
+                                    onChange={handleNewGeofenceDraftChange}
+                                    onNameChange={(v) => setNewGeofenceName(v)}
+                                />
                             </div>
+
 
                             <div style={{ marginTop: 16 }}>
                                 <h2 style={{ margin: "0 0 8px" }}>Geofence 목록</h2>
+                                <div style={{ fontSize: "12px", color: "#666", marginBottom: "12px", backgroundColor: "#f0f8ff", padding: "8px", borderRadius: "4px" }}>
+                                    💡 <strong>편집 방법:</strong> 아래 지도에서 직접 수정할 수 있습니다.
+                                    <br />• <strong>꼭짓점(사각형)</strong> 드래그: 폴리곤 모양 변경
+                                    <br />• <strong>중간점(원형)</strong> 드래그: 새 점 추가
+                                    <br />• 변경 사항은 실시간 자동 저장되며, "저장" 버튼으로 확인 가능합니다.
+                                </div>
                                 {(() => {
                                     const displayItems = toItems(geofenceList).filter((it) => Array.isArray(it.points) && it.points.length > 0);
                                     if (!displayItems || displayItems.length === 0) return <div className="empty">No geofences</div>;
@@ -373,13 +372,41 @@ export default function Settings() {
                                                             <GeofenceBadge index={idx} />
                                                             <input className="form-input" value={item.name || ""} onChange={(e) => handleRenameOne(idx, e.target.value)} style={{ flex: 1 }} />
                                                         </div>
-                                                        <KakaoMap polygons={[item.points]} height="200px" />
+                                                        <KakaoMap
+                                                            polygons={[item.points]}
+                                                            height="200px"
+                                                            editable={true}
+                                                            onPolygonChange={(newPoints) => {
+                                                                // 상태만 업데이트 (자동 저장은 디바운스 적용)
+                                                                const updatedList = [...geofenceList];
+                                                                updatedList[idx] = { ...updatedList[idx], points: newPoints };
+                                                                setGeofenceList(updatedList);
+
+                                                                // 디바운스된 자동 저장
+                                                                clearTimeout(window.autoSaveTimeout);
+                                                                window.autoSaveTimeout = setTimeout(() => {
+                                                                    saveGeofencesIntoCompany(updatedList);
+                                                                }, 1000);
+                                                            }}
+                                                        />
                                                         <div className="form-actions" style={{ display: "flex", gap: 8, marginTop: 8 }}>
-                                                            <button className="form-button" type="button" onClick={() => handleGeofenceEditOne(idx)}>
-                                                                Edit
+                                                            <button className="form-button" type="button" onClick={() => {
+                                                                // 현재 상태를 다시 저장 (확인용)
+                                                                saveGeofencesIntoCompany(geofenceList);
+                                                                // 저장 완료 표시
+                                                                const button = event.target;
+                                                                const originalText = button.textContent;
+                                                                button.textContent = "저장됨!";
+                                                                button.style.background = "#4CAF50";
+                                                                setTimeout(() => {
+                                                                    button.textContent = originalText;
+                                                                    button.style.background = "";
+                                                                }, 1000);
+                                                            }} style={{ background: "#2196F3" }}>
+                                                                저장
                                                             </button>
                                                             <button className="form-button" type="button" onClick={() => handleGeofenceDeleteOne(idx)} style={{ background: "#c62828" }}>
-                                                                Delete
+                                                                삭제
                                                             </button>
                                                         </div>
                                                     </div>
