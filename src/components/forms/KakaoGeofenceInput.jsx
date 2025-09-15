@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from "react";
 
 export default function KakaoGeofenceInput({ value = [], onChange, readOnly = false, height = 360 }) {
     const mapContainer = useRef(null);
@@ -24,7 +24,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                     if (window.kakao.maps.drawing) {
                         setIsKakaoReady(true);
                     } else {
-                        console.error('Kakao Maps Drawing library not loaded');
+                        console.error("Kakao Maps Drawing library not loaded");
                     }
                 });
             } else {
@@ -66,7 +66,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                 const newMap = new window.kakao.maps.Map(mapContainer.current, mapOption);
                 setMap(newMap);
             } catch (error) {
-                console.error('Failed to initialize Kakao map:', error);
+                console.error("Failed to initialize Kakao map:", error);
             }
         };
 
@@ -81,20 +81,20 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
             const drawingManager = new window.kakao.maps.drawing.DrawingManager({
                 map: map,
                 drawingMode: [window.kakao.maps.drawing.OverlayType.POLYGON],
-                guideTooltip: ['draw', 'drag', 'edit'],
+                guideTooltip: ["draw", "drag", "edit"],
                 polygonOptions: {
                     strokeWeight: 3,
-                    strokeColor: '#0066ff',
+                    strokeColor: "#0066ff",
                     strokeOpacity: 0.8,
-                    strokeStyle: 'solid',
-                    fillColor: '#0066ff',
+                    strokeStyle: "solid",
+                    fillColor: "#0066ff",
                     fillOpacity: 0.2,
                     draggable: true,
                     removable: true,
-                    editable: true
+                    editable: true,
                 },
                 // Enable editing mode by default
-                editingMode: true
+                editingMode: true,
             });
 
             drawingManagerRef.current = drawingManager;
@@ -106,7 +106,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                         drawingManagerRef.current.select(window.kakao.maps.drawing.OverlayType.POLYGON);
                     }
                 } catch (error) {
-                    console.error('Error activating polygon drawing mode:', error);
+                    console.error("Error activating polygon drawing mode:", error);
                 }
             }, 100);
 
@@ -115,8 +115,8 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                     const data = drawingManager.getData();
 
                     if (data && data.polygon && Array.isArray(data.polygon)) {
-                        const newPolygons = data.polygon.map(p => {
-                            return p.getPoints().map(point => ({ lat: point.y, lng: point.x }));
+                        const newPolygons = data.polygon.map((p) => {
+                            return p.getPoints().map((point) => ({ lat: point.y, lng: point.x }));
                         });
 
                         if (onChange) {
@@ -124,14 +124,14 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                         }
                     }
                 } catch (error) {
-                    console.error('Error handling drawing data change:', error);
+                    console.error("Error handling drawing data change:", error);
                 }
             };
 
             // Add event listeners
-            window.kakao.maps.event.addListener(drawingManager, 'drawend', handleDataChange);
-            window.kakao.maps.event.addListener(drawingManager, 'remove', handleDataChange);
-            window.kakao.maps.event.addListener(drawingManager, 'edit', handleDataChange);
+            window.kakao.maps.event.addListener(drawingManager, "drawend", handleDataChange);
+            window.kakao.maps.event.addListener(drawingManager, "remove", handleDataChange);
+            window.kakao.maps.event.addListener(drawingManager, "edit", handleDataChange);
 
             // Cleanup function
             return () => {
@@ -140,12 +140,12 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                         drawingManagerRef.current.cancel();
                         drawingManagerRef.current = null;
                     } catch (error) {
-                        console.error('Error during DrawingManager cleanup:', error);
+                        console.error("Error during DrawingManager cleanup:", error);
                     }
                 }
             };
         } catch (error) {
-            console.error('Failed to initialize DrawingManager:', error);
+            console.error("Failed to initialize DrawingManager:", error);
         }
     }, [map, readOnly, onChange]);
 
@@ -158,7 +158,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                 const data = drawingManagerRef.current.getData();
                 if (data && data.polygon && data.polygon.length > 0) {
                     // Remove all polygons from DrawingManager
-                    data.polygon.forEach(polygon => {
+                    data.polygon.forEach((polygon) => {
                         try {
                             drawingManagerRef.current.remove(polygon);
                         } catch (error) {
@@ -167,16 +167,16 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                     });
                 }
             } catch (error) {
-                console.log('Error clearing DrawingManager data:', error);
+                console.log("Error clearing DrawingManager data:", error);
             }
         }
 
         // Also clear manually tracked polygons
-        existingPolygonsRef.current.forEach(polygon => {
+        existingPolygonsRef.current.forEach((polygon) => {
             try {
                 polygon.setMap(null);
             } catch (error) {
-                console.error('Error removing polygon:', error);
+                console.error("Error removing polygon:", error);
             }
         });
         existingPolygonsRef.current = [];
@@ -184,9 +184,9 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
 
     // Load initial polygon data
     useEffect(() => {
-        console.log('KakaoGeofenceInput - value changed:', value);
-        console.log('KakaoGeofenceInput - map available:', !!map);
-        console.log('KakaoGeofenceInput - drawingManager available:', !!drawingManagerRef.current);
+        console.log("KakaoGeofenceInput - value changed:", value);
+        console.log("KakaoGeofenceInput - map available:", !!map);
+        console.log("KakaoGeofenceInput - drawingManager available:", !!drawingManagerRef.current);
 
         if (!map) return;
 
@@ -197,19 +197,23 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                 clearExistingPolygons();
 
                 if (!value || !Array.isArray(value) || value.length === 0) {
-                    console.log('KakaoGeofenceInput - no value to load');
+                    console.log("KakaoGeofenceInput - no value to load");
                     return;
                 }
 
-                const polygonPaths = value.map(poly => {
-                    if (!Array.isArray(poly)) return [];
-                    return poly.map(p => {
-                        if (!p || typeof p.lat !== 'number' || typeof p.lng !== 'number') return null;
-                        return new window.kakao.maps.LatLng(p.lat, p.lng);
-                    }).filter(Boolean);
-                }).filter(poly => poly.length > 0);
+                const polygonPaths = value
+                    .map((poly) => {
+                        if (!Array.isArray(poly)) return [];
+                        return poly
+                            .map((p) => {
+                                if (!p || typeof p.lat !== "number" || typeof p.lng !== "number") return null;
+                                return new window.kakao.maps.LatLng(p.lat, p.lng);
+                            })
+                            .filter(Boolean);
+                    })
+                    .filter((poly) => poly.length > 0);
 
-                console.log('KakaoGeofenceInput - processed polygon paths:', polygonPaths);
+                console.log("KakaoGeofenceInput - processed polygon paths:", polygonPaths);
 
                 if (polygonPaths.length > 0) {
                     // Add polygons to DrawingManager if available and not read-only
@@ -217,7 +221,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                         try {
                             // Use put method with coordinate array instead of polygon object
                             polygonPaths.forEach((path, index) => {
-                                console.log('Adding path to DrawingManager:', path);
+                                console.log("Adding path to DrawingManager:", path);
                                 drawingManagerRef.current.put(window.kakao.maps.drawing.OverlayType.POLYGON, path);
                                 console.log(`Path ${index + 1} added to DrawingManager for editing`);
                             });
@@ -228,14 +232,14 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                                     if (drawingManagerRef.current) {
                                         // Try to activate polygon editing mode
                                         drawingManagerRef.current.select(window.kakao.maps.drawing.OverlayType.POLYGON);
-                                        console.log('Polygon editing mode activated');
+                                        console.log("Polygon editing mode activated");
 
                                         // Get the added polygons and check if they're editable
                                         const data = drawingManagerRef.current.getData();
                                         if (data && data.polygon) {
-                                            console.log('Current polygons in DrawingManager:', data.polygon.length);
+                                            console.log("Current polygons in DrawingManager:", data.polygon.length);
                                             data.polygon.forEach((polygon, idx) => {
-                                                console.log(`Polygon ${idx + 1} editable:`, polygon.getEditable ? polygon.getEditable() : 'unknown');
+                                                console.log(`Polygon ${idx + 1} editable:`, polygon.getEditable ? polygon.getEditable() : "unknown");
 
                                                 // Try to enable editing for each polygon
                                                 try {
@@ -254,22 +258,21 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                                         }
                                     }
                                 } catch (editError) {
-                                    console.error('Error activating edit mode:', editError);
+                                    console.error("Error activating edit mode:", editError);
                                 }
                             }, 100);
-
                         } catch (error) {
-                            console.error('Error adding paths to DrawingManager:', error);
+                            console.error("Error adding paths to DrawingManager:", error);
                             // Fallback: create regular polygons and display on map
-                            polygonPaths.forEach(path => {
+                            polygonPaths.forEach((path) => {
                                 const polygon = new window.kakao.maps.Polygon({
                                     path: path,
                                     strokeWeight: 3,
-                                    strokeColor: '#0066ff',
+                                    strokeColor: "#0066ff",
                                     strokeOpacity: 0.8,
-                                    strokeStyle: 'solid',
-                                    fillColor: '#0066ff',
-                                    fillOpacity: 0.2
+                                    strokeStyle: "solid",
+                                    fillColor: "#0066ff",
+                                    fillOpacity: 0.2,
                                 });
                                 polygon.setMap(map);
                                 existingPolygonsRef.current.push(polygon);
@@ -277,15 +280,15 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                         }
                     } else {
                         // Just display on map if no DrawingManager or read-only
-                        polygonPaths.forEach(path => {
+                        polygonPaths.forEach((path) => {
                             const polygon = new window.kakao.maps.Polygon({
                                 path: path,
                                 strokeWeight: 3,
-                                strokeColor: '#0066ff',
+                                strokeColor: "#0066ff",
                                 strokeOpacity: 0.8,
-                                strokeStyle: 'solid',
-                                fillColor: '#0066ff',
-                                fillOpacity: 0.2
+                                strokeStyle: "solid",
+                                fillColor: "#0066ff",
+                                fillOpacity: 0.2,
                             });
                             polygon.setMap(map);
                             existingPolygonsRef.current.push(polygon);
@@ -294,18 +297,18 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
 
                     // Set map bounds to fit all polygons
                     const bounds = new window.kakao.maps.LatLngBounds();
-                    polygonPaths.forEach(path => {
-                        path.forEach(point => bounds.extend(point));
+                    polygonPaths.forEach((path) => {
+                        path.forEach((point) => bounds.extend(point));
                     });
 
                     if (!bounds.isEmpty()) {
                         map.setBounds(bounds);
                     }
 
-                    console.log('KakaoGeofenceInput - polygons loaded successfully');
+                    console.log("KakaoGeofenceInput - polygons loaded successfully");
                 }
             } catch (error) {
-                console.error('Error loading initial polygon data:', error);
+                console.error("Error loading initial polygon data:", error);
             }
         };
 
@@ -326,25 +329,9 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
 
     return (
         <div>
-            {!isKakaoReady && (
-                <div style={{marginBottom: '8px', fontSize: '12px', color: '#999'}}>
-                    카카오 지도를 로딩 중입니다...
-                </div>
-            )}
-            {!readOnly && isKakaoReady && (
-                <div style={{marginBottom: '8px', fontSize: '12px', color: '#555', backgroundColor: '#f8f9fa', padding: '8px', borderRadius: '4px'}}>
-                    📍 <strong>사용법:</strong>
-                    <br />• 새 폴리곤: 지도 좌측 상단의 폴리곤 그리기 도구를 클릭한 후 지도에서 원하는 영역을 클릭
-                    <br />• 기존 폴리곤: 폴리곤을 클릭하여 선택 후 꼭짓점을 드래그하여 수정
-                    <br />• 삭제: 폴리곤 선택 후 Delete 키 또는 우클릭 메뉴 사용
-                </div>
-            )}
-            <div ref={mapContainer} style={{ width: '100%', height: `${height}px`, border: '1px solid #ddd', borderRadius: 8 }} />
-            {isKakaoReady && !readOnly && drawingManagerRef.current && (
-                <div style={{marginTop: '8px', fontSize: '11px', color: '#666'}}>
-                    ✅ 폴리곤 그리기 도구가 활성화되었습니다.
-                </div>
-            )}
+            {!isKakaoReady && <div style={{ marginBottom: "8px", fontSize: "12px", color: "#999" }}>카카오 지도를 로딩 중입니다...</div>}
+            {!readOnly && isKakaoReady}
+            <div ref={mapContainer} style={{ width: "100%", height: `${height}px`, border: "1px solid #ddd", borderRadius: 8 }} />
         </div>
     );
 }

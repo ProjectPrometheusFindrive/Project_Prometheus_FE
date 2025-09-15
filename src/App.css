@@ -32,11 +32,21 @@
     margin-bottom: 12px;
 }
 /* Reorder AssetStatus controls so search/filter sit next to action buttons (to the right) */
-.asset-toolbar > :nth-child(1) { order: 2; } /* search */
-.asset-toolbar > :nth-child(2) { order: 2; } /* status filter */
-.asset-toolbar > :nth-child(3) { order: 1; } /* spacer (flex: 1 inline) */
-.asset-toolbar > :nth-child(4) { order: 2; } /* create button */
-.asset-toolbar > :nth-child(5) { order: 2; } /* delete button */
+.asset-toolbar > :nth-child(1) {
+    order: 2;
+} /* search */
+.asset-toolbar > :nth-child(2) {
+    order: 2;
+} /* status filter */
+.asset-toolbar > :nth-child(3) {
+    order: 1;
+} /* spacer (flex: 1 inline) */
+.asset-toolbar > :nth-child(4) {
+    order: 2;
+} /* create button */
+.asset-toolbar > :nth-child(5) {
+    order: 2;
+} /* delete button */
 
 /* Grouped actions container (when used) */
 .asset-actions {
@@ -55,7 +65,9 @@
     font-size: 1rem;
     background: #fff;
 }
-.asset-toolbar .asset-search { min-width: 220px; }
+.asset-toolbar .asset-search {
+    min-width: 220px;
+}
 
 /* Buttons in toolbar: consistent height */
 .asset-toolbar .form-button {
@@ -349,7 +361,7 @@ body {
 
 .top-header__service-name {
     font-weight: 700;
-    font-size: 18px;
+    font-size: 25px;
     color: #1a73e8;
 }
 
@@ -409,7 +421,6 @@ body {
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
 }
-
 
 .navigation-bar__info {
     margin-top: auto;
@@ -492,7 +503,7 @@ body {
     .app-content {
         order: 1;
     }
-    
+
     /* Top header adjustments for mobile */
     .top-header {
         padding: 0 16px;
@@ -679,7 +690,7 @@ body {
 }
 
 .error-stack {
-    font-family: 'Courier New', monospace;
+    font-family: "Courier New", monospace;
     font-size: 0.875rem;
     color: #2d3748;
 }
