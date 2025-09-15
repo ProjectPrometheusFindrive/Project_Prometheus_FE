@@ -72,6 +72,22 @@ export async function fetchAssetById(id) {
   return await fetchJSON(`${API_BASE_URL}/assets/${id}`);
 }
 
+export async function saveAsset(assetId, updatedFields) {
+  try {
+    // In a real API, this would be a PUT or PATCH request to the server
+    return await putJSON(`${API_BASE_URL}/assets/${assetId}`, updatedFields);
+  } catch (error) {
+    console.warn(`Falling back to local seed data for saveAsset for ${assetId}`, error);
+    const { db } = await import('../data/db');
+    const assetIndex = db.assets.findIndex(asset => asset.id === assetId);
+    if (assetIndex > -1) {
+      db.assets[assetIndex] = { ...db.assets[assetIndex], ...updatedFields };
+      return db.assets[assetIndex];
+    }
+    throw new Error(`Asset with ID ${assetId} not found for update.`);
+  }
+}
+
 // Rentals
 export async function fetchRentals() {
   try {

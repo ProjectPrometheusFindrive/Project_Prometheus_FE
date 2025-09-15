@@ -13,6 +13,7 @@ export const {
   // Common slices
   fetchAssets,
   fetchAssetById,
+  saveAsset,
   fetchRentals,
   fetchRentalById,
   fetchLatestRentals,

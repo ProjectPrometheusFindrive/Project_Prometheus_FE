@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { resolveVehicleRentals, fetchAssetById, fetchAssets } from "../api";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset } from "../api";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import Modal from "../components/Modal";
@@ -9,6 +9,7 @@ import { typedStorage } from "../utils/storage";
 import { COLORS, DIMENSIONS, ASSET } from "../constants";
 import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
+import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
 
 // 진단 코드 분류별 개수를 계산하는 함수
 const calculateDiagnosticCodes = (vehicle) => {
@@ -104,6 +105,8 @@ export default function AssetStatus() {
     const [infoVehicle, setInfoVehicle] = useState(null);
     const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
     const [diagnosticDetail, setDiagnosticDetail] = useState(null);
+    const [editingMemo, setEditingMemo] = useState(null);
+    const [memoText, setMemoText] = useState("");
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
@@ -242,6 +245,28 @@ export default function AssetStatus() {
         setShowAssetModal(false);
     };
 
+    const handleMemoEdit = (assetId, currentMemo) => {
+        setEditingMemo(assetId);
+        setMemoText(currentMemo || "");
+    };
+
+    const handleMemoSave = async (assetId) => {
+        try {
+            await saveAsset(assetId, { memo: memoText });
+            setRows((prev) => prev.map((asset) => (asset.id === assetId ? { ...asset, memo: memoText } : asset)));
+            setEditingMemo(null);
+            setMemoText("");
+        } catch (error) {
+            console.error("Failed to save memo:", error);
+            alert("메모 저장에 실패했습니다.");
+        }
+    };
+
+    const handleMemoCancel = () => {
+        setEditingMemo(null);
+        setMemoText("");
+    };
+
     return (
         <div className="page">
             <h1>자산등록관리</h1>
@@ -350,7 +375,78 @@ export default function AssetStatus() {
                             </span>
                         );
                     }},
-                    { key: "memo", label: "메모", render: (row) => row.memo || "-" }
+                    { key: "memo", label: "메모", render: (row) => (
+                        <div style={{ maxWidth: "150px" }}>
+                            {editingMemo === row.id ? (
+                                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                    <input
+                                        type="text"
+                                        value={memoText}
+                                        onChange={(e) => setMemoText(e.target.value)}
+                                        style={{
+                                            width: "100px",
+                                            padding: "4px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "4px",
+                                            fontSize: "0.85rem",
+                                        }}
+                                        autoFocus
+                                    />
+                                    <button
+                                        onClick={() => handleMemoSave(row.id)}
+                                        style={{
+                                            background: "none",
+                                            border: "none",
+                                            color: "#4caf50",
+                                            cursor: "pointer",
+                                            padding: "2px",
+                                        }}
+                                    >
+                                        <FaSave size={12} />
+                                    </button>
+                                    <button
+                                        onClick={handleMemoCancel}
+                                        style={{
+                                            background: "none",
+                                            border: "none",
+                                            color: "#f44336",
+                                            cursor: "pointer",
+                                            padding: "2px",
+                                        }}
+                                    >
+                                        <FaTimes size={12} />
+                                    </button>
+                                </div>
+                            ) : (
+                                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                    <span
+                                        style={{
+                                            fontSize: "0.85rem",
+                                            overflow: "hidden",
+                                            textOverflow: "ellipsis",
+                                            whiteSpace: "nowrap",
+                                            maxWidth: "100px",
+                                        }}
+                                        title={row.memo}
+                                    >
+                                        {row.memo || "메모 없음"}
+                                    </span>
+                                    <button
+                                        onClick={() => handleMemoEdit(row.id, row.memo)}
+                                        style={{
+                                            background: "none",
+                                            border: "none",
+                                            color: "#1976d2",
+                                            cursor: "pointer",
+                                            padding: "2px",
+                                        }}
+                                    >
+                                        <FaEdit size={12} />
+                                    </button>
+                                </div>
+                            )}
+                        </div>
+                    ) }
                 ]}
                 data={filtered}
                 selection={selection}
