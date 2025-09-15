@@ -54,7 +54,24 @@ export default function RentalContracts() {
 
     const rows = useMemo(() => {
         const now = new Date();
-        return items.map((r) => {
+        return items.filter((r) => {
+            // 종료된 계약 필터링: contract_status가 "완료"이거나 대여 종료일이 지나고 반납이 완료된 경우 제외
+            if (r.contract_status === "완료") return false;
+
+            const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
+            const isOverdue = end ? now > end : false;
+            const isStolen = Boolean(r.reported_stolen);
+
+            // 반납지연, 도난의심, 사고접수 등의 문제가 있는 경우는 표시
+            if (isOverdue || isStolen || r.accident_reported) return true;
+
+            // 현재 진행중인 계약만 표시 (예약중, 대여중)
+            const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
+            const isActive = start && end ? now >= start && now <= end : false;
+            const isFuture = start ? now < start : false;
+
+            return isActive || isFuture;
+        }).map((r) => {
             const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
             const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
             const isActive = start && end ? now >= start && now <= end : false;
@@ -285,8 +302,8 @@ export default function RentalContracts() {
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((r) => (
-                                <tr key={r.rental_id}>
+                            {rows.map((r, index) => (
+                                <tr key={r.rental_id || `rental-${index}`}>
                                     <td style={{ textAlign: "center" }}>
                                         <input type="checkbox" aria-label={`Select: ${r.plate || r.rental_id}`} checked={selected.has(r.rental_id)} onChange={() => toggleSelect(r.rental_id)} />
                                     </td>

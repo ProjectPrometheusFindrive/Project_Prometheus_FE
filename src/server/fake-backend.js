@@ -30,7 +30,19 @@ const delay = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
 
 const getVehiclesArray = () => Object.values(data.vehicles);
 const getAssetsArray = () => getVehiclesArray().map(v => ({ ...v.asset, rental: v.rental }));
-const getRentalsArray = () => getVehiclesArray().map(v => v.rental).filter(Boolean);
+const getRentalsArray = () => {
+  const allRentals = [];
+  getVehiclesArray().forEach(v => {
+    if (v.rental) {
+      if (Array.isArray(v.rental)) {
+        allRentals.push(...v.rental);
+      } else {
+        allRentals.push(v.rental);
+      }
+    }
+  });
+  return allRentals;
+};
 const getProblemVehicles = () => {
   const now = new Date();
   return getVehiclesArray().filter(v => {
