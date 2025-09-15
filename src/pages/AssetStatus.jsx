@@ -9,39 +9,39 @@ import { typedStorage } from "../utils/storage";
 import { COLORS, DIMENSIONS, ASSET } from "../constants";
 import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
-import { FaEdit, FaSave, FaTimes } from "react-icons/fa";
+import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 
 // 진단 코드 분류별 개수를 계산하는 함수
 const calculateDiagnosticCodes = (vehicle) => {
     // 각 차량의 진단 코드 데이터를 기반으로 분류별 개수 계산
     const codes = vehicle.diagnosticCodes || {};
     return {
-        "분류1": codes.category1 || 0,
-        "분류2": codes.category2 || 0,
-        "분류3": codes.category3 || 0,
-        "분류4": codes.category4 || 0
+        분류1: codes.category1 || 0,
+        분류2: codes.category2 || 0,
+        분류3: codes.category3 || 0,
+        분류4: codes.category4 || 0,
     };
 };
 
 // 진단 코드 세부 정보를 생성하는 함수
 const generateDiagnosticDetails = (category, count, vehicleInfo) => {
     const categoryNames = {
-        "분류1": "엔진/동력계",
-        "분류2": "브레이크/안전",
-        "분류3": "전기/전자",
-        "분류4": "편의/기타"
+        분류1: "엔진/동력계",
+        분류2: "브레이크/안전",
+        분류3: "전기/전자",
+        분류4: "편의/기타",
     };
 
     const sampleIssues = {
-        "분류1": ["엔진 온도 이상", "연료 시스템 경고", "배기가스 수치 높음", "터보차저 압력 부족", "점화 플러그 교체 필요"],
-        "분류2": ["브레이크 패드 마모", "ABS 센서 오류", "타이어 공기압 부족", "안전벨트 센서 이상", "에어백 경고등"],
-        "분류3": ["배터리 전압 부족", "충전 시스템 이상", "ECU 통신 오류", "센서 데이터 불일치", "전조등 오작동"],
-        "분류4": ["에어컨 냉매 부족", "파워 스티어링 오일", "와이퍼 교체 필요", "오디오 시스템 오류", "도어락 작동 불량"]
+        분류1: ["엔진 온도 이상", "연료 시스템 경고", "배기가스 수치 높음", "터보차저 압력 부족", "점화 플러그 교체 필요"],
+        분류2: ["브레이크 패드 마모", "ABS 센서 오류", "타이어 공기압 부족", "안전벨트 센서 이상", "에어백 경고등"],
+        분류3: ["배터리 전압 부족", "충전 시스템 이상", "ECU 통신 오류", "센서 데이터 불일치", "전조등 오작동"],
+        분류4: ["에어컨 냉매 부족", "파워 스티어링 오일", "와이퍼 교체 필요", "오디오 시스템 오류", "도어락 작동 불량"],
     };
 
     const issues = sampleIssues[category] || [];
     const selectedIssues = issues.slice(0, Math.min(count, issues.length));
-    
+
     return {
         category,
         categoryName: categoryNames[category] || category,
@@ -49,11 +49,11 @@ const generateDiagnosticDetails = (category, count, vehicleInfo) => {
         vehicleInfo,
         issues: selectedIssues.map((issue, index) => ({
             id: `${category}-${index}`,
-            code: `${category.slice(-1)}${String(index + 1).padStart(3, '0')}`,
+            code: `${category.slice(-1)}${String(index + 1).padStart(3, "0")}`,
             description: issue,
             severity: Math.random() > 0.7 ? "높음" : Math.random() > 0.4 ? "보통" : "낮음",
-            detectedDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-        }))
+            detectedDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
+        })),
     };
 };
 
@@ -61,27 +61,27 @@ const generateDiagnosticDetails = (category, count, vehicleInfo) => {
 const getManagementStage = (vehicle) => {
     // 차량의 상태에 따라 관리단계 결정
     const { registrationStatus, deviceSerial, vehicleStatus, diagnosticCodes } = vehicle;
-    
+
     // 우선순위에 따른 단계 결정
     if (vehicleStatus === "수리중" || vehicleStatus === "점검중") {
         return "수리/점검 중";
     }
-    
+
     if (vehicleStatus === "대여중") {
         return "대여 중";
     }
-    
+
     if (!deviceSerial) {
         if (registrationStatus === "자산등록 완료") {
             return "입고대상";
         }
         return "전산등록완료";
     }
-    
+
     if (deviceSerial && registrationStatus === "장비장착 완료") {
         const codes = diagnosticCodes || {};
         const totalIssues = (codes.category1 || 0) + (codes.category2 || 0) + (codes.category3 || 0) + (codes.category4 || 0);
-        
+
         if (totalIssues > 5) {
             return "수리/점검 중";
         } else if (totalIssues > 0) {
@@ -90,7 +90,7 @@ const getManagementStage = (vehicle) => {
             return vehicleStatus === "대기중" ? "대여 가능" : "단말 장착 완료";
         }
     }
-    
+
     return "전산등록완료";
 };
 
@@ -107,6 +107,27 @@ export default function AssetStatus() {
     const [diagnosticDetail, setDiagnosticDetail] = useState(null);
     const [editingMemo, setEditingMemo] = useState(null);
     const [memoText, setMemoText] = useState("");
+    const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+    const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
+    const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
+    const [columnSettings, setColumnSettings] = useState(() => {
+        const saved = localStorage.getItem("asset-columns-settings");
+        return saved
+            ? JSON.parse(saved)
+            : {
+                  columns: [
+                      { key: "select", label: "선택", visible: true, required: true, width: 36 },
+                      { key: "plate", label: "차량번호", visible: true, required: true },
+                      { key: "vehicleType", label: "차종", visible: true, required: false },
+                      { key: "registrationDate", label: "차량등록일", visible: true, required: false },
+                      { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
+                      { key: "diagnosticCodes", label: "차량 상태", visible: true, required: false },
+                      { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
+                      { key: "managementStage", label: "관리단계", visible: true, required: false },
+                      { key: "memo", label: "메모", visible: true, required: false },
+                  ],
+              };
+    });
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
@@ -138,6 +159,18 @@ export default function AssetStatus() {
             mounted = false;
         };
     }, []);
+
+    // 컬럼 드롭다운 외부 클릭 감지
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showColumnDropdown && !event.target.closest("[data-column-dropdown]")) {
+                setShowColumnDropdown(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showColumnDropdown]);
 
     const filtered = useMemo(() => {
         const term = q.trim().toLowerCase();
@@ -190,7 +223,7 @@ export default function AssetStatus() {
         const detail = generateDiagnosticDetails(category, count, {
             plate: vehicle.plate,
             vehicleType: vehicle.vehicleType,
-            id: vehicle.id
+            id: vehicle.id,
         });
         setDiagnosticDetail(detail);
         setShowDiagnosticModal(true);
@@ -267,35 +300,287 @@ export default function AssetStatus() {
         setMemoText("");
     };
 
+    // 컬럼 설정 관련 함수들
+    const saveColumnSettings = (newSettings) => {
+        setColumnSettings(newSettings);
+        localStorage.setItem("asset-columns-settings", JSON.stringify(newSettings));
+    };
+
+    const toggleColumnVisibility = (columnKey) => {
+        const newSettings = {
+            ...columnSettings,
+            columns: columnSettings.columns.map((col) => (col.key === columnKey && !col.required ? { ...col, visible: !col.visible } : col)),
+        };
+        saveColumnSettings(newSettings);
+    };
+
+    const moveColumn = (fromIndex, toIndex) => {
+        const newColumns = [...columnSettings.columns];
+        const [movedColumn] = newColumns.splice(fromIndex, 1);
+        newColumns.splice(toIndex, 0, movedColumn);
+        saveColumnSettings({
+            ...columnSettings,
+            columns: newColumns,
+        });
+    };
+
+    // 드래그&드롭 이벤트 핸들러들
+    const handleDragStart = (e, index) => {
+        setDraggedColumnIndex(index);
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragOver = (e, index) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        setDragOverColumnIndex(index);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverColumnIndex(null);
+    };
+
+    const handleDrop = (e, dropIndex) => {
+        e.preventDefault();
+        if (draggedColumnIndex !== null && draggedColumnIndex !== dropIndex) {
+            moveColumn(draggedColumnIndex, dropIndex);
+        }
+        setDraggedColumnIndex(null);
+        setDragOverColumnIndex(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedColumnIndex(null);
+        setDragOverColumnIndex(null);
+    };
+
+    const visibleColumns = columnSettings.columns.filter((col) => col.visible);
+
+    // 각 컬럼의 셀 내용을 렌더링하는 함수
+    const renderCellContent = (column, row) => {
+        switch (column.key) {
+            case "select":
+                return null; // Table 컴포넌트에서 자동 처리
+            case "plate":
+                return (
+                    <button type="button" onClick={() => openInfoModal(row)} className="link-button" title="차량 정보 보기">
+                        {row.plate}
+                    </button>
+                );
+            case "vehicleType":
+                return row.vehicleType;
+            case "registrationDate":
+                return formatDateShort(row.registrationDate);
+            case "insuranceExpiryDate":
+                return row.insuranceExpiryDate ? formatDateShort(row.insuranceExpiryDate) : "-";
+            case "deviceStatus":
+                const hasDevice = row.deviceSerial;
+                const status = hasDevice ? "연결됨" : "미연결";
+                return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
+            case "managementStage":
+                const stage = getManagementStage(row);
+                const stageClass = {
+                    "수리/점검 중": "badge--maintenance",
+                    입고대상: "badge--pending",
+                    "대여 가능": "badge--available",
+                    "대여 중": "badge--rented",
+                    "수리/점검 완료": "badge--completed",
+                    "단말 장착 완료": "badge--installed",
+                    전산등록완료: "badge--registered",
+                };
+                return <span className={`badge ${stageClass[stage] || "badge--default"}`}>{stage}</span>;
+            case "diagnosticCodes":
+                const codes = calculateDiagnosticCodes(row);
+                return (
+                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                        {Object.entries(codes).map(
+                            ([category, count]) =>
+                                count > 0 && (
+                                    <button
+                                        key={category}
+                                        type="button"
+                                        className="badge badge--diagnostic badge--clickable"
+                                        style={{ fontSize: "10px", padding: "2px 6px", cursor: "pointer", border: "none" }}
+                                        onClick={() => openDiagnosticModal(row, category, count)}
+                                        title={`${category} 세부 진단 보기`}
+                                    >
+                                        {category} {count}개
+                                    </button>
+                                )
+                        )}
+                        {Object.values(codes).every((count) => count === 0) && <span className="badge badge--normal">정상</span>}
+                    </div>
+                );
+            case "memo":
+                return (
+                    <div style={{ maxWidth: "150px" }}>
+                        {editingMemo === row.id ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <input
+                                    type="text"
+                                    value={memoText}
+                                    onChange={(e) => setMemoText(e.target.value)}
+                                    style={{
+                                        width: "100px",
+                                        padding: "4px",
+                                        border: "1px solid #ddd",
+                                        borderRadius: "4px",
+                                        fontSize: "0.85rem",
+                                    }}
+                                    autoFocus
+                                />
+                                <button
+                                    onClick={() => handleMemoSave(row.id)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#4caf50",
+                                        cursor: "pointer",
+                                        padding: "2px",
+                                    }}
+                                >
+                                    <FaSave size={12} />
+                                </button>
+                                <button
+                                    onClick={handleMemoCancel}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#f44336",
+                                        cursor: "pointer",
+                                        padding: "2px",
+                                    }}
+                                >
+                                    <FaTimes size={12} />
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span
+                                    style={{
+                                        fontSize: "0.85rem",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "100px",
+                                    }}
+                                    title={row.memo}
+                                >
+                                    {row.memo || "메모 없음"}
+                                </span>
+                                <button
+                                    onClick={() => handleMemoEdit(row.id, row.memo)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#1976d2",
+                                        cursor: "pointer",
+                                        padding: "2px",
+                                    }}
+                                >
+                                    <FaEdit size={12} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            default:
+                return "-";
+        }
+    };
+
+    // 동적 컬럼 생성
+    const dynamicColumns = visibleColumns
+        .filter((col) => col.key !== "select") // select는 Table 컴포넌트에서 자동 처리
+        .map((column) => ({
+            key: column.key,
+            label: column.label,
+            render: (row) => renderCellContent(column, row),
+        }));
+
     return (
         <div className="page">
             <h1>자산등록관리</h1>
 
-
             <div className="asset-toolbar">
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="검색(차량번호, 차종, 상태, 일련번호...)" className="asset-search" />
-                <select value={status} onChange={(e) => setStatus(e.target.value)} className="asset-filter">
-                    <option value="all">전체 상태</option>
-                    <option value="자산등록 완료">자산등록 완료</option>
-                    <option value="보험등록 완료">보험등록 완료</option>
-                    <option value="장비장착 완료">장비장착 완료</option>
-                    <option value="장비장착 대기">장비장착 대기</option>
-                    <option value="미등록">미등록</option>
-                </select>
                 <div style={{ flex: 1 }} />
-                <button type="button" className="form-button" onClick={() => setShowAssetModal(true)}>
-                    자산 등록
-                </button>
-                <button
-                    type="button"
-                    className="form-button"
-                    style={{ background: COLORS.DANGER }}
-                    onClick={handleDeleteSelected}
-                    disabled={selectedCount === 0}
-                    title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
-                >
-                    선택 삭제
-                </button>
+                <div style={{ display: "flex", gap: 8 }}>
+                    <button type="button" className="form-button" onClick={() => setShowAssetModal(true)}>
+                        자산 등록
+                    </button>
+                    <button
+                        type="button"
+                        className="form-button"
+                        style={{ background: COLORS.DANGER }}
+                        onClick={handleDeleteSelected}
+                        disabled={selectedCount === 0}
+                        title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
+                    >
+                        선택 삭제
+                    </button>
+                    <div style={{ position: "relative" }} data-column-dropdown>
+                        <button type="button" className="form-button" onClick={() => setShowColumnDropdown(!showColumnDropdown)} style={{ background: "#607d8b", display: "flex", alignItems: "center", gap: "4px" }} title="컬럼 설정">
+                            <FaCog size={14} />
+                            컬럼 설정
+                        </button>
+                        {showColumnDropdown && (
+                            <div
+                                data-column-dropdown
+                                style={{
+                                    position: "absolute",
+                                    top: "100%",
+                                    right: 0,
+                                    backgroundColor: "white",
+                                    border: "1px solid #ddd",
+                                    borderRadius: "4px",
+                                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                    zIndex: 1000,
+                                    minWidth: "200px",
+                                    padding: "8px 0",
+                                    marginTop: "4px",
+                                }}
+                            >
+                                <div style={{ padding: "8px 12px", borderBottom: "1px solid #eee", fontSize: "0.9rem", fontWeight: "600" }}>컬럼 표시 설정</div>
+                                {columnSettings.columns.map((column, index) => (
+                                    <div
+                                        key={column.key}
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, index)}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, index)}
+                                        onDragEnd={handleDragEnd}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            padding: "6px 12px",
+                                            cursor: column.required ? "not-allowed" : "pointer",
+                                            opacity: draggedColumnIndex === index ? 0.5 : column.required ? 0.6 : 1,
+                                            backgroundColor: dragOverColumnIndex === index ? "#e3f2fd" : "transparent",
+                                            borderLeft: dragOverColumnIndex === index ? "3px solid #2196f3" : "3px solid transparent",
+                                            transition: "all 0.2s ease",
+                                        }}
+                                    >
+                                        <div style={{ marginRight: "8px", cursor: "grab" }}>
+                                            <FaGripVertical size={10} color="#999" />
+                                        </div>
+                                        <div
+                                            style={{ marginRight: "8px", width: "16px", textAlign: "center" }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                !column.required && toggleColumnVisibility(column.key);
+                                            }}
+                                        >
+                                            {column.visible ? <FaEye size={12} color="#4caf50" /> : <FaEyeSlash size={12} color="#f44336" />}
+                                        </div>
+                                        <span style={{ fontSize: "0.85rem", flex: 1 }}>{column.label}</span>
+                                        {column.required && <span style={{ fontSize: "0.7rem", color: "#999" }}>필수</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
             </div>
 
             <Modal isOpen={showAssetModal} onClose={() => setShowAssetModal(false)} title="자산 등록" formId="asset-create" onSubmit={handleAssetSubmit}>
@@ -312,146 +597,7 @@ export default function AssetStatus() {
                 <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
             </Modal>
 
-            <Table
-                columns={[
-                    { key: "plate", label: "차량번호", render: (row) => (
-                        <button
-                            type="button"
-                            onClick={() => openInfoModal(row)}
-                            className="link-button"
-                            title="차량 정보 보기"
-                        >
-                            {row.plate}
-                        </button>
-                    )},
-                    { key: "vehicleType", label: "차종" },
-                    { key: "registrationDate", label: "차량등록일", render: (row) => formatDateShort(row.registrationDate) },
-                    { key: "insuranceExpiryDate", label: "보험만료일", render: (row) => 
-                        row.insuranceExpiryDate ? formatDateShort(row.insuranceExpiryDate) : "-"
-                    },
-                    { key: "diagnosticCodes", label: "차량 상태", render: (row) => {
-                        const codes = calculateDiagnosticCodes(row);
-                        return (
-                            <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                                {Object.entries(codes).map(([category, count]) => (
-                                    count > 0 && (
-                                        <button 
-                                            key={category} 
-                                            type="button"
-                                            className="badge badge--diagnostic badge--clickable"
-                                            style={{ fontSize: "10px", padding: "2px 6px", cursor: "pointer", border: "none" }}
-                                            onClick={() => openDiagnosticModal(row, category, count)}
-                                            title={`${category} 세부 진단 보기`}
-                                        >
-                                            {category} {count}개
-                                        </button>
-                                    )
-                                ))}
-                                {Object.values(codes).every(count => count === 0) && (
-                                    <span className="badge badge--normal">정상</span>
-                                )}
-                            </div>
-                        );
-                    }},
-                    { key: "deviceStatus", label: "단말 상태", render: (row) => {
-                        const hasDevice = row.deviceSerial;
-                        const status = hasDevice ? "연결됨" : "미연결";
-                        return <span className={`badge ${hasDevice ? 'badge--on' : 'badge--off'}`}>{status}</span>;
-                    }},
-                    { key: "managementStage", label: "관리단계", render: (row) => {
-                        const stage = getManagementStage(row);
-                        const stageClass = {
-                            "수리/점검 중": "badge--maintenance",
-                            "입고대상": "badge--pending",
-                            "대여 가능": "badge--available", 
-                            "대여 중": "badge--rented",
-                            "수리/점검 완료": "badge--completed",
-                            "단말 장착 완료": "badge--installed",
-                            "전산등록완료": "badge--registered"
-                        };
-                        return (
-                            <span className={`badge ${stageClass[stage] || 'badge--default'}`}>
-                                {stage}
-                            </span>
-                        );
-                    }},
-                    { key: "memo", label: "메모", render: (row) => (
-                        <div style={{ maxWidth: "150px" }}>
-                            {editingMemo === row.id ? (
-                                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <input
-                                        type="text"
-                                        value={memoText}
-                                        onChange={(e) => setMemoText(e.target.value)}
-                                        style={{
-                                            width: "100px",
-                                            padding: "4px",
-                                            border: "1px solid #ddd",
-                                            borderRadius: "4px",
-                                            fontSize: "0.85rem",
-                                        }}
-                                        autoFocus
-                                    />
-                                    <button
-                                        onClick={() => handleMemoSave(row.id)}
-                                        style={{
-                                            background: "none",
-                                            border: "none",
-                                            color: "#4caf50",
-                                            cursor: "pointer",
-                                            padding: "2px",
-                                        }}
-                                    >
-                                        <FaSave size={12} />
-                                    </button>
-                                    <button
-                                        onClick={handleMemoCancel}
-                                        style={{
-                                            background: "none",
-                                            border: "none",
-                                            color: "#f44336",
-                                            cursor: "pointer",
-                                            padding: "2px",
-                                        }}
-                                    >
-                                        <FaTimes size={12} />
-                                    </button>
-                                </div>
-                            ) : (
-                                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                    <span
-                                        style={{
-                                            fontSize: "0.85rem",
-                                            overflow: "hidden",
-                                            textOverflow: "ellipsis",
-                                            whiteSpace: "nowrap",
-                                            maxWidth: "100px",
-                                        }}
-                                        title={row.memo}
-                                    >
-                                        {row.memo || "메모 없음"}
-                                    </span>
-                                    <button
-                                        onClick={() => handleMemoEdit(row.id, row.memo)}
-                                        style={{
-                                            background: "none",
-                                            border: "none",
-                                            color: "#1976d2",
-                                            cursor: "pointer",
-                                            padding: "2px",
-                                        }}
-                                    >
-                                        <FaEdit size={12} />
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    ) }
-                ]}
-                data={filtered}
-                selection={selection}
-                emptyMessage="조건에 맞는 차량 자산이 없습니다."
-            />
+            <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." />
             <Modal
                 isOpen={showInfoModal && infoVehicle}
                 onClose={() => setShowInfoModal(false)}
@@ -461,42 +607,42 @@ export default function AssetStatus() {
             >
                 <div className="grid-2col">
                     <section className="card card-padding">
-                        <h3 className="section-title section-margin-0">
-                            자산 정보
-                        </h3>
-                        <InfoGrid items={[
-                            { key: 'plate', label: '차량번호', value: <strong>{infoVehicle?.asset?.plate || "-"}</strong> },
-                            { key: 'vehicleType', label: '차종', value: infoVehicle?.asset?.vehicleType },
-                            { key: 'makeModel', label: '제조사/모델', value: [infoVehicle?.asset?.make, infoVehicle?.asset?.model], type: 'makeModel' },
-                            { key: 'yearFuel', label: '연식/연료', value: [infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType], type: 'yearFuel' },
-                            { key: 'vin', label: 'VIN', value: infoVehicle?.asset?.vin || infoVehicle?.vin },
-                            { key: 'insurance', label: '보험/공제', value: infoVehicle?.asset?.insuranceInfo },
-                            { key: 'registrationDate', label: '차량 등록일', value: infoVehicle?.asset?.registrationDate, type: 'date' },
-                            { key: 'status', label: '등록 상태', value: infoVehicle?.asset?.registrationStatus },
-                            { key: 'installer', label: '설치자', value: infoVehicle?.asset?.installer },
-                            { key: 'deviceSerial', label: '기기 시리얼', value: infoVehicle?.asset?.deviceSerial }
-                        ]} />
+                        <h3 className="section-title section-margin-0">자산 정보</h3>
+                        <InfoGrid
+                            items={[
+                                { key: "plate", label: "차량번호", value: <strong>{infoVehicle?.asset?.plate || "-"}</strong> },
+                                { key: "vehicleType", label: "차종", value: infoVehicle?.asset?.vehicleType },
+                                { key: "makeModel", label: "제조사/모델", value: [infoVehicle?.asset?.make, infoVehicle?.asset?.model], type: "makeModel" },
+                                { key: "yearFuel", label: "연식/연료", value: [infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType], type: "yearFuel" },
+                                { key: "vin", label: "VIN", value: infoVehicle?.asset?.vin || infoVehicle?.vin },
+                                { key: "insurance", label: "보험/공제", value: infoVehicle?.asset?.insuranceInfo },
+                                { key: "registrationDate", label: "차량 등록일", value: infoVehicle?.asset?.registrationDate, type: "date" },
+                                { key: "status", label: "등록 상태", value: infoVehicle?.asset?.registrationStatus },
+                                { key: "installer", label: "설치자", value: infoVehicle?.asset?.installer },
+                                { key: "deviceSerial", label: "기기 시리얼", value: infoVehicle?.asset?.deviceSerial },
+                            ]}
+                        />
                     </section>
 
                     <section className="card card-padding">
-                        <h3 className="section-title section-margin-0">
-                            대여 정보
-                        </h3>
-                        <InfoGrid items={[
-                            { key: 'rentalId', label: '계약번호', value: infoVehicle?.rental?.rental_id },
-                            { key: 'renterName', label: '대여자', value: infoVehicle?.rental?.renter_name },
-                            { key: 'contact', label: '연락처', value: infoVehicle?.rental?.contact_number },
-                            { key: 'address', label: '주소', value: infoVehicle?.rental?.address },
-                            { key: 'period', label: '대여 기간', value: infoVehicle?.rental?.rental_period, type: 'dateRange' },
-                            { key: 'insurance', label: '보험사', value: infoVehicle?.rental?.insurance_name },
-                            { key: 'rentalLocation', label: '대여 위치', value: infoVehicle?.rental?.rental_location, type: 'location' },
-                            { key: 'returnLocation', label: '반납 위치', value: infoVehicle?.rental?.return_location, type: 'location' },
-                            { key: 'currentLocation', label: '현재 위치', value: infoVehicle?.rental?.current_location, type: 'location' }
-                        ]} />
+                        <h3 className="section-title section-margin-0">대여 정보</h3>
+                        <InfoGrid
+                            items={[
+                                { key: "rentalId", label: "계약번호", value: infoVehicle?.rental?.rental_id },
+                                { key: "renterName", label: "대여자", value: infoVehicle?.rental?.renter_name },
+                                { key: "contact", label: "연락처", value: infoVehicle?.rental?.contact_number },
+                                { key: "address", label: "주소", value: infoVehicle?.rental?.address },
+                                { key: "period", label: "대여 기간", value: infoVehicle?.rental?.rental_period, type: "dateRange" },
+                                { key: "insurance", label: "보험사", value: infoVehicle?.rental?.insurance_name },
+                                { key: "rentalLocation", label: "대여 위치", value: infoVehicle?.rental?.rental_location, type: "location" },
+                                { key: "returnLocation", label: "반납 위치", value: infoVehicle?.rental?.return_location, type: "location" },
+                                { key: "currentLocation", label: "현재 위치", value: infoVehicle?.rental?.current_location, type: "location" },
+                            ]}
+                        />
                     </section>
                 </div>
             </Modal>
-            
+
             <Modal
                 isOpen={showDiagnosticModal && diagnosticDetail}
                 onClose={() => setShowDiagnosticModal(false)}
@@ -509,11 +655,13 @@ export default function AssetStatus() {
                         <div className="diagnostic-header">
                             <div className="diagnostic-info">
                                 <h3>{diagnosticDetail.categoryName}</h3>
-                                <p>차량: {diagnosticDetail.vehicleInfo.vehicleType} ({diagnosticDetail.vehicleInfo.plate})</p>
+                                <p>
+                                    차량: {diagnosticDetail.vehicleInfo.vehicleType} ({diagnosticDetail.vehicleInfo.plate})
+                                </p>
                                 <p>총 {diagnosticDetail.count}개의 진단 코드가 발견되었습니다.</p>
                             </div>
                         </div>
-                        
+
                         <div className="diagnostic-issues">
                             {diagnosticDetail.issues.length > 0 ? (
                                 <div className="diagnostic-table">
@@ -528,7 +676,7 @@ export default function AssetStatus() {
                                             <div className="diagnostic-code">{issue.code}</div>
                                             <div className="diagnostic-description">{issue.description}</div>
                                             <div>
-                                                <span className={`badge diagnostic-severity diagnostic-severity--${issue.severity === '높음' ? 'high' : issue.severity === '보통' ? 'medium' : 'low'}`}>
+                                                <span className={`badge diagnostic-severity diagnostic-severity--${issue.severity === "높음" ? "high" : issue.severity === "보통" ? "medium" : "low"}`}>
                                                     {issue.severity}
                                                 </span>
                                             </div>

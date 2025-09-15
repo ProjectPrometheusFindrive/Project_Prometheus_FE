@@ -6,7 +6,7 @@ import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
 import { seedVehicles } from "../data/seed";
-import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt } from "react-icons/fa";
+import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 export default function RentalContracts() {
@@ -17,6 +17,28 @@ export default function RentalContracts() {
     const [selectedContract, setSelectedContract] = useState(null);
     const [editingMemo, setEditingMemo] = useState(null);
     const [memoText, setMemoText] = useState("");
+    const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+    const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
+    const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
+    const [columnSettings, setColumnSettings] = useState(() => {
+        const saved = localStorage.getItem("rental-columns-settings");
+        return saved
+            ? JSON.parse(saved)
+            : {
+                  columns: [
+                      { key: "select", label: "선택", visible: true, required: true, width: 36 },
+                      { key: "plate", label: "차량번호", visible: true, required: true },
+                      { key: "vehicleType", label: "차종", visible: true, required: false },
+                      { key: "renter_name", label: "예약자명", visible: true, required: false },
+                      { key: "rental_period", label: "예약기간", visible: true, required: false },
+                      { key: "rental_amount", label: "대여금액", visible: true, required: false },
+                      { key: "contractStatus", label: "계약 상태", visible: true, required: false },
+                      { key: "engine_status", label: "엔진 상태", visible: true, required: false },
+                      { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
+                      { key: "memo", label: "메모", visible: true, required: false },
+                  ],
+              };
+    });
 
     // Initial load via fake API, then merge any local drafts once
     useEffect(() => {
@@ -52,62 +74,76 @@ export default function RentalContracts() {
         };
     }, []);
 
+    // 컬럼 드롭다운 외부 클릭 감지
+    useEffect(() => {
+        const handleClickOutside = (event) => {
+            if (showColumnDropdown && !event.target.closest("[data-column-dropdown]")) {
+                setShowColumnDropdown(false);
+            }
+        };
+
+        document.addEventListener("mousedown", handleClickOutside);
+        return () => document.removeEventListener("mousedown", handleClickOutside);
+    }, [showColumnDropdown]);
+
     const rows = useMemo(() => {
         const now = new Date();
-        return items.filter((r) => {
-            // 종료된 계약 필터링: contract_status가 "완료"이거나 대여 종료일이 지나고 반납이 완료된 경우 제외
-            if (r.contract_status === "완료") return false;
+        return items
+            .filter((r) => {
+                // 종료된 계약 필터링: contract_status가 "완료"이거나 대여 종료일이 지나고 반납이 완료된 경우 제외
+                if (r.contract_status === "완료") return false;
 
-            const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
-            const isOverdue = end ? now > end : false;
-            const isStolen = Boolean(r.reported_stolen);
+                const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
+                const isOverdue = end ? now > end : false;
+                const isStolen = Boolean(r.reported_stolen);
 
-            // 반납지연, 도난의심, 사고접수 등의 문제가 있는 경우는 표시
-            if (isOverdue || isStolen || r.accident_reported) return true;
+                // 반납지연, 도난의심, 사고접수 등의 문제가 있는 경우는 표시
+                if (isOverdue || isStolen || r.accident_reported) return true;
 
-            // 현재 진행중인 계약만 표시 (예약중, 대여중)
-            const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
-            const isActive = start && end ? now >= start && now <= end : false;
-            const isFuture = start ? now < start : false;
+                // 현재 진행중인 계약만 표시 (예약중, 대여중)
+                const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
+                const isActive = start && end ? now >= start && now <= end : false;
+                const isFuture = start ? now < start : false;
 
-            return isActive || isFuture;
-        }).map((r) => {
-            const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
-            const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
-            const isActive = start && end ? now >= start && now <= end : false;
-            const isOverdue = end ? now > end : false;
-            const isStolen = Boolean(r.reported_stolen);
-            const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
-            // 계약 상태 결정
-            let contractStatus = "예약 중";
-            if (isStolen) {
-                contractStatus = "도난의심";
-            } else if (isOverdue) {
-                contractStatus = "반납지연";
-            } else if (isActive) {
-                contractStatus = "대여중";
-            } else if (r.accident_reported) {
-                contractStatus = "사고접수";
-            }
+                return isActive || isFuture;
+            })
+            .map((r) => {
+                const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
+                const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
+                const isActive = start && end ? now >= start && now <= end : false;
+                const isOverdue = end ? now > end : false;
+                const isStolen = Boolean(r.reported_stolen);
+                const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
+                // 계약 상태 결정
+                let contractStatus = "예약 중";
+                if (isStolen) {
+                    contractStatus = "도난의심";
+                } else if (isOverdue) {
+                    contractStatus = "반납지연";
+                } else if (isActive) {
+                    contractStatus = "대여중";
+                } else if (r.accident_reported) {
+                    contractStatus = "사고접수";
+                }
 
-            // 대여금액 관련 정보
-            const isLongTerm = (r.rental_duration_days || 0) > 30;
-            const hasUnpaid = (r.unpaid_amount || 0) > 0;
+                // 대여금액 관련 정보
+                const isLongTerm = (r.rental_duration_days || 0) > 30;
+                const hasUnpaid = (r.unpaid_amount || 0) > 0;
 
-            return {
-                ...r,
-                isActive,
-                isOverdue,
-                isStolen,
-                overdueDays,
-                contractStatus,
-                isLongTerm,
-                hasUnpaid,
-                engineOn: r.engine_status === "on",
-                restartBlocked: Boolean(r.restart_blocked),
-                memo: r.memo || "",
-            };
-        });
+                return {
+                    ...r,
+                    isActive,
+                    isOverdue,
+                    isStolen,
+                    overdueDays,
+                    contractStatus,
+                    isLongTerm,
+                    hasUnpaid,
+                    engineOn: r.engine_status === "on",
+                    restartBlocked: Boolean(r.restart_blocked),
+                    memo: r.memo || "",
+                };
+            });
     }, [items]);
 
     const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rental_id");
@@ -211,6 +247,207 @@ export default function RentalContracts() {
         setShowDetail(true);
     };
 
+    // 컬럼 설정 관련 함수들
+    const saveColumnSettings = (newSettings) => {
+        setColumnSettings(newSettings);
+        localStorage.setItem("rental-columns-settings", JSON.stringify(newSettings));
+    };
+
+    const toggleColumnVisibility = (columnKey) => {
+        const newSettings = {
+            ...columnSettings,
+            columns: columnSettings.columns.map((col) => (col.key === columnKey && !col.required ? { ...col, visible: !col.visible } : col)),
+        };
+        saveColumnSettings(newSettings);
+    };
+
+    const moveColumn = (fromIndex, toIndex) => {
+        const newColumns = [...columnSettings.columns];
+        const [movedColumn] = newColumns.splice(fromIndex, 1);
+        newColumns.splice(toIndex, 0, movedColumn);
+        saveColumnSettings({
+            ...columnSettings,
+            columns: newColumns,
+        });
+    };
+
+    const visibleColumns = columnSettings.columns.filter((col) => col.visible);
+
+    // 드래그&드롭 이벤트 핸들러들
+    const handleDragStart = (e, index) => {
+        setDraggedColumnIndex(index);
+        e.dataTransfer.effectAllowed = "move";
+    };
+
+    const handleDragOver = (e, index) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = "move";
+        setDragOverColumnIndex(index);
+    };
+
+    const handleDragLeave = () => {
+        setDragOverColumnIndex(null);
+    };
+
+    const handleDrop = (e, dropIndex) => {
+        e.preventDefault();
+        if (draggedColumnIndex !== null && draggedColumnIndex !== dropIndex) {
+            moveColumn(draggedColumnIndex, dropIndex);
+        }
+        setDraggedColumnIndex(null);
+        setDragOverColumnIndex(null);
+    };
+
+    const handleDragEnd = () => {
+        setDraggedColumnIndex(null);
+        setDragOverColumnIndex(null);
+    };
+
+    // 각 컬럼의 셀 내용을 렌더링하는 함수
+    const renderCellContent = (column, row) => {
+        switch (column.key) {
+            case "select":
+                return <input type="checkbox" aria-label={`Select: ${row.plate || row.rental_id}`} checked={selected.has(row.rental_id)} onChange={() => toggleSelect(row.rental_id)} />;
+            case "plate":
+                return (
+                    <button
+                        style={{
+                            background: "none",
+                            border: "none",
+                            color: "#1976d2",
+                            cursor: "pointer",
+                            textDecoration: "underline",
+                            padding: 0,
+                            font: "inherit",
+                        }}
+                        onClick={() => handlePlateClick(row)}
+                    >
+                        {row.plate || "-"}
+                    </button>
+                );
+            case "vehicleType":
+                return row.vehicleType || "-";
+            case "renter_name":
+                return row.renter_name || "-";
+            case "rental_period":
+                return (
+                    <div style={{ fontSize: "0.9rem", lineHeight: "1.4" }}>
+                        <div>{formatDateTime(row.rental_period?.start)} ~</div>
+                        <div>{formatDateTime(row.rental_period?.end)}</div>
+                    </div>
+                );
+            case "rental_amount":
+                return getRentalAmountBadges(row);
+            case "contractStatus":
+                return getContractStatusBadge(row.contractStatus);
+            case "engine_status":
+                return (
+                    <StatusBadge
+                        style={{
+                            backgroundColor: row.engineOn ? "#4caf50" : "#f44336",
+                            color: "white",
+                        }}
+                    >
+                        {row.engineOn ? "ON" : "OFF"}
+                    </StatusBadge>
+                );
+            case "restart_blocked":
+                return (
+                    <label className="status-toggle" style={{ margin: 0, display: "inline-flex" }}>
+                        <input type="checkbox" checked={row.restartBlocked} onChange={() => handleToggleRestart(row.rental_id)} style={{ display: "none" }} />
+                        <span
+                            className="toggle-btn"
+                            style={{
+                                backgroundColor: row.restartBlocked ? "#f44336" : "#4caf50",
+                                color: "white",
+                                cursor: "pointer",
+                                minWidth: "60px",
+                                textAlign: "center",
+                                fontSize: "0.8rem",
+                            }}
+                        >
+                            {row.restartBlocked ? "차단" : "허용"}
+                        </span>
+                    </label>
+                );
+            case "memo":
+                return (
+                    <div style={{ maxWidth: "150px" }}>
+                        {editingMemo === row.rental_id ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <input
+                                    type="text"
+                                    value={memoText}
+                                    onChange={(e) => setMemoText(e.target.value)}
+                                    style={{
+                                        width: "100px",
+                                        padding: "4px",
+                                        border: "1px solid #ddd",
+                                        borderRadius: "4px",
+                                        fontSize: "0.85rem",
+                                    }}
+                                    autoFocus
+                                />
+                                <button
+                                    onClick={() => handleMemoSave(row.rental_id)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#4caf50",
+                                        cursor: "pointer",
+                                        padding: "2px",
+                                    }}
+                                >
+                                    <FaSave size={12} />
+                                </button>
+                                <button
+                                    onClick={handleMemoCancel}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#f44336",
+                                        cursor: "pointer",
+                                        padding: "2px",
+                                    }}
+                                >
+                                    <FaTimes size={12} />
+                                </button>
+                            </div>
+                        ) : (
+                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                                <span
+                                    style={{
+                                        fontSize: "0.85rem",
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        maxWidth: "100px",
+                                    }}
+                                    title={row.memo}
+                                >
+                                    {row.memo || "메모 없음"}
+                                </span>
+                                <button
+                                    onClick={() => handleMemoEdit(row.rental_id, row.memo)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#1976d2",
+                                        cursor: "pointer",
+                                        padding: "2px",
+                                    }}
+                                >
+                                    <FaEdit size={12} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            default:
+                return "-";
+        }
+    };
+
     const formatDateTime = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
@@ -280,6 +517,74 @@ export default function RentalContracts() {
                         >
                             선택 삭제
                         </button>
+                        <div style={{ position: "relative" }} data-column-dropdown>
+                            <button
+                                type="button"
+                                className="form-button"
+                                onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                                style={{ background: "#607d8b", display: "flex", alignItems: "center", gap: "4px" }}
+                                title="컬럼 설정"
+                            >
+                                <FaCog size={14} />
+                                컬럼 설정
+                            </button>
+                            {showColumnDropdown && (
+                                <div
+                                    data-column-dropdown
+                                    style={{
+                                        position: "absolute",
+                                        top: "100%",
+                                        right: 0,
+                                        backgroundColor: "white",
+                                        border: "1px solid #ddd",
+                                        borderRadius: "4px",
+                                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                                        zIndex: 1000,
+                                        minWidth: "200px",
+                                        padding: "8px 0",
+                                        marginTop: "4px",
+                                    }}
+                                >
+                                    <div style={{ padding: "8px 12px", borderBottom: "1px solid #eee", fontSize: "0.9rem", fontWeight: "600" }}>컬럼 표시 설정</div>
+                                    {columnSettings.columns.map((column, index) => (
+                                        <div
+                                            key={column.key}
+                                            draggable
+                                            onDragStart={(e) => handleDragStart(e, index)}
+                                            onDragOver={(e) => handleDragOver(e, index)}
+                                            onDragLeave={handleDragLeave}
+                                            onDrop={(e) => handleDrop(e, index)}
+                                            onDragEnd={handleDragEnd}
+                                            style={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                padding: "6px 12px",
+                                                cursor: column.required ? "not-allowed" : "pointer",
+                                                opacity: draggedColumnIndex === index ? 0.5 : column.required ? 0.6 : 1,
+                                                backgroundColor: dragOverColumnIndex === index ? "#e3f2fd" : "transparent",
+                                                borderLeft: dragOverColumnIndex === index ? "3px solid #2196f3" : "3px solid transparent",
+                                                transition: "all 0.2s ease",
+                                            }}
+                                        >
+                                            <div style={{ marginRight: "8px", cursor: "grab" }}>
+                                                <FaGripVertical size={10} color="#999" />
+                                            </div>
+                                            <div
+                                                style={{ marginRight: "8px", width: "16px", textAlign: "center" }}
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    !column.required && toggleColumnVisibility(column.key);
+                                                }}
+                                            >
+                                                {column.visible ? <FaEye size={12} color="#4caf50" /> : <FaEyeSlash size={12} color="#f44336" />}
+                                            </div>
+                                            <span style={{ fontSize: "0.85rem", flex: 1 }}>{column.label}</span>
+                                            {column.required && <span style={{ fontSize: "0.7rem", color: "#999" }}>필수</span>}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
 
@@ -287,150 +592,37 @@ export default function RentalContracts() {
                     <table className="asset-table rentals-table">
                         <thead>
                             <tr>
-                                <th style={{ width: 36, textAlign: "center" }}>
-                                    <input type="checkbox" aria-label="Select all visible" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
-                                </th>
-                                <th>차량번호</th>
-                                <th>차종</th>
-                                <th>예약자명</th>
-                                <th>예약기간</th>
-                                <th>대여금액</th>
-                                <th>계약 상태</th>
-                                <th>엔진 상태</th>
-                                <th>재시동 금지</th>
-                                <th>메모</th>
+                                {visibleColumns.map((column) => (
+                                    <th
+                                        key={column.key}
+                                        style={{
+                                            width: column.width,
+                                            textAlign: column.key === "select" ? "center" : "left",
+                                        }}
+                                    >
+                                        {column.key === "select" ? (
+                                            <input type="checkbox" aria-label="Select all visible" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
+                                        ) : (
+                                            column.label
+                                        )}
+                                    </th>
+                                ))}
                             </tr>
                         </thead>
                         <tbody>
                             {rows.map((r, index) => (
                                 <tr key={r.rental_id || `rental-${index}`}>
-                                    <td style={{ textAlign: "center" }}>
-                                        <input type="checkbox" aria-label={`Select: ${r.plate || r.rental_id}`} checked={selected.has(r.rental_id)} onChange={() => toggleSelect(r.rental_id)} />
-                                    </td>
-                                    <td>
-                                        <button
+                                    {visibleColumns.map((column) => (
+                                        <td
+                                            key={column.key}
                                             style={{
-                                                background: "none",
-                                                border: "none",
-                                                color: "#1976d2",
-                                                cursor: "pointer",
-                                                textDecoration: "underline",
-                                                padding: 0,
-                                                font: "inherit",
-                                            }}
-                                            onClick={() => handlePlateClick(r)}
-                                        >
-                                            {r.plate || "-"}
-                                        </button>
-                                    </td>
-                                    <td>{r.vehicleType || "-"}</td>
-                                    <td>{r.renter_name || "-"}</td>
-                                    <td>
-                                        <div style={{ fontSize: "0.9rem", lineHeight: "1.4" }}>
-                                            <div>{formatDateTime(r.rental_period?.start)} ~</div>
-                                            <div>{formatDateTime(r.rental_period?.end)}</div>
-                                        </div>
-                                    </td>
-                                    <td>{getRentalAmountBadges(r)}</td>
-                                    <td>{getContractStatusBadge(r.contractStatus)}</td>
-                                    <td>
-                                        <StatusBadge
-                                            style={{
-                                                backgroundColor: r.engineOn ? "#4caf50" : "#f44336",
-                                                color: "white",
+                                                textAlign: column.key === "select" ? "center" : "left",
+                                                maxWidth: column.key === "memo" ? "150px" : undefined,
                                             }}
                                         >
-                                            {r.engineOn ? "ON" : "OFF"}
-                                        </StatusBadge>
-                                    </td>
-                                    <td>
-                                        <label className="status-toggle" style={{ margin: 0, display: "inline-flex" }}>
-                                            <input type="checkbox" checked={r.restartBlocked} onChange={() => handleToggleRestart(r.rental_id)} style={{ display: "none" }} />
-                                            <span
-                                                className="toggle-btn"
-                                                style={{
-                                                    backgroundColor: r.restartBlocked ? "#f44336" : "#4caf50",
-                                                    color: "white",
-                                                    cursor: "pointer",
-                                                    minWidth: "60px",
-                                                    textAlign: "center",
-                                                    fontSize: "0.8rem",
-                                                }}
-                                            >
-                                                {r.restartBlocked ? "차단" : "허용"}
-                                            </span>
-                                        </label>
-                                    </td>
-                                    <td style={{ maxWidth: "150px" }}>
-                                        {editingMemo === r.rental_id ? (
-                                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                                <input
-                                                    type="text"
-                                                    value={memoText}
-                                                    onChange={(e) => setMemoText(e.target.value)}
-                                                    style={{
-                                                        width: "100px",
-                                                        padding: "4px",
-                                                        border: "1px solid #ddd",
-                                                        borderRadius: "4px",
-                                                        fontSize: "0.85rem",
-                                                    }}
-                                                    autoFocus
-                                                />
-                                                <button
-                                                    onClick={() => handleMemoSave(r.rental_id)}
-                                                    style={{
-                                                        background: "none",
-                                                        border: "none",
-                                                        color: "#4caf50",
-                                                        cursor: "pointer",
-                                                        padding: "2px",
-                                                    }}
-                                                >
-                                                    <FaSave size={12} />
-                                                </button>
-                                                <button
-                                                    onClick={handleMemoCancel}
-                                                    style={{
-                                                        background: "none",
-                                                        border: "none",
-                                                        color: "#f44336",
-                                                        cursor: "pointer",
-                                                        padding: "2px",
-                                                    }}
-                                                >
-                                                    <FaTimes size={12} />
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                                <span
-                                                    style={{
-                                                        fontSize: "0.85rem",
-                                                        overflow: "hidden",
-                                                        textOverflow: "ellipsis",
-                                                        whiteSpace: "nowrap",
-                                                        maxWidth: "100px",
-                                                    }}
-                                                    title={r.memo}
-                                                >
-                                                    {r.memo || "메모 없음"}
-                                                </span>
-                                                <button
-                                                    onClick={() => handleMemoEdit(r.rental_id, r.memo)}
-                                                    style={{
-                                                        background: "none",
-                                                        border: "none",
-                                                        color: "#1976d2",
-                                                        cursor: "pointer",
-                                                        padding: "2px",
-                                                    }}
-                                                >
-                                                    <FaEdit size={12} />
-                                                </button>
-                                            </div>
-                                        )}
-                                    </td>
+                                            {renderCellContent(column, r)}
+                                        </td>
+                                    ))}
                                 </tr>
                             ))}
                         </tbody>
