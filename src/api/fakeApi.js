@@ -206,7 +206,51 @@ export async function fetchLatestRentals() {
 
 // Dashboard slices: asset registration status distribution + business status counts
 export async function fetchDashboardData() {
-  return await fetchJSON(`${API_BASE_URL}/dashboard`);
+  try {
+    return await fetchJSON(`${API_BASE_URL}/dashboard`);
+  } catch (error) {
+    // Fallback to local seed data if server is not available
+    console.warn('Falling back to local seed data for dashboard');
+    const { db } = await import('../data/db');
+
+    // Calculate asset registration status distribution
+    const registrationStats = {};
+    db.assets.forEach(asset => {
+      const status = asset.registrationStatus || '미등록';
+      registrationStats[status] = (registrationStats[status] || 0) + 1;
+    });
+
+    // Calculate business status counts
+    const businessStats = {};
+    db.assets.forEach(asset => {
+      const status = asset.vehicleStatus || '준비중';
+      businessStats[status] = (businessStats[status] || 0) + 1;
+    });
+
+    // Total counts
+    const totalVehicles = db.assets.length;
+    const activeRentals = db.rentals.length;
+
+    // Convert to array format
+    const vehicleStatusArray = Object.keys(registrationStats).map(name => ({
+      name,
+      value: registrationStats[name]
+    }));
+
+    // Convert to array format
+    const bizStatusArray = Object.keys(businessStats).map(name => ({
+      name,
+      value: businessStats[name]
+    }));
+
+    return {
+      vehicleStatus: vehicleStatusArray, // Changed from registrationStats
+      bizStatus: bizStatusArray,         // Changed from businessStats
+      totalVehicles,
+      activeRentals,
+      timestamp: new Date().toISOString()
+    };
+  }
 }
 
 // Simplified vehicle view (most pages don't need this complex logic)

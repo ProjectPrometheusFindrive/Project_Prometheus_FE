@@ -28,7 +28,7 @@ export const seedVehicles = {
                 category1: 0,
                 category2: 0,
                 category3: 0,
-                category4: 0
+                category4: 0,
             },
         },
         rental: {
@@ -61,54 +61,54 @@ export const seedVehicles = {
             mileage: 23450,
             logRecord: [
                 {
-                    "latitude": 37.5665,
-                    "longitude": 126.978,
-                    "speed": 0,
-                    "dateTime": "2025-09-14T09:00:00.000Z",
-                    "device": { "id": "KMHDH41EX6U123456" },
-                    "id": "log_001"
+                    latitude: 37.5665,
+                    longitude: 126.978,
+                    speed: 0,
+                    dateTime: "2025-09-14T09:00:00.000Z",
+                    device: { id: "KMHDH41EX6U123456" },
+                    id: "log_001",
                 },
                 {
-                    "latitude": 37.5675,
-                    "longitude": 126.9785,
-                    "speed": 25,
-                    "dateTime": "2025-09-14T09:05:00.000Z",
-                    "device": { "id": "KMHDH41EX6U123456" },
-                    "id": "log_002"
+                    latitude: 37.5675,
+                    longitude: 126.9785,
+                    speed: 25,
+                    dateTime: "2025-09-14T09:05:00.000Z",
+                    device: { id: "KMHDH41EX6U123456" },
+                    id: "log_002",
                 },
                 {
-                    "latitude": 37.5685,
-                    "longitude": 126.979,
-                    "speed": 45,
-                    "dateTime": "2025-09-14T09:10:00.000Z",
-                    "device": { "id": "KMHDH41EX6U123456" },
-                    "id": "log_003"
+                    latitude: 37.5685,
+                    longitude: 126.979,
+                    speed: 45,
+                    dateTime: "2025-09-14T09:10:00.000Z",
+                    device: { id: "KMHDH41EX6U123456" },
+                    id: "log_003",
                 },
                 {
-                    "latitude": 37.5695,
-                    "longitude": 126.9795,
-                    "speed": 65,
-                    "dateTime": "2025-09-14T09:15:00.000Z",
-                    "device": { "id": "KMHDH41EX6U123456" },
-                    "id": "log_004"
+                    latitude: 37.5695,
+                    longitude: 126.9795,
+                    speed: 65,
+                    dateTime: "2025-09-14T09:15:00.000Z",
+                    device: { id: "KMHDH41EX6U123456" },
+                    id: "log_004",
                 },
                 {
-                    "latitude": 37.5705,
-                    "longitude": 126.98,
-                    "speed": 80,
-                    "dateTime": "2025-09-14T09:20:00.000Z",
-                    "device": { "id": "KMHDH41EX6U123456" },
-                    "id": "log_005"
+                    latitude: 37.5705,
+                    longitude: 126.98,
+                    speed: 80,
+                    dateTime: "2025-09-14T09:20:00.000Z",
+                    device: { id: "KMHDH41EX6U123456" },
+                    id: "log_005",
                 },
                 {
-                    "latitude": 37.55,
-                    "longitude": 126.99,
-                    "speed": 0,
-                    "dateTime": "2025-09-14T09:25:00.000Z",
-                    "device": { "id": "KMHDH41EX6U123456" },
-                    "id": "log_006"
-                }
-            ]
+                    latitude: 37.55,
+                    longitude: 126.99,
+                    speed: 0,
+                    dateTime: "2025-09-14T09:25:00.000Z",
+                    device: { id: "KMHDH41EX6U123456" },
+                    id: "log_006",
+                },
+            ],
         },
     },
     KNDPB3AC7H7123456: {
@@ -134,7 +134,7 @@ export const seedVehicles = {
                 category1: 2,
                 category2: 1,
                 category3: 0,
-                category4: 3
+                category4: 3,
             },
         },
         rental: {
@@ -167,46 +167,46 @@ export const seedVehicles = {
             mileage: 87650,
             logRecord: [
                 {
-                    "latitude": 35.1796,
-                    "longitude": 129.0756,
-                    "speed": 0,
-                    "dateTime": "2025-09-14T08:00:00.000Z",
-                    "device": { "id": "KNDPB3AC7H7123456" },
-                    "id": "log_101"
+                    latitude: 35.1796,
+                    longitude: 129.0756,
+                    speed: 0,
+                    dateTime: "2025-09-14T08:00:00.000Z",
+                    device: { id: "KNDPB3AC7H7123456" },
+                    id: "log_101",
                 },
                 {
-                    "latitude": 35.1806,
-                    "longitude": 129.0766,
-                    "speed": 35,
-                    "dateTime": "2025-09-14T08:10:00.000Z",
-                    "device": { "id": "KNDPB3AC7H7123456" },
-                    "id": "log_102"
+                    latitude: 35.1806,
+                    longitude: 129.0766,
+                    speed: 35,
+                    dateTime: "2025-09-14T08:10:00.000Z",
+                    device: { id: "KNDPB3AC7H7123456" },
+                    id: "log_102",
                 },
                 {
-                    "latitude": 35.1816,
-                    "longitude": 129.0776,
-                    "speed": 55,
-                    "dateTime": "2025-09-14T08:20:00.000Z",
-                    "device": { "id": "KNDPB3AC7H7123456" },
-                    "id": "log_103"
+                    latitude: 35.1816,
+                    longitude: 129.0776,
+                    speed: 55,
+                    dateTime: "2025-09-14T08:20:00.000Z",
+                    device: { id: "KNDPB3AC7H7123456" },
+                    id: "log_103",
                 },
                 {
-                    "latitude": 35.1826,
-                    "longitude": 129.0786,
-                    "speed": 75,
-                    "dateTime": "2025-09-14T08:30:00.000Z",
-                    "device": { "id": "KNDPB3AC7H7123456" },
-                    "id": "log_104"
+                    latitude: 35.1826,
+                    longitude: 129.0786,
+                    speed: 75,
+                    dateTime: "2025-09-14T08:30:00.000Z",
+                    device: { id: "KNDPB3AC7H7123456" },
+                    id: "log_104",
                 },
                 {
-                    "latitude": 35.2,
-                    "longitude": 129.08,
-                    "speed": 15,
-                    "dateTime": "2025-09-14T08:40:00.000Z",
-                    "device": { "id": "KNDPB3AC7H7123456" },
-                    "id": "log_105"
-                }
-            ]
+                    latitude: 35.2,
+                    longitude: 129.08,
+                    speed: 15,
+                    dateTime: "2025-09-14T08:40:00.000Z",
+                    device: { id: "KNDPB3AC7H7123456" },
+                    id: "log_105",
+                },
+            ],
         },
     },
     "5YJ3E1EA7KF123456": {
@@ -232,7 +232,7 @@ export const seedVehicles = {
                 category1: 0,
                 category2: 2,
                 category3: 1,
-                category4: 0
+                category4: 0,
             },
         },
         rental: {
@@ -265,46 +265,46 @@ export const seedVehicles = {
             mileage: 45670,
             logRecord: [
                 {
-                    "latitude": 37.4563,
-                    "longitude": 126.7052,
-                    "speed": 0,
-                    "dateTime": "2025-09-14T10:00:00.000Z",
-                    "device": { "id": "5YJ3E1EA7KF123456" },
-                    "id": "log_201"
+                    latitude: 37.4563,
+                    longitude: 126.7052,
+                    speed: 0,
+                    dateTime: "2025-09-14T10:00:00.000Z",
+                    device: { id: "5YJ3E1EA7KF123456" },
+                    id: "log_201",
                 },
                 {
-                    "latitude": 37.4573,
-                    "longitude": 126.7062,
-                    "speed": 20,
-                    "dateTime": "2025-09-14T10:05:00.000Z",
-                    "device": { "id": "5YJ3E1EA7KF123456" },
-                    "id": "log_202"
+                    latitude: 37.4573,
+                    longitude: 126.7062,
+                    speed: 20,
+                    dateTime: "2025-09-14T10:05:00.000Z",
+                    device: { id: "5YJ3E1EA7KF123456" },
+                    id: "log_202",
                 },
                 {
-                    "latitude": 37.4683,
-                    "longitude": 126.7172,
-                    "speed": 90,
-                    "dateTime": "2025-09-14T10:15:00.000Z",
-                    "device": { "id": "5YJ3E1EA7KF123456" },
-                    "id": "log_203"
+                    latitude: 37.4683,
+                    longitude: 126.7172,
+                    speed: 90,
+                    dateTime: "2025-09-14T10:15:00.000Z",
+                    device: { id: "5YJ3E1EA7KF123456" },
+                    id: "log_203",
                 },
                 {
-                    "latitude": 37.4783,
-                    "longitude": 126.7282,
-                    "speed": 110,
-                    "dateTime": "2025-09-14T10:25:00.000Z",
-                    "device": { "id": "5YJ3E1EA7KF123456" },
-                    "id": "log_204"
+                    latitude: 37.4783,
+                    longitude: 126.7282,
+                    speed: 110,
+                    dateTime: "2025-09-14T10:25:00.000Z",
+                    device: { id: "5YJ3E1EA7KF123456" },
+                    id: "log_204",
                 },
                 {
-                    "latitude": 37.48,
-                    "longitude": 126.74,
-                    "speed": 40,
-                    "dateTime": "2025-09-14T10:35:00.000Z",
-                    "device": { "id": "5YJ3E1EA7KF123456" },
-                    "id": "log_205"
-                }
-            ]
+                    latitude: 37.48,
+                    longitude: 126.74,
+                    speed: 40,
+                    dateTime: "2025-09-14T10:35:00.000Z",
+                    device: { id: "5YJ3E1EA7KF123456" },
+                    id: "log_205",
+                },
+            ],
         },
     },
     WAUZZZF40LA123456: {
@@ -330,7 +330,7 @@ export const seedVehicles = {
                 category1: 1,
                 category2: 0,
                 category3: 4,
-                category4: 1
+                category4: 1,
             },
         },
         rental: {
@@ -386,7 +386,7 @@ export const seedVehicles = {
                 category1: 5,
                 category2: 3,
                 category3: 2,
-                category4: 1
+                category4: 1,
             },
         },
         rental: {
@@ -427,7 +427,7 @@ export const seedVehicles = {
                 category1: 0,
                 category2: 0,
                 category3: 0,
-                category4: 0
+                category4: 0,
             },
         },
         rental: {
@@ -468,7 +468,7 @@ export const seedVehicles = {
                 category1: 6,
                 category2: 4,
                 category3: 3,
-                category4: 2
+                category4: 2,
             },
         },
         rental: {
@@ -500,16 +500,16 @@ export const seedVehicles = {
             insuranceInfo: "렌터카공제조합 2024",
             insuranceExpiryDate: "2025-03-15",
             registrationDate: "2022-03-15",
-            registrationStatus: "장비장착 완룼",
+            registrationStatus: "장비장착 완료",
             vehicleStatus: "대기중",
             installer: "지사 A",
             deviceSerial: "KIA-MORN-20-3456",
-            memo: "브레이크 점검 완룼",
+            memo: "브레이크 점검 완료",
             diagnosticCodes: {
                 category1: 8,
                 category2: 7,
                 category3: 5,
-                category4: 9
+                category4: 9,
             },
         },
         rental: {
@@ -560,12 +560,12 @@ export const seedVehicles = {
             vehicleStatus: "대여중",
             installer: "지사 B",
             deviceSerial: "GEN-GV80-24-0234",
-            memo: "신차 초기 점검 완룫",
+            memo: "신차 초기 점검 완료",
             diagnosticCodes: {
                 category1: 0,
                 category2: 0,
                 category3: 0,
-                category4: 0
+                category4: 0,
             },
         },
         rental: {
@@ -606,7 +606,7 @@ export const seedVehicles = {
                 category1: 3,
                 category2: 0,
                 category3: 2,
-                category4: 4
+                category4: 4,
             },
         },
         rental: {
@@ -647,7 +647,7 @@ export const seedVehicles = {
                 category1: 0,
                 category2: 0,
                 category3: 0,
-                category4: 0
+                category4: 0,
             },
         },
         rental: {
@@ -688,7 +688,7 @@ export const seedVehicles = {
                 category1: 2,
                 category2: 5,
                 category3: 1,
-                category4: 3
+                category4: 3,
             },
         },
         rental: {
@@ -729,7 +729,7 @@ export const seedVehicles = {
                 category1: 1,
                 category2: 0,
                 category3: 3,
-                category4: 0
+                category4: 0,
             },
         },
         rental: {
@@ -770,7 +770,7 @@ export const seedVehicles = {
                 category1: 0,
                 category2: 1,
                 category3: 0,
-                category4: 2
+                category4: 2,
             },
         },
         rental: {
@@ -811,7 +811,7 @@ export const seedVehicles = {
                 category1: 7,
                 category2: 8,
                 category3: 6,
-                category4: 5
+                category4: 5,
             },
         },
         rental: {
@@ -852,7 +852,7 @@ export const seedVehicles = {
                 category1: 10,
                 category2: 9,
                 category3: 8,
-                category4: 7
+                category4: 7,
             },
         },
         rental: {
@@ -872,4 +872,3 @@ export const seedVehicles = {
         },
     },
 };
-
