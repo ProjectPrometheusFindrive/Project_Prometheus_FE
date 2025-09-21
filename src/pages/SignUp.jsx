@@ -125,8 +125,7 @@ export default function SignUp() {
         createdAt: new Date().toISOString(),
       });
       localStorage.setItem("registeredUsers", JSON.stringify(arr));
-      setMessage("회원가입이 완료되었습니다. 로그인 화면으로 이동합니다.");
-      setTimeout(() => navigate("/"), 900);
+      setMessage("success");
     } catch {
       setMessage("데모 환경: 저장에 실패했습니다. 다시 시도해주세요.");
     }
@@ -197,7 +196,41 @@ export default function SignUp() {
             <button type="submit" className="login-button" style={{ flex: 1 }}>가입하기</button>
           </div>
         </form>
-        {message && <p className="login-help" style={{ color: message.includes("완료") ? "#177245" : "#b71c1c" }}>{message}</p>}
+        {message && message !== "success" && <p className="login-help" style={{ color: "#b71c1c" }}>{message}</p>}
+
+        {message === "success" && (
+          <div style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0, 0, 0, 0.5)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000
+          }}>
+            <div style={{
+              backgroundColor: "white",
+              padding: "40px",
+              borderRadius: "10px",
+              textAlign: "center",
+              boxShadow: "0 4px 20px rgba(0, 0, 0, 0.3)",
+              maxWidth: "400px",
+              width: "90%"
+            }}>
+              <h2 style={{ marginBottom: "20px", color: "#177245" }}>가입이 완료되었습니다.</h2>
+              <button
+                onClick={() => navigate("/")}
+                className="login-button"
+                style={{ marginTop: "20px", width: "100%" }}
+              >
+                로그인 하러 가기
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
