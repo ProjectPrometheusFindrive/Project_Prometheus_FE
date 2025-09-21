@@ -23,9 +23,6 @@ export const STORAGE_KEYS = {
   COMPANY_INFO: 'companyInfo',
   GEOFENCE_SETS: 'geofenceSets',
   
-  // Assets
-  ASSET_HISTORY: 'assetHistory',
-  
   // Vehicle Controls
   NO_RESTART_MAP: 'noRestartMap',
   ENGINE_STATUS_MAP: 'engineStatusMap',
@@ -277,24 +274,6 @@ export const typedStorage = {
     
     getEngineStatusMap: () => storageUtils.get(STORAGE_KEYS.ENGINE_STATUS_MAP, {}),
     setEngineStatusMap: (map) => storageUtils.set(STORAGE_KEYS.ENGINE_STATUS_MAP, map)
-  }
-  ,
-
-  // Asset history helpers
-  assetsHistory: {
-    getAll: () => storageUtils.get(STORAGE_KEYS.ASSET_HISTORY, {}),
-    setAll: (map) => storageUtils.set(STORAGE_KEYS.ASSET_HISTORY, map),
-    getById: (assetId) => {
-      const map = storageUtils.get(STORAGE_KEYS.ASSET_HISTORY, {});
-      return map[String(assetId)] || [];
-    },
-    addEvent: (assetId, event) => {
-      const map = storageUtils.get(STORAGE_KEYS.ASSET_HISTORY, {});
-      const list = map[String(assetId)] || [];
-      list.push({ ...event, at: event?.at || new Date().toISOString() });
-      map[String(assetId)] = list;
-      return storageUtils.set(STORAGE_KEYS.ASSET_HISTORY, map);
-    }
   }
 };
 
