@@ -213,64 +213,25 @@ export default function Settings() {
                 >
                     {/* 회사 정보 섹션 */}
                     <div>
-                        {!editing ? (
-                            <div className="card">
-                                <div className="header-row" style={{ marginBottom: 10 }}>
-                                    <div>
-                                        <h2>회사 정보</h2>
-                                    </div>
-                                    <div>
-                                        {saved ? <span className="saved-indicator">저장됨</span> : null}
-                                        <button className="form-button" onClick={startEdit}>
-                                            편집
-                                        </button>
-                                    </div>
-                                </div>
-
-                                <div className="form-grid">
-                                    <label className="form-label">대표자명</label>
-                                    <div>{viewData.ceoName || <span className="empty">-</span>}</div>
-
-                                    <label className="form-label">사업자등록번호</label>
-                                    <div>{viewData.regNumber || <span className="empty">-</span>}</div>
+                        <div className="card">
+                            <div className="header-row" style={{ marginBottom: 10 }}>
+                                <div>
+                                    <h2>회사 정보</h2>
                                 </div>
                             </div>
-                        ) : (
-                            <div className="card">
-                                <div className="header-row" style={{ marginBottom: 10 }}>
-                                    <div>
-                                        <strong>회사 정보 편집</strong>
-                                    </div>
+
+                            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <span className="form-label">대표자명</span>
+                                    <span>{viewData.ceoName || <span className="empty">-</span>}</span>
                                 </div>
-                                <div className="form-grid">
-                                    <label htmlFor="ceoName" className="form-label">
-                                        대표자명
-                                    </label>
-                                    <input id="ceoName" className="form-input" type="text" value={editData.ceoName} onChange={(e) => onChange("ceoName", e.target.value)} />
-
-                                    <label htmlFor="regNumber" className="form-label">
-                                        사업자등록번호
-                                    </label>
-                                    <input
-                                        id="regNumber"
-                                        className="form-input"
-                                        type="text"
-                                        placeholder="000-00-00000"
-                                        value={editData.regNumber}
-                                        onChange={(e) => onChange("regNumber", e.target.value)}
-                                    />
-
-                                    <div className="form-actions" style={{ display: "flex", gap: 8 }}>
-                                        <button type="button" className="form-button" onClick={saveCompany}>
-                                            저장
-                                        </button>
-                                        <button type="button" className="toggle-btn" onClick={cancelEdit}>
-                                            취소
-                                        </button>
-                                    </div>
+                                <span style={{ color: "#bbb" }}>|</span>
+                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                    <span className="form-label">사업자등록번호</span>
+                                    <span>{viewData.regNumber || <span className="empty">-</span>}</span>
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </div>
 
                     {/* 지오펜스 설정 섹션 */}
