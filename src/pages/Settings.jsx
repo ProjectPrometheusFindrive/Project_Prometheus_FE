@@ -3,7 +3,7 @@ import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import { fetchCompanyInfo as loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../api";
 import { COLORS, DIMENSIONS } from "../constants";
-import { FileBadge, CountBadge, GeofenceBadge } from "../components/StatusBadge";
+import { CountBadge, GeofenceBadge } from "../components/StatusBadge";
 
 export default function Settings() {
     const [viewData, setViewData] = useState({ ...defaultCompanyInfo });
@@ -202,13 +202,13 @@ export default function Settings() {
         <div className="page">
             <h1>회사정보설정</h1>
             <div className="page-scroll">
-                {/* 반응형 그리드 컨테이너 */}
+                {/* 세로 배치 컨테이너 (반응형 컬럼 제거) */}
                 <div
                     style={{
-                        display: "grid",
-                        gridTemplateColumns: "repeat(auto-fit, minmax(480px, 1fr))",
+                        display: "flex",
+                        flexDirection: "column",
                         gap: 16,
-                        alignItems: "start",
+                        alignItems: "stretch",
                     }}
                 >
                     {/* 회사 정보 섹션 */}
@@ -228,46 +228,11 @@ export default function Settings() {
                                 </div>
 
                                 <div className="form-grid">
-                                    <label className="form-label">법인명</label>
-                                    <div>{viewData.corpName || <span className="empty">-</span>}</div>
-
                                     <label className="form-label">대표자명</label>
                                     <div>{viewData.ceoName || <span className="empty">-</span>}</div>
 
-                                    <label className="form-label">사업자번호</label>
+                                    <label className="form-label">사업자등록번호</label>
                                     <div>{viewData.regNumber || <span className="empty">-</span>}</div>
-
-                                    <label className="form-label">법인설립일</label>
-                                    <div>{viewData.incorpDate || <span className="empty">-</span>}</div>
-
-                                    <label className="form-label">법인주소</label>
-                                    <div>{viewData.address || <span className="empty">-</span>}</div>
-
-                                    <label className="form-label">회사 로고</label>
-                                    <div>
-                                        {viewData.logoDataUrl ? (
-                                            <img src={viewData.logoDataUrl} alt="회사 로고" style={{ height: 64, width: 64, objectFit: "contain", border: "1px solid #eee", borderRadius: 8 }} />
-                                        ) : (
-                                            <span className="empty">업로드된 로고 없음</span>
-                                        )}
-                                    </div>
-
-                                    <label className="form-label">사업자등록증</label>
-                                    <div>
-                                        {viewData.certDataUrl ? (
-                                            String(viewData.certDataUrl).startsWith("data:application/pdf") ? (
-                                                <FileBadge>PDF 업로드됨</FileBadge>
-                                            ) : (
-                                                <img
-                                                    src={viewData.certDataUrl}
-                                                    alt="사업자등록증"
-                                                    style={{ maxWidth: 280, maxHeight: 180, objectFit: "contain", border: "1px solid #eee", borderRadius: 8 }}
-                                                />
-                                            )
-                                        ) : (
-                                            <span className="empty">업로드된 파일 없음</span>
-                                        )}
-                                    </div>
                                 </div>
                             </div>
                         ) : (
@@ -278,18 +243,13 @@ export default function Settings() {
                                     </div>
                                 </div>
                                 <div className="form-grid">
-                                    <label htmlFor="corpName" className="form-label">
-                                        법인명
-                                    </label>
-                                    <input id="corpName" className="form-input" type="text" value={editData.corpName} onChange={(e) => onChange("corpName", e.target.value)} />
-
                                     <label htmlFor="ceoName" className="form-label">
                                         대표자명
                                     </label>
                                     <input id="ceoName" className="form-input" type="text" value={editData.ceoName} onChange={(e) => onChange("ceoName", e.target.value)} />
 
                                     <label htmlFor="regNumber" className="form-label">
-                                        사업자번호
+                                        사업자등록번호
                                     </label>
                                     <input
                                         id="regNumber"
@@ -299,52 +259,6 @@ export default function Settings() {
                                         value={editData.regNumber}
                                         onChange={(e) => onChange("regNumber", e.target.value)}
                                     />
-
-                                    <label htmlFor="incorpDate" className="form-label">
-                                        법인설립일
-                                    </label>
-                                    <input id="incorpDate" className="form-input" type="date" value={editData.incorpDate} onChange={(e) => onChange("incorpDate", e.target.value)} />
-
-                                    <label htmlFor="address" className="form-label">
-                                        법인주소
-                                    </label>
-                                    <input id="address" className="form-input" type="text" value={editData.address} onChange={(e) => onChange("address", e.target.value)} />
-
-                                    <label htmlFor="logoUpload" className="form-label">
-                                        회사 로고 업로드
-                                    </label>
-                                    <div>
-                                        <input id="logoUpload" type="file" accept="image/*" capture="environment" onChange={(e) => onFileChange("logoDataUrl", e.target.files?.[0])} />
-                                        {editData.logoDataUrl ? (
-                                            <div style={{ marginTop: 8 }}>
-                                                <img
-                                                    src={editData.logoDataUrl}
-                                                    alt="로고 미리보기"
-                                                    style={{ height: 64, width: 64, objectFit: "contain", border: "1px solid #eee", borderRadius: 8 }}
-                                                />
-                                            </div>
-                                        ) : null}
-                                    </div>
-
-                                    <label htmlFor="certUpload" className="form-label">
-                                        사업자등록증 업로드
-                                    </label>
-                                    <div>
-                                        <input id="certUpload" type="file" accept="image/*,.pdf" capture="environment" onChange={(e) => onFileChange("certDataUrl", e.target.files?.[0])} />
-                                        {editData.certDataUrl ? (
-                                            <div style={{ marginTop: 8 }}>
-                                                {String(editData.certDataUrl).startsWith("data:application/pdf") ? (
-                                                    <FileBadge>PDF 선택됨</FileBadge>
-                                                ) : (
-                                                    <img
-                                                        src={editData.certDataUrl}
-                                                        alt="사업자등록증 미리보기"
-                                                        style={{ maxWidth: 280, maxHeight: 180, objectFit: "contain", border: "1px solid #eee", borderRadius: 8 }}
-                                                    />
-                                                )}
-                                            </div>
-                                        ) : null}
-                                    </div>
 
                                     <div className="form-actions" style={{ display: "flex", gap: 8 }}>
                                         <button type="button" className="form-button" onClick={saveCompany}>

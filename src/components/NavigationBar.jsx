@@ -33,10 +33,10 @@ export default function NavigationBar() {
             </NavLink>
 
 
-            <NavLink to="/settings" className={({ isActive }) => `navigation-bar__link navigation-bar__info ${isActive ? "is-active" : ""}`} aria-label="Info" title="Info">
+            <NavLink to="/settings" className={({ isActive }) => `navigation-bar__link navigation-bar__info ${isActive ? "is-active" : ""}`} aria-label="사용자 정보" title="사용자 정보">
                 <FiInfo className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    Info
+                    사용자 정보
                 </span>
             </NavLink>
         </nav>
