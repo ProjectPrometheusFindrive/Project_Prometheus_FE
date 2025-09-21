@@ -3,6 +3,7 @@ import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom"
 import "./App.css";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
+import TermsAgreement from "./pages/TermsAgreement";
 import FindId from "./pages/FindId";
 import ForgotPassword from "./pages/ForgotPassword";
 import Settings from "./pages/Settings";
@@ -20,6 +21,7 @@ function App() {
       <Router>
         <Routes>
           <Route path="/" element={<Login />} />
+          <Route path="/terms" element={<TermsAgreement />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="/find-id" element={<FindId />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />

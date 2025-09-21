@@ -57,7 +57,7 @@ export default function Login() {
         </form>
         <p className="login-help">Any input logs in for now.</p>
         <div className="login-help" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <Link to="/signup">회원가입</Link>
+          <Link to="/terms">회원가입</Link>
           <span style={{ color: "#bbb" }}>|</span>
           <Link to="/find-id">아이디 찾기</Link>
           <span style={{ color: "#bbb" }}>|</span>
