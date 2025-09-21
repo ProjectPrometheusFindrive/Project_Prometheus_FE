@@ -132,6 +132,10 @@ export default function AssetStatus() {
               };
     });
 
+    // Inline edit/details panel state
+    const [inlineAssetId, setInlineAssetId] = useState(null);
+    const [inlineForm, setInlineForm] = useState({ make: "", model: "", plate: "", vin: "", vehicleValue: "" });
+
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
         return typedStorage.devices.getInfo(activeAsset.id);
@@ -193,6 +197,12 @@ export default function AssetStatus() {
         if (selectedCount === 0) return;
         const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
         if (!ok) return;
+        // Record deletion history before removal
+        try {
+            selected.forEach((id) => {
+                typedStorage.assetsHistory.addEvent(id, { type: "deleted" });
+            });
+        } catch {}
         setRows((prev) => prev.filter((a) => !selected.has(a.id)));
         clearSelection();
     };
@@ -220,6 +230,42 @@ export default function AssetStatus() {
     const openDeviceModal = (asset) => {
         setActiveAsset(asset);
         setShowDeviceModal(true);
+    };
+
+    const openInlinePanel = (asset) => {
+        setInlineAssetId(asset?.id || null);
+        setInlineForm({
+            make: asset?.make || "",
+            model: asset?.model || "",
+            plate: asset?.plate || "",
+            vin: asset?.vin || "",
+            vehicleValue: asset?.vehicleValue || "",
+        });
+    };
+
+    const saveInlinePanel = () => {
+        if (!inlineAssetId) return;
+        setRows((prev) => {
+            const before = prev.find((a) => a.id === inlineAssetId) || {};
+            const purchasedNow = (!before.vehicleValue || Number(before.vehicleValue) === 0) && inlineForm.vehicleValue && Number(inlineForm.vehicleValue) > 0;
+            // Update row
+            const next = prev.map((a) =>
+                a.id === inlineAssetId
+                    ? { ...a, ...inlineForm, vehicleType: [inlineForm.make, inlineForm.model].filter(Boolean).join(" ") || a.vehicleType }
+                    : a
+            );
+            // History events
+            try {
+                typedStorage.assetsHistory.addEvent(inlineAssetId, { type: "updated", keys: Object.keys(inlineForm).filter((k) => (before?.[k] || "") !== (inlineForm?.[k] || "")) });
+                if (purchasedNow) typedStorage.assetsHistory.addEvent(inlineAssetId, { type: "purchased" });
+            } catch {}
+            return next;
+        });
+    };
+
+    const cancelInlinePanel = () => {
+        setInlineAssetId(null);
+        setInlineForm({ make: "", model: "", plate: "", vin: "", vehicleValue: "" });
     };
 
     const openAssetCreate = () => {
@@ -337,6 +383,7 @@ export default function AssetStatus() {
             const { registrationDoc, insuranceDoc, ...rest } = data || {};
             const draft = { ...rest, createdAt: new Date().toISOString(), id };
             typedStorage.drafts.addAsset(draft);
+            try { typedStorage.assetsHistory.addEvent(id, { type: "registered" }); } catch {}
         }
 
         setShowAssetModal(false);
@@ -430,7 +477,7 @@ export default function AssetStatus() {
                 return null; // Table 컴포넌트에서 자동 처리
             case "plate":
                 return (
-                    <button type="button" onClick={() => openAssetEdit(row)} className="link-button" title="자산 등록/편집">
+                    <button type="button" onClick={() => openInlinePanel(row)} className="link-button" title="자산 상세/편집 패널 열기">
                         {row.plate}
                     </button>
                 );
@@ -665,6 +712,53 @@ export default function AssetStatus() {
             </Modal>
 
             <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." />
+
+            {inlineAssetId && (
+                <div className="card card-padding" style={{ marginTop: 16 }}>
+                    <h3 className="section-title section-margin-0">자산 상세/편집</h3>
+                    <div className="form-grid" style={{ maxWidth: 720 }}>
+                        <label className="form-label">제조사</label>
+                        <input className="form-input" value={inlineForm.make} onChange={(e) => setInlineForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+
+                        <label className="form-label">차종</label>
+                        <input className="form-input" value={inlineForm.model} onChange={(e) => setInlineForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+
+                        <label className="form-label">차량번호</label>
+                        <input className="form-input" value={inlineForm.plate} onChange={(e) => setInlineForm((p) => ({ ...p, plate: e.target.value }))} placeholder="예: 28가2345" />
+
+                        <label className="form-label">차대번호(VIN)</label>
+                        <input className="form-input" value={inlineForm.vin} onChange={(e) => setInlineForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+
+                        <label className="form-label">차량가액</label>
+                        <input className="form-input" type="number" value={inlineForm.vehicleValue} onChange={(e) => setInlineForm((p) => ({ ...p, vehicleValue: e.target.value }))} placeholder="예: 25000000" />
+                    </div>
+
+                    <div className="form-actions" style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                        <button type="button" className="form-button" onClick={saveInlinePanel}>저장</button>
+                        <button type="button" className="form-button" style={{ background: COLORS.GRAY_900 }} onClick={cancelInlinePanel}>닫기</button>
+                    </div>
+
+                    <div style={{ marginTop: 16 }}>
+                        <h4 style={{ margin: "8px 0" }}>변경 이력</h4>
+                        {(() => {
+                            const list = typedStorage.assetsHistory.getById(inlineAssetId) || [];
+                            const labelMap = { purchased: "차량 구매일", registered: "전산 등록 일자", deleted: "전산 삭제 일자" };
+                            const filtered = list.filter((e) => ["purchased", "registered", "deleted"].includes(e.type)).sort((a, b) => new Date(a.at) - new Date(b.at));
+                            if (filtered.length === 0) return <div className="empty">기록 없음</div>;
+                            return (
+                                <div className="grid-info" style={{ gridTemplateColumns: "1fr 2fr" }}>
+                                    {filtered.map((e, idx) => (
+                                        <React.Fragment key={idx}>
+                                            <div>{labelMap[e.type] || e.type}</div>
+                                            <div>{e.at}</div>
+                                        </React.Fragment>
+                                    ))}
+                                </div>
+                            );
+                        })()}
+                    </div>
+                </div>
+            )}
             <Modal
                 isOpen={showInfoModal && infoVehicle}
                 onClose={() => setShowInfoModal(false)}
