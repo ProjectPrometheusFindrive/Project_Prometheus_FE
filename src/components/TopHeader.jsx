@@ -63,22 +63,23 @@ export default function TopHeader() {
                     src={companyInfo?.logoDataUrl || defaultLogo} 
                     alt="Company Logo" 
                     className="top-header__logo"
+                    title={uploading ? "업로드 중..." : "로고 업로드"}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => !uploading && onUploadClick()}
+                    onKeyDown={(e) => {
+                        if (uploading) return;
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            onUploadClick();
+                        }
+                    }}
                     onError={(e) => {
                         e.target.src = defaultLogo;
                     }}
                 />
                 <div className="top-header__service-name">Findrive</div>
                 <input id="header-logo-upload" type="file" accept="image/*" style={{ display: "none" }} onChange={onFileChange} />
-                <button 
-                    type="button" 
-                    className="top-header__upload-btn"
-                    title="로고 업로드"
-                    aria-label="로고 업로드"
-                    onClick={onUploadClick}
-                    disabled={uploading}
-                >
-                    {uploading ? "업로드 중..." : (companyInfo?.logoDataUrl ? "로고 변경" : "로고 업로드")}
-                </button>
             </div>
             
             <div className="top-header__right">
