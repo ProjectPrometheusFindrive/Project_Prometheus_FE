@@ -99,6 +99,9 @@ export default function AssetStatus() {
     const [status, setStatus] = useState("all");
     const [rows, setRows] = useState([]);
     const [showAssetModal, setShowAssetModal] = useState(false);
+    const [assetFormInitial, setAssetFormInitial] = useState({});
+    const [editingAssetId, setEditingAssetId] = useState(null);
+    const [assetRequireDocs, setAssetRequireDocs] = useState(true);
     const [showDeviceModal, setShowDeviceModal] = useState(false);
     const [activeAsset, setActiveAsset] = useState(null);
     const [showInfoModal, setShowInfoModal] = useState(false);
@@ -219,6 +222,32 @@ export default function AssetStatus() {
         setShowDeviceModal(true);
     };
 
+    const openAssetCreate = () => {
+        setAssetFormInitial({});
+        setEditingAssetId(null);
+        setAssetRequireDocs(true);
+        setShowAssetModal(true);
+    };
+
+    const openAssetEdit = (asset) => {
+        const initial = {
+            plate: asset?.plate || "",
+            make: asset?.make || "",
+            model: asset?.model || "",
+            vin: asset?.vin || "",
+            vehicleValue: asset?.vehicleValue || "",
+            purchaseDate: asset?.purchaseDate || "",
+            systemRegDate: asset?.systemRegDate || "",
+            systemDelDate: asset?.systemDelDate || "",
+            vehicleType: asset?.vehicleType || "",
+            registrationStatus: asset?.registrationStatus || "자산등록 완료",
+        };
+        setAssetFormInitial(initial);
+        setEditingAssetId(asset?.id || null);
+        setAssetRequireDocs(false);
+        setShowAssetModal(true);
+    };
+
     const openDiagnosticModal = (vehicle, category, count) => {
         const detail = generateDiagnosticDetails(category, count, {
             plate: vehicle.plate,
@@ -260,22 +289,60 @@ export default function AssetStatus() {
     };
 
     const handleAssetSubmit = (data) => {
-        const id = nextAssetId();
-        const next = {
-            id,
-            plate: data.plate || "",
-            vehicleType: data.vehicleType || "",
-            insuranceInfo: "",
-            registrationDate: data.registrationDate || new Date().toISOString().slice(0, 10),
-            registrationStatus: data.registrationStatus || "자산등록 완료",
-            installer: "",
-            deviceSerial: "",
-        };
-        setRows((prev) => [next, ...prev]);
-        const { registrationDoc, insuranceDoc, ...rest } = data || {};
-        const draft = { ...rest, createdAt: new Date().toISOString(), id };
-        typedStorage.drafts.addAsset(draft);
+        // Compose vehicleType from make/model when available
+        const composedVehicleType = data.vehicleType || [data.make, data.model].filter(Boolean).join(" ");
+
+        if (editingAssetId) {
+            // Update existing asset
+            setRows((prev) =>
+                prev.map((a) =>
+                    a.id === editingAssetId
+                        ? {
+                              ...a,
+                              plate: data.plate || a.plate,
+                              vehicleType: composedVehicleType || a.vehicleType,
+                              make: data.make || a.make,
+                              model: data.model || a.model,
+                              vin: data.vin || a.vin,
+                              vehicleValue: data.vehicleValue || a.vehicleValue,
+                              purchaseDate: data.purchaseDate || a.purchaseDate,
+                              systemRegDate: data.systemRegDate || a.systemRegDate,
+                              systemDelDate: data.systemDelDate || a.systemDelDate,
+                              registrationStatus: data.registrationStatus || a.registrationStatus,
+                          }
+                        : a
+                )
+            );
+        } else {
+            // Create new asset
+            const id = nextAssetId();
+            const next = {
+                id,
+                plate: data.plate || "",
+                vehicleType: composedVehicleType || "",
+                make: data.make || "",
+                model: data.model || "",
+                vin: data.vin || "",
+                vehicleValue: data.vehicleValue || "",
+                purchaseDate: data.purchaseDate || "",
+                systemRegDate: data.systemRegDate || new Date().toISOString().slice(0, 10),
+                systemDelDate: data.systemDelDate || "",
+                insuranceInfo: "",
+                registrationDate: data.registrationDate || new Date().toISOString().slice(0, 10),
+                registrationStatus: data.registrationStatus || "자산등록 완료",
+                installer: "",
+                deviceSerial: "",
+            };
+            setRows((prev) => [next, ...prev]);
+            const { registrationDoc, insuranceDoc, ...rest } = data || {};
+            const draft = { ...rest, createdAt: new Date().toISOString(), id };
+            typedStorage.drafts.addAsset(draft);
+        }
+
         setShowAssetModal(false);
+        setAssetFormInitial({});
+        setEditingAssetId(null);
+        setAssetRequireDocs(true);
     };
 
     const handleMemoEdit = (assetId, currentMemo) => {
@@ -363,7 +430,7 @@ export default function AssetStatus() {
                 return null; // Table 컴포넌트에서 자동 처리
             case "plate":
                 return (
-                    <button type="button" onClick={() => openInfoModal(row)} className="link-button" title="차량 정보 보기">
+                    <button type="button" onClick={() => openAssetEdit(row)} className="link-button" title="자산 등록/편집">
                         {row.plate}
                     </button>
                 );
@@ -505,7 +572,7 @@ export default function AssetStatus() {
             <div className="asset-toolbar">
                 <div style={{ flex: 1 }} />
                 <div style={{ display: "flex", gap: 8 }}>
-                    <button type="button" className="form-button" onClick={() => setShowAssetModal(true)}>
+                    <button type="button" className="form-button" onClick={openAssetCreate}>
                         자산 등록
                     </button>
                     <button
@@ -584,7 +651,7 @@ export default function AssetStatus() {
             </div>
 
             <Modal isOpen={showAssetModal} onClose={() => setShowAssetModal(false)} title="자산 등록" formId="asset-create" onSubmit={handleAssetSubmit}>
-                <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} showSubmit={false} />
+                <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} initial={assetFormInitial} requireDocs={assetRequireDocs} showSubmit={false} />
             </Modal>
 
             <Modal

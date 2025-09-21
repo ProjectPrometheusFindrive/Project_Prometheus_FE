@@ -68,6 +68,7 @@ export default function FormField({
                         accept={accept}
                         capture={capture}
                         onChange={handleChange}
+                        required={required}
                         disabled={disabled}
                         {...props}
                     />
