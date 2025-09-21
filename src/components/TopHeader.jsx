@@ -2,12 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
-import { fetchCompanyInfo } from "../api";
+import { fetchCompanyInfo, saveCompanyInfo } from "../api";
 import defaultLogo from "../assets/default-logo.svg";
 
 export default function TopHeader() {
     const navigate = useNavigate();
     const [companyInfo, setCompanyInfo] = useState(null);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         const loadCompanyInfo = async () => {
@@ -26,6 +27,35 @@ export default function TopHeader() {
         navigate("/", { replace: true });
     }
 
+    function onUploadClick() {
+        const input = document.getElementById("header-logo-upload");
+        if (input) input.click();
+    }
+
+    function onFileChange(e) {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        if (!file.type.startsWith("image/")) {
+            alert("이미지 파일을 선택해 주세요.");
+            return;
+        }
+        const reader = new FileReader();
+        setUploading(true);
+        reader.onload = async () => {
+            try {
+                const next = { ...(companyInfo || {}), logoDataUrl: reader.result };
+                await saveCompanyInfo(next);
+                setCompanyInfo(next);
+            } catch (err) {
+                console.error("Failed to save logo:", err);
+            } finally {
+                setUploading(false);
+                e.target.value = ""; // reset input
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+
     return (
         <header className="top-header" role="banner">
             <div className="top-header__left">
@@ -38,6 +68,17 @@ export default function TopHeader() {
                     }}
                 />
                 <div className="top-header__service-name">Findrive</div>
+                <input id="header-logo-upload" type="file" accept="image/*" style={{ display: "none" }} onChange={onFileChange} />
+                <button 
+                    type="button" 
+                    className="top-header__upload-btn"
+                    title="로고 업로드"
+                    aria-label="로고 업로드"
+                    onClick={onUploadClick}
+                    disabled={uploading}
+                >
+                    {uploading ? "업로드 중..." : (companyInfo?.logoDataUrl ? "로고 변경" : "로고 업로드")}
+                </button>
             </div>
             
             <div className="top-header__right">

@@ -401,6 +401,25 @@ body {
     font-size: 16px;
 }
 
+.top-header__upload-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    color: #666;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+.top-header__upload-btn:hover {
+    background: #e8f0fe;
+    border-color: #1a73e8;
+    color: #1a73e8;
+}
+
 /* Left-side navigation bar */
 .navigation-bar {
     /* Fix width without causing flex overflow (padding/border included) */
