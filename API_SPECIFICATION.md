@@ -2,18 +2,22 @@
 
 ## Overview
 
-프론트엔드에서 사용하는 모든 API 엔드포인트에 대한 명세서입니다. 현재 시스템은 두 가지 API 모드를 지원합니다:
+프론트엔드가 사용하는 API 설계와 기대 응답 형식을 정리합니다. 현재 두 가지 API 모드를 지원합니다.
 
-- **Fake API**: 개발 환경에서 사용하는 로컬 Express 서버 기반 API (기본값)
-- **Real API**: 실제 백엔드 서버와 통신하는 API (`VITE_USE_REAL_API=true` 설정 시)
+- Fake API: 개발 환경에서 사용하는 로컬 Express 서버 기반 API(기본)
+- Real API: 실제 백엔드 서버와 통신하는 API (`VITE_USE_REAL_API=true` 설정 시)
 
-**Base URLs:**
+Base URLs
+
 - Fake API: `http://localhost:3001/api`
-- Real API: 환경변수 `VITE_API_BASE_URL`에서 설정
+- Real API: 환경변수 `VITE_API_BASE_URL`
 
-## Common Response Format
+## Response Format
 
-### Success Response
+Real API는 다음과 같은 표준 래퍼를 권장합니다. 프론트엔드의 `apiClient`가 이 래퍼를 기대하고 파싱합니다. Fake API는 리소스(JSON 객체/배열) 자체를 반환합니다.
+
+성공 응답
+
 ```json
 {
   "data": <response_data>,
@@ -23,34 +27,44 @@
 }
 ```
 
-### Error Response
+에러 응답
+
 ```json
 {
   "data": null,
   "status": "error",
   "error": {
     "type": "ERROR_TYPE",
-    "message": "Error description"
+    "message": "에러 설명"
   },
   "timestamp": "2025-01-01T00:00:00.000Z"
 }
 ```
 
-### Error Types
+Error Types
+
 - `NETWORK_ERROR`: 네트워크 연결 오류
 - `NOT_FOUND`: 리소스를 찾을 수 없음
 - `UNAUTHORIZED`: 인증 필요
-- `VALIDATION_ERROR`: 요청 데이터 검증 오류
+- `VALIDATION_ERROR`: 요청 검증 실패
 - `SERVER_ERROR`: 서버 내부 오류
+
+호환성 메모
+
+- Real API는 위 래퍼 형식을 지키는 것을 권장합니다.
+- Fake API는 리소스를 직접 반환하며, 프론트엔드는 모드에 맞춰 데이터를 통일해 사용합니다.
 
 ## API Endpoints
 
-### Assets (차량 자산 관리)
+### Assets (자산 관리)
 
-#### GET /assets
-차량 자산 목록을 조회합니다.
+GET /assets
 
-**Response:**
+- 설명: 차량 자산 목록 조회
+- 응답: Asset[]
+
+예시
+
 ```json
 [
   {
@@ -58,16 +72,13 @@
     "vin": "1HGCM82633A123456",
     "plate": "123가4567",
     "brand": "현대",
-    "model": "아반떼",
+    "model": "쏘나타",
     "year": 2023,
     "color": "흰색",
     "fuelType": "gasoline",
     "registrationDate": "2023-01-15T00:00:00.000Z",
     "registrationStatus": "registered",
-    "location": {
-      "lat": 37.5665,
-      "lng": 126.9780
-    },
+    "location": { "lat": 37.5665, "lng": 126.9780 },
     "deviceStatus": "normal",
     "createdAt": "2023-01-15T00:00:00.000Z",
     "updatedAt": "2023-01-15T00:00:00.000Z"
@@ -75,103 +86,71 @@
 ]
 ```
 
-#### GET /assets/{id}
-특정 차량 자산의 상세 정보를 조회합니다.
+GET /assets/{id}
 
-**Parameters:**
-- `id` (string): 차량 자산 ID
+- 설명: 특정 자산 상세 조회
+- 파라미터: `id`(string)
+- 응답: Asset
 
-**Response:** 단일 Asset 객체
+POST /assets
 
-#### POST /assets
-새로운 차량 자산을 생성합니다.
+- 설명: 신규 자산 생성
+- 요청 본문: Asset 생성 필드(예시 이하)
 
-**Request Body:**
 ```json
 {
   "vin": "1HGCM82633A123456",
   "plate": "123가4567",
   "brand": "현대",
-  "model": "아반떼",
+  "model": "쏘나타",
   "year": 2023,
   "color": "흰색",
   "fuelType": "gasoline"
 }
 ```
 
-**Response:** 생성된 Asset 객체 (ID 포함)
+- 응답: 생성된 Asset(서버에서 `id` 부여)
 
-#### PUT /assets/{id}
-기존 차량 자산 정보를 수정합니다.
+PUT /assets/{id}
 
-**Parameters:**
-- `id` (string): 차량 자산 ID
+- 설명: 자산 정보 수정
+- 파라미터: `id`(string)
+- 요청 본문: 변경 필드
+- 응답: 수정된 Asset
 
-**Request Body:** Asset 업데이트 데이터
+DELETE /assets/{id}
 
-**Response:** 수정된 Asset 객체
+- 설명: 자산 삭제
+- 파라미터: `id`(string)
+- 응답: 204 No Content
 
-#### DELETE /assets/{id}
-차량 자산을 삭제합니다.
+### Rentals (렌탈 계약)
 
-**Parameters:**
-- `id` (string): 차량 자산 ID
+GET /rentals
 
-**Response:** 204 No Content
+- 설명: 모든 렌탈 계약 목록 조회
+- 응답: Rental[]
 
-### Rentals (렌탈 계약 관리)
+GET /rentals/latest
 
-#### GET /rentals
-모든 렌탈 계약 목록을 조회합니다.
+- 설명: VIN별 최신 렌탈 1건 조회(데모 Fake API는 전체 목록 반환)
+- 응답: Rental[]
 
-**Response:**
-```json
-[
-  {
-    "rental_id": "R001",
-    "vin": "1HGCM82633A123456",
-    "customer": {
-      "name": "김철수",
-      "phone": "010-1234-5678",
-      "address": "서울시 강남구",
-      "licenseNumber": "12-34-567890-12"
-    },
-    "rental_period": {
-      "start": "2024-01-01T09:00:00.000Z",
-      "end": "2024-12-31T18:00:00.000Z"
-    },
-    "price": 1200000,
-    "status": "active",
-    "reported_stolen": false,
-    "createdAt": "2024-01-01T00:00:00.000Z",
-    "updatedAt": "2024-01-01T00:00:00.000Z"
-  }
-]
-```
+GET /rentals/{id}
 
-#### GET /rentals/latest
-각 VIN별로 가장 최근 렌탈 계약만 조회합니다.
+- 설명: 특정 렌탈 상세 조회
+- 파라미터: `id`(string)
+- 응답: Rental
 
-**Response:** Rental 객체 배열 (각 VIN당 하나씩)
+GET /rentals/byVin/{vin}
 
-#### GET /rentals/{id}
-특정 렌탈 계약의 상세 정보를 조회합니다.
+- 설명: 특정 VIN의 렌탈 상태 집계
+- 파라미터: `vin`(string, 17자리)
+- 응답
 
-**Parameters:**
-- `id` (string): 렌탈 계약 ID
-
-**Response:** 단일 Rental 객체
-
-#### GET /rentals/byVin/{vin}
-특정 VIN의 렌탈 이력을 조회합니다.
-
-**Parameters:**
-- `vin` (string): 차량 VIN (17자리)
-
-**Response:**
 ```json
 {
-  "current": <Rental 객체 또는 null>,
+  "current": null,
   "stolen": [],
   "active": [],
   "overdue": [],
@@ -181,10 +160,11 @@
 }
 ```
 
-#### POST /rentals
-새로운 렌탈 계약을 생성합니다.
+POST /rentals
 
-**Request Body:**
+- 설명: 신규 렌탈 생성
+- 요청 본문(예시)
+
 ```json
 {
   "vin": "1HGCM82633A123456",
@@ -202,24 +182,25 @@
 }
 ```
 
-**Response:** 생성된 Rental 객체
+- 응답: 생성된 Rental
 
 ### Vehicles (통합 차량 정보)
 
-#### GET /vehicles
-자산과 렌탈 정보가 통합된 차량 목록을 조회합니다.
+GET /vehicles
 
-**Response:**
+- 설명: 자산·렌탈 정보가 합쳐진 차량 스냅샷 목록(Real API 권장)
+- 응답 예시
+
 ```json
 [
   {
     "vin": "1HGCM82633A123456",
     "assetId": "VH001",
     "plate": "123가4567",
-    "asset": <Asset 객체>,
-    "rentals": [<Rental 객체>],
+    "asset": { /* Asset */ },
+    "rentals": [ /* Rental */ ],
     "status": {
-      "current": <현재 렌탈 정보>,
+      "current": null,
       "stolen": [],
       "active": [],
       "overdue": [],
@@ -233,49 +214,57 @@
 
 ### Dashboard (대시보드 데이터)
 
-#### GET /dashboard
-대시보드에 필요한 통계 데이터를 조회합니다.
+GET /dashboard
 
-**Response:**
+- 설명: 대시보드에 필요한 집계 데이터 조회
+- 응답 예시(Fake API 기준)
+
 ```json
 {
-  "assets": {
-    "total": 50,
-    "registered": 45,
-    "unregistered": 5
-  },
-  "rentals": {
-    "active": 30,
-    "overdue": 3,
-    "available": 20
-  },
-  "revenue": {
-    "monthly": 36000000,
-    "growth": 12.5
-  },
-  "problems": {
-    "stolen": 1,
-    "overdue": 3,
-    "device_issues": 2
-  }
+  "totalAssets": 50,
+  "availableAssets": 45,
+  "activeRentals": 30,
+  "problemVehicles": 4,
+  "overdueRentals": 3,
+  "stolenVehicles": 1,
+  "deviceInstalled": 44,
+  "insuranceRegistered": 45,
+  "vehicleStatus": [
+    { "name": "등록완료", "value": 45 },
+    { "name": "등록대기", "value": 3 },
+    { "name": "장착중", "value": 2 }
+  ],
+  "bizStatus": [
+    { "name": "대여중", "value": 30 },
+    { "name": "가용", "value": 20 },
+    { "name": "연체", "value": 3 },
+    { "name": "도난", "value": 1 },
+    { "name": "문제차량", "value": 4 }
+  ],
+  "recentActivities": [
+    { "id": 1, "type": "rental", "message": "신규 렌탈 계약이 등록되었습니다.", "timestamp": "2025-01-01T00:00:00.000Z" },
+    { "id": 2, "type": "asset",  "message": "차량 장비 설치가 완료되었습니다.",    "timestamp": "2025-01-01T00:00:00.000Z" },
+    { "id": 3, "type": "problem","message": "반납 지연 차량이 발견되었습니다.",    "timestamp": "2025-01-01T00:00:00.000Z" }
+  ]
 }
 ```
 
 ### Problem Vehicles (문제 차량)
 
-#### GET /problem-vehicles
-도난, 연체, 기기 문제 등이 있는 문제 차량 목록을 조회합니다.
+GET /problem-vehicles
 
-**Response:**
+- 설명: 도난, 연체, 기기 문제 등 이슈 차량 목록 조회
+- 응답 예시
+
 ```json
 [
   {
     "rental_id": "R001",
     "vin": "1HGCM82633A123456",
-    "customer": <Customer 객체>,
-    "asset": <Asset 객체>,
-    "issue": "stolen" | "overdue(5d)" | "device_error",
-    "rental_period": <Period 객체>,
+    "customer": { /* Customer */ },
+    "asset": { /* Asset */ },
+    "issue": "stolen",
+    "rental_period": { /* Period */ },
     "reported_stolen": true,
     "price": 1200000
   }
@@ -284,14 +273,15 @@
 
 ### Geofences (지오펜스)
 
-#### GET /geofences
-등록된 지오펜스 목록을 조회합니다.
+GET /geofences
 
-**Response:**
+- 설명: 등록된 지오펜스 목록 조회
+- 응답 예시
+
 ```json
 [
   {
-    "name": "서울 강남구 영업소",
+    "name": "서울 강남구 사업장",
     "points": [
       { "lat": 37.5665, "lng": 126.9780 },
       { "lat": 37.5675, "lng": 126.9785 },
@@ -303,62 +293,67 @@
 
 ### Company Information (회사 정보)
 
-#### GET /company
-회사 정보를 조회합니다.
+GET /company (Real API 권장)
 
-**Response:**
+- 설명: 회사 정보 조회
+- 응답 예시
+
 ```json
 {
-  "corpName": "프로메테우스 렌터카",
+  "corpName": "프로메테우스 모터스",
   "ceoName": "홍길동",
   "regNumber": "123-45-67890",
   "incorpDate": "2020-01-01",
   "address": "서울시 강남구 테헤란로 123",
   "logoDataUrl": "data:image/png;base64,...",
   "certDataUrl": "data:application/pdf;base64,...",
-  "geofences": [<Geofence 객체>],
+  "geofences": [ /* Geofence */ ],
   "geofencesUpdatedAt": "2025-01-01T00:00:00.000Z"
 }
 ```
 
-#### PUT /company
-회사 정보를 수정합니다.
+PUT /company (Real API 권장)
 
-**Request Body:** Company 객체
-
-**Response:** Success/Error 상태
+- 설명: 회사 정보 수정
+- 요청 본문: Company 객체
+- 응답: 성공/에러 상태
 
 ### Issues (이슈 관리)
 
-#### POST /issues
-새로운 이슈를 생성합니다.
+POST /issues (Real API)
 
-**Request Body:**
+- 설명: 이슈 생성
+- 요청 본문
+
 ```json
 {
   "vin": "1HGCM82633A123456",
-  "type": "stolen" | "overdue" | "device_error",
+  "type": "stolen",
   "description": "차량 도난 신고",
-  "priority": "high" | "medium" | "low",
+  "priority": "high",
   "reportedBy": "관리자"
 }
 ```
 
-**Response:**
+- 응답
+
 ```json
-{
-  "ok": true,
-  "data": <생성된 이슈 객체>
-}
+{ "ok": true, "data": { /* Issue */ } }
 ```
+
+POST /issue-drafts (Fake API 전용)
+
+- 설명: 이슈 초안 생성(로컬 개발용)
+- 응답: 생성된 초안 객체
 
 ## Data Models
 
-### Asset
+Asset
+
 ```typescript
 interface Asset {
-  id: string;                    // 차량 자산 ID
-  vin: string;                   // 차량 식별번호 (17자리)
+  id: string;                    // 자산 ID
+  vin: string;                   // 차량 식별번호(17자리)
   plate: string;                 // 차량 번호판
   brand: string;                 // 브랜드
   model: string;                 // 모델명
@@ -371,13 +366,14 @@ interface Asset {
     lat: number;
     lng: number;
   };
-  deviceStatus: string;          // 기기 상태
+  deviceStatus: string;          // 장치 상태
   createdAt: Date;
   updatedAt: Date;
 }
 ```
 
-### Rental
+Rental
+
 ```typescript
 interface Rental {
   rental_id: string;             // 렌탈 계약 ID
@@ -400,11 +396,12 @@ interface Rental {
 }
 ```
 
-### Geofence
+Geofence
+
 ```typescript
 interface Geofence {
   name: string;                  // 지오펜스 명칭
-  points: Array<{               // 폴리곤 포인트
+  points: Array<{               // 경계 좌표들
     lat: number;
     lng: number;
   }>;
@@ -413,37 +410,42 @@ interface Geofence {
 
 ## Authentication
 
-현재 시스템은 localStorage 기반의 간단한 인증을 사용합니다:
-- `localStorage.isLoggedIn`: 로그인 상태 확인
+데모 환경은 localStorage 기반의 단순 인증을 사용합니다.
 
-실제 API 연동 시에는 JWT 토큰 또는 API Key를 사용한 인증 방식을 구현해야 합니다.
+- `localStorage.isLoggedIn`: 로그인 상태 플래그
+
+실제 API 연동 시에는 JWT 토큰 또는 API Key 기반 인증을 권장합니다.
 
 ## Error Handling
 
-모든 API 호출은 다음과 같은 에러 핸들링 패턴을 따릅니다:
+프론트엔드 레이어에서 공통 처리 기준:
 
-1. **Network Errors**: 네트워크 연결 실패 시 localStorage fallback 시도
-2. **404 Errors**: 리소스 없음 시 null 반환
-3. **Validation Errors**: 잘못된 요청 데이터 시 상세 에러 메시지 제공
-4. **Server Errors**: 서버 오류 시 generic error message 제공
+1. Network Errors: 네트워크 실패 시 에러 상태 반환
+2. 404 Errors: 리소스 없음 → null/에러 래퍼 반환
+3. Validation Errors: 잘못된 입력 → 구체적 메시지
+4. Server Errors: 5xx → 일반화된 메시지
 
 ## Development Notes
 
-- Fake API는 `src/server/fake-backend.js`에서 구동되는 Express 서버입니다
-- Real API 클라이언트는 `src/api/apiClient.js`에 정의되어 있습니다
-- API 응답은 자동으로 Date 객체로 변환됩니다 (transformAsset, transformRental)
-- VIN은 반드시 17자리여야 합니다
-- 모든 API 호출에는 100ms 지연이 추가되어 로딩 상태를 시뮬레이션합니다
+- Fake API는 `src/server/fake-backend.js`(Express)에서 구동합니다.
+- Real API와의 통신 및 표준 응답 래퍼는 `src/api/apiClient.js`에서 처리합니다.
+- 응답의 날짜 문자열은 클라이언트에서 Date 객체로 변환됩니다(`transformAsset`, `transformRental`).
+- VIN은 반드시 17자리여야 합니다.
+- 대부분의 Fake API 응답에는 약 100ms의 지연이 추가돼 로딩 상태를 모사합니다.
 
 ## Environment Variables
 
 ```bash
-# Real API 사용 여부 (기본값: false)
+# Real API 사용 여부 (기본: false)
 VITE_USE_REAL_API=true
 
 # Real API 서버 URL
 VITE_API_BASE_URL=https://api.example.com
 
-# Fake API 서버 URL (기본값: http://localhost:3001/api)
+# Fake API 서버 URL (기본: http://localhost:3001/api)
 VITE_FAKE_API_BASE_URL=http://localhost:3001/api
+
+# Kakao Map API Key (선택)
+VITE_KAKAO_MAP_API_KEY=your_kakao_key
 ```
+
