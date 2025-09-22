@@ -513,13 +513,10 @@ export default function RentalContracts() {
                 const identifier = row.plate || row.rental_id || "계약";
                 const hasAccident = Boolean(row.accident_reported);
                 const videoTitle = row.accidentReport?.blackboxFileName?.trim();
-                const variantClass = hasAccident ? (videoTitle ? "badge--video" : "badge--accident") : "badge--default";
-                const title = videoTitle
-                    ? `등록된 사고 영상: ${videoTitle}`
-                    : hasAccident
-                    ? "등록된 사고 정보 보기"
-                    : "사고 등록";
-                const ariaLabel = videoTitle
+                const hasVideo = Boolean(videoTitle);
+                const variantClass = hasAccident ? (hasVideo ? "badge--video" : "badge--accident") : "badge--default";
+                const title = hasVideo ? videoTitle : hasAccident ? "등록된 사고 정보 보기" : "사고 등록";
+                const ariaLabel = hasVideo
                     ? `${identifier} 사고 영상 ${videoTitle} 보기`
                     : hasAccident
                     ? `${identifier} 사고 정보 보기`
@@ -532,36 +529,9 @@ export default function RentalContracts() {
                         className={`badge-button badge badge--clickable ${variantClass}`}
                         title={title}
                         aria-label={ariaLabel}
-                        style={
-                            videoTitle
-                                ? {
-                                      justifyContent: "flex-start",
-                                      gap: "6px",
-                                      width: "100%",
-                                      maxWidth: "100%",
-                                  }
-                                : undefined
-                        }
                     >
-                        {videoTitle ? (
-                            <>
-                                <FaVideo size={13} aria-hidden="true" />
-                                <span
-                                    style={{
-                                        flex: "1 1 auto",
-                                        minWidth: 0,
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
-                                        textAlign: "left",
-                                    }}
-                                >
-                                    {videoTitle}
-                                </span>
-                            </>
-                        ) : (
-                            <FiAlertTriangle size={14} aria-hidden="true" />
-                        )}
+                        {hasVideo ? <FaVideo size={13} aria-hidden="true" /> : <FiAlertTriangle size={14} aria-hidden="true" />}
+
                     </button>
                 );
             }
