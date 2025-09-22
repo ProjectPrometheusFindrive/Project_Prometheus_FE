@@ -10,6 +10,7 @@ import { COLORS, DIMENSIONS, ASSET } from "../constants";
 import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
+import InsuranceDialog from "../components/InsuranceDialog";
 import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 
 // 진단 코드 분류별 개수를 계산하는 함수
@@ -132,26 +133,20 @@ export default function AssetStatus() {
                   ],
               };
     });
-    // Inline insurance drafts keyed by asset id
-    const [insuranceDrafts, setInsuranceDrafts] = useState({});
-
-    const setInsuranceDraft = (assetId, field, value) => {
-        setInsuranceDrafts((prev) => ({
-            ...prev,
-            [assetId]: { ...(prev[assetId] || {}), [field]: value },
-        }));
-    };
-
-    const saveInsuranceInline = async (asset) => {
-        const id = asset?.id;
+    // Insurance modal state
+    const [showInsuranceModal, setShowInsuranceModal] = useState(false);
+    const [insuranceAsset, setInsuranceAsset] = useState(null);
+    const openInsuranceModal = (asset) => { setInsuranceAsset(asset); setShowInsuranceModal(true); };
+    const closeInsuranceModal = () => { setInsuranceAsset(null); setShowInsuranceModal(false); };
+    const handleInsuranceSubmit = async ({ insuranceInfo, insuranceExpiryDate }) => {
+        const id = insuranceAsset?.id;
         if (!id) return;
-        const draft = insuranceDrafts[id] || {};
         try {
-            await saveAsset(id, { insuranceInfo: draft.insuranceInfo || "", insuranceExpiryDate: draft.insuranceExpiryDate || "" });
-            setRows((prev) => prev.map((a) => (a.id === id ? { ...a, insuranceInfo: draft.insuranceInfo || a.insuranceInfo, insuranceExpiryDate: draft.insuranceExpiryDate || a.insuranceExpiryDate } : a)));
-            setInsuranceDrafts((prev) => ({ ...prev, [id]: undefined }));
+            await saveAsset(id, { insuranceInfo: insuranceInfo || "", insuranceExpiryDate: insuranceExpiryDate || "" });
+            setRows((prev) => prev.map((a) => (a.id === id ? { ...a, insuranceInfo: insuranceInfo || a.insuranceInfo, insuranceExpiryDate: insuranceExpiryDate || a.insuranceExpiryDate } : a)));
+            closeInsuranceModal();
         } catch (e) {
-            console.error("Failed to save insurance inline", e);
+            console.error("Failed to save insurance", e);
             alert("보험 정보 저장에 실패했습니다.");
         }
     };
@@ -470,30 +465,10 @@ export default function AssetStatus() {
                 return formatDateShort(row.registrationDate);
             case "insuranceExpiryDate":
                 if (row.insuranceExpiryDate) return formatDateShort(row.insuranceExpiryDate);
-                const d = insuranceDrafts[row.id] || {};
                 return (
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                        <input
-                            type="date"
-                            className="form-input"
-                            style={{ padding: "4px 6px", height: 28 }}
-                            value={d.insuranceExpiryDate || ""}
-                            onChange={(e) => setInsuranceDraft(row.id, "insuranceExpiryDate", e.target.value)}
-                            title="보험 만료일"
-                        />
-                        <input
-                            type="text"
-                            className="form-input"
-                            style={{ padding: "4px 6px", height: 28, width: 120 }}
-                            placeholder="보험사"
-                            value={d.insuranceInfo || ""}
-                            onChange={(e) => setInsuranceDraft(row.id, "insuranceInfo", e.target.value)}
-                            title="보험사"
-                        />
-                        <button type="button" className="form-button" style={{ padding: "4px 8px", height: 28 }} onClick={() => saveInsuranceInline(row)}>
-                            등록
-                        </button>
-                    </div>
+                    <button type="button" className="form-button" onClick={() => openInsuranceModal(row)}>
+                        보험 등록
+                    </button>
                 );
             case "deviceStatus":
                 const hasDevice = row.deviceSerial;
@@ -719,6 +694,14 @@ export default function AssetStatus() {
                         />
                     );
                 })()}
+            </Modal>
+            <Modal
+                isOpen={showInsuranceModal && !!insuranceAsset}
+                onClose={closeInsuranceModal}
+                title={`보험 등록 - ${insuranceAsset?.plate || ""}`}
+                showFooter={false}
+            >
+                <InsuranceDialog asset={insuranceAsset || {}} onClose={closeInsuranceModal} onSubmit={handleInsuranceSubmit} />
             </Modal>
 
             <Modal
