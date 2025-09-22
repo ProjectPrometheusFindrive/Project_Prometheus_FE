@@ -1,12 +1,15 @@
-import { seedVehicles } from "./seed";
+import seedVehicles from "./seed.json";
 
 const deriveHistory = (a) => {
+  // If seed already supplies full history, use it as‑is
   if (Array.isArray(a.insuranceHistory)) return a.insuranceHistory;
+
   const info = a.insuranceInfo || a.insuranceCompany || "";
   const product = a.insuranceProduct || "";
   const expiry = a.insuranceExpiryDate || "";
   if (!info && !expiry) return [];
-  // Derive start date from registration or 1 year before expiry
+
+  // Derive current cycle (start/expiry)
   let start = a.insuranceStartDate || a.registrationDate || "";
   if (!start && expiry) {
     try {
@@ -16,7 +19,7 @@ const deriveHistory = (a) => {
     } catch {}
   }
   const company = info || "";
-  const entry = {
+  const current = {
     type: "등록",
     date: start || a.registrationDate || "",
     company,
@@ -27,7 +30,29 @@ const deriveHistory = (a) => {
     docName: a.insuranceDocName || "",
     docDataUrl: a.insuranceDocDataUrl || "",
   };
-  return [entry];
+
+  // Also synthesize one previous cycle for demo richness when we have a valid start
+  let prev = null;
+  if (current.startDate) {
+    try {
+      const s = new Date(current.startDate);
+      const prevStart = new Date(s);
+      prevStart.setFullYear(prevStart.getFullYear() - 1);
+      prev = {
+        type: "갱신",
+        date: prevStart.toISOString().slice(0, 10),
+        company,
+        product,
+        startDate: prevStart.toISOString().slice(0, 10),
+        expiryDate: current.startDate,
+        specialTerms: a.insuranceSpecialTerms || "",
+        docName: a.insuranceDocName || "",
+        docDataUrl: a.insuranceDocDataUrl || "",
+      };
+    } catch {}
+  }
+
+  return prev ? [prev, current] : [current];
 };
 
 const computeDiagnosticStatus = (a) => {

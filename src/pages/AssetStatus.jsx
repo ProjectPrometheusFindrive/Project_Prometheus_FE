@@ -164,7 +164,11 @@ export default function AssetStatus() {
         const stored = typedStorage.devices.getInfo(activeAsset.id) || {};
         return {
             supplier: stored.supplier || "",
-            installDate: stored.installDate || "",
+            installDate:
+                stored.installDate ||
+                activeAsset.deviceInstallDate ||
+                activeAsset.installDate ||
+                "",
             installer: stored.installer || activeAsset.installer || "",
             serial: stored.serial || activeAsset.deviceSerial || "",
             photos: stored.photos || [],
@@ -197,6 +201,21 @@ export default function AssetStatus() {
                         const info = map[a.id];
                         return info ? { ...a, deviceSerial: info.serial || a.deviceSerial, installer: info.installer || a.installer } : a;
                     });
+                } catch {}
+                // Seed device event history if missing
+                try {
+                    for (const a of next) {
+                        const hasEvents = (typedStorage.devices.getEvents(a.id) || []).length > 0;
+                        const installDateCandidate = (typedStorage.devices.getInfo(a.id) || {}).installDate || a.deviceInstallDate || "";
+                        if (!hasEvents && installDateCandidate) {
+                            typedStorage.devices.addEvent(a.id, {
+                                type: "install",
+                                label: "단말 장착일",
+                                date: installDateCandidate,
+                                meta: { seeded: true }
+                            });
+                        }
+                    }
                 } catch {}
                 // For demo: ensure one vehicle shows no insurance data
                 try {
@@ -893,7 +912,10 @@ export default function AssetStatus() {
                 onSubmit={deviceReadOnly ? undefined : handleDeviceInfoSubmit}
             >
                 <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} readOnly={deviceReadOnly} showSubmit={false} />
-                <DeviceEventLog assetId={activeAsset?.id} fallbackInstallDate={deviceInitial?.installDate || ""} />
+                <DeviceEventLog
+                    assetId={activeAsset?.id}
+                    fallbackInstallDate={(deviceInitial?.installDate || "") || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""}
+                />
             </Modal>
 
             <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." />

@@ -389,6 +389,14 @@ interface Asset {
     docName?: string;            // 첨부 파일명
     docDataUrl?: string;         // 첨부 데이터 URL
   }>;
+  // 단말 이력(장착/변경 기록)
+  deviceHistory?: Array<{
+    type: 'install' | 'replace' | 'update'; // 이벤트 종류
+    date: Date;                  // 이벤트 일자(보통 장착일)
+    installDate?: Date;          // 장착일(동일 값 중복 보관 가능)
+    serial?: string;             // 단말 S/N
+    installer?: string;          // 장착자 이름
+  }>;
   location: {                    // 위치 정보
     lat: number;
     lng: number;

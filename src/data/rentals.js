@@ -1,4 +1,4 @@
-import { seedVehicles } from "./seed";
+import seedVehicles from "./seed.json";
 
 // Export all rentals flattened from all vehicles
 export const rentals = Object.values(seedVehicles)

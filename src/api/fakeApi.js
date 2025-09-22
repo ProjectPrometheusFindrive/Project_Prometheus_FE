@@ -60,22 +60,44 @@ const deleteRequest = async (url) => {
 export async function fetchAssets() {
   try {
     const assets = await fetchJSON(`${API_BASE_URL}/assets`);
-    return normalizeAssetsWithInsurance(assets);
+    return normalizeAssets(assets);
   } catch (error) {
     // Fallback to local seed data if server is not available
     console.warn('Falling back to local seed data for assets');
     const { assets } = await import('../data/assets');
-    return normalizeAssetsWithInsurance(assets);
+    return normalizeAssets(assets);
   }
 }
 
-// Attach/derive current insurance info from history when present
-function normalizeAssetsWithInsurance(arr) {
+// Attach/derive current insurance + device info from history when present
+function normalizeAssets(arr) {
   if (!Array.isArray(arr)) return [];
   const today = new Date();
   return arr.map((asset) => {
     const a = { ...asset };
-    const hist = Array.isArray(a.insuranceHistory) ? [...a.insuranceHistory] : [];
+    // --- Insurance normalization ---
+    let hist = Array.isArray(a.insuranceHistory) ? [...a.insuranceHistory] : [];
+    // If missing, synthesize a single entry from top-level fields
+    if (hist.length === 0 && (a.insuranceInfo || a.insuranceCompany || a.insuranceExpiryDate)) {
+      let start = a.insuranceStartDate || a.registrationDate || '';
+      const expiry = a.insuranceExpiryDate || '';
+      if (!start && expiry) {
+        try { const d = new Date(expiry); d.setFullYear(d.getFullYear() - 1); start = d.toISOString().slice(0,10); } catch {}
+      }
+      const company = a.insuranceCompany || a.insuranceInfo || '';
+      const product = a.insuranceProduct || '';
+      hist = [{
+        type: '등록',
+        date: start || a.registrationDate || '',
+        company,
+        product,
+        startDate: start || '',
+        expiryDate: expiry || '',
+        specialTerms: a.insuranceSpecialTerms || '',
+        docName: a.insuranceDocName || '',
+        docDataUrl: a.insuranceDocDataUrl || '',
+      }];
+    }
     // Ensure sorted by effective date (start/date) ascending
     hist.sort((x, y) => new Date(x.startDate || x.date || 0) - new Date(y.startDate || y.date || 0));
 
@@ -105,13 +127,36 @@ function normalizeAssetsWithInsurance(arr) {
       a.insuranceDocDataUrl = current.docDataUrl || a.insuranceDocDataUrl || "";
       a.insuranceHistory = hist;
     }
+
+    // --- Device normalization ---
+    let dhist = Array.isArray(a.deviceHistory) ? [...a.deviceHistory] : [];
+    // If not provided, synthesize from top-level fields
+    if (dhist.length === 0 && (a.deviceInstallDate || a.deviceSerial || a.installer)) {
+      dhist = [
+        {
+          type: 'install',
+          date: a.deviceInstallDate || a.registrationDate || '',
+          installDate: a.deviceInstallDate || '',
+          serial: a.deviceSerial || '',
+          installer: a.installer || '',
+        }
+      ];
+    }
+    if (dhist.length > 0) {
+      dhist.sort((x, y) => new Date(x.installDate || x.date || 0) - new Date(y.installDate || y.date || 0));
+      const dcur = dhist[dhist.length - 1];
+      a.deviceInstallDate = dcur.installDate || dcur.date || a.deviceInstallDate || '';
+      a.deviceSerial = dcur.serial || a.deviceSerial || '';
+      a.installer = dcur.installer || a.installer || '';
+      a.deviceHistory = dhist;
+    }
     return a;
   });
 }
 
 export async function fetchAssetById(id) {
   const a = await fetchJSON(`${API_BASE_URL}/assets/${id}`);
-  const [norm] = normalizeAssetsWithInsurance([a]);
+  const [norm] = normalizeAssets([a]);
   return norm || a;
 }
 
