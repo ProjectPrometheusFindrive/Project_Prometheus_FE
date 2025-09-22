@@ -963,6 +963,26 @@ body {
     transform: translateY(1px);
 }
 
+.simple-button {
+    background: #f8f9fa;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0.25rem 0.5rem;
+    font: inherit;
+    border-radius: 4px;
+    transition: background-color 0.15s ease;
+}
+
+.simple-button:hover {
+    background: #e9ecef;
+}
+
+.simple-button:focus-visible {
+    outline: 2px solid rgba(0, 87, 231, 0.55);
+    outline-offset: 2px;
+}
+
 .file-info {
     font-size: 12px;
     color: #555;

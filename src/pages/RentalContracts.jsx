@@ -571,16 +571,10 @@ export default function RentalContracts() {
             case "plate":
                 return (
                     <button
-                        style={{
-                            background: "none",
-                            border: "none",
-                            color: "#1976d2",
-                            cursor: "pointer",
-                            textDecoration: "underline",
-                            padding: 0,
-                            font: "inherit",
-                        }}
+                        type="button"
+                        className="simple-button"
                         onClick={() => handlePlateClick(row)}
+                        title="계약 상세 정보 보기"
                     >
                         {row.plate || "-"}
                     </button>

@@ -709,7 +709,7 @@ export default function AssetStatus() {
                 return null; // Table 컴포넌트에서 자동 처리
             case "plate":
                 return (
-                    <button type="button" onClick={() => openAssetEdit(row)} className="link-button" title="자산 등록/편집">
+                    <button type="button" onClick={() => openAssetEdit(row)} className="simple-button" title="자산 등록/편집">
                         {row.plate}
                     </button>
                 );
@@ -720,7 +720,7 @@ export default function AssetStatus() {
             case "insuranceExpiryDate":
                 if (row.insuranceExpiryDate) {
                     return (
-                        <button type="button" className="link-button" onClick={() => openInsuranceModalReadOnly(row)} title="보험 정보 보기">
+                        <button type="button" className="simple-button" onClick={() => openInsuranceModalReadOnly(row)} title="보험 정보 보기">
                             {formatDateShort(row.insuranceExpiryDate)}
                         </button>
                     );
