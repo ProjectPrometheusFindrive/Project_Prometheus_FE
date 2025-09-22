@@ -747,8 +747,11 @@ body {
     justify-content: flex-end;
 }
 
-@media (max-width: 960px) {
-  .asset-dialog__grid { grid-template-columns: 1fr; }
+.asset-history__item {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 8px 10px;
 }
 
 .asset-bottom-row { display: grid; grid-template-columns: 140px 1fr; align-items: center; }

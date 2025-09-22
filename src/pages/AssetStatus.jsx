@@ -1057,12 +1057,23 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showDeviceModal && activeAsset}
                 onClose={() => setShowDeviceModal(false)}
-                title={`단말 정보 등록 - ${activeAsset?.id || ""}`}
-                formId={deviceReadOnly ? undefined : "device-info"}
-                onSubmit={deviceReadOnly ? undefined : handleDeviceInfoSubmit}
+                title={`단말 정보 ${deviceReadOnly ? '보기' : '등록'} - ${activeAsset?.plate || activeAsset?.id || ""}`}
+                showFooter={false}
             >
-                <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} readOnly={deviceReadOnly} showSubmit={false} />
+                <DeviceInfoForm
+                    formId="device-info"
+                    initial={deviceInitial}
+                    onSubmit={handleDeviceInfoSubmit}
+                    readOnly={deviceReadOnly}
+                    showSubmit={!deviceReadOnly}
+                />
                 <DeviceEventLog assetId={activeAsset?.id} fallbackInstallDate={deviceInitial?.installDate || "" || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""} />
+
+                {deviceReadOnly && (
+                    <div className="asset-dialog__footer">
+                        <button type="button" className="form-button" onClick={() => setShowDeviceModal(false)}>닫기</button>
+                    </div>
+                )}
             </Modal>
 
             <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." stickyHeader />
