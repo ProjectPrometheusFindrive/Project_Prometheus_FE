@@ -478,16 +478,7 @@ export default function RentalContracts() {
             case "contractStatus":
                 return getContractStatusBadge(row.contractStatus);
             case "engine_status":
-                return (
-                    <StatusBadge
-                        style={{
-                            backgroundColor: row.engineOn ? "#4caf50" : "#f44336",
-                            color: "white",
-                        }}
-                    >
-                        {row.engineOn ? "ON" : "OFF"}
-                    </StatusBadge>
-                );
+                return <StatusBadge type={row.engineOn ? "on" : "off"}>{row.engineOn ? "ON" : "OFF"}</StatusBadge>;
             case "restart_blocked":
                 return (
                     <label className="status-toggle" style={{ margin: 0, display: "inline-flex" }}>
@@ -512,18 +503,7 @@ export default function RentalContracts() {
                     <button
                         type="button"
                         onClick={() => handleOpenAccidentModal(row)}
-                        style={{
-                            backgroundColor: row.accident_reported ? "#ff9800" : "#fff7ed",
-                            border: "1px solid #ff9800",
-                            borderRadius: "50%",
-                            width: "32px",
-                            height: "32px",
-                            display: "inline-flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            color: row.accident_reported ? "#ffffff" : "#f57c00",
-                            cursor: "pointer",
-                        }}
+                        className={`badge-button badge badge--clickable ${row.accident_reported ? "badge--accident" : "badge--default"}`}
                         title={row.accident_reported ? "등록된 사고 정보 보기" : "사고 등록"}
                         aria-label={row.accident_reported ? `${row.plate || row.rental_id} 사고 정보 보기` : `${row.plate || row.rental_id} 사고 등록`}
                     >
@@ -620,15 +600,19 @@ export default function RentalContracts() {
     };
 
     const getContractStatusBadge = (status) => {
+        if (!status) {
+            return <StatusBadge type="default">-</StatusBadge>;
+        }
+
         const statusMap = {
-            "예약 중": { type: "pending", color: "#2196f3" },
-            대여중: { type: "rented", color: "#4caf50" },
-            사고접수: { type: "accident", color: "#ff9800" },
-            반납지연: { type: "overdue", color: "#f44336" },
-            도난의심: { type: "suspicious", color: "#9c27b0" },
+            "예약 중": "pending",
+            대여중: "rented",
+            사고접수: "accident",
+            반납지연: "overdue",
+            도난의심: "suspicious",
         };
-        const config = statusMap[status] || { type: "default", color: "#757575" };
-        return <StatusBadge style={{ backgroundColor: config.color, color: "white", fontSize: "0.8rem" }}>{status}</StatusBadge>;
+        const badgeType = statusMap[status] || "default";
+        return <StatusBadge type={badgeType}>{status}</StatusBadge>;
     };
 
     const getRentalAmountBadges = (row) => {
@@ -639,19 +623,17 @@ export default function RentalContracts() {
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>₩{formattedAmount}</div>
                 <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                    <StatusBadge
-                        style={{
-                            backgroundColor: row.isLongTerm ? "#e3f2fd" : "#fff3e0",
-                            color: row.isLongTerm ? "#1976d2" : "#f57c00",
-                            fontSize: "0.7rem",
-                        }}
-                    >
+                    <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>
                         {row.isLongTerm ? "장기" : "단기"}
                     </StatusBadge>
-                    <StatusBadge style={{ backgroundColor: "#f5f5f5", color: "#424242", fontSize: "0.7rem" }}>
-                        {row.isLongTerm ? "월" + new Intl.NumberFormat("ko-KR").format(Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30)))) : "총" + formattedAmount}
+                    <StatusBadge variant="badge--contract-amount">
+                        {row.isLongTerm
+                            ? `월${new Intl.NumberFormat("ko-KR").format(
+                                  Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30)))
+                              )}`
+                            : `총${formattedAmount}`}
                     </StatusBadge>
-                    {row.hasUnpaid && <StatusBadge style={{ backgroundColor: "#ffebee", color: "#c62828", fontSize: "0.7rem" }}>미납</StatusBadge>}
+                    {row.hasUnpaid && <StatusBadge variant="badge--contract-unpaid">미납</StatusBadge>}
                 </div>
             </div>
         );
@@ -669,8 +651,7 @@ export default function RentalContracts() {
                         </button>
                         <button
                             type="button"
-                            className="form-button"
-                            style={{ background: "#c62828" }}
+                            className="form-button form-button--danger"
                             onClick={handleDeleteSelected}
                             disabled={selectedCount === 0}
                             title={selectedCount === 0 ? "Select rows to delete" : "Delete selected"}
@@ -680,9 +661,8 @@ export default function RentalContracts() {
                         <div style={{ position: "relative" }} data-column-dropdown>
                             <button
                                 type="button"
-                                className="form-button"
+                                className="form-button form-button--neutral"
                                 onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                                style={{ background: "#607d8b", display: "flex", alignItems: "center", gap: "4px" }}
                                 title="컬럼 설정"
                             >
                                 <FaCog size={14} />
@@ -814,68 +794,23 @@ export default function RentalContracts() {
                             <button
                                 onClick={handleShowLocation}
                                 disabled={!selectedContract.current_location}
-                                style={{
-                                    background: selectedContract.current_location ? "#2196f3" : "#ccc",
-                                    color: "white",
-                                    border: "none",
-                                    padding: "8px 16px",
-                                    borderRadius: "6px",
-                                    cursor: selectedContract.current_location ? "pointer" : "not-allowed",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px",
-                                    fontSize: "0.85rem",
-                                    fontWeight: "500",
-                                    opacity: selectedContract.current_location ? 1 : 0.6,
-                                }}
-                                onMouseOver={(e) => {
-                                    if (selectedContract.current_location) {
-                                        e.target.style.background = "#1976d2";
-                                    }
-                                }}
-                                onMouseOut={(e) => {
-                                    if (selectedContract.current_location) {
-                                        e.target.style.background = "#2196f3";
-                                    }
-                                }}
+                                className="form-button form-button--accent"
                                 title={selectedContract.current_location ? "현재 위치를 지도에서 확인" : "현재 위치 정보 없음"}
                             >
-                                <FaMapMarkerAlt size={14} />
+                                <FaMapMarkerAlt size={16} aria-hidden="true" />
                                 현재 위치
                             </button>
                             {/* 사고 접수 버튼 */}
                             <button
                                 onClick={() => handleOpenAccidentModal(selectedContract)}
-                                style={{
-                                    background: "#ff5722",
-                                    color: "white",
-                                    border: "none",
-                                    padding: "8px 16px",
-                                    borderRadius: "6px",
-                                    cursor: "pointer",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    gap: "6px",
-                                    fontSize: "0.85rem",
-                                    fontWeight: "500",
-                                    opacity: selectedContract.accident_reported ? 0.85 : 1,
-                                }}
-                                onMouseOver={(e) => (e.target.style.background = "#e64919")}
-                                onMouseOut={(e) => (e.target.style.background = "#ff5722")}
+                                className="form-button form-button--warning"
                             >
-                                <FaExclamationTriangle size={14} />
+                                <FaExclamationTriangle size={16} aria-hidden="true" />
                                 {selectedContract.accident_reported ? "사고 정보 수정" : "사고 등록"}
                             </button>
                             {selectedContract.accident_reported && (
-                                <StatusBadge
-                                    style={{
-                                        backgroundColor: "#ff9800",
-                                        color: "white",
-                                        fontSize: "0.8rem",
-                                        padding: "6px 12px",
-                                    }}
-                                >
-                                    <FaExclamationTriangle size={12} style={{ marginRight: "4px" }} />
+                                <StatusBadge type="accident">
+                                    <FaExclamationTriangle size={14} aria-hidden="true" />
                                     사고 접수됨
                                 </StatusBadge>
                             )}
@@ -1150,8 +1085,7 @@ export default function RentalContracts() {
                             </button>
                             <button
                                 type="button"
-                                className="form-button"
-                                style={{ background: "#6c757d" }}
+                                className="form-button form-button--muted"
                                 onClick={handleCloseAccidentModal}
                             >
                                 닫기
@@ -1189,17 +1123,7 @@ export default function RentalContracts() {
                             </div>
                             <button
                                 onClick={handleBackToDetail}
-                                style={{
-                                    background: "#6c757d",
-                                    color: "white",
-                                    border: "none",
-                                    padding: "8px 16px",
-                                    borderRadius: "6px",
-                                    cursor: "pointer",
-                                    fontSize: "0.85rem",
-                                }}
-                                onMouseOver={(e) => (e.target.style.background = "#5a6268")}
-                                onMouseOut={(e) => (e.target.style.background = "#6c757d")}
+                                className="form-button form-button--muted"
                             >
                                 상세정보로 돌아가기
                             </button>
