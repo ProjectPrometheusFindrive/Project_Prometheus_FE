@@ -2,7 +2,6 @@ import React, { useState } from "react";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
-  const bottomRegDate = asset.systemRegDate || asset.registrationDate || "";
   const [form, setForm] = useState({
     make: asset.make || "",
     model: asset.model || "",
@@ -111,16 +110,9 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
           <div className="asset-dates">
             {dateItem("차량 구매일", asset.purchaseDate || "")}
-            {dateItem("전산 등록 일자", asset.systemRegDate || "")}
+            {dateItem("전산 등록 일자", asset.registrationDate || asset.systemRegDate || "")}
             {dateItem("전산 삭제 일자", asset.systemDelDate || "")}
           </div>
-
-          {isEdit && (
-            <div className="asset-bottom-row">
-              <div className="asset-dates__label">차량 등록일</div>
-              <div className="asset-dates__value">{bottomRegDate || <span className="empty">-</span>}</div>
-            </div>
-          )}
         </div>
       </div>
 
