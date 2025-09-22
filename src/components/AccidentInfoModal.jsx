@@ -160,8 +160,18 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                             </div>
                             <div>
                                 <strong style={{ color: "#666", fontSize: "0.9rem" }}>블랙박스 영상:</strong>
-                                <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
-                                    {accidentData.blackboxFileName || "파일 없음"}
+                                <div style={{ fontSize: "0.95rem", marginTop: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                    {accidentData.blackboxFileName ? (
+                                        <>
+                                            <span style={{ color: "#28a745", fontWeight: "500" }}>✓</span>
+                                            <span style={{ color: "#333" }}>{accidentData.blackboxFileName}</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <span style={{ color: "#dc3545", fontWeight: "500" }}>✗</span>
+                                            <span style={{ color: "#666" }}>영상 파일 없음</span>
+                                        </>
+                                    )}
                                 </div>
                             </div>
                         </div>
@@ -379,11 +389,35 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                     </div>
                 )}
 
-                {/* 영상이 없을 때 */}
+                {/* 영상이 있지만 파일을 찾을 수 없을 때 */}
                 {!videoSrc && accidentData.blackboxFileName && (
                     <div
                         style={{
                             padding: "20px",
+                            backgroundColor: "#fff3e0",
+                            border: "2px dashed #ff9800",
+                            borderRadius: "8px",
+                            textAlign: "center",
+                            marginBottom: "16px",
+                        }}
+                    >
+                        <div style={{ fontSize: "1rem", color: "#e65100", marginBottom: "8px", fontWeight: "600" }}>
+                            📹 블랙박스 영상 파일 누락
+                        </div>
+                        <div style={{ fontSize: "0.9rem", color: "#f57c00" }}>
+                            등록된 파일: {accidentData.blackboxFileName}
+                        </div>
+                        <div style={{ fontSize: "0.85rem", color: "#ff9800", marginTop: "8px" }}>
+                            영상 파일을 찾을 수 없거나 지원하지 않는 형식입니다.
+                        </div>
+                    </div>
+                )}
+
+                {/* 영상이 아예 없을 때 */}
+                {!videoSrc && !accidentData.blackboxFileName && (
+                    <div
+                        style={{
+                            padding: "24px",
                             backgroundColor: "#f8f9fa",
                             border: "2px dashed #dee2e6",
                             borderRadius: "8px",
@@ -391,14 +425,13 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                             marginBottom: "16px",
                         }}
                     >
-                        <div style={{ fontSize: "1rem", color: "#666", marginBottom: "8px" }}>
-                            📹 블랙박스 영상
+                        <div style={{ fontSize: "3rem", marginBottom: "12px" }}>📋</div>
+                        <div style={{ fontSize: "1.1rem", color: "#495057", marginBottom: "8px", fontWeight: "600" }}>
+                            사고 정보만 등록됨
                         </div>
-                        <div style={{ fontSize: "0.9rem", color: "#999" }}>
-                            파일: {accidentData.blackboxFileName}
-                        </div>
-                        <div style={{ fontSize: "0.85rem", color: "#999", marginTop: "8px" }}>
-                            영상 파일을 찾을 수 없거나 지원하지 않는 형식입니다.
+                        <div style={{ fontSize: "0.9rem", color: "#6c757d", lineHeight: "1.5" }}>
+                            블랙박스 영상은 등록되지 않았습니다.<br />
+                            사고 발생 시각과 담당자 정보를 확인하세요.
                         </div>
                     </div>
                 )}

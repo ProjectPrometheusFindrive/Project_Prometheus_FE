@@ -750,7 +750,20 @@
         "return_location": { "lat": 35.18, "lng": 129.07 },
         "current_location": { "lat": 35.19, "lng": 129.08 },
         "engine_status": "on",
-        "restart_blocked": false
+        "restart_blocked": false,
+        "accident_reported": true,
+        "accidentReport": {
+          "accidentDate": "2025-09-20",
+          "accidentHour": "16",
+          "accidentMinute": "45",
+          "accidentSecond": "30",
+          "handlerName": "김관리",
+          "accidentDateTime": "2025-09-20T16:45:30",
+          "accidentDisplayTime": "2025.09.20 16:45:30",
+          "blackboxFile": null,
+          "blackboxFileName": "",
+          "recordedAt": "2025-09-20T17:00:00.000Z"
+        }
       }
     ]
   },
