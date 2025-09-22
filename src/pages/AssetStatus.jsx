@@ -9,6 +9,30 @@ import { typedStorage } from "../utils/storage";
 import { DIMENSIONS, ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
+
+// 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
+const formatVehicleType = (vehicleType) => {
+    if (!vehicleType) return "-";
+
+    // "00년형" 패턴을 찾아서 분리
+    const yearPattern = /(\d{2,4}년형)/;
+    const match = vehicleType.match(yearPattern);
+
+    if (match) {
+        const yearPart = match[1];
+        const modelPart = vehicleType.replace(yearPattern, '').trim();
+
+        return (
+            <span>
+                {modelPart}
+                {modelPart && yearPart && ' '}
+                <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>{yearPart}</span>
+            </span>
+        );
+    }
+
+    return vehicleType;
+};
 import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
@@ -714,7 +738,7 @@ export default function AssetStatus() {
                     </button>
                 );
             case "vehicleType":
-                return row.vehicleType;
+                return formatVehicleType(row.vehicleType);
             case "registrationDate":
                 return formatDateShort(row.registrationDate);
             case "insuranceExpiryDate":
