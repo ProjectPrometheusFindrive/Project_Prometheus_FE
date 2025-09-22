@@ -4,6 +4,12 @@
 
 .page {
     padding: 1rem; /* top/bottom 1rem; bottom nav spacing handled by .app-content */
+    /* Fill available space so inner scroll areas can work */
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 .table-wrap {
     overflow-x: auto;
@@ -31,6 +37,11 @@
 .table-wrap--sticky {
     position: relative;
     --table-sticky-extra-offset: 0px;
+    /* Make the table area its own scroll container so only rows scroll */
+    overflow: auto; /* both axes when needed */
+    max-height: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
 }
 
 .asset-table--sticky thead th {
@@ -39,6 +50,11 @@
     z-index: 5;
     background: #fafafa;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+/* When the table sits inside a sticky table container, pin header to the
+   container top so the data area scrolls under it (no extra offset). */
+.table-wrap--sticky .asset-table--sticky thead th {
+    top: 0;
 }
 
 /* Asset/toolbars: align controls consistently */

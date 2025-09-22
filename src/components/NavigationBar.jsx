@@ -12,7 +12,7 @@ export default function NavigationBar() {
             <NavLink to="/dashboard" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Home" title="Home">
                 <FiHome className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    Home
+                    홈
                 </span>
             </NavLink>
 
