@@ -6,7 +6,7 @@ import Modal from "../components/Modal";
 import Table from "../components/Table";
 import useTableSelection from "../hooks/useTableSelection";
 import { typedStorage } from "../utils/storage";
-import { COLORS, DIMENSIONS, ASSET } from "../constants";
+import { DIMENSIONS, ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
@@ -958,8 +958,7 @@ export default function AssetStatus() {
                     </button>
                     <button
                         type="button"
-                        className="form-button"
-                        style={{ background: COLORS.DANGER }}
+                        className="form-button form-button--danger"
                         onClick={handleDeleteSelected}
                         disabled={selectedCount === 0}
                         title={selectedCount === 0 ? "삭제할 항목을 선택하세요" : "선택 항목 삭제"}
@@ -969,9 +968,8 @@ export default function AssetStatus() {
                     <div style={{ position: "relative" }} data-column-dropdown>
                         <button
                             type="button"
-                            className="form-button"
+                            className="form-button form-button--neutral"
                             onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                            style={{ background: "#607d8b", display: "flex", alignItems: "center", gap: "4px" }}
                             title="컬럼 설정"
                         >
                             <FaCog size={14} />

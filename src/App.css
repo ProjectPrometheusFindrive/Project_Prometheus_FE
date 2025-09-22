@@ -128,11 +128,16 @@
 }
 
 .badge {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
     padding: 0.2rem 0.5rem;
     border-radius: 999px;
     font-size: 0.8rem;
     line-height: 1;
+    font-weight: 600;
+    text-align: center;
 }
 
 .badge-button {
@@ -177,6 +182,11 @@
     color: #b71c1c;
 }
 
+.badge--accident {
+    background: #ffe8d9;
+    color: #c2410c;
+}
+
 /* ê´€ë¦¬ë‹¨ê³?ë°°ì? ?¤í???*/
 .badge--pending {
     background: #fff4e5;
@@ -201,6 +211,26 @@
 .badge--default {
     background: #e5e7eb;
     color: #6b7280;
+}
+
+.badge--contract-term {
+    background: #e3f2fd;
+    color: #0b57d0;
+}
+
+.badge--contract-term-short {
+    background: #fff7ed;
+    color: #b45309;
+}
+
+.badge--contract-amount {
+    background: #f3f4f6;
+    color: #374151;
+}
+
+.badge--contract-unpaid {
+    background: #ffebee;
+    color: #b91c1c;
 }
 
 /* rentals-table now renders only required columns; no hidden columns needed */
@@ -1342,9 +1372,44 @@ body {
     padding: 0.7rem 1rem;
     font-size: 1rem;
     cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    line-height: 1.2;
+    font-weight: 600;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
 }
 .form-button:hover {
     background: #064dc9;
+}
+
+.form-button--accent {
+    background: #2196f3;
+}
+.form-button--accent:hover {
+    background: #1976d2;
+}
+
+.form-button--neutral {
+    background: #607d8b;
+}
+.form-button--neutral:hover {
+    background: #546a7a;
+}
+
+.form-button--muted {
+    background: #6c757d;
+}
+.form-button--muted:hover {
+    background: #5a6268;
+}
+
+.form-button--warning {
+    background: #ff5722;
+}
+.form-button--warning:hover {
+    background: #e64a19;
 }
 
 /* Small inline button for table actions */
