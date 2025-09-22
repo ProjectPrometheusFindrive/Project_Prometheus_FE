@@ -8,6 +8,7 @@ export const STORAGE_KEYS = {
   
   // Asset Management
   DEVICE_INFO_BY_ASSET: 'deviceInfoByAsset',
+  DEVICE_EVENTS_BY_ASSET: 'deviceEventsByAsset',
   ASSET_DRAFTS: 'assetDrafts',
   ASSET_EDITS: 'assetEdits',
   
@@ -254,6 +255,31 @@ export const typedStorage = {
       const map = storageUtils.get(STORAGE_KEYS.DEVICE_INFO_BY_ASSET, {});
       map[assetId] = info;
       return storageUtils.set(STORAGE_KEYS.DEVICE_INFO_BY_ASSET, map);
+    },
+
+    // Device events (history) helpers
+    getEvents: (assetId) => {
+      const map = storageUtils.get(STORAGE_KEYS.DEVICE_EVENTS_BY_ASSET, {});
+      return map[assetId] || [];
+    },
+    addEvent: (assetId, event) => {
+      const map = storageUtils.get(STORAGE_KEYS.DEVICE_EVENTS_BY_ASSET, {});
+      const list = Array.isArray(map[assetId]) ? map[assetId] : [];
+      const entry = {
+        id: `${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+        type: event?.type || 'event',
+        label: event?.label || '',
+        date: event?.date || new Date().toISOString().slice(0, 10),
+        meta: event?.meta || {},
+        createdAt: new Date().toISOString(),
+      };
+      map[assetId] = [entry, ...list];
+      return storageUtils.set(STORAGE_KEYS.DEVICE_EVENTS_BY_ASSET, map);
+    },
+    setEvents: (assetId, events) => {
+      const map = storageUtils.get(STORAGE_KEYS.DEVICE_EVENTS_BY_ASSET, {});
+      map[assetId] = Array.isArray(events) ? events : [];
+      return storageUtils.set(STORAGE_KEYS.DEVICE_EVENTS_BY_ASSET, map);
     }
   },
 

@@ -1,0 +1,71 @@
+    const visibleColumns = columnSettings.columns.filter((col) => col.visible);
+
+    // Í∞?Ïª¨Îüº???Ä ?¥Ïö©???åÎçîÎßÅÌïò???®Ïàò
+    const renderCellContent = (column, row) => {
+        switch (column.key) {
+            case "select":
+                return null; // Table Ïª¥Ìè¨?åÌä∏?êÏÑú ?êÎèô Ï≤òÎ¶¨
+            case "plate":
+                return (
+                    <button type="button" onClick={() => openAssetEdit(row)} className="link-button" title="?êÏÇ∞ ?±Î°ù/?∏Ïßë">
+                        {row.plate}
+                    </button>
+                );
+            case "vehicleType":
+                return row.vehicleType;
+            case "registrationDate":
+                return formatDateShort(row.registrationDate);
+            case "insuranceExpiryDate":
+                if (row.insuranceExpiryDate) {
+                    return (
+                        <button type="button" className="link-button" onClick={() => openInsuranceModalReadOnly(row)} title="Î≥¥Ìóò ?ïÎ≥¥ Î≥¥Í∏∞">
+                            {formatDateShort(row.insuranceExpiryDate)}
+                        </button>
+                    );
+                }
+                return (
+                    <button type="button" className="form-button" onClick={() => openInsuranceModal(row)}>
+                        Î≥¥Ìóò ?±Î°ù
+                    </button>
+                );
+            case "deviceStatus":
+                const hasDevice = row.deviceSerial;
+                const status = hasDevice ? "?∞Í≤∞?? : "ÎØ∏Ïó∞Í≤?;
+                return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
+            case "managementStage":
+                const stage = getManagementStage(row);
+                const stageClass = {
+                    "?òÎ¶¨/?êÍ? Ï§?: "badge--maintenance",
+                    ?ÖÍ≥†?Ä?? "badge--pending",
+                    "?Ä??Í∞Ä??: "badge--available",
+                    "?Ä??Ï§?: "badge--rented",
+                    "?òÎ¶¨/?êÍ? ?ÑÎ£å": "badge--completed",
+                    "?®Îßê ?•Ï∞© ?ÑÎ£å": "badge--installed",
+                    ?ÑÏÇ∞?±Î°ù?ÑÎ£å: "badge--registered",
+                };
+                return <span className={`badge ${stageClass[stage] || "badge--default"}`}>{stage}</span>;
+            case "diagnosticCodes":
+                const codes = calculateDiagnosticCodes(row);
+                return (
+                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                        {Object.entries(codes).map(
+                            ([category, count]) =>
+                                count > 0 && (
+                                    <button
+                                        key={category}
+                                        type="button"
+                                        className="badge badge--diagnostic badge--clickable"
+                                        style={{ fontSize: "10px", padding: "2px 6px", cursor: "pointer", border: "none" }}
+                                        onClick={() => openDiagnosticModal(row, category, count)}
+                                        title={`${category} ?∏Î? ÏßÑÎã® Î≥¥Í∏∞`}
+                                    >
+                                        {category} {count}Í∞?                                    </button>
+                                )
+                        )}
+                        {Object.values(codes).every((count) => count === 0) && <span className="badge badge--normal">?ïÏÉÅ</span>}
+                    </div>
+                );
+            case "memo":
+                return (
+                    <div style={{ maxWidth: "150px" }}>
+                        {editingMemo === row.id ? (

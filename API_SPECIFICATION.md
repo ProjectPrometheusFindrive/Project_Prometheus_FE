@@ -124,6 +124,12 @@ DELETE /assets/{id}
 - 파라미터: `id`(string)
 - 응답: 204 No Content
 
+#### Asset Fields (추가)
+
+- `diagnosticStatus` (string): 차량 상태(4단계) 값. 백엔드에서 제공하며 프론트는 그대로 표시.
+  - 값: "-", "정상", "관심필요", "조치필요"
+  - 배지를 클릭하면 진단 코드/내용 상세 모달을 노출.
+
 ### Rentals (렌탈 계약)
 
 GET /rentals

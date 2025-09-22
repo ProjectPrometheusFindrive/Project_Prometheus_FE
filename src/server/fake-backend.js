@@ -29,7 +29,34 @@ try {
 const delay = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
 
 const getVehiclesArray = () => Object.values(data.vehicles);
-const getAssetsArray = () => getVehiclesArray().map(v => ({ ...v.asset, rental: v.rental }));
+
+// Compute 4-stage vehicle health status: "-", "정상", "관심필요", "조치필요"
+const computeDiagnosticStatus = (asset, rental) => {
+  try {
+    if (!asset || !asset.deviceSerial) return "-";
+    // Critical: stolen => 조치필요
+    if (rental && rental.reported_stolen) return "조치필요";
+    // Overdue rental => 관심필요
+    const now = new Date();
+    const end = rental?.rental_period?.end ? new Date(rental.rental_period.end) : null;
+    if (end && now > end) return "관심필요";
+    // Insurance expiring within 30 days => 관심필요
+    const exp = asset.insuranceExpiryDate ? new Date(asset.insuranceExpiryDate) : null;
+    if (exp && (exp - now) / (1000 * 60 * 60 * 24) <= 30) return "관심필요";
+    return "정상";
+  } catch {
+    return "-";
+  }
+};
+
+const getAssetsArray = () =>
+  getVehiclesArray().map((v) => {
+    const merged = { ...v.asset, rental: v.rental };
+    if (!merged.diagnosticStatus) {
+      merged.diagnosticStatus = computeDiagnosticStatus(merged, v.rental);
+    }
+    return merged;
+  });
 const getRentalsArray = () => {
   const allRentals = [];
   getVehiclesArray().forEach(v => {

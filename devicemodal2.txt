@@ -1,0 +1,41 @@
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <Modal isOpen={showAssetModal} onClose={() => setShowAssetModal(false)} title="?�산 ?�록" showFooter={false}>
+                {(() => {
+                    const current = editingAssetId ? rows.find((r) => r.id === editingAssetId) : {};
+                    const data = { ...(current || {}), ...(assetFormInitial || {}) };
+                    return (
+                        <AssetDialog
+                            asset={data}
+                            mode={editingAssetId ? "edit" : "create"}
+                            onClose={() => setShowAssetModal(false)}
+                            onSubmit={(formData) => handleAssetSubmit(formData)}
+                            requireDocs={assetRequireDocs}
+                        />
+                    );
+                })()}
+            </Modal>
+            <Modal
+                isOpen={showInsuranceModal && !!insuranceAsset}
+                onClose={closeInsuranceModal}
+                title={`${insuranceReadOnly ? "보험 ?�보" : "보험 ?�록"} - ${insuranceAsset?.plate || ""}`}
+                showFooter={false}
+            >
+                <InsuranceDialog asset={insuranceAsset || {}} onClose={closeInsuranceModal} onSubmit={handleInsuranceSubmit} readOnly={insuranceReadOnly} />
+            </Modal>
+
+            <Modal
+                isOpen={showDeviceModal && activeAsset}
+                onClose={() => setShowDeviceModal(false)}
+                title={`?�말 ?�보 ?�록 - ${activeAsset?.id || ""}`}
+                formId="device-info"
+                onSubmit={handleDeviceInfoSubmit}
+            >
+                <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
+            </Modal>
+
+            <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건??맞는 차량 ?�산???�습?�다." />
+

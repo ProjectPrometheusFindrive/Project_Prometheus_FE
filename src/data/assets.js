@@ -30,7 +30,24 @@ const deriveHistory = (a) => {
   return [entry];
 };
 
+const computeDiagnosticStatus = (a) => {
+  try {
+    if (!a || !a.deviceSerial) return "-";
+    const now = new Date();
+    const exp = a.insuranceExpiryDate ? new Date(a.insuranceExpiryDate) : null;
+    if (exp && (exp - now) / (1000 * 60 * 60 * 24) <= 30) return "관심필요";
+    return "정상";
+  } catch {
+    return "-";
+  }
+};
+
 export const assets = Object.values(seedVehicles)
   .map((v) => v && v.asset)
   .filter(Boolean)
-  .map((a) => ({ ...a, insuranceHistory: deriveHistory(a) }));
+  .map((a) => {
+    const withHistory = { ...a, insuranceHistory: deriveHistory(a) };
+    return withHistory.diagnosticStatus
+      ? withHistory
+      : { ...withHistory, diagnosticStatus: computeDiagnosticStatus(withHistory) };
+  });

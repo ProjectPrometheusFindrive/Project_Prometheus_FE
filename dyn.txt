@@ -1,0 +1,23 @@
+                                    onClick={() => handleMemoEdit(row.id, row.memo)}
+                                    style={{
+                                        background: "none",
+                                        border: "none",
+                                        color: "#1976d2",
+                                        cursor: "pointer",
+                                        padding: "2px",
+                                    }}
+                                >
+                                    <FaEdit size={12} />
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                );
+            default:
+                return "-";
+        }
+    };
+
+    // ?�적 컬럼 ?�성
+    const dynamicColumns = visibleColumns
+        .filter((col) => col.key !== "select") // select??Table 컴포?�트?�서 ?�동 처리

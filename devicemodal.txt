@@ -1,0 +1,31 @@
+                                        onDrop={(e) => handleDrop(e, index)}
+                                        onDragEnd={handleDragEnd}
+                                        style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            padding: "6px 12px",
+                                            cursor: column.required ? "not-allowed" : "pointer",
+                                            opacity: draggedColumnIndex === index ? 0.5 : column.required ? 0.6 : 1,
+                                            backgroundColor: dragOverColumnIndex === index ? "#e3f2fd" : "transparent",
+                                            borderLeft: dragOverColumnIndex === index ? "3px solid #2196f3" : "3px solid transparent",
+                                            transition: "all 0.2s ease",
+                                        }}
+                                    >
+                                        <div style={{ marginRight: "8px", cursor: "grab" }}>
+                                            <FaGripVertical size={10} color="#999" />
+                                        </div>
+                                        <div
+                                            style={{ marginRight: "8px", width: "16px", textAlign: "center" }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                !column.required && toggleColumnVisibility(column.key);
+                                            }}
+                                        >
+                                            {column.visible ? <FaEye size={12} color="#4caf50" /> : <FaEyeSlash size={12} color="#f44336" />}
+                                        </div>
+                                        <span style={{ fontSize: "0.85rem", flex: 1 }}>{column.label}</span>
+                                        {column.required && <span style={{ fontSize: "0.7rem", color: "#999" }}>?„ìˆ˜</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        )}

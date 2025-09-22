@@ -11,6 +11,7 @@ import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
+import DeviceEventLog from "../components/DeviceEventLog";
 import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 
 // 진단 코드 분류별 개수를 계산하는 함수
@@ -106,6 +107,7 @@ export default function AssetStatus() {
     const [assetRequireDocs, setAssetRequireDocs] = useState(true);
     const [showDeviceModal, setShowDeviceModal] = useState(false);
     const [activeAsset, setActiveAsset] = useState(null);
+    const [deviceReadOnly, setDeviceReadOnly] = useState(false);
     const [showInfoModal, setShowInfoModal] = useState(false);
     const [infoVehicle, setInfoVehicle] = useState(null);
     const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
@@ -126,7 +128,8 @@ export default function AssetStatus() {
                       { key: "vehicleType", label: "차종", visible: true, required: false },
                       { key: "registrationDate", label: "차량등록일", visible: true, required: false },
                       { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
-                      { key: "diagnosticCodes", label: "차량 상태", visible: true, required: false },
+                      { key: "vehicleHealth", label: "차량 상태(4단계)", visible: true, required: false },
+                      { key: "diagnosticCodes", label: "진단 요약", visible: true, required: false },
                       { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
                       { key: "managementStage", label: "관리단계", visible: true, required: false },
                       { key: "memo", label: "메모", visible: true, required: false },
@@ -158,8 +161,27 @@ export default function AssetStatus() {
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
-        return typedStorage.devices.getInfo(activeAsset.id);
+        const stored = typedStorage.devices.getInfo(activeAsset.id) || {};
+        return {
+            supplier: stored.supplier || "",
+            installDate: stored.installDate || "",
+            installer: stored.installer || activeAsset.installer || "",
+            serial: stored.serial || activeAsset.deviceSerial || "",
+            photos: stored.photos || [],
+        };
     }, [activeAsset]);
+
+    const openDeviceRegister = (asset) => {
+        setActiveAsset(asset);
+        setDeviceReadOnly(false);
+        setShowDeviceModal(true);
+    };
+
+    const openDeviceView = (asset) => {
+        setActiveAsset(asset);
+        setDeviceReadOnly(true);
+        setShowDeviceModal(true);
+    };
 
     // Date formatting handled by utils/date
 
@@ -286,9 +308,50 @@ export default function AssetStatus() {
         setShowDiagnosticModal(true);
     };
 
+    // 상태 배지 클릭 시: 백엔드 제공 상태값 기반으로 종합 진단 상세 표시
+    const openDiagnosticModalFromStatus = (vehicle) => {
+        const statusLabel = vehicle.diagnosticStatus || "-";
+        const countsFromStatus = (label) => {
+            switch (label) {
+                case "관심필요":
+                    return { 분류1: 2, 분류2: 1, 분류3: 0, 분류4: 1 };
+                case "조치필요":
+                    return { 분류1: 3, 분류2: 2, 분류3: 2, 분류4: 3 };
+                case "정상":
+                case "-":
+                default:
+                    return { 분류1: 0, 분류2: 0, 분류3: 0, 분류4: 0 };
+            }
+        };
+        const fromStatus = countsFromStatus(statusLabel);
+        const fallback = calculateDiagnosticCodes(vehicle);
+        const counts = Object.values(fallback).some((v) => v > 0) ? fallback : fromStatus;
+
+        const categories = ["분류1", "분류2", "분류3", "분류4"];
+        const total = categories.reduce((acc, c) => acc + (counts[c] || 0), 0);
+        const mergedIssues = categories.flatMap((c) =>
+            generateDiagnosticDetails(c, counts[c] || 0, {
+                plate: vehicle.plate,
+                vehicleType: vehicle.vehicleType,
+                id: vehicle.id,
+            }).issues
+        );
+
+        const detail = {
+            category: "ALL",
+            categoryName: "전체 진단",
+            count: total,
+            vehicleInfo: { plate: vehicle.plate, vehicleType: vehicle.vehicleType, id: vehicle.id },
+            issues: mergedIssues,
+        };
+        setDiagnosticDetail(detail);
+        setShowDiagnosticModal(true);
+    };
+
     const handleDeviceInfoSubmit = (form) => {
         if (!activeAsset) return;
 
+        const prev = typedStorage.devices.getInfo(activeAsset.id) || {};
         const deviceInfo = {
             supplier: form.supplier || "",
             installDate: form.installDate || "",
@@ -297,8 +360,55 @@ export default function AssetStatus() {
             updatedAt: new Date().toISOString(),
         };
 
+        // Save info
         typedStorage.devices.setInfo(activeAsset.id, deviceInfo);
-        setRows((prev) => prev.map((a) => (a.id === activeAsset.id ? { ...a, deviceSerial: form.serial || a.deviceSerial, installer: form.installer || a.installer } : a)));
+
+        // Record events
+        try {
+            if (deviceInfo.installDate && !prev.installDate) {
+                typedStorage.devices.addEvent(activeAsset.id, {
+                    type: "install",
+                    label: "단말 장착일",
+                    date: deviceInfo.installDate,
+                    meta: { installer: deviceInfo.installer, supplier: deviceInfo.supplier },
+                });
+            } else if (prev.installDate && deviceInfo.installDate && prev.installDate !== deviceInfo.installDate) {
+                typedStorage.devices.addEvent(activeAsset.id, {
+                    type: "install_changed",
+                    label: "장착일 변경",
+                    date: deviceInfo.installDate,
+                    meta: { from: prev.installDate, to: deviceInfo.installDate },
+                });
+            }
+
+            if (prev.serial !== deviceInfo.serial) {
+                typedStorage.devices.addEvent(activeAsset.id, {
+                    type: "serial_changed",
+                    label: "S/N 변경",
+                    date: new Date().toISOString().slice(0, 10),
+                    meta: { from: prev.serial || "", to: deviceInfo.serial || "" },
+                });
+            }
+
+            if (prev.installer !== deviceInfo.installer) {
+                typedStorage.devices.addEvent(activeAsset.id, {
+                    type: "installer_changed",
+                    label: "장착자 변경",
+                    date: new Date().toISOString().slice(0, 10),
+                    meta: { from: prev.installer || "", to: deviceInfo.installer || "" },
+                });
+            }
+        } catch {}
+
+        // Reflect on table immediately
+        setRows((prevRows) =>
+            prevRows.map((a) =>
+                a.id === activeAsset.id
+                    ? { ...a, deviceSerial: deviceInfo.serial || a.deviceSerial, installer: deviceInfo.installer || a.installer }
+                    : a
+            )
+        );
+
         setShowDeviceModal(false);
         setActiveAsset(null);
     };
@@ -397,8 +507,12 @@ export default function AssetStatus() {
 
     // 컬럼 설정 관련 함수들
     const saveColumnSettings = (newSettings) => {
-        setColumnSettings(newSettings);
-        localStorage.setItem("asset-columns-settings", JSON.stringify(newSettings));
+        const filtered = {
+            ...newSettings,
+            columns: (newSettings?.columns || []).filter((col) => col.key !== "diagnosticCodes"),
+        };
+        setColumnSettings(filtered);
+        localStorage.setItem("asset-columns-settings", JSON.stringify(filtered));
     };
 
     const toggleColumnVisibility = (columnKey) => {
@@ -449,7 +563,8 @@ export default function AssetStatus() {
         setDragOverColumnIndex(null);
     };
 
-    const visibleColumns = columnSettings.columns.filter((col) => col.visible);
+    // '진단 요약'(diagnosticCodes) 컬럼은 노출하지 않음
+    const visibleColumns = columnSettings.columns.filter((col) => col.visible && col.key !== "diagnosticCodes");
 
     // 각 컬럼의 셀 내용을 렌더링하는 함수
     const renderCellContent = (column, row) => {
@@ -495,6 +610,29 @@ export default function AssetStatus() {
                     전산등록완료: "badge--registered",
                 };
                 return <span className={`badge ${stageClass[stage] || "badge--default"}`}>{stage}</span>;
+            case "vehicleHealth": {
+                const label = row.diagnosticStatus || "-";
+                const clsMap = {
+                    "-": "badge--default",
+                    "정상": "badge--normal",
+                    "관심필요": "badge--overdue",
+                    "조치필요": "badge--maintenance",
+                };
+                const cls = clsMap[label] || "badge--default";
+                return label === "-" ? (
+                    "-"
+                ) : (
+                    <button
+                        type="button"
+                        className={`badge ${cls} badge--clickable`}
+                        style={{ cursor: "pointer", border: "none" }}
+                        onClick={() => openDiagnosticModalFromStatus(row)}
+                        title="진단 코드 상세 보기"
+                    >
+                        {label}
+                    </button>
+                );
+            }
             case "diagnosticCodes":
                 const codes = calculateDiagnosticCodes(row);
                 return (
@@ -598,11 +736,45 @@ export default function AssetStatus() {
     // 동적 컬럼 생성
     const dynamicColumns = visibleColumns
         .filter((col) => col.key !== "select") // select는 Table 컴포넌트에서 자동 처리
-        .map((column) => ({
-            key: column.key,
-            label: column.label,
-            render: (row) => renderCellContent(column, row),
-        }));
+        .map((column) => (
+            column.key === "deviceStatus"
+                ? {
+                      key: column.key,
+                      label: column.label,
+                      render: (row) => {
+                          const stored = typedStorage.devices.getInfo(row.id) || {};
+                          const hasDevice = row.deviceSerial || stored.serial;
+                          if (hasDevice) {
+                              return (
+                                  <button
+                                      type="button"
+                                      className="badge badge--on badge--clickable"
+                                      style={{ cursor: "pointer", border: "none", background: "transparent" }}
+                                      onClick={() => openDeviceView(row)}
+                                      title="단말 정보 보기"
+                                  >
+                                      연결됨
+                                  </button>
+                              );
+                          }
+                          return (
+                              <button
+                                  type="button"
+                                  className="form-button"
+                                  onClick={() => openDeviceRegister(row)}
+                                  title="단말 등록"
+                              >
+                                  단말 등록
+                              </button>
+                          );
+                      },
+                  }
+                : {
+                      key: column.key,
+                      label: column.label,
+                      render: (row) => renderCellContent(column, row),
+                  }
+        ));
 
     return (
         <div className="page">
@@ -717,10 +889,11 @@ export default function AssetStatus() {
                 isOpen={showDeviceModal && activeAsset}
                 onClose={() => setShowDeviceModal(false)}
                 title={`단말 정보 등록 - ${activeAsset?.id || ""}`}
-                formId="device-info"
-                onSubmit={handleDeviceInfoSubmit}
+                formId={deviceReadOnly ? undefined : "device-info"}
+                onSubmit={deviceReadOnly ? undefined : handleDeviceInfoSubmit}
             >
-                <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} showSubmit={false} />
+                <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} readOnly={deviceReadOnly} showSubmit={false} />
+                <DeviceEventLog assetId={activeAsset?.id} fallbackInstallDate={deviceInitial?.installDate || ""} />
             </Modal>
 
             <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." />
