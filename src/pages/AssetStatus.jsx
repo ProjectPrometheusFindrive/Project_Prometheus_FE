@@ -9,6 +9,7 @@ import { typedStorage } from "../utils/storage";
 import { COLORS, DIMENSIONS, ASSET } from "../constants";
 import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
+import AssetDialog from "../components/AssetDialog";
 import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 
 // 진단 코드 분류별 개수를 계산하는 함수
@@ -656,7 +657,6 @@ export default function AssetStatus() {
                 {(() => {
                     const current = editingAssetId ? rows.find((r) => r.id === editingAssetId) : {};
                     const data = { ...(current || {}), ...(assetFormInitial || {}) };
-                    const AssetDialog = require("../components/AssetDialog").default;
                     return <AssetDialog asset={data} mode={editingAssetId ? "edit" : "create"} onClose={() => setShowAssetModal(false)} />;
                 })()}
             </Modal>
