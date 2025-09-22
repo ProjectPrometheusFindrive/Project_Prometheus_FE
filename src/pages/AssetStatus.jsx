@@ -657,7 +657,15 @@ export default function AssetStatus() {
                 {(() => {
                     const current = editingAssetId ? rows.find((r) => r.id === editingAssetId) : {};
                     const data = { ...(current || {}), ...(assetFormInitial || {}) };
-                    return <AssetDialog asset={data} mode={editingAssetId ? "edit" : "create"} onClose={() => setShowAssetModal(false)} />;
+                    return (
+                        <AssetDialog
+                            asset={data}
+                            mode={editingAssetId ? "edit" : "create"}
+                            onClose={() => setShowAssetModal(false)}
+                            onSubmit={(formData) => handleAssetSubmit(formData)}
+                            requireDocs={assetRequireDocs}
+                        />
+                    );
                 })()}
             </Modal>
 
