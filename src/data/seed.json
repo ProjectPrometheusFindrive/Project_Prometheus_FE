@@ -44,7 +44,20 @@
         "return_location": { "lat": 37.4563, "lng": 126.7052 },
         "current_location": { "lat": 37.55, "lng": 126.99 },
         "engine_status": "on",
-        "restart_blocked": false
+        "restart_blocked": false,
+        "accident_reported": true,
+        "accidentReport": {
+          "accidentDate": "2025-09-22",
+          "accidentHour": "14",
+          "accidentMinute": "30",
+          "accidentSecond": "15",
+          "handlerName": "박상현",
+          "accidentDateTime": "2025-09-22T14:30:15",
+          "accidentDisplayTime": "2025.09.22 14:30:15",
+          "blackboxFile": null,
+          "blackboxFileName": "blackbox_250922.mp4",
+          "recordedAt": "2025-09-22T14:45:00.000Z"
+        }
       },
       {
         "rental_id": 100000000090,

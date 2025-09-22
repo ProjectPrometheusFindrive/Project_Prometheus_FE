@@ -14,7 +14,8 @@ const Modal = ({
   cancelText = "취소",
   ariaLabel,
   customHeaderContent,
-  className = ""
+  className = "",
+  size = "default"
 }) => {
   if (!isOpen) return null;
 
@@ -42,15 +43,26 @@ const Modal = ({
     </div>
   );
 
+  const getModalSizeClass = () => {
+    switch (size) {
+      case "large":
+        return "modal-large";
+      case "small":
+        return "modal-small";
+      default:
+        return "";
+    }
+  };
+
   return (
-    <div 
-      className="modal-backdrop" 
+    <div
+      className="modal-backdrop"
       onClick={handleBackdropClick}
       role="dialog"
       aria-modal="true"
       aria-label={ariaLabel || title}
     >
-      <div className={`modal ${className}`} onClick={(e) => e.stopPropagation()}>
+      <div className={`modal ${getModalSizeClass()} ${className}`} onClick={(e) => e.stopPropagation()}>
         {(title || customHeaderContent) && (
           <div className="header-row" style={{ marginBottom: 8 }}>
             {customHeaderContent ? (

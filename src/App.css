@@ -1475,6 +1475,59 @@ html {
     overflow: auto;
 }
 
+.modal-large {
+    max-width: 1200px;
+}
+
+.modal-small {
+    max-width: 480px;
+}
+
+/* Management Stage Dropdown Styles */
+.management-stage-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 140px;
+    padding: 4px 0;
+    margin: 0;
+    list-style: none;
+}
+
+.management-stage-dropdown__option {
+    display: block;
+    width: 100%;
+    padding: 8px 12px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: background-color 0.2s ease;
+}
+
+.management-stage-dropdown__option:hover {
+    background-color: #f8f9fa;
+}
+
+.management-stage-dropdown__option:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.management-stage-dropdown__badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
 /* ProblemVehicles current-location modal styling */
 .header-row.has-overlay {
     display: flex;
