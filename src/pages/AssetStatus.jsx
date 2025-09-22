@@ -706,7 +706,12 @@ const handleMemoEdit = (assetId, currentMemo) => {
                     );
                 }
                 return (
-                    <button type="button" className="form-button" onClick={() => openInsuranceModal(row)}>
+                    <button
+                        type="button"
+                        className="badge-button badge badge--default badge--clickable"
+                        onClick={() => openInsuranceModal(row)}
+                        title="보험 등록"
+                    >
                         보험 등록
                     </button>
                 );
@@ -877,22 +882,21 @@ const handleMemoEdit = (assetId, currentMemo) => {
                           const stored = typedStorage.devices.getInfo(row.id) || {};
                           const hasDevice = row.deviceSerial || stored.serial;
                           if (hasDevice) {
-                              return (
-                                  <button
-                                      type="button"
-                                      className="badge badge--on badge--clickable"
-                                      style={{ cursor: "pointer", border: "none", background: "transparent" }}
-                                      onClick={() => openDeviceView(row)}
-                                      title="단말 정보 보기"
-                                  >
-                                      연결됨
-                                  </button>
-                              );
-                          }
                           return (
                               <button
                                   type="button"
-                                  className="form-button"
+                                  className="badge-button badge badge--on badge--clickable"
+                                  onClick={() => openDeviceView(row)}
+                                  title="단말 정보 보기"
+                              >
+                                  연결됨
+                              </button>
+                          );
+                      }
+                          return (
+                              <button
+                                  type="button"
+                                  className="badge-button badge badge--default badge--clickable"
                                   onClick={() => openDeviceRegister(row)}
                                   title="단말 등록"
                               >
