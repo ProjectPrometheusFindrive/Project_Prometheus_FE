@@ -4,7 +4,7 @@
 import seed from "./seed.json";
 // seed.json is a VIN-keyed map: { [vin]: { vin, asset, rental } }
 const seedVehicles = seed || {};
-import { dummyGeofences as seedGeofences } from "./geofences";
+import geofences from "./geofences.json";
 
 // Derive assets and rentals from vehicles
 const assetsFromVehicles = Object.values(seedVehicles)
@@ -20,7 +20,7 @@ export const db = {
   vehicles: seedVehicles,
   assets: assetsFromVehicles,
   rentals: rentalsFromVehicles,
-  geofences: seedGeofences,
+  geofences,
 };
 
 // Helpers for consumers who want quick lookups
