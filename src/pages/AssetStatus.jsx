@@ -7,6 +7,7 @@ import Table from "../components/Table";
 import useTableSelection from "../hooks/useTableSelection";
 import { typedStorage } from "../utils/storage";
 import { COLORS, DIMENSIONS, ASSET } from "../constants";
+import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
 import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
@@ -60,47 +61,90 @@ const generateDiagnosticDetails = (category, count, vehicleInfo) => {
     };
 };
 
-// 관리단계를 결정하는 함수
-const getManagementStage = (vehicle) => {
-    // 차량의 상태에 따라 관리단계 결정
-    const { registrationStatus, deviceSerial, vehicleStatus, diagnosticCodes } = vehicle;
+const MANAGEMENT_STAGE_DEFAULT = "대여가능";
+const MANAGEMENT_STAGE_SET = new Set(MANAGEMENT_STAGE_OPTIONS.map((opt) => opt.value));
+const LEGACY_STAGE_MAP = new Map([
+    ["대여 중", "대여중"],
+    ["대여 가능", "대여가능"],
+    ["입고대상", "입고 대상"],
+    ["입고 대상", "입고 대상"],
+    ["전산등록완료", "입고 대상"],
+    ["전산등록 완료", "입고 대상"],
+    ["단말 장착 완료", "대여가능"],
+    ["수리/점검 중", "수리/점검 중"],
+    ["수리/점검 완료", "수리/점검 완료"],
+]);
 
-    // 우선순위에 따른 단계 결정
-    if (vehicleStatus === "수리중" || vehicleStatus === "점검중") {
+// 요청된 단계 우선순위와 기존 자산 정보를 기반으로 관리단계를 계산
+const getManagementStage = (asset = {}) => {
+    if (!asset) return MANAGEMENT_STAGE_DEFAULT;
+
+    const current = asset.managementStage;
+    if (current) {
+        if (MANAGEMENT_STAGE_SET.has(current)) {
+            return current;
+        }
+        const legacy = LEGACY_STAGE_MAP.get(current.trim());
+        if (legacy) {
+            return legacy;
+        }
+    }
+
+    const vehicleStatus = (asset.vehicleStatus || "").trim();
+    const registrationStatus = (asset.registrationStatus || "").trim();
+    const deviceSerial = (asset.deviceSerial || "").trim();
+    const diagnosticCodes = asset.diagnosticCodes || {};
+    const totalIssues =
+        Number(diagnosticCodes.category1 || 0) +
+        Number(diagnosticCodes.category2 || 0) +
+        Number(diagnosticCodes.category3 || 0) +
+        Number(diagnosticCodes.category4 || 0);
+
+    if (vehicleStatus === "대여중" || vehicleStatus === "운행중" || vehicleStatus === "반납대기") {
+        return "대여중";
+    }
+    if (vehicleStatus === "예약중") {
+        return "예약중";
+    }
+    if (vehicleStatus === "정비중" || vehicleStatus === "수리중" || vehicleStatus === "점검중" || vehicleStatus === "도난추적") {
         return "수리/점검 중";
     }
 
-    if (vehicleStatus === "대여중") {
-        return "대여 중";
+    if (totalIssues > 0) {
+        return "수리/점검 중";
     }
 
     if (!deviceSerial) {
-        if (registrationStatus === "자산등록 완료") {
-            return "입고대상";
-        }
-        return "전산등록완료";
+        return "입고 대상";
     }
 
-    if (deviceSerial && registrationStatus === "장비장착 완료") {
-        const codes = diagnosticCodes || {};
-        const totalIssues = (codes.category1 || 0) + (codes.category2 || 0) + (codes.category3 || 0) + (codes.category4 || 0);
-
-        if (totalIssues > 5) {
-            return "수리/점검 중";
-        } else if (totalIssues > 0) {
-            return "수리/점검 완료";
-        } else {
-            return vehicleStatus === "대기중" ? "대여 가능" : "단말 장착 완료";
-        }
+    if (vehicleStatus === "대기중" || vehicleStatus === "유휴" || vehicleStatus === "대여가능" || vehicleStatus === "준비중") {
+        return "대여가능";
     }
 
-    return "전산등록완료";
+    if (vehicleStatus === "수리완료" || vehicleStatus === "점검완료") {
+        return "수리/점검 완료";
+    }
+
+    if (registrationStatus === "장비부착 완료" || registrationStatus === "장비장착 완료" || registrationStatus === "보험등록 완료") {
+        return "대여가능";
+    }
+
+    return MANAGEMENT_STAGE_DEFAULT;
 };
+
+const withManagementStage = (asset) => {
+    if (!asset) return asset;
+    const stage = getManagementStage(asset);
+    return { ...asset, managementStage: stage };
+};
+
 
 export default function AssetStatus() {
     const [q, setQ] = useState("");
     const [status, setStatus] = useState("all");
     const [rows, setRows] = useState([]);
+    const [stageSaving, setStageSaving] = useState({});
     const [showAssetModal, setShowAssetModal] = useState(false);
     const [assetFormInitial, setAssetFormInitial] = useState({});
     const [editingAssetId, setEditingAssetId] = useState(null);
@@ -149,7 +193,13 @@ export default function AssetStatus() {
         try {
             const resp = await saveAsset(id, patch || {});
             // Merge back into table row (preserve unknown fields)
-            setRows((prev) => prev.map((a) => (a.id === id ? { ...a, ...(patch || {}), ...(resp || {}) } : a)));
+            setRows((prev) =>
+                prev.map((a) => {
+                    if (a.id !== id) return a;
+                    const merged = { ...a, ...(patch || {}), ...(resp || {}) };
+                    return withManagementStage(merged);
+                })
+            );
             closeInsuranceModal();
         } catch (e) {
             console.error("Failed to save insurance", e);
@@ -158,6 +208,49 @@ export default function AssetStatus() {
     };
 
     // inline panel removed
+
+    const handleManagementStageChange = async (asset, nextStage) => {
+        if (!asset?.id || !nextStage || !MANAGEMENT_STAGE_SET.has(nextStage)) return;
+        const assetId = asset.id;
+        const previousStage = getManagementStage(asset);
+        if (previousStage === nextStage) return;
+
+        setRows((prev) =>
+            prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: nextStage }) : row))
+        );
+        setStageSaving((prev) => ({ ...prev, [assetId]: true }));
+
+        try {
+            const response = await saveAsset(assetId, { managementStage: nextStage });
+            setRows((prev) =>
+                prev.map((row) => {
+                    if (row.id !== assetId) return row;
+                    const updatedStage =
+                        response?.managementStage && MANAGEMENT_STAGE_SET.has(response.managementStage)
+                            ? response.managementStage
+                            : nextStage;
+                    const merged = { ...row, ...(response || {}), managementStage: updatedStage };
+                    return withManagementStage(merged);
+                })
+            );
+        } catch (error) {
+            console.error("Failed to update management stage", error);
+            alert("관리단계를 저장하지 못했습니다. 다시 시도해주세요.");
+            setRows((prev) =>
+                prev.map((row) =>
+                    row.id === assetId
+                        ? withManagementStage({ ...row, managementStage: previousStage })
+                        : row
+                )
+            );
+        } finally {
+            setStageSaving((prev) => {
+                const next = { ...prev };
+                delete next[assetId];
+                return next;
+            });
+        }
+    };
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
@@ -202,6 +295,7 @@ export default function AssetStatus() {
                         return info ? { ...a, deviceSerial: info.serial || a.deviceSerial, installer: info.installer || a.installer } : a;
                     });
                 } catch {}
+                next = next.map((asset) => withManagementStage(asset));
                 // Seed device event history if missing
                 try {
                     for (const a of next) {
@@ -266,11 +360,11 @@ export default function AssetStatus() {
 
     const openInfoModal = async (asset) => {
         if (!asset) return;
-        let assetFull = asset;
+        let assetFull = withManagementStage(asset);
         try {
             if (asset?.id) {
                 const fetched = await fetchAssetById(asset.id);
-                if (fetched) assetFull = fetched;
+                if (fetched) assetFull = withManagementStage(fetched);
             }
         } catch {}
         let rental = null;
@@ -419,11 +513,15 @@ export default function AssetStatus() {
 
         // Reflect on table immediately
         setRows((prevRows) =>
-            prevRows.map((a) =>
-                a.id === activeAsset.id
-                    ? { ...a, deviceSerial: deviceInfo.serial || a.deviceSerial, installer: deviceInfo.installer || a.installer }
-                    : a
-            )
+            prevRows.map((a) => {
+                if (a.id !== activeAsset.id) return a;
+                const updated = {
+                    ...a,
+                    deviceSerial: deviceInfo.serial || a.deviceSerial,
+                    installer: deviceInfo.installer || a.installer,
+                };
+                return withManagementStage(updated);
+            })
         );
 
         setShowDeviceModal(false);
@@ -450,28 +548,29 @@ export default function AssetStatus() {
         if (editingAssetId) {
             // Update existing asset
             setRows((prev) =>
-                prev.map((a) =>
-                    a.id === editingAssetId
-                        ? {
-                              ...a,
-                              plate: data.plate || a.plate,
-                              vehicleType: composedVehicleType || a.vehicleType,
-                              make: data.make || a.make,
-                              model: data.model || a.model,
-                              vin: data.vin || a.vin,
-                              vehicleValue: data.vehicleValue || a.vehicleValue,
-                              purchaseDate: data.purchaseDate || a.purchaseDate,
-                              systemRegDate: data.systemRegDate || a.systemRegDate,
-                              systemDelDate: data.systemDelDate || a.systemDelDate,
-                              registrationStatus: data.registrationStatus || a.registrationStatus,
-                          }
-                        : a
-                )
+                prev.map((a) => {
+                    if (a.id !== editingAssetId) return a;
+                    const updated = {
+                        ...a,
+                        plate: data.plate || a.plate,
+                        vehicleType: composedVehicleType || a.vehicleType,
+                        make: data.make || a.make,
+                        model: data.model || a.model,
+                        vin: data.vin || a.vin,
+                        vehicleValue: data.vehicleValue || a.vehicleValue,
+                        purchaseDate: data.purchaseDate || a.purchaseDate,
+                        systemRegDate: data.systemRegDate || a.systemRegDate,
+                        systemDelDate: data.systemDelDate || a.systemDelDate,
+                        registrationStatus: data.registrationStatus || a.registrationStatus,
+                    };
+                    return withManagementStage(updated);
+                })
             );
         } else {
             // Create new asset
             const id = nextAssetId();
-            const next = {
+            const today = new Date().toISOString().slice(0, 10);
+            const next = withManagementStage({
                 id,
                 plate: data.plate || "",
                 vehicleType: composedVehicleType || "",
@@ -480,17 +579,17 @@ export default function AssetStatus() {
                 vin: data.vin || "",
                 vehicleValue: data.vehicleValue || "",
                 purchaseDate: data.purchaseDate || "",
-                systemRegDate: data.systemRegDate || new Date().toISOString().slice(0, 10),
+                systemRegDate: data.systemRegDate || today,
                 systemDelDate: data.systemDelDate || "",
                 insuranceInfo: "",
-                registrationDate: data.registrationDate || new Date().toISOString().slice(0, 10),
+                registrationDate: data.registrationDate || today,
                 registrationStatus: data.registrationStatus || "자산등록 완료",
                 installer: "",
                 deviceSerial: "",
-            };
+            });
             setRows((prev) => [next, ...prev]);
             const { registrationDoc, insuranceDoc, ...rest } = data || {};
-            const draft = { ...rest, createdAt: new Date().toISOString(), id };
+            const draft = { ...rest, createdAt: new Date().toISOString(), id, managementStage: next.managementStage };
             typedStorage.drafts.addAsset(draft);
         }
 
@@ -500,7 +599,7 @@ export default function AssetStatus() {
         setAssetRequireDocs(true);
     };
 
-    const handleMemoEdit = (assetId, currentMemo) => {
+const handleMemoEdit = (assetId, currentMemo) => {
         setEditingMemo(assetId);
         setMemoText(currentMemo || "");
     };
@@ -615,18 +714,34 @@ export default function AssetStatus() {
                 const hasDevice = row.deviceSerial;
                 const status = hasDevice ? "연결됨" : "미연결";
                 return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
-            case "managementStage":
+            case "managementStage": {
                 const stage = getManagementStage(row);
-                const stageClass = {
-                    "수리/점검 중": "badge--maintenance",
-                    입고대상: "badge--pending",
-                    "대여 가능": "badge--available",
-                    "대여 중": "badge--rented",
-                    "수리/점검 완료": "badge--completed",
-                    "단말 장착 완료": "badge--installed",
-                    전산등록완료: "badge--registered",
-                };
-                return <span className={`badge ${stageClass[stage] || "badge--default"}`}>{stage}</span>;
+                const isSaving = !!stageSaving[row.id];
+                return (
+                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
+                        <select
+                            value={stage}
+                            onChange={(event) => handleManagementStageChange(row, event.target.value)}
+                            disabled={isSaving}
+                            className="table-select"
+                            aria-label={(row.plate || row.id ? (row.plate || row.id) + " 관리 단계 선택" : "관리 단계 선택")}
+                            style={{ fontSize: "0.85rem", padding: "2px 6px" }}
+                        >
+                            {MANAGEMENT_STAGE_OPTIONS.map((option) => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                        {isSaving && (
+                            <span className="badge badge--pending" aria-live="polite">
+                                저장 중...
+                            </span>
+                        )}
+                    </span>
+                );
+            }
+
             case "vehicleHealth": {
                 const label = row.diagnosticStatus || "-";
                 const clsMap = {

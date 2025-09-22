@@ -129,6 +129,9 @@ DELETE /assets/{id}
 - `diagnosticStatus` (string): 차량 상태(4단계) 값. 백엔드에서 제공하며 프론트는 그대로 표시.
   - 값: "-", "정상", "관심필요", "조치필요"
   - 배지를 클릭하면 진단 코드/내용 상세 모달을 노출.
+- `managementStage` (string): 관리 단계. 프론트의 드롭다운에서 선택하며 `saveAsset(id, { managementStage })` 형태로 즉시 저장된다.
+  - 허용값: "대여중", "대여가능", "예약중", "입고 대상", "수리/점검 중", "수리/점검 완료"
+  - 페이크/실제 API 모두 해당 필드를 응답 및 저장 동작에 포함한다.
 
 ### Rentals (렌탈 계약)
 
@@ -368,6 +371,7 @@ interface Asset {
   fuelType: string;              // 연료 타입
   registrationDate?: Date;       // 등록일
   registrationStatus: string;    // 등록 상태
+  managementStage: string;       // 관리 단계 (대여중/대여가능/예약중/입고 대상/수리/점검 중/수리/점검 완료)
   // 보험(단일 필드: 호환성 유지용)
   insuranceInfo?: string;        // 현재 유효 보험: "회사명 상품명" 요약
   insuranceCompany?: string;     // 현재 유효 보험사

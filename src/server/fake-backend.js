@@ -44,6 +44,79 @@ const delay = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
 const getVehiclesArray = () => Object.values(data);
 
 // Compute 4-stage vehicle health status: "-", "정상", "관심필요", "조치필요"
+const MANAGEMENT_STAGE_VALUES = new Set([
+  "대여중",
+  "대여가능",
+  "예약중",
+  "입고 대상",
+  "수리/점검 중",
+  "수리/점검 완료",
+]);
+const MANAGEMENT_STAGE_DEFAULT = "대여가능";
+const LEGACY_STAGE_MAP = new Map([
+  ["대여 중", "대여중"],
+  ["대여 가능", "대여가능"],
+  ["입고대상", "입고 대상"],
+  ["입고 대상", "입고 대상"],
+  ["전산등록완료", "입고 대상"],
+  ["전산등록 완료", "입고 대상"],
+  ["단말 장착 완료", "대여가능"],
+  ["수리/점검 중", "수리/점검 중"],
+  ["수리/점검 완료", "수리/점검 완료"],
+]);
+
+const deriveManagementStage = (asset = {}) => {
+  if (!asset) return MANAGEMENT_STAGE_DEFAULT;
+  const current = asset.managementStage;
+  if (current) {
+    if (MANAGEMENT_STAGE_VALUES.has(current)) return current;
+    const legacy = LEGACY_STAGE_MAP.get(String(current).trim());
+    if (legacy) return legacy;
+  }
+
+  const vehicleStatus = (asset.vehicleStatus || '').trim();
+  const registrationStatus = (asset.registrationStatus || '').trim();
+  const deviceSerial = (asset.deviceSerial || '').trim();
+  const diagnosticCodes = asset.diagnosticCodes || {};
+  const totalIssues =
+    Number(diagnosticCodes.category1 || 0) +
+    Number(diagnosticCodes.category2 || 0) +
+    Number(diagnosticCodes.category3 || 0) +
+    Number(diagnosticCodes.category4 || 0);
+
+  if (vehicleStatus === '대여중' || vehicleStatus === '운행중' || vehicleStatus === '반납대기') {
+    return '대여중';
+  }
+  if (vehicleStatus === '예약중') {
+    return '예약중';
+  }
+  if (vehicleStatus === '정비중' || vehicleStatus === '수리중' || vehicleStatus === '점검중' || vehicleStatus === '도난추적') {
+    return '수리/점검 중';
+  }
+
+  if (totalIssues > 0) {
+    return '수리/점검 중';
+  }
+
+  if (!deviceSerial) {
+    return '입고 대상';
+  }
+
+  if (vehicleStatus === '대기중' || vehicleStatus === '유휴' || vehicleStatus === '대여가능' || vehicleStatus === '준비중') {
+    return '대여가능';
+  }
+
+  if (vehicleStatus === '수리완료' || vehicleStatus === '점검완료') {
+    return '수리/점검 완료';
+  }
+
+  if (registrationStatus === '장비부착 완료' || registrationStatus === '장비장착 완료' || registrationStatus === '보험등록 완료') {
+    return '대여가능';
+  }
+
+  return MANAGEMENT_STAGE_DEFAULT;
+};
+
 const computeDiagnosticStatus = (asset, rental) => {
   try {
     if (!asset || !asset.deviceSerial) return "-";
@@ -68,6 +141,7 @@ const getAssetsArray = () =>
     if (!merged.diagnosticStatus) {
       merged.diagnosticStatus = computeDiagnosticStatus(merged, v.rental);
     }
+    merged.managementStage = deriveManagementStage(merged);
     return merged;
   });
 const getRentalsArray = () => {
@@ -152,6 +226,7 @@ app.put('/api/assets/:id', async (req, res) => {
         out.sort((a, b) => new Date(a.startDate || a.date || 0) - new Date(b.startDate || b.date || 0));
         merged.insuranceHistory = out;
       }
+      merged.managementStage = deriveManagementStage(merged);
       data[vin].asset = merged;
       found = merged;
       break;

@@ -6,6 +6,15 @@ export const STATUS_OPTIONS = [
     { value: "미등록", label: "미등록" }
 ];
 
+export const MANAGEMENT_STAGE_OPTIONS = [
+    { value: "대여중", label: "대여중" },
+    { value: "대여가능", label: "대여가능" },
+    { value: "예약중", label: "예약중" },
+    { value: "입고 대상", label: "입고 대상" },
+    { value: "수리/점검 중", label: "수리/점검 중" },
+    { value: "수리/점검 완료", label: "수리/점검 완료" }
+];
+
 export const ISSUE_TYPE_OPTIONS = [
     { value: "overdue", label: "반납 지연" },
     { value: "stolen", label: "도난 의심" },
