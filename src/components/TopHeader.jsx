@@ -4,11 +4,13 @@ import { FiLogOut } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
 import { fetchCompanyInfo, saveCompanyInfo } from "../api";
 import defaultLogo from "../assets/default-logo.svg";
+import CiUploadModal from "./CiUploadModal";
 
 export default function TopHeader() {
     const navigate = useNavigate();
     const [companyInfo, setCompanyInfo] = useState(null);
     const [uploading, setUploading] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     useEffect(() => {
         const loadCompanyInfo = async () => {
@@ -28,32 +30,30 @@ export default function TopHeader() {
     }
 
     function onUploadClick() {
-        const input = document.getElementById("header-logo-upload");
-        if (input) input.click();
+        setIsModalOpen(true);
     }
 
-    function onFileChange(e) {
-        const file = e.target.files?.[0];
-        if (!file) return;
+    function handleModalClose() {
+        setIsModalOpen(false);
+    }
+
+    async function handleModalSubmit(file, previewUrl) {
         if (!file.type.startsWith("image/")) {
             alert("이미지 파일을 선택해 주세요.");
             return;
         }
-        const reader = new FileReader();
+
         setUploading(true);
-        reader.onload = async () => {
-            try {
-                const next = { ...(companyInfo || {}), logoDataUrl: reader.result };
-                await saveCompanyInfo(next);
-                setCompanyInfo(next);
-            } catch (err) {
-                console.error("Failed to save logo:", err);
-            } finally {
-                setUploading(false);
-                e.target.value = ""; // reset input
-            }
-        };
-        reader.readAsDataURL(file);
+        try {
+            const next = { ...(companyInfo || {}), logoDataUrl: previewUrl };
+            await saveCompanyInfo(next);
+            setCompanyInfo(next);
+            setIsModalOpen(false);
+        } catch (err) {
+            console.error("Failed to save logo:", err);
+        } finally {
+            setUploading(false);
+        }
     }
 
     return (
@@ -79,22 +79,28 @@ export default function TopHeader() {
                     }}
                 />
                 <div className="top-header__service-name">Findrive</div>
-                <input id="header-logo-upload" type="file" accept="image/*" style={{ display: "none" }} onChange={onFileChange} />
             </div>
-            
+
             <div className="top-header__right">
                 <span className="top-header__user-id">관리자</span>
-                <button 
-                    type="button" 
-                    className="top-header__logout-btn" 
-                    aria-label="Logout" 
-                    title="Logout" 
+                <button
+                    type="button"
+                    className="top-header__logout-btn"
+                    aria-label="Logout"
+                    title="Logout"
                     onClick={handleLogout}
                 >
                     <FiLogOut className="top-header__icon" aria-hidden />
                     Logout
                 </button>
             </div>
+
+            <CiUploadModal
+                isOpen={isModalOpen}
+                onClose={handleModalClose}
+                onSubmit={handleModalSubmit}
+                title="회사 로고 업로드"
+            />
         </header>
     );
 }
