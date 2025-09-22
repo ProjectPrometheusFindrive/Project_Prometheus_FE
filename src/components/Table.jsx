@@ -25,7 +25,7 @@ export default function Table({
 
     const stickyStyle = stickyHeader
         ? {
-              "--table-sticky-offset":
+              "--table-sticky-extra-offset":
                   typeof stickyOffset === "number" ? `${stickyOffset}px` : stickyOffset || "0px",
           }
         : undefined;

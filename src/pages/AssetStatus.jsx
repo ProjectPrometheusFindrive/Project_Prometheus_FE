@@ -948,7 +948,7 @@ export default function AssetStatus() {
 
     return (
         <div className="page">
-            <h1>자산등록관리</h1>
+            <h1>자산 등록/관리</h1>
 
             <div className="asset-toolbar">
                 <div style={{ flex: 1 }} />
@@ -966,12 +966,7 @@ export default function AssetStatus() {
                         선택 삭제
                     </button>
                     <div style={{ position: "relative" }} data-column-dropdown>
-                        <button
-                            type="button"
-                            className="form-button form-button--neutral"
-                            onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                            title="컬럼 설정"
-                        >
+                        <button type="button" className="form-button form-button--neutral" onClick={() => setShowColumnDropdown(!showColumnDropdown)} title="컬럼 설정">
                             <FaCog size={14} />
                             컬럼 설정
                         </button>
@@ -1070,14 +1065,7 @@ export default function AssetStatus() {
                 <DeviceEventLog assetId={activeAsset?.id} fallbackInstallDate={deviceInitial?.installDate || "" || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""} />
             </Modal>
 
-            <Table
-                columns={dynamicColumns}
-                data={filtered}
-                selection={selection}
-                emptyMessage="조건에 맞는 차량 자산이 없습니다."
-                stickyHeader
-                stickyOffset={DIMENSIONS.HEADER_HEIGHT}
-            />
+            <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." stickyHeader />
 
             {/* inline panel removed */}
             <Modal

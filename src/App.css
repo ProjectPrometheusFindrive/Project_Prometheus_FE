@@ -1,5 +1,15 @@
+:root {
+    --app-header-height: 60px;
+}
+
 .page {
     padding: 1rem; /* top/bottom 1rem; bottom nav spacing handled by .app-content */
+    /* Fill available space so inner scroll areas can work */
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
 }
 .table-wrap {
     overflow-x: auto;
@@ -26,14 +36,25 @@
 
 .table-wrap--sticky {
     position: relative;
+    --table-sticky-extra-offset: 0px;
+    /* Make the table area its own scroll container so only rows scroll */
+    overflow: auto; /* both axes when needed */
+    max-height: 100%;
+    min-height: 0;
+    flex: 1 1 auto;
 }
 
 .asset-table--sticky thead th {
     position: sticky;
-    top: var(--table-sticky-offset, 0px);
+    top: calc(var(--app-header-height, 0px) + var(--table-sticky-extra-offset, 0px));
     z-index: 5;
     background: #fafafa;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+/* When the table sits inside a sticky table container, pin header to the
+   container top so the data area scrolls under it (no extra offset). */
+.table-wrap--sticky .asset-table--sticky thead th {
+    top: 0;
 }
 
 /* Asset/toolbars: align controls consistently */
@@ -461,7 +482,7 @@ body {
     justify-content: space-between;
     align-items: center;
     width: 100%;
-    height: 60px;
+    height: var(--app-header-height);
     padding: 0 24px;
     background: #fff;
     border-bottom: 1px solid #e5e5e5;
@@ -546,7 +567,7 @@ body {
     background: #fff;
     border-right: 1px solid #e5e5e5;
     /* Make sidebar handle small landscape heights gracefully */
-    max-height: calc(100vh - 60px); /* subtract header height */
+    max-height: calc(100vh - var(--app-header-height, 0px)); /* subtract header height */
     overflow-y: auto; /* vertical scroll only when needed */
     overflow-x: hidden; /* avoid horizontal scrollbar in sidebar */
     overscroll-behavior: contain;
@@ -623,6 +644,10 @@ body {
     - Give content the full width
 */
 @media (orientation: portrait) and (max-width: 768px) {
+    :root {
+        --app-header-height: 56px;
+    }
+
     .app-main {
         flex-direction: column; /* content above, nav below */
     }
@@ -665,7 +690,7 @@ body {
     /* Top header adjustments for mobile */
     .top-header {
         padding: 0 16px;
-        height: 56px;
+        height: var(--app-header-height);
     }
 
     .top-header__service-name {

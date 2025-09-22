@@ -7,36 +7,33 @@ import { typedStorage } from "../utils/storage";
 export default function NavigationBar() {
     const navigate = useNavigate();
 
-
     return (
         <nav className="navigation-bar" role="navigation" aria-label="Main Navigation">
-
             <NavLink to="/dashboard" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Home" title="Home">
                 <FiHome className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    Home
+                    홈
                 </span>
             </NavLink>
 
-            <NavLink to="/assets" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="자산등록관리" title="자산등록관리">
+            <NavLink to="/assets" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="자산" title="자산">
                 <FaCar className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    자산등록관리
+                    자산
                 </span>
             </NavLink>
 
-            <NavLink to="/rentals/table" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="계약등록관리" title="계약등록관리">
+            <NavLink to="/rentals/table" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="계약" title="계약">
                 <FiFileText className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    계약등록관리
+                    계약
                 </span>
             </NavLink>
 
-
-            <NavLink to="/settings" className={({ isActive }) => `navigation-bar__link navigation-bar__info ${isActive ? "is-active" : ""}`} aria-label="사용자 정보" title="사용자 정보">
+            <NavLink to="/settings" className={({ isActive }) => `navigation-bar__link navigation-bar__info ${isActive ? "is-active" : ""}`} aria-label="정보" title="정보">
                 <FiInfo className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
-                    사용자 정보
+                    정보
                 </span>
             </NavLink>
         </nav>

@@ -32,7 +32,7 @@ const DEFAULT_COLUMN_CONFIG = [
     { key: "contractStatus", label: "계약 상태", visible: true, required: false },
     { key: "engine_status", label: "엔진 상태", visible: true, required: false },
     { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
-    { key: "accident", label: "사고 등록", visible: true, required: false, width: 90 },
+    { key: "accident", label: "사고 등록", visible: true, required: false, width: 160 },
     { key: "memo", label: "메모", visible: true, required: false },
 ];
 
@@ -344,9 +344,7 @@ export default function RentalContracts() {
         const memoNote = `사고 접수됨 (${now.toLocaleDateString()})`;
         const { accidentDate, accidentHour, accidentMinute, accidentSecond, handlerName, blackboxFile, blackboxFileName } = accidentForm;
         const accidentDateTime = accidentDate ? `${accidentDate}T${accidentHour}:${accidentMinute}:${accidentSecond}` : "";
-        const accidentDisplayTime = accidentDate
-            ? `${accidentDate.replace(/-/g, ".")} ${accidentHour}:${accidentMinute}:${accidentSecond}`
-            : "";
+        const accidentDisplayTime = accidentDate ? `${accidentDate.replace(/-/g, ".")} ${accidentHour}:${accidentMinute}:${accidentSecond}` : "";
 
         const updatedReport = {
             accidentDate,
@@ -533,6 +531,7 @@ export default function RentalContracts() {
                         aria-label={ariaLabel}
                     >
                         {hasVideo ? <FaVideo size={13} aria-hidden="true" /> : <FiAlertTriangle size={14} aria-hidden="true" />}
+
                     </button>
                 );
             }
@@ -649,15 +648,9 @@ export default function RentalContracts() {
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>₩{formattedAmount}</div>
                 <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                    <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>
-                        {row.isLongTerm ? "장기" : "단기"}
-                    </StatusBadge>
+                    <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>{row.isLongTerm ? "장기" : "단기"}</StatusBadge>
                     <StatusBadge variant="badge--contract-amount">
-                        {row.isLongTerm
-                            ? `월${new Intl.NumberFormat("ko-KR").format(
-                                  Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30)))
-                              )}`
-                            : `총${formattedAmount}`}
+                        {row.isLongTerm ? `월${new Intl.NumberFormat("ko-KR").format(Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30))))}` : `총${formattedAmount}`}
                     </StatusBadge>
                     {row.hasUnpaid && <StatusBadge variant="badge--contract-unpaid">미납</StatusBadge>}
                 </div>
@@ -667,7 +660,7 @@ export default function RentalContracts() {
 
     return (
         <div className="page">
-            <h1>계약등록관리</h1>
+            <h1>계약 등록/관리</h1>
             <div className="page-scroll">
                 <div className="asset-toolbar" style={{ marginBottom: 12 }}>
                     <div style={{ flex: 1 }} />
@@ -685,12 +678,7 @@ export default function RentalContracts() {
                             선택 삭제
                         </button>
                         <div style={{ position: "relative" }} data-column-dropdown>
-                            <button
-                                type="button"
-                                className="form-button form-button--neutral"
-                                onClick={() => setShowColumnDropdown(!showColumnDropdown)}
-                                title="컬럼 설정"
-                            >
+                            <button type="button" className="form-button form-button--neutral" onClick={() => setShowColumnDropdown(!showColumnDropdown)} title="컬럼 설정">
                                 <FaCog size={14} />
                                 컬럼 설정
                             </button>
@@ -754,10 +742,7 @@ export default function RentalContracts() {
                     </div>
                 </div>
 
-                <div
-                    className="table-wrap table-wrap--sticky"
-                    style={{ "--table-sticky-offset": `${DIMENSIONS.HEADER_HEIGHT}px` }}
-                >
+                <div className="table-wrap table-wrap--sticky">
                     <table className="asset-table rentals-table asset-table--sticky">
                         <thead>
                             <tr>
@@ -830,10 +815,7 @@ export default function RentalContracts() {
                                 현재 위치
                             </button>
                             {/* 사고 접수 버튼 */}
-                            <button
-                                onClick={() => handleOpenAccidentModal(selectedContract)}
-                                className="form-button form-button--warning"
-                            >
+                            <button onClick={() => handleOpenAccidentModal(selectedContract)} className="form-button form-button--warning">
                                 <FaExclamationTriangle size={16} aria-hidden="true" />
                                 {selectedContract.accident_reported ? "사고 정보 수정" : "사고 등록"}
                             </button>
@@ -960,11 +942,7 @@ export default function RentalContracts() {
 
             <Modal isOpen={showAccidentModal} onClose={handleCloseAccidentModal} title="사고 등록" showFooter={false} ariaLabel="Accident Registration">
                 {accidentTarget && (
-                    <form
-                        id="accident-registration-form"
-                        onSubmit={handleAccidentSubmit}
-                        style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "8px" }}
-                    >
+                    <form id="accident-registration-form" onSubmit={handleAccidentSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "8px" }}>
                         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
                             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
@@ -980,11 +958,7 @@ export default function RentalContracts() {
                                             borderRadius: "6px",
                                         }}
                                     />
-                                    {accidentForm.blackboxFileName && (
-                                        <span style={{ fontSize: "0.8rem", color: "#555" }}>
-                                            선택된 파일: {accidentForm.blackboxFileName}
-                                        </span>
-                                    )}
+                                    {accidentForm.blackboxFileName && <span style={{ fontSize: "0.8rem", color: "#555" }}>선택된 파일: {accidentForm.blackboxFileName}</span>}
                                 </div>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>사고 발생 시각</label>
@@ -1112,11 +1086,7 @@ export default function RentalContracts() {
                             <button type="submit" className="form-button">
                                 저장
                             </button>
-                            <button
-                                type="button"
-                                className="form-button form-button--muted"
-                                onClick={handleCloseAccidentModal}
-                            >
+                            <button type="button" className="form-button form-button--muted" onClick={handleCloseAccidentModal}>
                                 닫기
                             </button>
                         </div>
@@ -1150,10 +1120,7 @@ export default function RentalContracts() {
                                     </div>
                                 </div>
                             </div>
-                            <button
-                                onClick={handleBackToDetail}
-                                className="form-button form-button--muted"
-                            >
+                            <button onClick={handleBackToDetail} className="form-button form-button--muted">
                                 상세정보로 돌아가기
                             </button>
                         </div>
