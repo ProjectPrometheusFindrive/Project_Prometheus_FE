@@ -729,10 +729,8 @@ export default function RentalContracts() {
                     </div>
                 </div>
 
-                <div
-                    className="table-wrap table-wrap--sticky"
-                    style={{ "--table-sticky-offset": `${DIMENSIONS.HEADER_HEIGHT}px` }}
-                >
+                <div className="table-wrap table-wrap--sticky">
+
                     <table className="asset-table rentals-table asset-table--sticky">
                         <thead>
                             <tr>

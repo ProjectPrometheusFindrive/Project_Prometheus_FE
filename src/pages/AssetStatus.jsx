@@ -1076,7 +1076,6 @@ export default function AssetStatus() {
                 selection={selection}
                 emptyMessage="조건에 맞는 차량 자산이 없습니다."
                 stickyHeader
-                stickyOffset={DIMENSIONS.HEADER_HEIGHT}
             />
 
             {/* inline panel removed */}
