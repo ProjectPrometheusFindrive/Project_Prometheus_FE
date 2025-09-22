@@ -1505,6 +1505,109 @@
     },
     "rental": []
   },
+  "KMHLONGTERM000001": {
+    "vin": "KMHLONGTERM000001",
+    "asset": {
+      "id": "VH-0201",
+      "plate": "77나2025",
+      "vehicleType": "그랜저 2023년형",
+      "make": "Hyundai",
+      "model": "Grandeur",
+      "year": 2023,
+      "fuelType": "하이브리드",
+      "vin": "KMHLONGTERM000001",
+      "registrationDate": "2024-12-15",
+      "registrationStatus": "보험등록 완료",
+      "vehicleStatus": "운행중",
+      "installer": "박수현",
+      "deviceInstallDate": "2025-01-10",
+      "deviceSerial": "HYU-GRAN-23-7710",
+      "memo": "6개월 장기 렌탈 계약 차량",
+      "diagnosticCodes": {
+        "category1": 0,
+        "category2": 0,
+        "category3": 0,
+        "category4": 0
+      },
+      "insuranceInfo": "삼성화재 다이렉트",
+      "insuranceExpiryDate": "2026-12-15",
+      "insuranceHistory": [
+        {
+          "type": "등록",
+          "date": "2024-12-15",
+          "company": "삼성화재",
+          "product": "법인 장기렌트 전용",
+          "startDate": "2024-12-15",
+          "expiryDate": "2025-12-15",
+          "specialTerms": "법인 고객 전용 할인",
+          "docName": "policy_VH-0201_2024.pdf",
+          "docDataUrl": ""
+        },
+        {
+          "type": "갱신",
+          "date": "2025-12-15",
+          "company": "삼성화재",
+          "product": "법인 장기렌트 전용",
+          "startDate": "2025-12-15",
+          "expiryDate": "2026-12-15",
+          "specialTerms": "무사고 갱신 혜택 적용",
+          "docName": "policy_VH-0201_2025.pdf",
+          "docDataUrl": ""
+        }
+      ],
+      "deviceHistory": [
+        {
+          "type": "install",
+          "date": "2025-01-10",
+          "installDate": "2025-01-10",
+          "serial": "HYU-GRAN-23-7710",
+          "installer": "박수현"
+        }
+      ]
+    },
+    "rental": [
+      {
+        "rental_id": 100000001200,
+        "vin": "KMHLONGTERM000001",
+        "vehicleType": "그랜저 2023년형",
+        "plate": "77나2025",
+        "renter_name": "최장기",
+        "contact_number": "010-5555-1212",
+        "license_number": "23-11-987654-00",
+        "address": "부산광역시 해운대구 센텀동",
+        "rental_period": {
+          "start": "2025-01-05T09:00:00",
+          "end": "2025-07-04T18:00:00"
+        },
+        "rental_duration_days": 182,
+        "insurance_name": "삼성화재 다이렉트",
+        "rental_location": {
+          "lat": 35.1633,
+          "lng": 129.1636
+        },
+        "return_location": {
+          "lat": 35.1633,
+          "lng": 129.1636
+        },
+        "current_location": {
+          "lat": 35.1795,
+          "lng": 129.1219
+        },
+        "engine_status": "on",
+        "restart_blocked": false,
+        "contract_status": "대여중",
+        "reported_stolen": false,
+        "accident_reported": false,
+        "rental_amount": 4800000,
+        "deposit": 1000000,
+        "unpaid_amount": 0,
+        "payment_method": "법인카드 자동결제",
+        "memo": "부산 법인 고객 장기 렌트, 월별 정기 점검 예약 완료",
+        "special_notes": "6개월 계약, 분기별 실내외 세차 제공",
+        "created_at": "2025-01-02T08:30:00+09:00"
+      }
+    ]
+  },
   "KMHVARIETY0000006": {
     "vin": "KMHVARIETY0000006",
     "asset": {
