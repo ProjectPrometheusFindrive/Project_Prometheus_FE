@@ -7,7 +7,19 @@ import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
 import { DIMENSIONS } from "../constants";
-import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
+import {
+    FaCar,
+    FaEdit,
+    FaSave,
+    FaTimes,
+    FaExclamationTriangle,
+    FaMapMarkerAlt,
+    FaCog,
+    FaEye,
+    FaEyeSlash,
+    FaGripVertical,
+    FaVideo,
+} from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 const DEFAULT_COLUMN_CONFIG = [
@@ -20,7 +32,7 @@ const DEFAULT_COLUMN_CONFIG = [
     { key: "contractStatus", label: "계약 상태", visible: true, required: false },
     { key: "engine_status", label: "엔진 상태", visible: true, required: false },
     { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
-    { key: "accident", label: "사고 등록", visible: true, required: false, width: 90 },
+    { key: "accident", label: "사고 등록", visible: true, required: false, width: 160 },
     { key: "memo", label: "메모", visible: true, required: false },
 ];
 
@@ -499,18 +511,62 @@ export default function RentalContracts() {
                         </span>
                     </label>
                 );
-            case "accident":
+            case "accident": {
+                const identifier = row.plate || row.rental_id || "계약";
+                const hasAccident = Boolean(row.accident_reported);
+                const videoTitle = row.accidentReport?.blackboxFileName?.trim();
+                const variantClass = hasAccident ? (videoTitle ? "badge--video" : "badge--accident") : "badge--default";
+                const title = videoTitle
+                    ? `등록된 사고 영상: ${videoTitle}`
+                    : hasAccident
+                    ? "등록된 사고 정보 보기"
+                    : "사고 등록";
+                const ariaLabel = videoTitle
+                    ? `${identifier} 사고 영상 ${videoTitle} 보기`
+                    : hasAccident
+                    ? `${identifier} 사고 정보 보기`
+                    : `${identifier} 사고 등록`;
+
                 return (
                     <button
                         type="button"
                         onClick={() => handleOpenAccidentModal(row)}
-                        className={`badge-button badge badge--clickable ${row.accident_reported ? "badge--accident" : "badge--default"}`}
-                        title={row.accident_reported ? "등록된 사고 정보 보기" : "사고 등록"}
-                        aria-label={row.accident_reported ? `${row.plate || row.rental_id} 사고 정보 보기` : `${row.plate || row.rental_id} 사고 등록`}
+                        className={`badge-button badge badge--clickable ${variantClass}`}
+                        title={title}
+                        aria-label={ariaLabel}
+                        style={
+                            videoTitle
+                                ? {
+                                      justifyContent: "flex-start",
+                                      gap: "6px",
+                                      width: "100%",
+                                      maxWidth: "100%",
+                                  }
+                                : undefined
+                        }
                     >
-                        <FiAlertTriangle size={14} />
+                        {videoTitle ? (
+                            <>
+                                <FaVideo size={13} aria-hidden="true" />
+                                <span
+                                    style={{
+                                        flex: "1 1 auto",
+                                        minWidth: 0,
+                                        overflow: "hidden",
+                                        textOverflow: "ellipsis",
+                                        whiteSpace: "nowrap",
+                                        textAlign: "left",
+                                    }}
+                                >
+                                    {videoTitle}
+                                </span>
+                            </>
+                        ) : (
+                            <FiAlertTriangle size={14} aria-hidden="true" />
+                        )}
                     </button>
                 );
+            }
             case "memo":
                 return (
                     <div style={{ maxWidth: "150px" }}>
