@@ -109,9 +109,9 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           )}
 
           <div className="asset-dates">
-            {dateItem("차량 구매일", asset.purchaseDate || "")}
-            {dateItem("전산 등록 일자", asset.registrationDate || asset.systemRegDate || "")}
-            {dateItem("전산 삭제 일자", asset.systemDelDate || "")}
+            {asset.purchaseDate && dateItem("차량 구매일", asset.purchaseDate)}
+            {(asset.registrationDate || asset.systemRegDate) && dateItem("전산 등록일", asset.registrationDate || asset.systemRegDate)}
+            {asset.systemDelDate && dateItem("전산 삭제일", asset.systemDelDate)}
           </div>
         </div>
       </div>

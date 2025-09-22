@@ -1074,6 +1074,7 @@ export default function AssetStatus() {
                 title={`차량 상세 정보${infoVehicle?.asset?.plate ? ` - ${infoVehicle.asset.plate}` : ""}`}
                 showFooter={false}
                 ariaLabel="차량 상세 정보"
+                className="modal-large"
             >
                 <div className="grid-2col">
                     <section className="card card-padding">
