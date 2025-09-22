@@ -87,8 +87,37 @@ app.post('/api/assets', async (req, res) => {
 
 app.put('/api/assets/:id', async (req, res) => {
   await delay();
-  // For demo purposes, just return updated data
-  const updatedAsset = { id: req.params.id, ...req.body };
+  const id = req.params.id;
+  const patch = req.body || {};
+  // Try to find and update the in-memory data so subsequent GETs reflect changes
+  let found = null;
+  for (const [vin, v] of Object.entries(data.vehicles)) {
+    if (v && v.asset && v.asset.id === id) {
+      const prev = v.asset;
+      const merged = { ...prev, ...patch };
+      // Merge insuranceHistory arrays if both exist
+      if (Array.isArray(prev.insuranceHistory) || Array.isArray(patch.insuranceHistory)) {
+        const base = Array.isArray(prev.insuranceHistory) ? [...prev.insuranceHistory] : [];
+        const add = Array.isArray(patch.insuranceHistory) ? patch.insuranceHistory : [];
+        const key = (h) => [h.date || h.startDate || '', h.company || '', h.product || ''].join('#');
+        const seen = new Set(base.map(key));
+        const out = [...base];
+        for (const h of add) {
+          const k = key(h);
+          if (!seen.has(k)) {
+            out.push(h);
+            seen.add(k);
+          }
+        }
+        out.sort((a, b) => new Date(a.startDate || a.date || 0) - new Date(b.startDate || b.date || 0));
+        merged.insuranceHistory = out;
+      }
+      data.vehicles[vin].asset = merged;
+      found = merged;
+      break;
+    }
+  }
+  const updatedAsset = found || { id, ...patch };
   res.json(updatedAsset);
 });
 

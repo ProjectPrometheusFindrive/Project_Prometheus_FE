@@ -140,12 +140,13 @@ export default function AssetStatus() {
     const openInsuranceModal = (asset) => { setInsuranceReadOnly(false); setInsuranceAsset(asset); setShowInsuranceModal(true); };
     const openInsuranceModalReadOnly = (asset) => { setInsuranceReadOnly(true); setInsuranceAsset(asset); setShowInsuranceModal(true); };
     const closeInsuranceModal = () => { setInsuranceAsset(null); setShowInsuranceModal(false); setInsuranceReadOnly(false); };
-    const handleInsuranceSubmit = async ({ insuranceInfo, insuranceExpiryDate }) => {
+    const handleInsuranceSubmit = async (patch) => {
         const id = insuranceAsset?.id;
         if (!id) return;
         try {
-            await saveAsset(id, { insuranceInfo: insuranceInfo || "", insuranceExpiryDate: insuranceExpiryDate || "" });
-            setRows((prev) => prev.map((a) => (a.id === id ? { ...a, insuranceInfo: insuranceInfo || a.insuranceInfo, insuranceExpiryDate: insuranceExpiryDate || a.insuranceExpiryDate } : a)));
+            const resp = await saveAsset(id, patch || {});
+            // Merge back into table row (preserve unknown fields)
+            setRows((prev) => prev.map((a) => (a.id === id ? { ...a, ...(patch || {}), ...(resp || {}) } : a)));
             closeInsuranceModal();
         } catch (e) {
             console.error("Failed to save insurance", e);

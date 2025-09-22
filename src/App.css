@@ -139,7 +139,7 @@
     color: #b71c1c;
 }
 
-/* 관리단계 배지 스타일 */
+/* 관리단�?배�? ?��???*/
 .badge--pending {
     background: #fff4e5;
     color: #f59e0b;
@@ -194,7 +194,7 @@
     transition: all 0.2s ease;
 }
 
-/* 진단 코드 모달 스타일 */
+/* 진단 코드 모달 ?��???*/
 .diagnostic-detail {
     padding: 0;
 }
@@ -471,7 +471,7 @@ body {
 .asset-dialog__left { display: grid; gap: 12px; }
 .asset-doc { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; }
 .asset-doc__title { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; }
-.asset-doc__box { border: 1px dashed #cfd8dc; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; background: #fafbfc; }
+.asset-doc__box { border: 1px dashed #cfd8dc; border-radius: 8px; height: 120px; display: flex; align-items: center; justify-content: center; background: #fafbfc; }
 .asset-doc__placeholder { color: #90a4ae; font-size: 0.9rem; }
 
 .asset-dialog__right { display: grid; gap: 16px; }

@@ -12,6 +12,20 @@
                 "fuelType": "가솔린",
                 "vin": "KMHDH41EX6U123456",
                 "insuranceInfo": "렌터카공제조합 2024",
+                "insuranceExpiryDate": "2025-11-01",
+                "insuranceHistory": [
+                    {
+                        "type": "등록",
+                        "date": "2024-11-01",
+                        "company": "렌터카공제조합",
+                        "product": "자동차종합보험(개인용)",
+                        "startDate": "2024-11-01",
+                        "expiryDate": "2025-11-01",
+                        "specialTerms": "긴급출동 포함",
+                        "docName": "policy_VH-0001_2024.pdf",
+                        "docDataUrl": ""
+                    }
+                ],
                 "registrationDate": "2024-11-01",
                 "registrationStatus": "장비장착 완료",
                 "installer": "김범기",
@@ -60,6 +74,20 @@
                 "fuelType": "가솔린",
                 "vin": "KNDPB3AC7H7123456",
                 "insuranceInfo": "렌터카공제조합 2024",
+                "insuranceExpiryDate": "2025-10-15",
+                "insuranceHistory": [
+                    {
+                        "type": "등록",
+                        "date": "2024-10-15",
+                        "company": "렌터카공제조합",
+                        "product": "자동차종합보험(개인용)",
+                        "startDate": "2024-10-15",
+                        "expiryDate": "2025-10-15",
+                        "specialTerms": "자기부담금 20만원",
+                        "docName": "policy_VH-0002_2024.pdf",
+                        "docDataUrl": ""
+                    }
+                ],
                 "registrationDate": "2024-11-01",
                 "registrationStatus": "장비장착 완료",
                 "installer": "김범기",
@@ -92,6 +120,20 @@
                 "fuelType": "가솔린",
                 "vin": "5YJ3E1EA7KF123456",
                 "insuranceInfo": "렌터카공제조합 2024",
+                "insuranceExpiryDate": "2025-09-30",
+                "insuranceHistory": [
+                    {
+                        "type": "등록",
+                        "date": "2024-10-01",
+                        "company": "렌터카공제조합",
+                        "product": "자동차종합보험(개인용)",
+                        "startDate": "2024-10-01",
+                        "expiryDate": "2025-09-30",
+                        "specialTerms": "",
+                        "docName": "policy_VH-0003_2024.pdf",
+                        "docDataUrl": ""
+                    }
+                ],
                 "registrationDate": "2024-11-01",
                 "registrationStatus": "장비장착 완료",
                 "installer": "김범기",
@@ -124,6 +166,8 @@
                 "fuelType": "가솔린",
                 "vin": "WAUZZZF40LA123456",
                 "insuranceInfo": "렌터카공제조합 2024",
+                "insuranceExpiryDate": "",
+                "insuranceHistory": [],
                 "registrationDate": "2024-11-01",
                 "registrationStatus": "장비장착 완료",
                 "installer": "김범기",

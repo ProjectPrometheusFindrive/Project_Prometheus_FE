@@ -362,6 +362,27 @@ interface Asset {
   fuelType: string;              // 연료 타입
   registrationDate?: Date;       // 등록일
   registrationStatus: string;    // 등록 상태
+  // 보험(단일 필드: 호환성 유지용)
+  insuranceInfo?: string;        // 현재 유효 보험: "회사명 상품명" 요약
+  insuranceCompany?: string;     // 현재 유효 보험사
+  insuranceProduct?: string;     // 현재 유효 상품
+  insuranceStartDate?: Date;     // 현재 유효 시작일
+  insuranceExpiryDate?: Date;    // 현재 유효 만료일
+  insuranceSpecialTerms?: string;// 현재 유효 특약
+  insuranceDocName?: string;     // 증권 파일명
+  insuranceDocDataUrl?: string;  // 증권 파일 데이터 URL
+  // 보험 이력(연 단위 갱신/변경 기록)
+  insuranceHistory?: Array<{
+    type: '등록' | '갱신';       // 이벤트 유형
+    date: Date;                  // 이벤트 일자(보통 시작일)
+    company: string;             // 보험사
+    product?: string;            // 상품
+    startDate?: Date;            // 효력 시작일
+    expiryDate?: Date;           // 효력 만료일
+    specialTerms?: string;       // 특약사항
+    docName?: string;            // 첨부 파일명
+    docDataUrl?: string;         // 첨부 데이터 URL
+  }>;
   location: {                    // 위치 정보
     lat: number;
     lng: number;
@@ -448,4 +469,3 @@ VITE_FAKE_API_BASE_URL=http://localhost:3001/api
 # Kakao Map API Key (선택)
 VITE_KAKAO_MAP_API_KEY=your_kakao_key
 ```
-

@@ -59,17 +59,60 @@ const deleteRequest = async (url) => {
 // Assets
 export async function fetchAssets() {
   try {
-    return await fetchJSON(`${API_BASE_URL}/assets`);
+    const assets = await fetchJSON(`${API_BASE_URL}/assets`);
+    return normalizeAssetsWithInsurance(assets);
   } catch (error) {
     // Fallback to local seed data if server is not available
     console.warn('Falling back to local seed data for assets');
     const { assets } = await import('../data/assets');
-    return assets;
+    return normalizeAssetsWithInsurance(assets);
   }
 }
 
+// Attach/derive current insurance info from history when present
+function normalizeAssetsWithInsurance(arr) {
+  if (!Array.isArray(arr)) return [];
+  const today = new Date();
+  return arr.map((asset) => {
+    const a = { ...asset };
+    const hist = Array.isArray(a.insuranceHistory) ? [...a.insuranceHistory] : [];
+    // Ensure sorted by effective date (start/date) ascending
+    hist.sort((x, y) => new Date(x.startDate || x.date || 0) - new Date(y.startDate || y.date || 0));
+
+    // Pick current entry: active by date range, else the latest by start/expiry
+    let current = null;
+    if (hist.length > 0) {
+      current =
+        hist.find((h) => {
+          const start = h.startDate ? new Date(h.startDate) : null;
+          const end = h.expiryDate ? new Date(h.expiryDate) : null;
+          if (start && today < start) return false;
+          if (end && today > end) return false;
+          return true;
+        }) || hist[hist.length - 1];
+    }
+
+    if (current) {
+      const company = current.company || a.insuranceCompany || a.insuranceInfo || "";
+      const product = current.product || a.insuranceProduct || "";
+      a.insuranceInfo = [company, product].filter(Boolean).join(" ").trim();
+      a.insuranceCompany = company;
+      a.insuranceProduct = product;
+      a.insuranceStartDate = current.startDate || a.insuranceStartDate || "";
+      a.insuranceExpiryDate = current.expiryDate || a.insuranceExpiryDate || "";
+      a.insuranceSpecialTerms = current.specialTerms || a.insuranceSpecialTerms || "";
+      a.insuranceDocName = current.docName || a.insuranceDocName || "";
+      a.insuranceDocDataUrl = current.docDataUrl || a.insuranceDocDataUrl || "";
+      a.insuranceHistory = hist;
+    }
+    return a;
+  });
+}
+
 export async function fetchAssetById(id) {
-  return await fetchJSON(`${API_BASE_URL}/assets/${id}`);
+  const a = await fetchJSON(`${API_BASE_URL}/assets/${id}`);
+  const [norm] = normalizeAssetsWithInsurance([a]);
+  return norm || a;
 }
 
 export async function saveAsset(assetId, updatedFields) {
@@ -81,8 +124,28 @@ export async function saveAsset(assetId, updatedFields) {
     const { db } = await import('../data/db');
     const assetIndex = db.assets.findIndex(asset => asset.id === assetId);
     if (assetIndex > -1) {
-      db.assets[assetIndex] = { ...db.assets[assetIndex], ...updatedFields };
-      return db.assets[assetIndex];
+      const prev = db.assets[assetIndex];
+      // Merge insurance history carefully
+      let merged = { ...prev, ...updatedFields };
+      if (Array.isArray(prev.insuranceHistory) || Array.isArray(updatedFields.insuranceHistory)) {
+        const hist = Array.isArray(prev.insuranceHistory) ? [...prev.insuranceHistory] : [];
+        const patchHist = Array.isArray(updatedFields.insuranceHistory) ? updatedFields.insuranceHistory : [];
+        // If patchHist looks like an append of last entry, de-dup by date+company+product
+        const key = (h) => [h.date || h.startDate || "", h.company || "", h.product || ""].join("#");
+        const seen = new Set(hist.map(key));
+        const appended = [...hist];
+        for (const h of patchHist) {
+          const k = key(h);
+          if (!seen.has(k)) {
+            appended.push(h);
+            seen.add(k);
+          }
+        }
+        appended.sort((x, y) => new Date(x.startDate || x.date || 0) - new Date(y.startDate || y.date || 0));
+        merged.insuranceHistory = appended;
+      }
+      db.assets[assetIndex] = merged;
+      return merged;
     }
     throw new Error(`Asset with ID ${assetId} not found for update.`);
   }
