@@ -136,8 +136,10 @@ export default function AssetStatus() {
     // Insurance modal state
     const [showInsuranceModal, setShowInsuranceModal] = useState(false);
     const [insuranceAsset, setInsuranceAsset] = useState(null);
-    const openInsuranceModal = (asset) => { setInsuranceAsset(asset); setShowInsuranceModal(true); };
-    const closeInsuranceModal = () => { setInsuranceAsset(null); setShowInsuranceModal(false); };
+    const [insuranceReadOnly, setInsuranceReadOnly] = useState(false);
+    const openInsuranceModal = (asset) => { setInsuranceReadOnly(false); setInsuranceAsset(asset); setShowInsuranceModal(true); };
+    const openInsuranceModalReadOnly = (asset) => { setInsuranceReadOnly(true); setInsuranceAsset(asset); setShowInsuranceModal(true); };
+    const closeInsuranceModal = () => { setInsuranceAsset(null); setShowInsuranceModal(false); setInsuranceReadOnly(false); };
     const handleInsuranceSubmit = async ({ insuranceInfo, insuranceExpiryDate }) => {
         const id = insuranceAsset?.id;
         if (!id) return;
@@ -464,7 +466,13 @@ export default function AssetStatus() {
             case "registrationDate":
                 return formatDateShort(row.registrationDate);
             case "insuranceExpiryDate":
-                if (row.insuranceExpiryDate) return formatDateShort(row.insuranceExpiryDate);
+                if (row.insuranceExpiryDate) {
+                    return (
+                        <button type="button" className="link-button" onClick={() => openInsuranceModalReadOnly(row)} title="보험 정보 보기">
+                            {formatDateShort(row.insuranceExpiryDate)}
+                        </button>
+                    );
+                }
                 return (
                     <button type="button" className="form-button" onClick={() => openInsuranceModal(row)}>
                         보험 등록
@@ -698,10 +706,10 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showInsuranceModal && !!insuranceAsset}
                 onClose={closeInsuranceModal}
-                title={`보험 등록 - ${insuranceAsset?.plate || ""}`}
+                title={`${insuranceReadOnly ? "보험 정보" : "보험 등록"} - ${insuranceAsset?.plate || ""}`}
                 showFooter={false}
             >
-                <InsuranceDialog asset={insuranceAsset || {}} onClose={closeInsuranceModal} onSubmit={handleInsuranceSubmit} />
+                <InsuranceDialog asset={insuranceAsset || {}} onClose={closeInsuranceModal} onSubmit={handleInsuranceSubmit} readOnly={insuranceReadOnly} />
             </Modal>
 
             <Modal
