@@ -32,7 +32,7 @@ const DEFAULT_COLUMN_CONFIG = [
     { key: "contractStatus", label: "계약 상태", visible: true, required: false },
     { key: "engine_status", label: "엔진 상태", visible: true, required: false },
     { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
-    { key: "accident", label: "사고 등록", visible: true, required: false, width: 160 },
+    { key: "accident", label: "사고 등록", visible: true, required: false, width: 100 },
     { key: "memo", label: "메모", visible: true, required: false },
 ];
 
