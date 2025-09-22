@@ -490,6 +490,8 @@ body {
   .asset-dialog__grid { grid-template-columns: 1fr; }
 }
 
+.asset-bottom-row { display: grid; grid-template-columns: 140px 1fr; align-items: center; }
+
 /*
     Responsive behavior for phones (portrait):
     - Move navigation to the bottom as a horizontal bar
