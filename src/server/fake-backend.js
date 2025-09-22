@@ -14,9 +14,11 @@ const PORT = process.env.PORT || 3001;
 app.use(cors());
 app.use(express.json());
 
-// Load unified data
-const dataPath = path.join(__dirname, '../data/unified-data.json');
+// Load seed data (VIN-keyed map) and geofences
+const dataPath = path.join(__dirname, '../data/seed.json');
+const geofencesPath = path.join(__dirname, '../data/geofences.json');
 let data;
+let geofences = [];
 try {
   const rawData = fs.readFileSync(dataPath, 'utf8');
   data = JSON.parse(rawData);
@@ -24,11 +26,22 @@ try {
   console.error('Error loading data:', error);
   process.exit(1);
 }
+try {
+  const gfRaw = fs.readFileSync(geofencesPath, 'utf8');
+  const parsed = JSON.parse(gfRaw);
+  geofences = Array.isArray(parsed)
+    ? parsed.map((g, i) => ({ id: g.id ?? String(i + 1), name: g.name || `Polygon ${i + 1}`, points: Array.isArray(g.points) ? g.points : [] }))
+    : [];
+} catch (error) {
+  console.warn('No geofences.json found or invalid JSON; starting with empty geofences.');
+  geofences = [];
+}
 
 // Helper functions
 const delay = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
 
-const getVehiclesArray = () => Object.values(data.vehicles);
+// In seed.json, root is the vehicles map
+const getVehiclesArray = () => Object.values(data);
 
 // Compute 4-stage vehicle health status: "-", "정상", "관심필요", "조치필요"
 const computeDiagnosticStatus = (asset, rental) => {
@@ -118,7 +131,7 @@ app.put('/api/assets/:id', async (req, res) => {
   const patch = req.body || {};
   // Try to find and update the in-memory data so subsequent GETs reflect changes
   let found = null;
-  for (const [vin, v] of Object.entries(data.vehicles)) {
+  for (const [vin, v] of Object.entries(data)) {
     if (v && v.asset && v.asset.id === id) {
       const prev = v.asset;
       const merged = { ...prev, ...patch };
@@ -139,7 +152,7 @@ app.put('/api/assets/:id', async (req, res) => {
         out.sort((a, b) => new Date(a.startDate || a.date || 0) - new Date(b.startDate || b.date || 0));
         merged.insuranceHistory = out;
       }
-      data.vehicles[vin].asset = merged;
+      data[vin].asset = merged;
       found = merged;
       break;
     }
@@ -206,23 +219,32 @@ app.post('/api/issue-drafts', async (req, res) => {
 // Geofences
 app.get('/api/geofences', async (req, res) => {
   await delay();
-  res.json(data.geofences);
+  res.json(geofences);
 });
 
 app.post('/api/geofences', async (req, res) => {
   await delay();
-  const newGeofence = { id: Date.now(), ...req.body };
-  res.status(201).json(newGeofence);
+  const payload = req.body || {};
+  const item = { id: String(Date.now()), name: payload.name || `Polygon ${geofences.length + 1}`, points: Array.isArray(payload.points) ? payload.points : [] };
+  geofences.push(item);
+  res.status(201).json(item);
 });
 
 app.put('/api/geofences/:id', async (req, res) => {
   await delay();
-  const updatedGeofence = { id: req.params.id, ...req.body };
-  res.json(updatedGeofence);
+  const id = String(req.params.id);
+  const idx = geofences.findIndex((g) => String(g.id) === id);
+  if (idx === -1) return res.status(404).json({ error: 'Geofence not found' });
+  const prev = geofences[idx];
+  const patch = req.body || {};
+  geofences[idx] = { ...prev, ...patch, id: prev.id };
+  res.json(geofences[idx]);
 });
 
 app.delete('/api/geofences/:id', async (req, res) => {
   await delay();
+  const id = String(req.params.id);
+  geofences = geofences.filter((g) => String(g.id) !== id);
   res.status(204).send();
 });
 
@@ -301,7 +323,7 @@ app.use('*', (req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Fake backend server running on http://localhost:${PORT}`);
-  console.log(`📊 Loaded ${Object.keys(data.vehicles).length} vehicles and ${data.geofences.length} geofences`);
+  console.log(`📊 Loaded ${Object.keys(data).length} vehicles and ${geofences.length} geofences`);
 });
 
 export default app;
