@@ -1608,6 +1608,198 @@
       }
     ]
   },
+  "KMHLONGTERM000002": {
+    "vin": "KMHLONGTERM000002",
+    "asset": {
+      "id": "VH-0202",
+      "plate": "78나2026",
+      "vehicleType": "쏘렌토 24년형",
+      "make": "Kia",
+      "model": "Sorento",
+      "year": 2024,
+      "fuelType": "디젤",
+      "vin": "KMHLONGTERM000002",
+      "registrationDate": "2024-12-20",
+      "registrationStatus": "장비부착 완료",
+      "vehicleStatus": "대여중",
+      "installer": "이도현",
+      "deviceInstallDate": "2025-01-20",
+      "deviceSerial": "KIA-SORE-24-7820",
+      "memo": "법인 장기 계약용 차량",
+      "diagnosticCodes": {
+        "category1": 0,
+        "category2": 1,
+        "category3": 0,
+        "category4": 0
+      },
+      "insuranceInfo": "DB손해보험 플러스",
+      "insuranceExpiryDate": "2026-12-20",
+      "insuranceHistory": [
+        {
+          "type": "등록",
+          "date": "2024-12-20",
+          "company": "DB손해보험",
+          "product": "법인 장기렌트 플랜",
+          "startDate": "2024-12-20",
+          "expiryDate": "2025-12-20",
+          "specialTerms": "월 1회 방문 점검 포함",
+          "docName": "policy_VH-0202_2024.pdf",
+          "docDataUrl": ""
+        },
+        {
+          "type": "갱신",
+          "date": "2025-12-20",
+          "company": "DB손해보험",
+          "product": "법인 장기렌트 플랜",
+          "startDate": "2025-12-20",
+          "expiryDate": "2026-12-20",
+          "specialTerms": "무사고 갱신 고객 할인",
+          "docName": "policy_VH-0202_2025.pdf",
+          "docDataUrl": ""
+        }
+      ],
+      "deviceHistory": [
+        {
+          "type": "install",
+          "date": "2025-01-20",
+          "installDate": "2025-01-20",
+          "serial": "KIA-SORE-24-7820",
+          "installer": "이도현"
+        }
+      ]
+    },
+    "rental": [
+      {
+        "rental_id": 100000001201,
+        "vin": "KMHLONGTERM000002",
+        "vehicleType": "쏘렌토 24년형",
+        "plate": "78나2026",
+        "renter_name": "김해솔",
+        "contact_number": "010-8888-2026",
+        "license_number": "24-05-456789-00",
+        "address": "대구광역시 수성구",
+        "rental_period": {
+          "start": "2025-02-01T09:00:00",
+          "end": "2026-01-31T18:00:00"
+        },
+        "rental_duration_days": 365,
+        "insurance_name": "DB손해보험",
+        "rental_location": {
+          "lat": 35.8594,
+          "lng": 128.6266
+        },
+        "return_location": {
+          "lat": 35.8594,
+          "lng": 128.6266
+        },
+        "current_location": {
+          "lat": 35.8725,
+          "lng": 128.6027
+        },
+        "engine_status": "on",
+        "restart_blocked": false,
+        "contract_status": "대여중",
+        "reported_stolen": false,
+        "accident_reported": false,
+        "rental_amount": 22800000,
+        "deposit": 3000000,
+        "unpaid_amount": 200000,
+        "payment_method": "월별 자동이체",
+        "memo": "대구 지점 장기 계약 - 월별 주행보고서 요청",
+        "special_notes": "12개월 계약, 타이어 분기 점검 포함",
+        "created_at": "2025-01-15T10:15:00+09:00"
+      }
+    ]
+  },
+  "KMHLONGTERM000003": {
+    "vin": "KMHLONGTERM000003",
+    "asset": {
+      "id": "VH-0203",
+      "plate": "79나3031",
+      "vehicleType": "EV6 25년형",
+      "make": "Kia",
+      "model": "EV6",
+      "year": 2025,
+      "fuelType": "전기",
+      "vin": "KMHLONGTERM000003",
+      "registrationDate": "2025-03-05",
+      "registrationStatus": "보험등록 완료",
+      "vehicleStatus": "예약중",
+      "installer": "정유나",
+      "deviceInstallDate": "2025-03-20",
+      "deviceSerial": "KIA-EV6-25-7930",
+      "memo": "하반기 IT 스타트업 장기 예약 차량",
+      "diagnosticCodes": {
+        "category1": 0,
+        "category2": 0,
+        "category3": 0,
+        "category4": 0
+      },
+      "insuranceInfo": "현대해상 EV 플러스",
+      "insuranceExpiryDate": "2026-03-05",
+      "insuranceHistory": [
+        {
+          "type": "등록",
+          "date": "2025-03-05",
+          "company": "현대해상",
+          "product": "전기차 장기렌트",
+          "startDate": "2025-03-05",
+          "expiryDate": "2026-03-05",
+          "specialTerms": "완속 충전기 무상 제공",
+          "docName": "policy_VH-0203_2025.pdf",
+          "docDataUrl": ""
+        }
+      ],
+      "deviceHistory": [
+        {
+          "type": "install",
+          "date": "2025-03-20",
+          "installDate": "2025-03-20",
+          "serial": "KIA-EV6-25-7930",
+          "installer": "정유나"
+        }
+      ]
+    },
+    "rental": [
+      {
+        "rental_id": 100000001202,
+        "vin": "KMHLONGTERM000003",
+        "vehicleType": "EV6 25년형",
+        "plate": "79나3031",
+        "renter_name": "백서윤",
+        "contact_number": "010-9999-3031",
+        "license_number": "25-02-123890-11",
+        "address": "경기도 성남시 분당구",
+        "rental_period": {
+          "start": "2025-12-15T10:00:00",
+          "end": "2026-06-14T18:00:00"
+        },
+        "rental_duration_days": 182,
+        "insurance_name": "현대해상",
+        "rental_location": {
+          "lat": 37.3785,
+          "lng": 127.1152
+        },
+        "return_location": {
+          "lat": 37.3785,
+          "lng": 127.1152
+        },
+        "current_location": null,
+        "engine_status": "off",
+        "restart_blocked": false,
+        "contract_status": "예약",
+        "reported_stolen": false,
+        "accident_reported": false,
+        "rental_amount": 13800000,
+        "deposit": 1500000,
+        "unpaid_amount": 0,
+        "payment_method": "계약금 + 월대여료 송금",
+        "memo": "IT 스타트업 장기 계약 예정 - 충전 지원 요청",
+        "special_notes": "6개월 계약, 월별 충전 크레딧 30만원 제공",
+        "created_at": "2025-03-18T09:45:00+09:00"
+      }
+    ]
+  },
   "KMHVARIETY0000006": {
     "vin": "KMHVARIETY0000006",
     "asset": {
