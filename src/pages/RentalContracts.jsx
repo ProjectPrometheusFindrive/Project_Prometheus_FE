@@ -763,7 +763,7 @@ export default function RentalContracts() {
                     <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>{row.isLongTerm ? "장기" : "단기"}</StatusBadge>
                     <StatusBadge variant="badge--contract-amount">
                         {row.isLongTerm
-                            ? `월${new Intl.NumberFormat("ko-KR").format(
+                            ? `월 ₩${new Intl.NumberFormat("ko-KR").format(
                                   Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30)))
                               )}`
                             : `총 ₩${formattedAmount}`}
