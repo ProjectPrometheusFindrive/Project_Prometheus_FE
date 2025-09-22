@@ -298,6 +298,16 @@
     color: #b91c1c;
 }
 
+.badge--restart-blocked {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.badge--restart-allowed {
+    background: #dcfce7;
+    color: #166534;
+}
+
 /* rentals-table now renders only required columns; no hidden columns needed */
 
 /* Simple ON/OFF badges for device/engine */
