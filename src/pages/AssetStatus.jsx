@@ -102,11 +102,7 @@ const getManagementStage = (asset = {}) => {
     const registrationStatus = (asset.registrationStatus || "").trim();
     const deviceSerial = (asset.deviceSerial || "").trim();
     const diagnosticCodes = asset.diagnosticCodes || {};
-    const totalIssues =
-        Number(diagnosticCodes.category1 || 0) +
-        Number(diagnosticCodes.category2 || 0) +
-        Number(diagnosticCodes.category3 || 0) +
-        Number(diagnosticCodes.category4 || 0);
+    const totalIssues = Number(diagnosticCodes.category1 || 0) + Number(diagnosticCodes.category2 || 0) + Number(diagnosticCodes.category3 || 0) + Number(diagnosticCodes.category4 || 0);
 
     if (vehicleStatus === "대여중" || vehicleStatus === "운행중" || vehicleStatus === "반납대기") {
         return "대여중";
@@ -147,7 +143,6 @@ const withManagementStage = (asset) => {
     return { ...asset, managementStage: stage };
 };
 
-
 export default function AssetStatus() {
     const [q, setQ] = useState("");
     const [status, setStatus] = useState("all");
@@ -181,10 +176,10 @@ export default function AssetStatus() {
                       { key: "vehicleType", label: "차종", visible: true, required: false },
                       { key: "registrationDate", label: "차량등록일", visible: true, required: false },
                       { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
-                      { key: "vehicleHealth", label: "차량 상태(4단계)", visible: true, required: false },
+                      { key: "vehicleHealth", label: "차량 상태", visible: true, required: false },
                       { key: "diagnosticCodes", label: "진단 요약", visible: true, required: false },
                       { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
-                      { key: "managementStage", label: "관리단계", visible: true, required: false },
+                      { key: "managementStage", label: "관리상태", visible: true, required: false },
                       { key: "memo", label: "메모", visible: true, required: false },
                   ],
               };
@@ -193,9 +188,21 @@ export default function AssetStatus() {
     const [showInsuranceModal, setShowInsuranceModal] = useState(false);
     const [insuranceAsset, setInsuranceAsset] = useState(null);
     const [insuranceReadOnly, setInsuranceReadOnly] = useState(false);
-    const openInsuranceModal = (asset) => { setInsuranceReadOnly(false); setInsuranceAsset(asset); setShowInsuranceModal(true); };
-    const openInsuranceModalReadOnly = (asset) => { setInsuranceReadOnly(true); setInsuranceAsset(asset); setShowInsuranceModal(true); };
-    const closeInsuranceModal = () => { setInsuranceAsset(null); setShowInsuranceModal(false); setInsuranceReadOnly(false); };
+    const openInsuranceModal = (asset) => {
+        setInsuranceReadOnly(false);
+        setInsuranceAsset(asset);
+        setShowInsuranceModal(true);
+    };
+    const openInsuranceModalReadOnly = (asset) => {
+        setInsuranceReadOnly(true);
+        setInsuranceAsset(asset);
+        setShowInsuranceModal(true);
+    };
+    const closeInsuranceModal = () => {
+        setInsuranceAsset(null);
+        setShowInsuranceModal(false);
+        setInsuranceReadOnly(false);
+    };
     const handleInsuranceSubmit = async (patch) => {
         const id = insuranceAsset?.id;
         if (!id) return;
@@ -224,9 +231,7 @@ export default function AssetStatus() {
         const previousStage = getManagementStage(asset);
         if (previousStage === nextStage) return;
 
-        setRows((prev) =>
-            prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: nextStage }) : row))
-        );
+        setRows((prev) => prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: nextStage }) : row)));
         setStageSaving((prev) => ({ ...prev, [assetId]: true }));
 
         try {
@@ -234,10 +239,7 @@ export default function AssetStatus() {
             setRows((prev) =>
                 prev.map((row) => {
                     if (row.id !== assetId) return row;
-                    const updatedStage =
-                        response?.managementStage && MANAGEMENT_STAGE_SET.has(response.managementStage)
-                            ? response.managementStage
-                            : nextStage;
+                    const updatedStage = response?.managementStage && MANAGEMENT_STAGE_SET.has(response.managementStage) ? response.managementStage : nextStage;
                     const merged = { ...row, ...(response || {}), managementStage: updatedStage };
                     return withManagementStage(merged);
                 })
@@ -245,13 +247,7 @@ export default function AssetStatus() {
         } catch (error) {
             console.error("Failed to update management stage", error);
             alert("관리단계를 저장하지 못했습니다. 다시 시도해주세요.");
-            setRows((prev) =>
-                prev.map((row) =>
-                    row.id === assetId
-                        ? withManagementStage({ ...row, managementStage: previousStage })
-                        : row
-                )
-            );
+            setRows((prev) => prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: previousStage }) : row)));
         } finally {
             setStageSaving((prev) => {
                 const next = { ...prev };
@@ -266,11 +262,7 @@ export default function AssetStatus() {
         const stored = typedStorage.devices.getInfo(activeAsset.id) || {};
         return {
             supplier: stored.supplier || "",
-            installDate:
-                stored.installDate ||
-                activeAsset.deviceInstallDate ||
-                activeAsset.installDate ||
-                "",
+            installDate: stored.installDate || activeAsset.deviceInstallDate || activeAsset.installDate || "",
             installer: stored.installer || activeAsset.installer || "",
             serial: stored.serial || activeAsset.deviceSerial || "",
             photos: stored.photos || [],
@@ -315,7 +307,7 @@ export default function AssetStatus() {
                                 type: "install",
                                 label: "단말 장착일",
                                 date: installDateCandidate,
-                                meta: { seeded: true }
+                                meta: { seeded: true },
                             });
                         }
                     }
@@ -467,12 +459,13 @@ export default function AssetStatus() {
 
         const categories = ["분류1", "분류2", "분류3", "분류4"];
         const total = categories.reduce((acc, c) => acc + (counts[c] || 0), 0);
-        const mergedIssues = categories.flatMap((c) =>
-            generateDiagnosticDetails(c, counts[c] || 0, {
-                plate: vehicle.plate,
-                vehicleType: vehicle.vehicleType,
-                id: vehicle.id,
-            }).issues
+        const mergedIssues = categories.flatMap(
+            (c) =>
+                generateDiagnosticDetails(c, counts[c] || 0, {
+                    plate: vehicle.plate,
+                    vehicleType: vehicle.vehicleType,
+                    id: vehicle.id,
+                }).issues
         );
 
         const detail = {
@@ -626,7 +619,7 @@ export default function AssetStatus() {
         setAssetRequireDocs(true);
     };
 
-const handleMemoEdit = (assetId, currentMemo) => {
+    const handleMemoEdit = (assetId, currentMemo) => {
         setEditingMemo(assetId);
         setMemoText(currentMemo || "");
     };
@@ -733,12 +726,7 @@ const handleMemoEdit = (assetId, currentMemo) => {
                     );
                 }
                 return (
-                    <button
-                        type="button"
-                        className="badge-button badge badge--default badge--clickable"
-                        onClick={() => openInsuranceModal(row)}
-                        title="보험 등록"
-                    >
+                    <button type="button" className="badge-button badge badge--default badge--clickable" onClick={() => openInsuranceModal(row)} title="보험 등록">
                         보험 등록
                     </button>
                 );
@@ -753,10 +741,7 @@ const handleMemoEdit = (assetId, currentMemo) => {
                 const isOpen = openStageDropdown === row.id;
                 const dropdownId = `management-stage-${row.id}`;
                 return (
-                    <span
-                        data-stage-dropdown
-                        style={{ display: "inline-flex", alignItems: "center", gap: "6px", position: "relative" }}
-                    >
+                    <span data-stage-dropdown style={{ display: "inline-flex", alignItems: "center", gap: "6px", position: "relative" }}>
                         <button
                             type="button"
                             className={`badge badge-button badge--clickable ${badgeClass}`}
@@ -765,7 +750,7 @@ const handleMemoEdit = (assetId, currentMemo) => {
                             aria-haspopup="listbox"
                             aria-expanded={isOpen}
                             aria-controls={dropdownId}
-                            aria-label={(row.plate || row.id ? `${row.plate || row.id} 관리 단계 변경` : "관리 단계 변경")}
+                            aria-label={row.plate || row.id ? `${row.plate || row.id} 관리 단계 변경` : "관리 단계 변경"}
                             style={{
                                 border: "none",
                                 cursor: isSaving ? "not-allowed" : "pointer",
@@ -779,12 +764,7 @@ const handleMemoEdit = (assetId, currentMemo) => {
                             <FaChevronDown size={10} aria-hidden="true" />
                         </button>
                         {isOpen && (
-                            <ul
-                                id={dropdownId}
-                                role="listbox"
-                                aria-label="관리단계 선택"
-                                className="management-stage-dropdown"
-                            >
+                            <ul id={dropdownId} role="listbox" aria-label="관리단계 선택" className="management-stage-dropdown">
                                 {MANAGEMENT_STAGE_OPTIONS.map((option) => (
                                     <li key={option.value}>
                                         <button
@@ -796,13 +776,7 @@ const handleMemoEdit = (assetId, currentMemo) => {
                                             className="management-stage-dropdown__option"
                                             disabled={isSaving}
                                         >
-                                            <span
-                                                className={`badge management-stage-dropdown__badge ${
-                                                    MANAGEMENT_STAGE_BADGE_CLASS[option.value] || "badge--default"
-                                                }`}
-                                            >
-                                                {option.label}
-                                            </span>
+                                            <span className={`badge management-stage-dropdown__badge ${MANAGEMENT_STAGE_BADGE_CLASS[option.value] || "badge--default"}`}>{option.label}</span>
                                         </button>
                                     </li>
                                 ))}
@@ -821,9 +795,9 @@ const handleMemoEdit = (assetId, currentMemo) => {
                 const label = row.diagnosticStatus || "-";
                 const clsMap = {
                     "-": "badge--default",
-                    "정상": "badge--normal",
-                    "관심필요": "badge--overdue",
-                    "조치필요": "badge--maintenance",
+                    정상: "badge--normal",
+                    관심필요: "badge--overdue",
+                    조치필요: "badge--maintenance",
                 };
                 const cls = clsMap[label] || "badge--default";
                 return label === "-" ? (
@@ -943,7 +917,7 @@ const handleMemoEdit = (assetId, currentMemo) => {
     // 동적 컬럼 생성
     const dynamicColumns = visibleColumns
         .filter((col) => col.key !== "select") // select는 Table 컴포넌트에서 자동 처리
-        .map((column) => (
+        .map((column) =>
             column.key === "deviceStatus"
                 ? {
                       key: column.key,
@@ -952,24 +926,14 @@ const handleMemoEdit = (assetId, currentMemo) => {
                           const stored = typedStorage.devices.getInfo(row.id) || {};
                           const hasDevice = row.deviceSerial || stored.serial;
                           if (hasDevice) {
+                              return (
+                                  <button type="button" className="badge-button badge badge--on badge--clickable" onClick={() => openDeviceView(row)} title="단말 정보 보기">
+                                      연결됨
+                                  </button>
+                              );
+                          }
                           return (
-                              <button
-                                  type="button"
-                                  className="badge-button badge badge--on badge--clickable"
-                                  onClick={() => openDeviceView(row)}
-                                  title="단말 정보 보기"
-                              >
-                                  연결됨
-                              </button>
-                          );
-                      }
-                          return (
-                              <button
-                                  type="button"
-                                  className="badge-button badge badge--default badge--clickable"
-                                  onClick={() => openDeviceRegister(row)}
-                                  title="단말 등록"
-                              >
+                              <button type="button" className="badge-button badge badge--default badge--clickable" onClick={() => openDeviceRegister(row)} title="단말 등록">
                                   단말 등록
                               </button>
                           );
@@ -980,7 +944,7 @@ const handleMemoEdit = (assetId, currentMemo) => {
                       label: column.label,
                       render: (row) => renderCellContent(column, row),
                   }
-        ));
+        );
 
     return (
         <div className="page">
@@ -1003,7 +967,13 @@ const handleMemoEdit = (assetId, currentMemo) => {
                         선택 삭제
                     </button>
                     <div style={{ position: "relative" }} data-column-dropdown>
-                        <button type="button" className="form-button" onClick={() => setShowColumnDropdown(!showColumnDropdown)} style={{ background: "#607d8b", display: "flex", alignItems: "center", gap: "4px" }} title="컬럼 설정">
+                        <button
+                            type="button"
+                            className="form-button"
+                            onClick={() => setShowColumnDropdown(!showColumnDropdown)}
+                            style={{ background: "#607d8b", display: "flex", alignItems: "center", gap: "4px" }}
+                            title="컬럼 설정"
+                        >
                             <FaCog size={14} />
                             컬럼 설정
                         </button>
@@ -1099,13 +1069,17 @@ const handleMemoEdit = (assetId, currentMemo) => {
                 onSubmit={deviceReadOnly ? undefined : handleDeviceInfoSubmit}
             >
                 <DeviceInfoForm formId="device-info" initial={deviceInitial} onSubmit={handleDeviceInfoSubmit} readOnly={deviceReadOnly} showSubmit={false} />
-                <DeviceEventLog
-                    assetId={activeAsset?.id}
-                    fallbackInstallDate={(deviceInitial?.installDate || "") || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""}
-                />
+                <DeviceEventLog assetId={activeAsset?.id} fallbackInstallDate={deviceInitial?.installDate || "" || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""} />
             </Modal>
 
-            <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." />
+            <Table
+                columns={dynamicColumns}
+                data={filtered}
+                selection={selection}
+                emptyMessage="조건에 맞는 차량 자산이 없습니다."
+                stickyHeader
+                stickyOffset={DIMENSIONS.HEADER_HEIGHT}
+            />
 
             {/* inline panel removed */}
             <Modal
