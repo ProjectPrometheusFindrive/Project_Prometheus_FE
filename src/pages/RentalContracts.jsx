@@ -24,7 +24,7 @@ const formatVehicleType = (vehicleType) => {
             <span>
                 {modelPart}
                 {modelPart && yearPart && ' '}
-                <span style={{ fontSize: "0.75rem", color: "#6b7280" }}>{yearPart}</span>
+                <span className="text-xs text-muted">{yearPart}</span>
             </span>
         );
     }
@@ -627,7 +627,7 @@ export default function RentalContracts() {
                     <button
                         type="button"
                         onClick={() => handleToggleRestart(row.rental_id)}
-                        className={`badge badge--clickable ${isBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}`}
+                        className={`badge badge--clickable badge--compact ${isBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}`}
                         aria-pressed={isBlocked}
                         aria-label={`${identifier} ${isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}`}
                         title={isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}
@@ -778,7 +778,7 @@ export default function RentalContracts() {
         return (
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                 <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>₩{formattedAmount}</div>
-                <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                <div className="flex gap-4 flex-wrap">
                     <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>{row.isLongTerm ? "장기" : "단기"}</StatusBadge>
                     <StatusBadge variant="badge--contract-amount">
                         {row.isLongTerm
@@ -797,9 +797,9 @@ export default function RentalContracts() {
         <div className="page">
             <h1>계약 등록/관리</h1>
             <div className="page-scroll">
-                <div className="asset-toolbar" style={{ marginBottom: 12 }}>
-                    <div style={{ flex: 1 }} />
-                    <div style={{ display: "flex", gap: 8 }}>
+                <div className="asset-toolbar">
+                    <div className="flex-1" />
+                    <div className="flex gap-8">
                         <button type="button" className="form-button" onClick={() => setShowCreate(true)}>
                             계약 등록
                         </button>
@@ -812,29 +812,14 @@ export default function RentalContracts() {
                         >
                             선택 삭제
                         </button>
-                        <div style={{ position: "relative" }} data-column-dropdown>
+                        <div className="relative" data-column-dropdown>
                             <button type="button" className="form-button form-button--neutral" onClick={() => setShowColumnDropdown(!showColumnDropdown)} title="컬럼 설정">
                                 <FaCog size={14} />
                                 컬럼 설정
                             </button>
                             {showColumnDropdown && (
-                                <div
-                                    data-column-dropdown
-                                    style={{
-                                        position: "absolute",
-                                        top: "100%",
-                                        right: 0,
-                                        backgroundColor: "white",
-                                        border: "1px solid #ddd",
-                                        borderRadius: "4px",
-                                        boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
-                                        zIndex: 1000,
-                                        minWidth: "200px",
-                                        padding: "8px 0",
-                                        marginTop: "4px",
-                                    }}
-                                >
-                                    <div style={{ padding: "8px 12px", borderBottom: "1px solid #eee", fontSize: "0.9rem", fontWeight: "600" }}>컬럼 표시 설정</div>
+                                <div data-column-dropdown className="dropdown-menu">
+                                    <div className="dropdown-menu__header">컬럼 표시 설정</div>
                                     {columnSettings.columns.map((column, index) => (
                                         <div
                                             key={column.key}
@@ -844,22 +829,13 @@ export default function RentalContracts() {
                                             onDragLeave={handleDragLeave}
                                             onDrop={(e) => handleDrop(e, index)}
                                             onDragEnd={handleDragEnd}
-                                            style={{
-                                                display: "flex",
-                                                alignItems: "center",
-                                                padding: "6px 12px",
-                                                cursor: column.required ? "not-allowed" : "pointer",
-                                                opacity: draggedColumnIndex === index ? 0.5 : column.required ? 0.6 : 1,
-                                                backgroundColor: dragOverColumnIndex === index ? "#e3f2fd" : "transparent",
-                                                borderLeft: dragOverColumnIndex === index ? "3px solid #2196f3" : "3px solid transparent",
-                                                transition: "all 0.2s ease",
-                                            }}
+                                            className={`dropdown-menu__item${column.required ? " is-required" : ""}${draggedColumnIndex === index ? " is-dragging" : ""}${dragOverColumnIndex === index ? " is-dragover" : ""}`}
                                         >
-                                            <div style={{ marginRight: "8px", cursor: "grab" }}>
+                                            <div className="drag-handle">
                                                 <FaGripVertical size={10} color="#999" />
                                             </div>
                                             <div
-                                                style={{ marginRight: "8px", width: "16px", textAlign: "center" }}
+                                                className="icon-cell"
                                                 onClick={(e) => {
                                                     e.stopPropagation();
                                                     !column.required && toggleColumnVisibility(column.key);
@@ -867,8 +843,8 @@ export default function RentalContracts() {
                                             >
                                                 {column.visible ? <FaEye size={12} color="#4caf50" /> : <FaEyeSlash size={12} color="#f44336" />}
                                             </div>
-                                            <span style={{ fontSize: "0.85rem", flex: 1 }}>{column.label}</span>
-                                            {column.required && <span style={{ fontSize: "0.7rem", color: "#999" }}>필수</span>}
+                                            <span className="text-85 flex-1">{column.label}</span>
+                                            {column.required && <span className="text-70 text-muted-light">필수</span>}
                                         </div>
                                     ))}
                                 </div>

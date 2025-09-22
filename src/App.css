@@ -6,6 +6,65 @@
     --badge-line-height: 1;
 }
 
+/* === Utility Helpers === */
+/* Layout */
+.flex { display: flex; }
+.inline-flex { display: inline-flex; }
+.flex-col { flex-direction: column; }
+.flex-wrap { flex-wrap: wrap; }
+.items-center { align-items: center; }
+.justify-end { justify-content: flex-end; }
+.flex-1 { flex: 1; }
+.relative { position: relative; }
+.gap-4 { gap: 4px; }
+.gap-6 { gap: 6px; }
+.gap-8 { gap: 8px; }
+
+/* Sizing */
+.w-16 { width: 16px; }
+.text-center { text-align: center; }
+
+/* Typography */
+.text-xs { font-size: 0.75rem; }
+.text-85 { font-size: 0.85rem; }
+.text-70 { font-size: 0.7rem; }
+.text-95 { font-size: 0.95rem; }
+.text-muted { color: #6b7280; }
+.text-muted-light { color: #999; }
+
+/* Dropdown (generic) */
+.dropdown-menu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  z-index: 1000;
+  min-width: 200px;
+  padding: 8px 0;
+  margin-top: 4px;
+}
+.dropdown-menu__header {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.dropdown-menu__item {
+  display: flex;
+  align-items: center;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.dropdown-menu__item.is-required { cursor: not-allowed; opacity: 0.6; }
+.dropdown-menu__item.is-dragging { opacity: 0.5; }
+.dropdown-menu__item.is-dragover { background: #e3f2fd; border-left: 3px solid #2196f3; }
+.drag-handle { margin-right: 8px; cursor: grab; }
+.icon-cell { margin-right: 8px; width: 16px; text-align: center; }
+
 .page {
     padding: 1rem; /* top/bottom 1rem; bottom nav spacing handled by .app-content */
     /* Fill available space so inner scroll areas can work */
@@ -213,6 +272,9 @@
     /* Keep badge typography consistent with .badge */
     transition: all 0.2s ease;
 }
+
+/* Compact badge spacing for tight chip-like buttons */
+.badge--compact { padding: 2px 6px; }
 
 .badge--clickable:hover {
     opacity: 0.8;
