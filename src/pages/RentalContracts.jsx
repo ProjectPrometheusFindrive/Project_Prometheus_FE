@@ -748,8 +748,8 @@ export default function RentalContracts() {
                     </div>
                 </div>
 
-                <div className="table-wrap">
-                    <table className="asset-table rentals-table">
+                <div className="table-wrap table-wrap--sticky">
+                    <table className="asset-table rentals-table asset-table--sticky">
                         <thead>
                             <tr>
                                 {visibleColumns.map((column) => (
