@@ -32,6 +32,7 @@
 .asset-table thead th {
     background: #fafafa;
     font-weight: 600;
+    vertical-align: middle;
 }
 
 /* Sorting controls in table headers */
@@ -39,7 +40,8 @@
     white-space: nowrap;
 }
 .asset-table thead th .th-label {
-    vertical-align: middle;
+    display: inline-flex;
+    align-items: center;
 }
 .asset-table thead th .sort-toggle {
     border: 0;
@@ -48,13 +50,14 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    margin-left: 6px;
-    padding: 2px 2px;
+    margin-left: 4px;
+    padding: 0;
     cursor: pointer;
+    vertical-align: middle;
 }
 .asset-table thead th .sort-toggle .tri {
-    font-size: 0.7rem;
-    line-height: 0.7rem;
+    font-size: 0.6rem;
+    line-height: 0.6rem;
     color: #bbb;
 }
 .asset-table thead th .sort-toggle:hover .tri {
@@ -650,26 +653,99 @@ body {
     text-align: center;
 }
 
-/* Asset dialog layout (screenshot-based skeleton) */
-.asset-dialog { padding-bottom: 8px; }
-.asset-dialog__grid { display: grid; grid-template-columns: 280px 1fr; gap: 16px; align-items: start; max-width: 800px; }
-.asset-dialog__left { display: grid; gap: 12px; }
-.asset-doc { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; }
-.asset-doc__title { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; }
-.asset-doc__box { border: 1px dashed #cfd8dc; border-radius: 8px; height: 80px; display: flex; align-items: center; justify-content: center; background: #fafbfc; }
-.asset-doc__placeholder { color: #90a4ae; font-size: 0.9rem; }
+/* Asset dialog layout - insurance dialog style */
+.asset-dialog {
+    padding-bottom: 8px;
+}
 
-.asset-dialog__right { display: grid; gap: 16px; }
-.asset-info { grid-template-columns: 140px 1fr; }
-.asset-info__label { color: #555; }
-.asset-info__value { color: #222; font-weight: 600; }
+.asset-dialog__body {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
 
-.asset-dates { display: flex; flex-direction: column; gap: 8px; }
-.asset-dates__item { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; }
-.asset-dates__label { color: #666; font-size: 0.85rem; margin-bottom: 4px; }
-.asset-dates__value { font-weight: 600; font-size: 0.95rem; }
+.asset-docs-section {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
 
-.asset-dialog__footer { margin-top: 12px; display: flex; justify-content: flex-end; }
+@media (max-width: 768px) {
+    .asset-docs-section {
+        grid-template-columns: 1fr;
+    }
+}
+
+.asset-doc {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.asset-doc__title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.asset-doc__box {
+    border: 1px dashed #cfd8dc;
+    border-radius: 8px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fafbfc;
+}
+
+.asset-doc__placeholder {
+    color: #90a4ae;
+    font-size: 0.9rem;
+}
+
+.asset-info {
+    grid-template-columns: 140px 1fr;
+}
+
+.asset-info__label {
+    color: #555;
+}
+
+.asset-info__value {
+    color: #222;
+    font-weight: 600;
+}
+
+.asset-dates {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.asset-dates__item {
+    background: #fff;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+
+.asset-dates__label {
+    color: #666;
+    font-size: 0.85rem;
+    margin-bottom: 2px;
+}
+
+.asset-dates__value {
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.asset-dialog__footer {
+    margin-top: 12px;
+    display: flex;
+    justify-content: flex-end;
+}
 
 @media (max-width: 960px) {
   .asset-dialog__grid { grid-template-columns: 1fr; }

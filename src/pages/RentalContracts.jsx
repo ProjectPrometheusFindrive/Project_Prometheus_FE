@@ -421,6 +421,118 @@ export default function RentalContracts() {
 
     const visibleColumns = columnSettings.columns.filter((col) => col.visible);
 
+    // Sorting state for contracts table
+    const [sortKey, setSortKey] = useState(null); // column.key
+    const [sortDir, setSortDir] = useState(null); // 'asc' | 'desc' | null
+
+    const handleSortToggle = (key, column) => {
+        if (!key || key === "select") return;
+        if (column && column.sortable === false) return;
+        if (sortKey !== key) {
+            setSortKey(key);
+            setSortDir("asc");
+            return;
+        }
+        setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
+    };
+
+    const parseMaybeDate = (val) => {
+        if (val == null) return null;
+        if (val instanceof Date && !isNaN(val)) return val;
+        if (typeof val !== "string") return null;
+        const s = val.trim();
+        if (!s) return null;
+        const iso = Date.parse(s);
+        if (!Number.isNaN(iso)) return new Date(iso);
+        return null;
+    };
+
+    const normalizeValue = (val) => {
+        if (val == null) return { type: "empty", v: null };
+        const t = typeof val;
+        if (t === "number") return { type: "number", v: val };
+        if (t === "boolean") return { type: "number", v: val ? 1 : 0 };
+        if (val instanceof Date && !isNaN(val)) return { type: "date", v: val.getTime() };
+        if (t === "string") {
+            const asDate = parseMaybeDate(val);
+            if (asDate) return { type: "date", v: asDate.getTime() };
+            // numeric string
+            const num = Number(val);
+            if (!Number.isNaN(num) && /^-?\d+(?:\.\d+)?$/.test(val.trim())) {
+                return { type: "number", v: num };
+            }
+            return { type: "string", v: val.toLowerCase() };
+        }
+        try {
+            return { type: "string", v: String(val).toLowerCase() };
+        } catch {
+            return { type: "string", v: "" };
+        }
+    };
+
+    const getSortValue = (row, key) => {
+        switch (key) {
+            case "plate":
+            case "vehicleType":
+            case "renter_name":
+            case "contractStatus":
+            case "memo":
+                return row?.[key] ?? "";
+            case "rental_period": {
+                const start = row?.rental_period?.start || "";
+                return start;
+            }
+            case "rental_amount": {
+                const v = row?.rental_amount;
+                if (typeof v === "number") return v;
+                if (typeof v === "string") {
+                    const m = v.replace(/[^0-9.-]/g, "");
+                    const n = Number(m);
+                    return Number.isNaN(n) ? 0 : n;
+                }
+                return 0;
+            }
+            case "engine_status":
+                return row?.engine_status === "on" || !!row?.engineOn;
+            case "restart_blocked":
+                return !!(row?.restart_blocked || row?.restartBlocked);
+            case "accident":
+                return !!row?.accident_reported;
+            default:
+                return row?.[key];
+        }
+    };
+
+    const sortedRows = useMemo(() => {
+        if (!Array.isArray(rows)) return [];
+        if (!sortKey || !sortDir) return rows;
+        // ensure key exists in visible columns (only allow sorting visible columns)
+        const col = visibleColumns.find((c) => c.key === sortKey);
+        if (!col || col.key === "select" || col.sortable === false) return rows;
+        const list = rows.map((r, idx) => ({ r, idx }));
+        list.sort((a, b) => {
+            const va = getSortValue(a.r, sortKey);
+            const vb = getSortValue(b.r, sortKey);
+            const na = normalizeValue(va);
+            const nb = normalizeValue(vb);
+            if (na.type !== nb.type) {
+                const order = { empty: 3, string: 2, number: 1, date: 1 };
+                const pa = order[na.type] ?? 2;
+                const pb = order[nb.type] ?? 2;
+                if (pa !== pb) return sortDir === "asc" ? pa - pb : pb - pa;
+            }
+            let cmp = 0;
+            if (na.v == null && nb.v != null) cmp = 1;
+            else if (na.v != null && nb.v == null) cmp = -1;
+            else if (na.v == null && nb.v == null) cmp = 0;
+            else if (na.type === "number" || na.type === "date") cmp = na.v - nb.v;
+            else if (na.type === "string") cmp = String(na.v).localeCompare(String(nb.v), undefined, { sensitivity: "base", numeric: true });
+            if (cmp === 0) return a.idx - b.idx;
+            return sortDir === "asc" ? cmp : -cmp;
+        });
+        return list.map((x) => x.r);
+    }, [rows, visibleColumns, sortKey, sortDir]);
+
     // 드래그&드롭 이벤트 핸들러들
     const handleDragStart = (e, index) => {
         setDraggedColumnIndex(index);
@@ -750,25 +862,50 @@ export default function RentalContracts() {
                     <table className="asset-table rentals-table asset-table--sticky">
                         <thead>
                             <tr>
-                                {visibleColumns.map((column) => (
-                                    <th
-                                        key={column.key}
-                                        style={{
-                                            width: column.width,
-                                            textAlign: column.key === "select" ? "center" : "left",
-                                        }}
-                                    >
-                                        {column.key === "select" ? (
-                                            <input type="checkbox" aria-label="Select all visible" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
-                                        ) : (
-                                            column.label
-                                        )}
-                                    </th>
-                                ))}
+                                {visibleColumns.map((column) => {
+                                    const isSortable = column.key !== "select" && column.sortable !== false;
+                                    const isActive = isSortable && sortKey === column.key && !!sortDir;
+                                    const ariaSort = isActive ? (sortDir === "asc" ? "ascending" : "descending") : "none";
+                                    return (
+                                        <th
+                                            key={column.key}
+                                            style={{
+                                                width: column.width,
+                                                textAlign: column.key === "select" ? "center" : "left",
+                                            }}
+                                            aria-sort={ariaSort}
+                                            className={isSortable ? "th-sortable" : undefined}
+                                        >
+                                            {column.key === "select" ? (
+                                                <input type="checkbox" aria-label="Select all visible" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
+                                            ) : (
+                                                <>
+                                                    <span className="th-label">{column.label}</span>
+                                                    {isSortable && (
+                                                        <button
+                                                            type="button"
+                                                            className={[
+                                                                "sort-toggle",
+                                                                isActive ? "active" : "",
+                                                                isActive ? `dir-${sortDir}` : "",
+                                                            ].filter(Boolean).join(" ")}
+                                                            title={`${column.label} 정렬 토글`}
+                                                            aria-label={`${column.label} 정렬 토글 (오름차순/내림차순)`}
+                                                            onClick={() => handleSortToggle(column.key, column)}
+                                                        >
+                                                            <span className="tri up">▲</span>
+                                                            <span className="tri down">▼</span>
+                                                        </button>
+                                                    )}
+                                                </>
+                                            )}
+                                        </th>
+                                    );
+                                })}
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((r, index) => (
+                            {sortedRows.map((r, index) => (
                                 <tr key={r.rental_id || `rental-${index}`}>
                                     {visibleColumns.map((column) => (
                                         <td
