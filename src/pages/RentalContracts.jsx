@@ -868,7 +868,7 @@ export default function RentalContracts() {
                                             key={column.key}
                                             style={{
                                                 width: column.width,
-                                                textAlign: column.key === "select" ? "center" : "left",
+                                                textAlign: column.key === "memo" ? "left" : "center",
                                             }}
                                             aria-sort={ariaSort}
                                             className={isSortable ? "th-sortable" : undefined}
@@ -908,7 +908,7 @@ export default function RentalContracts() {
                                         <td
                                             key={column.key}
                                             style={{
-                                                textAlign: column.key === "select" ? "center" : "left",
+                                                textAlign: column.key === "memo" ? "left" : "center",
                                                 maxWidth: column.key === "memo" ? "150px" : undefined,
                                             }}
                                         >

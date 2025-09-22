@@ -922,6 +922,7 @@ export default function AssetStatus() {
                 ? {
                       key: column.key,
                       label: column.label,
+                      style: { textAlign: "center" },
                       render: (row) => {
                           const stored = typedStorage.devices.getInfo(row.id) || {};
                           const hasDevice = row.deviceSerial || stored.serial;
@@ -942,6 +943,7 @@ export default function AssetStatus() {
                 : {
                       key: column.key,
                       label: column.label,
+                      style: { textAlign: column.key === "memo" ? "left" : "center" },
                       render: (row) => renderCellContent(column, row),
                   }
         );
