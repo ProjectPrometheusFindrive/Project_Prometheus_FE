@@ -65,8 +65,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
   return (
     <div className="asset-dialog">
-      <div className="asset-dialog__grid">
-        <div className="asset-dialog__left">
+      <div className="asset-dialog__body">
+        <div className="asset-docs-section" style={{ marginBottom: 16 }}>
           {isEdit ? (
             <>
               {docBoxView("원리금 상환 계획표")}
@@ -80,40 +80,49 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           )}
         </div>
 
-        <div className="asset-dialog__right">
-          {isEdit ? (
-            <div className="asset-info grid-info">
-              {infoRow("제조사", asset.make || "")}
-              {infoRow("차종", asset.model || "")}
-              {infoRow("차량번호", asset.plate || "")}
-              {infoRow("차대번호(VIN)", asset.vin || "")}
-              {infoRow("차량가액", asset.vehicleValue || "")}
-            </div>
-          ) : (
-            <div className="asset-info grid-info">
-              <div className="asset-info__label">제조사</div>
-              <input className="form-input" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
-
-              <div className="asset-info__label">차종</div>
-              <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
-
-              <div className="asset-info__label">차량번호</div>
-              <input className="form-input" value={form.plate} onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))} placeholder="예: 28가2345" />
-
-              <div className="asset-info__label">차대번호(VIN)</div>
-              <input className="form-input" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
-
-              <div className="asset-info__label">차량가액</div>
-              <input className="form-input" type="number" value={form.vehicleValue} onChange={(e) => setForm((p) => ({ ...p, vehicleValue: e.target.value }))} placeholder="예: 25000000" />
-            </div>
-          )}
-
-          <div className="asset-dates">
-            {asset.purchaseDate && dateItem("차량 구매일", asset.purchaseDate)}
-            {(asset.registrationDate || asset.systemRegDate) && dateItem("전산 등록일", asset.registrationDate || asset.systemRegDate)}
-            {asset.systemDelDate && dateItem("전산 삭제일", asset.systemDelDate)}
+        {isEdit ? (
+          <div className="asset-info grid-info">
+            {infoRow("제조사", asset.make || "")}
+            {infoRow("차종", asset.model || "")}
+            {infoRow("차량번호", asset.plate || "")}
+            {infoRow("차대번호(VIN)", asset.vin || "")}
+            {infoRow("차량가액", asset.vehicleValue || "")}
           </div>
-        </div>
+        ) : (
+          <div className="asset-info grid-info">
+            {infoRow(
+              "제조사",
+              <input className="form-input" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+            )}
+            {infoRow(
+              "차종",
+              <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+            )}
+            {infoRow(
+              "차량번호",
+              <input className="form-input" value={form.plate} onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))} placeholder="예: 28가2345" />
+            )}
+            {infoRow(
+              "차대번호(VIN)",
+              <input className="form-input" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+            )}
+            {infoRow(
+              "차량가액",
+              <input className="form-input" type="number" value={form.vehicleValue} onChange={(e) => setForm((p) => ({ ...p, vehicleValue: e.target.value }))} placeholder="예: 25000000" />
+            )}
+          </div>
+        )}
+
+        {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
+          <div style={{ marginTop: 16 }}>
+            <div className="asset-doc__title" style={{ marginBottom: 8 }}>등록 정보</div>
+            <div className="asset-dates">
+              {asset.purchaseDate && dateItem("차량 구매일", asset.purchaseDate)}
+              {(asset.registrationDate || asset.systemRegDate) && dateItem("전산 등록일", asset.registrationDate || asset.systemRegDate)}
+              {asset.systemDelDate && dateItem("전산 삭제일", asset.systemDelDate)}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="asset-dialog__footer">

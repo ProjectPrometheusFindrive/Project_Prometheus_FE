@@ -19,32 +19,27 @@ export default function DeviceEventLog({ assetId, fallbackInstallDate = "" }) {
   }, [assetId, fallbackInstallDate]);
 
   return (
-    <section className="card card-padding" style={{ marginTop: 12 }}>
-      <h3 className="section-title section-margin-0">단말이벤트 기록</h3>
-      <div style={{ marginTop: 8 }}>
-        {(!events || events.length === 0) && (
-          <div style={{ color: "#666", fontSize: "0.9rem" }}>기록 없음</div>
-        )}
-        {events && events.length > 0 && (
-          <div>
-            {events.map((e) => (
-              <div
-                key={e.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  padding: "8px 0",
-                  borderBottom: "1px solid #eee",
-                }}
-              >
-                <div style={{ fontWeight: 600 }}>{e.label || "이벤트"}</div>
-                <div style={{ marginLeft: "auto", color: "#333" }}>{e.date || "-"}</div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </section>
+    <div style={{ marginTop: 16 }}>
+      <div className="asset-doc__title" style={{ marginBottom: 6 }}>단말 이벤트 기록</div>
+      {(!events || events.length === 0) && (
+        <div style={{ color: "#666", fontSize: "0.9rem", padding: "8px 0" }}>기록 없음</div>
+      )}
+      {events && events.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+          {events.map((e) => (
+            <div key={e.id} className="asset-history__item">
+              <div style={{ fontSize: 12 }}>{e.label || "이벤트"} {e.date || "-"}</div>
+              {e.meta && !e.meta.virtual && (
+                <div style={{ fontSize: 12, color: '#666' }}>
+                  {e.meta.installer && `장착자: ${e.meta.installer}`}
+                  {e.meta.supplier && ` · 공급사: ${e.meta.supplier}`}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
