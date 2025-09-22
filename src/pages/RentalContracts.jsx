@@ -18,12 +18,12 @@ const formatVehicleType = (vehicleType) => {
 
     if (match) {
         const yearPart = match[1];
-        const modelPart = vehicleType.replace(yearPattern, '').trim();
+        const modelPart = vehicleType.replace(yearPattern, "").trim();
 
         return (
             <span>
                 {modelPart}
-                {modelPart && yearPart && ' '}
+                {modelPart && yearPart && " "}
                 <span className="text-xs text-muted">{yearPart}</span>
             </span>
         );
@@ -31,19 +31,7 @@ const formatVehicleType = (vehicleType) => {
 
     return vehicleType;
 };
-import {
-    FaCar,
-    FaEdit,
-    FaSave,
-    FaTimes,
-    FaExclamationTriangle,
-    FaMapMarkerAlt,
-    FaCog,
-    FaEye,
-    FaEyeSlash,
-    FaGripVertical,
-    FaVideo,
-} from "react-icons/fa";
+import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 const DEFAULT_COLUMN_CONFIG = [
@@ -594,12 +582,7 @@ export default function RentalContracts() {
                 return <input type="checkbox" aria-label={`Select: ${row.plate || row.rental_id}`} checked={selected.has(row.rental_id)} onChange={() => toggleSelect(row.rental_id)} />;
             case "plate":
                 return (
-                    <button
-                        type="button"
-                        className="simple-button"
-                        onClick={() => handlePlateClick(row)}
-                        title="계약 상세 정보 보기"
-                    >
+                    <button type="button" className="simple-button" onClick={() => handlePlateClick(row)} title="계약 상세 정보 보기">
                         {row.plate || "-"}
                     </button>
                 );
@@ -643,22 +626,11 @@ export default function RentalContracts() {
                 const hasVideo = Boolean(videoTitle);
                 const variantClass = hasAccident ? (hasVideo ? "badge--video" : "badge--accident") : "badge--default";
                 const title = hasVideo ? videoTitle : hasAccident ? "등록된 사고 정보 보기" : "사고 등록";
-                const ariaLabel = hasVideo
-                    ? `${identifier} 사고 영상 ${videoTitle} 보기`
-                    : hasAccident
-                    ? `${identifier} 사고 정보 보기`
-                    : `${identifier} 사고 등록`;
+                const ariaLabel = hasVideo ? `${identifier} 사고 영상 ${videoTitle} 보기` : hasAccident ? `${identifier} 사고 정보 보기` : `${identifier} 사고 등록`;
 
                 return (
-                    <button
-                        type="button"
-                        onClick={() => handleOpenAccidentModal(row)}
-                        className={`badge badge--clickable ${variantClass}`}
-                        title={title}
-                        aria-label={ariaLabel}
-                    >
+                    <button type="button" onClick={() => handleOpenAccidentModal(row)} className={`badge badge--clickable ${variantClass}`} title={title} aria-label={ariaLabel}>
                         {hasVideo ? <FaVideo size={13} aria-hidden="true" /> : <FiAlertTriangle size={14} aria-hidden="true" />}
-
                     </button>
                 );
             }
@@ -777,15 +749,11 @@ export default function RentalContracts() {
 
         return (
             <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <div style={{ fontWeight: "600", fontSize: "0.95rem" }}>₩{formattedAmount}</div>
+                <div style={{ fontWeight: "500", fontSize: "0.9rem" }}>₩{formattedAmount}</div>
                 <div className="flex gap-4 flex-wrap">
                     <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>{row.isLongTerm ? "장기" : "단기"}</StatusBadge>
                     <StatusBadge variant="badge--contract-amount">
-                        {row.isLongTerm
-                            ? `월 ₩${new Intl.NumberFormat("ko-KR").format(
-                                  Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30)))
-                              )}`
-                            : `총 ₩${formattedAmount}`}
+                        {row.isLongTerm ? `월 ₩${new Intl.NumberFormat("ko-KR").format(Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30))))}` : `총 ₩${formattedAmount}`}
                     </StatusBadge>
                     {row.hasUnpaid && <StatusBadge variant="badge--contract-unpaid">미납</StatusBadge>}
                 </div>
@@ -829,7 +797,9 @@ export default function RentalContracts() {
                                             onDragLeave={handleDragLeave}
                                             onDrop={(e) => handleDrop(e, index)}
                                             onDragEnd={handleDragEnd}
-                                            className={`dropdown-menu__item${column.required ? " is-required" : ""}${draggedColumnIndex === index ? " is-dragging" : ""}${dragOverColumnIndex === index ? " is-dragover" : ""}`}
+                                            className={`dropdown-menu__item${column.required ? " is-required" : ""}${draggedColumnIndex === index ? " is-dragging" : ""}${
+                                                dragOverColumnIndex === index ? " is-dragover" : ""
+                                            }`}
                                         >
                                             <div className="drag-handle">
                                                 <FaGripVertical size={10} color="#999" />
@@ -879,11 +849,7 @@ export default function RentalContracts() {
                                                     {isSortable && (
                                                         <button
                                                             type="button"
-                                                            className={[
-                                                                "sort-toggle",
-                                                                isActive ? "active" : "",
-                                                                isActive ? `dir-${sortDir}` : "",
-                                                            ].filter(Boolean).join(" ")}
+                                                            className={["sort-toggle", isActive ? "active" : "", isActive ? `dir-${sortDir}` : ""].filter(Boolean).join(" ")}
                                                             title={`${column.label} 정렬 토글`}
                                                             aria-label={`${column.label} 정렬 토글 (오름차순/내림차순)`}
                                                             onClick={() => handleSortToggle(column.key, column)}
@@ -1022,10 +988,7 @@ export default function RentalContracts() {
                                     </div>
                                     <div>
                                         <strong>재시동 금지:</strong>
-                                        <StatusBadge
-                                            variant={selectedContract.restartBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}
-                                            style={{ marginLeft: "8px" }}
-                                        >
+                                        <StatusBadge variant={selectedContract.restartBlocked ? "badge--restart-blocked" : "badge--restart-allowed"} style={{ marginLeft: "8px" }}>
                                             {selectedContract.restartBlocked ? "차단" : "허용"}
                                         </StatusBadge>
                                     </div>
