@@ -109,7 +109,7 @@ src/
     Dashboard.jsx, AssetStatus.jsx, RentalContracts.jsx, RentalsMapPage.jsx
     ProblemVehicles.jsx, Detail.jsx
     Login.jsx, SignUp.jsx, FindId.jsx, ForgotPassword.jsx, Settings.jsx
-  data/           # db.js, seed.js, unified-data.json, geofences.js, company.js 등
+  data/           # db.js, seed.json, geofences.json, company-info.json, geofences.js, company.js 등
   utils/          # storage.js, date.js, map.js
   constants/      # 색상/테마/폼 상수
 ```
@@ -133,7 +133,9 @@ src/
 
 - 경로: `src/server/fake-backend.js`
 - 포트: `3001`
-- 데이터 소스: `src/data/unified-data.json`
+- 데이터 소스: `src/data/seed.json`
+- 지오펜스: `src/data/geofences.json`
+- 회사정보 기본값: `src/data/company-info.json`
 - 특징: ~100ms 지연, 자산/렌탈/대시보드/지오펜스/문제차량/이슈 초안 엔드포인트 제공
 - 실행: `npm run backend` 또는 `npm run dev:full`
 
@@ -172,4 +174,3 @@ src/
 ## 참고 문서
 
 - `API_SPECIFICATION.md`: 프론트엔드가 기대하는 API 명세
-

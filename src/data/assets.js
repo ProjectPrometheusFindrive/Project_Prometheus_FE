@@ -1,4 +1,6 @@
-import seedVehicles from "./seed.json";
+import seed from "./seed.json";
+// seed.json is a VIN-keyed map: { [vin]: { vin, asset, rental } }
+const seedVehicles = seed || {};
 
 const deriveHistory = (a) => {
   // If seed already supplies full history, use it as‑is

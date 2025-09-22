@@ -530,5 +530,309 @@
       ]
     },
     "rental": []
+  },
+  "KMHPROMO000000001": {
+    "vin": "KMHPROMO000000001",
+    "asset": {
+      "id": "VH-0098",
+      "plate": "12가9998",
+      "vehicleType": "아반떼 2023년형",
+      "make": "Hyundai",
+      "model": "Avante",
+      "year": 2023,
+      "fuelType": "가솔린",
+      "vin": "KMHPROMO000000001",
+      "registrationDate": "2024-12-31",
+      "registrationStatus": "장비부착 완료",
+      "vehicleStatus": "운행중",
+      "installer": "홍길동",
+      "deviceInstallDate": "2024-12-31",
+      "deviceSerial": "TEST-0098-SN",
+      "memo": "데모 보험 등록 데이터",
+      "diagnosticCodes": { "category1": 0, "category2": 0, "category3": 0, "category4": 0 },
+      "insuranceInfo": "렌터카공제 2024",
+      "insuranceExpiryDate": "2025-12-31",
+      "insuranceHistory": [
+        { "type": "등록", "date": "2024-12-31", "company": "렌터카공제", "product": "자동차종합보험(개인용)", "startDate": "2024-12-31", "expiryDate": "2025-12-31", "specialTerms": "", "docName": "policy_VH-0098_2024.pdf", "docDataUrl": "" }
+      ],
+      "deviceHistory": [
+        { "type": "install", "date": "2024-12-31", "installDate": "2024-12-31", "serial": "TEST-0098-SN", "installer": "홍길동" }
+      ]
+    },
+    "rental": []
+  },
+  "KMHPROMO000000002": {
+    "vin": "KMHPROMO000000002",
+    "asset": {
+      "id": "VH-0099",
+      "plate": "12가9999",
+      "vehicleType": "소나타 2022년형",
+      "make": "Hyundai",
+      "model": "Sonata",
+      "year": 2022,
+      "fuelType": "가솔린",
+      "vin": "KMHPROMO000000002",
+      "registrationDate": "2024-01-15",
+      "registrationStatus": "장비부착 완료",
+      "vehicleStatus": "대기중",
+      "installer": "",
+      "deviceInstallDate": "",
+      "deviceSerial": "",
+      "memo": "보험 미등록 케이스",
+      "diagnosticCodes": { "category1": 0, "category2": 0, "category3": 0, "category4": 0 },
+      "insuranceInfo": "",
+      "insuranceExpiryDate": "",
+      "insuranceHistory": [],
+      "deviceHistory": []
+    },
+    "rental": []
+  }
+  ,
+  "KMHVARIETY0000001": {
+    "vin": "KMHVARIETY0000001",
+    "asset": {
+      "id": "VH-0100",
+      "plate": "11가1000",
+      "vehicleType": "쏘나타 2021년형",
+      "make": "Hyundai",
+      "model": "Sonata",
+      "year": 2021,
+      "fuelType": "가솔린",
+      "vin": "KMHVARIETY0000001",
+      "registrationDate": "2025-01-15",
+      "registrationStatus": "장비부착 완료",
+      "vehicleStatus": "운행중",
+      "installer": "정우성",
+      "deviceInstallDate": "2025-01-16",
+      "deviceSerial": "HYU-SONA-21-1000",
+      "memo": "보험 만료 임박 케이스",
+      "diagnosticCodes": { "category1": 0, "category2": 0, "category3": 0, "category4": 1 },
+      "insuranceInfo": "렌터카공제 2025",
+      "insuranceExpiryDate": "2025-10-02",
+      "insuranceHistory": [
+        { "type": "등록", "date": "2025-01-15", "company": "렌터카공제", "product": "자동차종합보험(개인용)", "startDate": "2025-01-15", "expiryDate": "2025-10-02", "specialTerms": "", "docName": "policy_VH-0100_2025.pdf", "docDataUrl": "" }
+      ],
+      "deviceHistory": [
+        { "type": "install", "date": "2025-01-16", "installDate": "2025-01-16", "serial": "HYU-SONA-21-1000", "installer": "정우성" }
+      ]
+    },
+    "rental": []
+  },
+  "KMHVARIETY0000002": {
+    "vin": "KMHVARIETY0000002",
+    "asset": {
+      "id": "VH-0101",
+      "plate": "11가1001",
+      "vehicleType": "K3 2020년형",
+      "make": "Kia",
+      "model": "K3",
+      "year": 2020,
+      "fuelType": "가솔린",
+      "vin": "KMHVARIETY0000002",
+      "registrationDate": "2024-06-01",
+      "registrationStatus": "자산등록 완료",
+      "vehicleStatus": "대기중",
+      "installer": "",
+      "deviceInstallDate": "",
+      "deviceSerial": "",
+      "memo": "보험 만료(과거) + 장비 미부착",
+      "diagnosticCodes": { "category1": 0, "category2": 0, "category3": 0, "category4": 0 },
+      "insuranceInfo": "렌터카공제 2023",
+      "insuranceExpiryDate": "2024-12-31",
+      "insuranceHistory": [
+        { "type": "등록", "date": "2023-01-01", "company": "렌터카공제", "product": "자동차종합보험(개인용)", "startDate": "2023-01-01", "expiryDate": "2023-12-31", "specialTerms": "", "docName": "policy_VH-0101_2023.pdf", "docDataUrl": "" },
+        { "type": "갱신", "date": "2024-01-01", "company": "렌터카공제", "product": "자동차종합보험(개인용)", "startDate": "2024-01-01", "expiryDate": "2024-12-31", "specialTerms": "", "docName": "policy_VH-0101_2024.pdf", "docDataUrl": "" }
+      ],
+      "deviceHistory": []
+    },
+    "rental": []
+  },
+  "KMHVARIETY0000003": {
+    "vin": "KMHVARIETY0000003",
+    "asset": {
+      "id": "VH-0102",
+      "plate": "11가1002",
+      "vehicleType": "그랜저 2022년형",
+      "make": "Hyundai",
+      "model": "Grandeur",
+      "year": 2022,
+      "fuelType": "가솔린",
+      "vin": "KMHVARIETY0000003",
+      "registrationDate": "2024-05-10",
+      "registrationStatus": "장비부착 완료",
+      "vehicleStatus": "운행중",
+      "installer": "김기사",
+      "deviceInstallDate": "2024-05-11",
+      "deviceSerial": "HYU-GRAN-22-1002",
+      "memo": "보험 미등록 + 도난 신고",
+      "diagnosticCodes": { "category1": 1, "category2": 0, "category3": 0, "category4": 0 },
+      "insuranceInfo": "",
+      "insuranceExpiryDate": "",
+      "insuranceHistory": [],
+      "deviceHistory": [
+        { "type": "install", "date": "2024-05-11", "installDate": "2024-05-11", "serial": "HYU-GRAN-22-1002", "installer": "김기사" }
+      ]
+    },
+    "rental": [
+      {
+        "rental_id": 100000001000,
+        "vin": "KMHVARIETY0000003",
+        "vehicleType": "그랜저 2022년형",
+        "plate": "11가1002",
+        "renter_name": "이의뢰",
+        "contact_number": "+82-10-1111-1111",
+        "address": "서울시 종로구",
+        "rental_period": { "start": "2025-09-15T09:00:00", "end": "2025-09-20T18:00:00" },
+        "insurance_name": "현대해상",
+        "rental_location": { "lat": 37.57, "lng": 126.98 },
+        "return_location": { "lat": 37.57, "lng": 126.98 },
+        "current_location": { "lat": 37.58, "lng": 126.99 },
+        "engine_status": "off",
+        "restart_blocked": true,
+        "reported_stolen": true
+      }
+    ]
+  },
+  "KMHVARIETY0000004": {
+    "vin": "KMHVARIETY0000004",
+    "asset": {
+      "id": "VH-0103",
+      "plate": "11가1003",
+      "vehicleType": "스포티지 2021년형",
+      "make": "Kia",
+      "model": "Sportage",
+      "year": 2021,
+      "fuelType": "가솔린",
+      "vin": "KMHVARIETY0000004",
+      "registrationDate": "2024-03-20",
+      "registrationStatus": "장비부착 완료",
+      "vehicleStatus": "운행중",
+      "installer": "박설치",
+      "deviceInstallDate": "2024-03-21",
+      "deviceSerial": "KIA-SPTG-21-1003",
+      "memo": "반납 지연 + 사고 접수",
+      "diagnosticCodes": { "category1": 3, "category2": 2, "category3": 1, "category4": 0 },
+      "insuranceInfo": "DB손해보험",
+      "insuranceExpiryDate": "2026-03-20",
+      "insuranceHistory": [
+        { "type": "등록", "date": "2024-03-20", "company": "DB손해보험", "product": "자동차종합보험(개인용)", "startDate": "2024-03-20", "expiryDate": "2025-03-20", "specialTerms": "", "docName": "policy_VH-0103_2024.pdf", "docDataUrl": "" },
+        { "type": "갱신", "date": "2025-03-20", "company": "DB손해보험", "product": "자동차종합보험(개인용)", "startDate": "2025-03-20", "expiryDate": "2026-03-20", "specialTerms": "", "docName": "policy_VH-0103_2025.pdf", "docDataUrl": "" }
+      ],
+      "deviceHistory": [
+        { "type": "install", "date": "2024-03-21", "installDate": "2024-03-21", "serial": "KIA-SPTG-21-1003", "installer": "박설치" }
+      ]
+    },
+    "rental": [
+      {
+        "rental_id": 100000001001,
+        "vin": "KMHVARIETY0000004",
+        "vehicleType": "스포티지 2021년형",
+        "plate": "11가1003",
+        "renter_name": "박대여",
+        "contact_number": "+82-10-2222-2222",
+        "address": "부산광역시",
+        "rental_period": { "start": "2025-09-05T09:00:00", "end": "2025-09-17T18:00:00" },
+        "insurance_name": "메리츠화재",
+        "rental_location": { "lat": 35.18, "lng": 129.07 },
+        "return_location": { "lat": 35.18, "lng": 129.07 },
+        "current_location": { "lat": 35.19, "lng": 129.08 },
+        "engine_status": "on",
+        "restart_blocked": false,
+        "accident_reported": true
+      }
+    ]
+  },
+  "KMHVARIETY0000005": {
+    "vin": "KMHVARIETY0000005",
+    "asset": {
+      "id": "VH-0104",
+      "plate": "11가1004",
+      "vehicleType": "아반떼 2020년형",
+      "make": "Hyundai",
+      "model": "Avante",
+      "year": 2020,
+      "fuelType": "가솔린",
+      "vin": "KMHVARIETY0000005",
+      "registrationDate": "2023-09-01",
+      "registrationStatus": "장비부착 완료",
+      "vehicleStatus": "운행중",
+      "installer": "",
+      "deviceInstallDate": "2023-09-01",
+      "deviceSerial": "HYU-AVAN-20-1004",
+      "memo": "top-level 보험 정보 비워두고 이력으로 유도",
+      "diagnosticCodes": { "category1": 0, "category2": 1, "category3": 0, "category4": 0 },
+      "insuranceInfo": "",
+      "insuranceExpiryDate": "",
+      "insuranceHistory": [
+        { "type": "등록", "date": "2023-09-01", "company": "삼성화재", "product": "자동차종합보험(개인용)", "startDate": "2023-09-01", "expiryDate": "2024-09-01", "specialTerms": "", "docName": "policy_VH-0104_2023.pdf", "docDataUrl": "" },
+        { "type": "갱신", "date": "2024-09-01", "company": "삼성화재", "product": "자동차종합보험(개인용)", "startDate": "2024-09-01", "expiryDate": "2025-09-01", "specialTerms": "", "docName": "policy_VH-0104_2024.pdf", "docDataUrl": "" }
+      ],
+      "deviceHistory": [
+        { "type": "install", "date": "2023-09-01", "installDate": "2023-09-01", "serial": "HYU-AVAN-20-1004", "installer": "" }
+      ]
+    },
+    "rental": []
+  },
+  "KMHVARIETY0000006": {
+    "vin": "KMHVARIETY0000006",
+    "asset": {
+      "id": "VH-0105",
+      "plate": "11가1005",
+      "vehicleType": "K7 2019년형",
+      "make": "Kia",
+      "model": "K7",
+      "year": 2019,
+      "fuelType": "가솔린",
+      "vin": "KMHVARIETY0000006",
+      "registrationDate": "2022-11-11",
+      "registrationStatus": "보험등록 완료",
+      "vehicleStatus": "대기중",
+      "installer": "",
+      "deviceInstallDate": "",
+      "deviceSerial": "",
+      "memo": "렌탈 다건 케이스(과거+현재)",
+      "diagnosticCodes": { "category1": 0, "category2": 0, "category3": 0, "category4": 0 },
+      "insuranceInfo": "한화손해보험",
+      "insuranceExpiryDate": "2026-11-11",
+      "insuranceHistory": [
+        { "type": "등록", "date": "2024-11-11", "company": "한화손해보험", "product": "자동차종합보험(개인용)", "startDate": "2024-11-11", "expiryDate": "2025-11-11", "specialTerms": "", "docName": "policy_VH-0105_2024.pdf", "docDataUrl": "" },
+        { "type": "갱신", "date": "2025-11-11", "company": "한화손해보험", "product": "자동차종합보험(개인용)", "startDate": "2025-11-11", "expiryDate": "2026-11-11", "specialTerms": "", "docName": "policy_VH-0105_2025.pdf", "docDataUrl": "" }
+      ],
+      "deviceHistory": []
+    },
+    "rental": [
+      {
+        "rental_id": 100000001010,
+        "vin": "KMHVARIETY0000006",
+        "vehicleType": "K7 2019년형",
+        "plate": "11가1005",
+        "renter_name": "신과거",
+        "contact_number": "+82-10-3333-3333",
+        "address": "대전광역시",
+        "rental_period": { "start": "2024-03-01T09:00:00", "end": "2024-03-10T18:00:00" },
+        "insurance_name": "한화손해보험",
+        "rental_location": { "lat": 36.35, "lng": 127.38 },
+        "return_location": { "lat": 36.35, "lng": 127.38 },
+        "current_location": null,
+        "engine_status": "off",
+        "restart_blocked": false
+      },
+      {
+        "rental_id": 100000001011,
+        "vin": "KMHVARIETY0000006",
+        "vehicleType": "K7 2019년형",
+        "plate": "11가1005",
+        "renter_name": "유현재",
+        "contact_number": "+82-10-4444-4444",
+        "address": "광주광역시",
+        "rental_period": { "start": "2025-09-22T09:00:00", "end": "2025-10-02T18:00:00" },
+        "insurance_name": "한화손해보험",
+        "rental_location": { "lat": 35.15, "lng": 126.85 },
+        "return_location": { "lat": 35.15, "lng": 126.85 },
+        "current_location": { "lat": 35.16, "lng": 126.86 },
+        "engine_status": "on",
+        "restart_blocked": false
+      }
+    ]
   }
 }

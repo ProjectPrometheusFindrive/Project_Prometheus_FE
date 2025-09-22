@@ -1,7 +1,9 @@
 // Unified dummy database: centralizes vehicles, assets, rentals, and geofences
 // Now vehicles is the single source of truth; assets/rentals are derived.
 
-import seedVehicles from "./seed.json";
+import seed from "./seed.json";
+// seed.json is a VIN-keyed map: { [vin]: { vin, asset, rental } }
+const seedVehicles = seed || {};
 import { dummyGeofences as seedGeofences } from "./geofences";
 
 // Derive assets and rentals from vehicles

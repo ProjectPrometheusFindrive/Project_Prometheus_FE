@@ -1,7 +1,7 @@
 // Default company info seed and helpers
-// Geofences are stored together with company info to centralize settings.
-
-import { dummyGeofences } from "./geofences";
+// Load raw JSON defaults and geofences from files instead of hardcoded JS.
+import defaultInfo from "./company-info.json";
+import geofences from "./geofences.json";
 
 export const defaultCompanyInfo = {
   corpName: "",
@@ -11,8 +11,15 @@ export const defaultCompanyInfo = {
   address: "",
   logoDataUrl: "",
   certDataUrl: "",
-  geofences: Array.isArray(dummyGeofences) ? dummyGeofences : [],
+  geofences: Array.isArray(geofences) ? geofences : [],
   geofencesUpdatedAt: null,
+  ...(defaultInfo || {}),
+  // If defaultInfo provides geofences, prefer that; otherwise use geofences.json
+  geofences: Array.isArray(defaultInfo?.geofences)
+    ? defaultInfo.geofences
+    : Array.isArray(geofences)
+    ? geofences
+    : [],
 };
 
 export const COMPANY_STORAGE_KEY = "companyInfo";
@@ -28,8 +35,8 @@ export function loadCompanyInfo() {
       ...(parsed || {}),
       geofences: Array.isArray(parsed?.geofences)
         ? parsed.geofences
-        : Array.isArray(dummyGeofences)
-        ? dummyGeofences
+        : Array.isArray(defaultCompanyInfo.geofences)
+        ? defaultCompanyInfo.geofences
         : [],
     };
   } catch {
@@ -46,4 +53,3 @@ export function saveCompanyInfo(data) {
     return false;
   }
 }
-
