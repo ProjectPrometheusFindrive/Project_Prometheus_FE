@@ -602,25 +602,22 @@ export default function RentalContracts() {
                 return getContractStatusBadge(row.contractStatus);
             case "engine_status":
                 return <StatusBadge type={row.engineOn ? "on" : "off"}>{row.engineOn ? "ON" : "OFF"}</StatusBadge>;
-            case "restart_blocked":
+            case "restart_blocked": {
+                const isBlocked = Boolean(row.restartBlocked || row.restart_blocked);
+                const identifier = row.plate || row.renter_name || row.rental_id || "계약";
                 return (
-                    <label className="status-toggle" style={{ margin: 0, display: "inline-flex" }}>
-                        <input type="checkbox" checked={row.restartBlocked} onChange={() => handleToggleRestart(row.rental_id)} style={{ display: "none" }} />
-                        <span
-                            className="toggle-btn"
-                            style={{
-                                backgroundColor: row.restartBlocked ? "#f44336" : "#4caf50",
-                                color: "white",
-                                cursor: "pointer",
-                                minWidth: "60px",
-                                textAlign: "center",
-                                fontSize: "0.8rem",
-                            }}
-                        >
-                            {row.restartBlocked ? "차단" : "허용"}
-                        </span>
-                    </label>
+                    <button
+                        type="button"
+                        onClick={() => handleToggleRestart(row.rental_id)}
+                        className={`badge-button badge badge--clickable ${isBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}`}
+                        aria-pressed={isBlocked}
+                        aria-label={`${identifier} ${isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}`}
+                        title={isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}
+                    >
+                        {isBlocked ? "차단" : "허용"}
+                    </button>
                 );
+            }
             case "accident": {
                 const identifier = row.plate || row.rental_id || "계약";
                 const hasAccident = Boolean(row.accident_reported);
@@ -1028,11 +1025,8 @@ export default function RentalContracts() {
                                     <div>
                                         <strong>재시동 금지:</strong>
                                         <StatusBadge
-                                            style={{
-                                                backgroundColor: selectedContract.restartBlocked ? "#f44336" : "#4caf50",
-                                                color: "white",
-                                                marginLeft: "8px",
-                                            }}
+                                            variant={selectedContract.restartBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}
+                                            style={{ marginLeft: "8px" }}
                                         >
                                             {selectedContract.restartBlocked ? "차단" : "허용"}
                                         </StatusBadge>
