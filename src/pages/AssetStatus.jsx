@@ -217,10 +217,8 @@ export default function AssetStatus() {
                         }
                     }
                 } catch {}
-                // For demo: ensure one vehicle shows no insurance data
-                try {
-                    next = next.map((a) => (a.plate === "05가0962" ? { ...a, insuranceInfo: "", insuranceExpiryDate: "" } : a));
-                } catch {}
+                // NOTE: Removed demo override that cleared insurance fields for a specific plate.
+                // Previously this forced one vehicle to appear without insurance data on purpose.
                 if (mounted) setRows(next);
             } catch (e) {
                 console.error("Failed to load assets", e);

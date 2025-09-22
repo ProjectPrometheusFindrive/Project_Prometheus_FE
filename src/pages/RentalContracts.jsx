@@ -5,7 +5,6 @@ import Modal from "../components/Modal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
-import { seedVehicles } from "../data/seed";
 import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
