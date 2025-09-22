@@ -132,6 +132,29 @@ export default function AssetStatus() {
                   ],
               };
     });
+    // Inline insurance drafts keyed by asset id
+    const [insuranceDrafts, setInsuranceDrafts] = useState({});
+
+    const setInsuranceDraft = (assetId, field, value) => {
+        setInsuranceDrafts((prev) => ({
+            ...prev,
+            [assetId]: { ...(prev[assetId] || {}), [field]: value },
+        }));
+    };
+
+    const saveInsuranceInline = async (asset) => {
+        const id = asset?.id;
+        if (!id) return;
+        const draft = insuranceDrafts[id] || {};
+        try {
+            await saveAsset(id, { insuranceInfo: draft.insuranceInfo || "", insuranceExpiryDate: draft.insuranceExpiryDate || "" });
+            setRows((prev) => prev.map((a) => (a.id === id ? { ...a, insuranceInfo: draft.insuranceInfo || a.insuranceInfo, insuranceExpiryDate: draft.insuranceExpiryDate || a.insuranceExpiryDate } : a)));
+            setInsuranceDrafts((prev) => ({ ...prev, [id]: undefined }));
+        } catch (e) {
+            console.error("Failed to save insurance inline", e);
+            alert("보험 정보 저장에 실패했습니다.");
+        }
+    };
 
     // inline panel removed
 
@@ -154,6 +177,10 @@ export default function AssetStatus() {
                         const info = map[a.id];
                         return info ? { ...a, deviceSerial: info.serial || a.deviceSerial, installer: info.installer || a.installer } : a;
                     });
+                } catch {}
+                // For demo: ensure one vehicle shows no insurance data
+                try {
+                    next = next.map((a) => (a.plate === "05가0962" ? { ...a, insuranceInfo: "", insuranceExpiryDate: "" } : a));
                 } catch {}
                 if (mounted) setRows(next);
             } catch (e) {
@@ -442,7 +469,32 @@ export default function AssetStatus() {
             case "registrationDate":
                 return formatDateShort(row.registrationDate);
             case "insuranceExpiryDate":
-                return row.insuranceExpiryDate ? formatDateShort(row.insuranceExpiryDate) : "-";
+                if (row.insuranceExpiryDate) return formatDateShort(row.insuranceExpiryDate);
+                const d = insuranceDrafts[row.id] || {};
+                return (
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                        <input
+                            type="date"
+                            className="form-input"
+                            style={{ padding: "4px 6px", height: 28 }}
+                            value={d.insuranceExpiryDate || ""}
+                            onChange={(e) => setInsuranceDraft(row.id, "insuranceExpiryDate", e.target.value)}
+                            title="보험 만료일"
+                        />
+                        <input
+                            type="text"
+                            className="form-input"
+                            style={{ padding: "4px 6px", height: 28, width: 120 }}
+                            placeholder="보험사"
+                            value={d.insuranceInfo || ""}
+                            onChange={(e) => setInsuranceDraft(row.id, "insuranceInfo", e.target.value)}
+                            title="보험사"
+                        />
+                        <button type="button" className="form-button" style={{ padding: "4px 8px", height: 28 }} onClick={() => saveInsuranceInline(row)}>
+                            등록
+                        </button>
+                    </div>
+                );
             case "deviceStatus":
                 const hasDevice = row.deviceSerial;
                 const status = hasDevice ? "연결됨" : "미연결";
