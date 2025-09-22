@@ -750,8 +750,7 @@
         "return_location": { "lat": 35.18, "lng": 129.07 },
         "current_location": { "lat": 35.19, "lng": 129.08 },
         "engine_status": "on",
-        "restart_blocked": false,
-        "accident_reported": true
+        "restart_blocked": false
       }
     ]
   },
