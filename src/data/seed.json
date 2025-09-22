@@ -73,7 +73,7 @@
         "vehicleType": "소나타 2025년형",
         "plate": "28가2345",
         "renter_name": "김민수",
-        "contact_number": "+82-10-1234-5678",
+        "contact_number": "010-1234-5678",
         "address": "서울특별시 종로구",
         "rental_period": {
           "start": "2025-09-10T09:00:00",
@@ -117,7 +117,7 @@
         "vehicleType": "소나타 2025년형",
         "plate": "28가2345",
         "renter_name": "이정훈",
-        "contact_number": "+82-10-2222-3333",
+        "contact_number": "010-2222-3333",
         "address": "서울특별시 강남구",
         "rental_period": {
           "start": "2025-03-01T09:00:00",
@@ -214,7 +214,7 @@
         "vehicleType": "스포티지 2019년형",
         "plate": "05가0960",
         "renter_name": "박지현",
-        "contact_number": "+82-10-7777-8888",
+        "contact_number": "010-7777-8888",
         "address": "부산광역시 해운대구",
         "rental_period": {
           "start": "2025-09-01T10:30:00",
@@ -245,7 +245,7 @@
         "vehicleType": "스포티지 2019년형",
         "plate": "05가0960",
         "renter_name": "오세훈",
-        "contact_number": "+82-10-2222-1111",
+        "contact_number": "010-2222-1111",
         "address": "부산광역시 수영구",
         "rental_period": {
           "start": "2025-05-01T09:00:00",
@@ -374,7 +374,7 @@
         "vehicleType": "쏘렌토 2024년형",
         "plate": "05가0962",
         "renter_name": "최아름",
-        "contact_number": "+82-10-7777-8888",
+        "contact_number": "010-7777-8888",
         "address": "대구광역시 수성구",
         "rental_period": {
           "start": "2025-09-05T08:00:00",
@@ -467,7 +467,7 @@
         "vehicleType": "이보크 2024년형",
         "plate": "48가7722",
         "renter_name": "정도윤",
-        "contact_number": "+82-10-1111-2222",
+        "contact_number": "010-1111-2222",
         "address": "광주광역시 서구",
         "rental_period": {
           "start": "2025-09-12T09:00:00",
@@ -559,7 +559,7 @@
         "vehicleType": "모닝 2020년형",
         "plate": "12가3456",
         "renter_name": "이혜진",
-        "contact_number": "+82-10-5555-6666",
+        "contact_number": "010-5555-6666",
         "address": "제주특별자치도 제주시",
         "rental_period": {
           "start": "2025-07-10T09:00:00",
@@ -776,7 +776,7 @@
         "vehicleType": "아이오닉5 2024년형",
         "plate": "32가0567",
         "renter_name": "최미래",
-        "contact_number": "+82-10-3333-7777",
+        "contact_number": "010-3333-7777",
         "address": "서울특별시 송파구",
         "rental_period": {
           "start": "2025-10-05T09:00:00",
@@ -856,7 +856,7 @@
         "vehicleType": "코나 2023년형",
         "plate": "33가0678",
         "renter_name": "정현우",
-        "contact_number": "+82-10-5555-1212",
+        "contact_number": "010-5555-1212",
         "address": "경기도 성남시 분당구",
         "rental_period": {
           "start": "2025-09-18T09:30:00",
@@ -1164,7 +1164,7 @@
         "vehicleType": "쏘나타 2021년형",
         "plate": "11가1000",
         "renter_name": "이현재",
-        "contact_number": "+82-10-8888-9999",
+        "contact_number": "010-8888-9999",
         "address": "서울특별시 마포구",
         "rental_period": {
           "start": "2025-09-16T09:00:00",
@@ -1311,7 +1311,7 @@
         "vehicleType": "그랜저 2022년형",
         "plate": "11가1002",
         "renter_name": "이의뢰",
-        "contact_number": "+82-10-1111-1111",
+        "contact_number": "010-1111-1111",
         "address": "서울시 종로구",
         "rental_period": {
           "start": "2025-09-15T09:00:00",
@@ -1405,7 +1405,7 @@
         "vehicleType": "스포티지 2021년형",
         "plate": "11가1003",
         "renter_name": "박대여",
-        "contact_number": "+82-10-2222-2222",
+        "contact_number": "010-2222-2222",
         "address": "부산광역시",
         "rental_period": {
           "start": "2025-09-05T09:00:00",
@@ -1564,7 +1564,7 @@
         "vehicleType": "K7 2019년형",
         "plate": "11가1005",
         "renter_name": "신과거",
-        "contact_number": "+82-10-3333-3333",
+        "contact_number": "010-3333-3333",
         "address": "대전광역시",
         "rental_period": {
           "start": "2024-03-01T09:00:00",
@@ -1591,7 +1591,7 @@
         "vehicleType": "K7 2019년형",
         "plate": "11가1005",
         "renter_name": "유현재",
-        "contact_number": "+82-10-4444-4444",
+        "contact_number": "010-4444-4444",
         "address": "광주광역시",
         "rental_period": {
           "start": "2025-09-22T09:00:00",
