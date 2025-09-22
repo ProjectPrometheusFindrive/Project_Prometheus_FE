@@ -200,13 +200,16 @@
 
 .badge-button {
     border: none;
-    background: transparent;
     cursor: pointer;
     font: inherit;
     display: inline-flex;
     align-items: center;
     justify-content: center;
     padding: 0;
+}
+
+.badge-button:not(.badge) {
+    background: transparent;
 }
 
 .badge-button.badge {
