@@ -6,6 +6,7 @@ import AccidentInfoModal from "../components/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
+import { DIMENSIONS } from "../constants";
 import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
@@ -748,8 +749,11 @@ export default function RentalContracts() {
                     </div>
                 </div>
 
-                <div className="table-wrap">
-                    <table className="asset-table rentals-table">
+                <div
+                    className="table-wrap table-wrap--sticky"
+                    style={{ "--table-sticky-offset": `${DIMENSIONS.HEADER_HEIGHT}px` }}
+                >
+                    <table className="asset-table rentals-table asset-table--sticky">
                         <thead>
                             <tr>
                                 {visibleColumns.map((column) => (
