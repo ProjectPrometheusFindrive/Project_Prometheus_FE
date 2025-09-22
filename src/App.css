@@ -1,5 +1,9 @@
 :root {
     --app-header-height: 60px;
+    /* Shared badge typography for consistent look */
+    --badge-font-size: 0.8rem;
+    --badge-font-weight: 400;
+    --badge-line-height: 1;
 }
 
 .page {
@@ -33,6 +37,13 @@
     background: #fafafa;
     font-weight: 600;
     vertical-align: middle;
+}
+
+/* Match table body text to badge typography (asset/contract tables) */
+.asset-table tbody td {
+    font-size: var(--badge-font-size);
+    line-height: var(--badge-line-height);
+    font-weight: var(--badge-font-weight);
 }
 
 /* Sorting controls in table headers */
@@ -179,6 +190,9 @@
     cursor: not-allowed;
 }
 
+/* ===== BADGE SYSTEM ===== */
+
+/* Base badge styles */
 .badge {
     display: inline-flex;
     align-items: center;
@@ -186,67 +200,51 @@
     gap: 0.35rem;
     padding: 0.2rem 0.5rem;
     border-radius: 999px;
-    font-size: 0.8rem;
-    line-height: 1;
-    font-weight: 600;
+    font-size: var(--badge-font-size);
+    line-height: var(--badge-line-height);
+    font-weight: var(--badge-font-weight);
     text-align: center;
 }
 
-.badge-button {
+/* Interactive badge styles */
+.badge--clickable {
     border: none;
     cursor: pointer;
-    font: inherit;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
+    /* Keep badge typography consistent with .badge */
+    transition: all 0.2s ease;
 }
 
-.badge-button:not(.badge) {
-    background: transparent;
+.badge--clickable:hover {
+    opacity: 0.8;
+    transform: translateY(-1px);
 }
 
-.badge-button.badge {
-    padding: 0.2rem 0.5rem;
-}
-
-.badge-button:focus-visible {
+.badge--clickable:focus-visible {
     outline: 2px solid #0b57d0;
     outline-offset: 2px;
 }
 
+/* === Status badges === */
 .badge--available {
     background: #e9f8ee;
     color: #177245;
 }
+
 .badge--rented {
     background: #e3f2fd;
-    color: #0b57d0; /* match marker--rented (blue) */
-}
-.badge--overdue {
-    background: #fff4e5;
-    color: #f59e0b; /* match marker--overdue */
-}
-.badge--suspicious {
-    background: #ff1744;
-    color: #f1eaea; /* match marker--suspicious */
-}
-.badge--maintenance {
-    background: #fdecef;
-    color: #b71c1c;
-}
-
-.badge--accident {
-    background: #ffe8d9;
-    color: #c2410c;
-}
-
-.badge--video {
-    background: #e0f2fe;
     color: #0b57d0;
 }
 
-/* ê´€ë¦¬ë‹¨ê³?ë°°ì? ?¤í???*/
+.badge--overdue {
+    background: #fff4e5;
+    color: #f59e0b;
+}
+
+.badge--suspicious {
+    background: #ff1744;
+    color: #f1eaea;
+}
+
 .badge--pending {
     background: #fff4e5;
     color: #f59e0b;
@@ -255,6 +253,27 @@
 .badge--completed {
     background: #e9f8ee;
     color: #177245;
+}
+
+.badge--normal {
+    background: #e9f8ee;
+    color: #177245;
+}
+
+.badge--default {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+/* === Device/System badges === */
+.badge--on {
+    background: #e9f8ee;
+    color: #177245;
+}
+
+.badge--off {
+    background: #f3f4f6;
+    color: #374151;
 }
 
 .badge--installed {
@@ -267,11 +286,30 @@
     color: #374151;
 }
 
-.badge--default {
-    background: #e5e7eb;
-    color: #6b7280;
+.badge--diagnostic {
+    background: #e3f2fd;
+    color: #0b57d0;
+    font-weight: 600;
 }
 
+/* === Maintenance badges === */
+.badge--maintenance {
+    background: #fdecef;
+    color: #b71c1c;
+}
+
+/* === Accident/Video badges === */
+.badge--accident {
+    background: #ffe8d9;
+    color: #c2410c;
+}
+
+.badge--video {
+    background: #e0f2fe;
+    color: #0b57d0;
+}
+
+/* === Contract badges === */
 .badge--contract-term {
     background: #e3f2fd;
     color: #0b57d0;
@@ -292,6 +330,7 @@
     color: #b91c1c;
 }
 
+/* === Restart control badges === */
 .badge--restart-blocked {
     background: #fee2e2;
     color: #b91c1c;
@@ -300,35 +339,6 @@
 .badge--restart-allowed {
     background: #dcfce7;
     color: #166534;
-}
-
-/* rentals-table now renders only required columns; no hidden columns needed */
-
-/* Simple ON/OFF badges for device/engine */
-.badge--on {
-    background: #e9f8ee;
-    color: #177245;
-}
-.badge--off {
-    background: #f3f4f6;
-    color: #374151;
-}
-
-.badge--diagnostic {
-    background: #e3f2fd;
-    color: #0b57d0;
-    font-weight: 600;
-}
-
-.badge--normal {
-    background: #e9f8ee;
-    color: #177245;
-}
-
-.badge--clickable:hover {
-    opacity: 0.8;
-    transform: translateY(-1px);
-    transition: all 0.2s ease;
 }
 
 .management-stage-dropdown {
@@ -362,13 +372,10 @@
     cursor: pointer;
 }
 
+/* === Management stage dropdown badges === */
 .management-stage-dropdown__badge {
+    /* Use base .badge sizing/typography for consistency */
     width: 100%;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 0.8rem;
-    font-weight: 600;
 }
 
 .management-stage-dropdown__option:hover,
@@ -464,9 +471,9 @@
     font-size: 0.8rem;
 }
 
+/* === Diagnostic severity badges === */
 .diagnostic-severity {
-    font-size: 0.7rem;
-    padding: 2px 6px;
+    /* Inherit size/weight from .badge for consistency */
 }
 
 .diagnostic-severity--high {
@@ -964,9 +971,10 @@ body {
     color: inherit;
     cursor: pointer;
     padding: 0.25rem 0.5rem;
-    font-size: 1rem;
-    font-weight: 500;
-    border-radius: 4px;
+    font-size: var(--badge-font-size);
+    line-height: var(--badge-line-height);
+    font-weight: var(--badge-font-weight);
+    border-radius: 999px; /* match badge pill shape */
     transition: background-color 0.15s ease;
 }
 
@@ -1273,6 +1281,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
 }
+/* === Cluster badges === */
 .cluster-badge {
     display: inline-flex;
     align-items: center;
@@ -1286,12 +1295,15 @@ body {
     font-weight: 700;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
+
 .cluster-badge--rented {
     background: #0b57d0;
 }
+
 .cluster-badge--overdue {
     background: #f59e0b;
 }
+
 .cluster-badge--suspicious {
     background: #c62828;
 }
@@ -1785,51 +1797,6 @@ html {
 
 .modal-small {
     max-width: 480px;
-}
-
-/* Management Stage Dropdown Styles */
-.management-stage-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    background: white;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    z-index: 1000;
-    min-width: 140px;
-    padding: 4px 0;
-    margin: 0;
-    list-style: none;
-}
-
-.management-stage-dropdown__option {
-    display: block;
-    width: 100%;
-    padding: 8px 12px;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    font-size: 0.85rem;
-    transition: background-color 0.2s ease;
-}
-
-.management-stage-dropdown__option:hover {
-    background-color: #f8f9fa;
-}
-
-.management-stage-dropdown__option:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.management-stage-dropdown__badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: 500;
 }
 
 /* ProblemVehicles current-location modal styling */

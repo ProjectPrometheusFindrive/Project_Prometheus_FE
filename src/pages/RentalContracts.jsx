@@ -627,7 +627,7 @@ export default function RentalContracts() {
                     <button
                         type="button"
                         onClick={() => handleToggleRestart(row.rental_id)}
-                        className={`badge-button badge badge--clickable ${isBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}`}
+                        className={`badge badge--clickable ${isBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}`}
                         aria-pressed={isBlocked}
                         aria-label={`${identifier} ${isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}`}
                         title={isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}
@@ -653,7 +653,7 @@ export default function RentalContracts() {
                     <button
                         type="button"
                         onClick={() => handleOpenAccidentModal(row)}
-                        className={`badge-button badge badge--clickable ${variantClass}`}
+                        className={`badge badge--clickable ${variantClass}`}
                         title={title}
                         aria-label={ariaLabel}
                     >
@@ -676,7 +676,9 @@ export default function RentalContracts() {
                                         padding: "4px",
                                         border: "1px solid #ddd",
                                         borderRadius: "4px",
-                                        fontSize: "0.85rem",
+                                        fontSize: "var(--badge-font-size)",
+                                        lineHeight: "var(--badge-line-height)",
+                                        fontWeight: "var(--badge-font-weight)",
                                     }}
                                     autoFocus
                                 />
@@ -709,7 +711,9 @@ export default function RentalContracts() {
                             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                                 <span
                                     style={{
-                                        fontSize: "0.85rem",
+                                        fontSize: "var(--badge-font-size)",
+                                        lineHeight: "var(--badge-line-height)",
+                                        fontWeight: "var(--badge-font-weight)",
                                         overflow: "hidden",
                                         textOverflow: "ellipsis",
                                         whiteSpace: "nowrap",

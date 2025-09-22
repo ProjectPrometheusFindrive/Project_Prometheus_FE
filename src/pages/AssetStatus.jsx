@@ -750,7 +750,7 @@ export default function AssetStatus() {
                     );
                 }
                 return (
-                    <button type="button" className="badge-button badge badge--default badge--clickable" onClick={() => openInsuranceModal(row)} title="보험 등록">
+                    <button type="button" className="badge badge--default badge--clickable" onClick={() => openInsuranceModal(row)} title="보험 등록">
                         보험 등록
                     </button>
                 );
@@ -768,7 +768,7 @@ export default function AssetStatus() {
                     <span data-stage-dropdown style={{ display: "inline-flex", alignItems: "center", gap: "6px", position: "relative" }}>
                         <button
                             type="button"
-                            className={`badge badge-button badge--clickable ${badgeClass}`}
+                            className={`badge badge--clickable ${badgeClass}`}
                             onClick={() => setOpenStageDropdown((prev) => (prev === row.id ? null : row.id))}
                             disabled={isSaving}
                             aria-haspopup="listbox"
@@ -873,7 +873,9 @@ export default function AssetStatus() {
                                         padding: "4px",
                                         border: "1px solid #ddd",
                                         borderRadius: "4px",
-                                        fontSize: "0.85rem",
+                                        fontSize: "var(--badge-font-size)",
+                                        lineHeight: "var(--badge-line-height)",
+                                        fontWeight: "var(--badge-font-weight)",
                                     }}
                                     autoFocus
                                 />
@@ -906,7 +908,9 @@ export default function AssetStatus() {
                             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                                 <span
                                     style={{
-                                        fontSize: "0.85rem",
+                                        fontSize: "var(--badge-font-size)",
+                                        lineHeight: "var(--badge-line-height)",
+                                        fontWeight: "var(--badge-font-weight)",
                                         overflow: "hidden",
                                         textOverflow: "ellipsis",
                                         whiteSpace: "nowrap",
@@ -951,13 +955,13 @@ export default function AssetStatus() {
                           const hasDevice = row.deviceSerial || stored.serial;
                           if (hasDevice) {
                               return (
-                                  <button type="button" className="badge-button badge badge--on badge--clickable" onClick={() => openDeviceView(row)} title="단말 정보 보기">
+                                  <button type="button" className="badge badge--on badge--clickable" onClick={() => openDeviceView(row)} title="단말 정보 보기">
                                       연결됨
                                   </button>
                               );
                           }
                           return (
-                              <button type="button" className="badge-button badge badge--default badge--clickable" onClick={() => openDeviceRegister(row)} title="단말 등록">
+                              <button type="button" className="badge badge--default badge--clickable" onClick={() => openDeviceRegister(row)} title="단말 등록">
                                   단말 등록
                               </button>
                           );
