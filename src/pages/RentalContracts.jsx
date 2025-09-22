@@ -8,6 +8,63 @@ import KakaoMap from "../components/KakaoMap";
 import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
+const DEFAULT_COLUMN_CONFIG = [
+    { key: "select", label: "선택", visible: true, required: true, width: 36 },
+    { key: "plate", label: "차량번호", visible: true, required: true },
+    { key: "vehicleType", label: "차종", visible: true, required: false },
+    { key: "renter_name", label: "예약자명", visible: true, required: false },
+    { key: "rental_period", label: "예약기간", visible: true, required: false },
+    { key: "rental_amount", label: "대여금액", visible: true, required: false },
+    { key: "contractStatus", label: "계약 상태", visible: true, required: false },
+    { key: "engine_status", label: "엔진 상태", visible: true, required: false },
+    { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
+    { key: "accident", label: "사고 등록", visible: true, required: false, width: 90 },
+    { key: "memo", label: "메모", visible: true, required: false },
+];
+
+const ACCIDENT_FORM_DEFAULT = {
+    accidentDate: "",
+    accidentHour: "00",
+    accidentMinute: "00",
+    accidentSecond: "00",
+    handlerName: "",
+    blackboxFile: null,
+    blackboxFileName: "",
+};
+
+const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
+const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
+
+const mergeColumnsWithDefaults = (savedColumns = []) => {
+    const merged = Array.isArray(savedColumns) ? savedColumns.map((column) => ({ ...column })) : [];
+    const existingKeys = new Set(merged.map((column) => column.key));
+
+    merged.forEach((column, index) => {
+        const defaultColumn = DEFAULT_COLUMN_CONFIG.find((definition) => definition.key === column.key);
+        if (defaultColumn) {
+            merged[index] = { ...defaultColumn, ...column };
+        }
+    });
+
+    DEFAULT_COLUMN_CONFIG.forEach((defaultColumn, defaultIndex) => {
+        if (!existingKeys.has(defaultColumn.key)) {
+            let insertIndex = merged.length;
+            for (let i = defaultIndex - 1; i >= 0; i -= 1) {
+                const previousKey = DEFAULT_COLUMN_CONFIG[i].key;
+                const existingIndex = merged.findIndex((column) => column.key === previousKey);
+                if (existingIndex !== -1) {
+                    insertIndex = existingIndex + 1;
+                    break;
+                }
+            }
+            merged.splice(insertIndex, 0, { ...defaultColumn });
+            existingKeys.add(defaultColumn.key);
+        }
+    });
+
+    return merged;
+};
+
 export default function RentalContracts() {
     const [items, setItems] = useState([]);
     const [showCreate, setShowCreate] = useState(false);
@@ -20,24 +77,27 @@ export default function RentalContracts() {
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
     const [columnSettings, setColumnSettings] = useState(() => {
-        const saved = localStorage.getItem("rental-columns-settings");
-        return saved
-            ? JSON.parse(saved)
-            : {
-                  columns: [
-                      { key: "select", label: "선택", visible: true, required: true, width: 36 },
-                      { key: "plate", label: "차량번호", visible: true, required: true },
-                      { key: "vehicleType", label: "차종", visible: true, required: false },
-                      { key: "renter_name", label: "예약자명", visible: true, required: false },
-                      { key: "rental_period", label: "예약기간", visible: true, required: false },
-                      { key: "rental_amount", label: "대여금액", visible: true, required: false },
-                      { key: "contractStatus", label: "계약 상태", visible: true, required: false },
-                      { key: "engine_status", label: "엔진 상태", visible: true, required: false },
-                      { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
-                      { key: "memo", label: "메모", visible: true, required: false },
-                  ],
-              };
+        try {
+            const saved = localStorage.getItem("rental-columns-settings");
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                const savedColumns = Array.isArray(parsed?.columns) ? parsed.columns : [];
+                return {
+                    ...parsed,
+                    columns: mergeColumnsWithDefaults(savedColumns),
+                };
+            }
+        } catch (error) {
+            console.error("Failed to parse rental column settings", error);
+        }
+        return {
+            columns: DEFAULT_COLUMN_CONFIG.map((column) => ({ ...column })),
+        };
     });
+    const [showAccidentModal, setShowAccidentModal] = useState(false);
+    const [accidentTarget, setAccidentTarget] = useState(null);
+    const [accidentForm, setAccidentForm] = useState(() => ({ ...ACCIDENT_FORM_DEFAULT }));
+    const [fileInputKey, setFileInputKey] = useState(0);
 
     // Initial load via fake API, then merge any local drafts once
     useEffect(() => {
@@ -206,34 +266,98 @@ export default function RentalContracts() {
         setMemoText("");
     };
 
-    const handleAccidentReport = (rentalId) => {
-        const confirmReport = window.confirm("사고 접수를 진행하시겠습니까?\n사고 접수 후 계약 상태가 '사고접수'로 변경됩니다.");
-        if (!confirmReport) return;
+    const handleAccidentInputChange = (name, value) => {
+        setAccidentForm((prev) => ({ ...prev, [name]: value }));
+    };
+
+    const handleAccidentFileChange = (event) => {
+        const file = event.target?.files && event.target.files[0] ? event.target.files[0] : null;
+        setAccidentForm((prev) => ({
+            ...prev,
+            blackboxFile: file,
+            blackboxFileName: file ? file.name : prev.blackboxFileName,
+        }));
+    };
+
+    const handleOpenAccidentModal = (contract) => {
+        if (!contract) return;
+        const report = contract.accidentReport || {};
+        setAccidentTarget(contract);
+        setAccidentForm({
+            accidentDate: report.accidentDate || "",
+            accidentHour: report.accidentHour || "00",
+            accidentMinute: report.accidentMinute || "00",
+            accidentSecond: report.accidentSecond || "00",
+            handlerName: report.handlerName || "",
+            blackboxFile: report.blackboxFile || null,
+            blackboxFileName: report.blackboxFileName || "",
+        });
+        setFileInputKey((prev) => prev + 1);
+        setShowAccidentModal(true);
+    };
+
+    const handleCloseAccidentModal = () => {
+        setShowAccidentModal(false);
+        setAccidentTarget(null);
+        setAccidentForm({ ...ACCIDENT_FORM_DEFAULT });
+        setFileInputKey((prev) => prev + 1);
+    };
+
+    const buildAccidentMemo = (currentMemo, note) => {
+        if (!currentMemo) return note;
+        if (currentMemo.includes("사고 접수")) return currentMemo;
+        return `${currentMemo} / ${note}`;
+    };
+
+    const handleAccidentSubmit = (event) => {
+        event.preventDefault();
+        if (!accidentTarget) return;
+
+        const now = new Date();
+        const memoNote = `사고 접수됨 (${now.toLocaleDateString()})`;
+        const { accidentDate, accidentHour, accidentMinute, accidentSecond, handlerName, blackboxFile, blackboxFileName } = accidentForm;
+        const accidentDateTime = accidentDate ? `${accidentDate}T${accidentHour}:${accidentMinute}:${accidentSecond}` : "";
+        const accidentDisplayTime = accidentDate
+            ? `${accidentDate.replace(/-/g, ".")} ${accidentHour}:${accidentMinute}:${accidentSecond}`
+            : "";
+
+        const updatedReport = {
+            accidentDate,
+            accidentHour,
+            accidentMinute,
+            accidentSecond,
+            handlerName,
+            accidentDateTime,
+            accidentDisplayTime,
+            blackboxFile,
+            blackboxFileName,
+            recordedAt: now.toISOString(),
+        };
 
         setItems((prev) =>
-            prev.map((item) =>
-                item.rental_id === rentalId
-                    ? {
-                          ...item,
-                          accident_reported: true,
-                          memo: item.memo ? `${item.memo} / 사고 접수됨 (${new Date().toLocaleDateString()})` : `사고 접수됨 (${new Date().toLocaleDateString()})`,
-                      }
-                    : item
-            )
+            prev.map((item) => {
+                if (item.rental_id !== accidentTarget.rental_id) return item;
+                return {
+                    ...item,
+                    accident_reported: true,
+                    memo: buildAccidentMemo(item.memo || "", memoNote),
+                    accidentReport: updatedReport,
+                };
+            })
         );
 
-        // 팝업 새로고침을 위해 selectedContract도 업데이트
-        setSelectedContract((prev) =>
-            prev && prev.rental_id === rentalId
-                ? {
-                      ...prev,
-                      accident_reported: true,
-                      memo: prev.memo ? `${prev.memo} / 사고 접수됨 (${new Date().toLocaleDateString()})` : `사고 접수됨 (${new Date().toLocaleDateString()})`,
-                  }
-                : prev
-        );
+        setSelectedContract((prev) => {
+            if (!prev || prev.rental_id !== accidentTarget.rental_id) return prev;
+            return {
+                ...prev,
+                accident_reported: true,
+                memo: buildAccidentMemo(prev.memo || "", memoNote),
+                accidentReport: updatedReport,
+            };
+        });
 
-        alert("사고 접수가 완료되었습니다.");
+        alert("사고 등록이 저장되었습니다.");
+        handleCloseAccidentModal();
     };
 
     const handleShowLocation = () => {
@@ -368,6 +492,29 @@ export default function RentalContracts() {
                             {row.restartBlocked ? "차단" : "허용"}
                         </span>
                     </label>
+                );
+            case "accident":
+                return (
+                    <button
+                        type="button"
+                        onClick={() => handleOpenAccidentModal(row)}
+                        style={{
+                            backgroundColor: row.accident_reported ? "#ff9800" : "#fff7ed",
+                            border: "1px solid #ff9800",
+                            borderRadius: "50%",
+                            width: "32px",
+                            height: "32px",
+                            display: "inline-flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            color: row.accident_reported ? "#ffffff" : "#f57c00",
+                            cursor: "pointer",
+                        }}
+                        title={row.accident_reported ? "등록된 사고 정보 보기" : "사고 등록"}
+                        aria-label={row.accident_reported ? `${row.plate || row.rental_id} 사고 정보 보기` : `${row.plate || row.rental_id} 사고 등록`}
+                    >
+                        <FiAlertTriangle size={14} />
+                    </button>
                 );
             case "memo":
                 return (
@@ -683,29 +830,29 @@ export default function RentalContracts() {
                                 현재 위치
                             </button>
                             {/* 사고 접수 버튼 */}
-                            {!selectedContract.accident_reported ? (
-                                <button
-                                    onClick={() => handleAccidentReport(selectedContract.rental_id)}
-                                    style={{
-                                        background: "#ff5722",
-                                        color: "white",
-                                        border: "none",
-                                        padding: "8px 16px",
-                                        borderRadius: "6px",
-                                        cursor: "pointer",
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "6px",
-                                        fontSize: "0.85rem",
-                                        fontWeight: "500",
-                                    }}
-                                    onMouseOver={(e) => (e.target.style.background = "#e64919")}
-                                    onMouseOut={(e) => (e.target.style.background = "#ff5722")}
-                                >
-                                    <FaExclamationTriangle size={14} />
-                                    사고 접수
-                                </button>
-                            ) : (
+                            <button
+                                onClick={() => handleOpenAccidentModal(selectedContract)}
+                                style={{
+                                    background: "#ff5722",
+                                    color: "white",
+                                    border: "none",
+                                    padding: "8px 16px",
+                                    borderRadius: "6px",
+                                    cursor: "pointer",
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: "6px",
+                                    fontSize: "0.85rem",
+                                    fontWeight: "500",
+                                    opacity: selectedContract.accident_reported ? 0.85 : 1,
+                                }}
+                                onMouseOver={(e) => (e.target.style.background = "#e64919")}
+                                onMouseOut={(e) => (e.target.style.background = "#ff5722")}
+                            >
+                                <FaExclamationTriangle size={14} />
+                                {selectedContract.accident_reported ? "사고 정보 수정" : "사고 등록"}
+                            </button>
+                            {selectedContract.accident_reported && (
                                 <StatusBadge
                                     style={{
                                         backgroundColor: "#ff9800",
@@ -830,6 +977,173 @@ export default function RentalContracts() {
                             </div>
                         </div>
                     </div>
+                )}
+            </Modal>
+
+            <Modal isOpen={showAccidentModal} onClose={handleCloseAccidentModal} title="사고 등록" showFooter={false} ariaLabel="Accident Registration">
+                {accidentTarget && (
+                    <form
+                        id="accident-registration-form"
+                        onSubmit={handleAccidentSubmit}
+                        style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "8px" }}
+                    >
+                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+                            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                    <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>블랙박스 영상 등록</label>
+                                    <input
+                                        key={fileInputKey}
+                                        type="file"
+                                        accept="video/*"
+                                        onChange={handleAccidentFileChange}
+                                        style={{
+                                            padding: "6px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "6px",
+                                        }}
+                                    />
+                                    {accidentForm.blackboxFileName && (
+                                        <span style={{ fontSize: "0.8rem", color: "#555" }}>
+                                            선택된 파일: {accidentForm.blackboxFileName}
+                                        </span>
+                                    )}
+                                </div>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                    <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>사고 발생 시각</label>
+                                    <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                                        <input
+                                            type="date"
+                                            value={accidentForm.accidentDate}
+                                            onChange={(e) => handleAccidentInputChange("accidentDate", e.target.value)}
+                                            style={{
+                                                padding: "8px",
+                                                border: "1px solid #ddd",
+                                                borderRadius: "6px",
+                                                fontSize: "0.9rem",
+                                            }}
+                                            required
+                                        />
+                                        <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
+                                            <select
+                                                value={accidentForm.accidentHour}
+                                                onChange={(e) => handleAccidentInputChange("accidentHour", e.target.value)}
+                                                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "0.9rem" }}
+                                            >
+                                                {HOUR_OPTIONS.map((hour) => (
+                                                    <option key={hour} value={hour}>
+                                                        {hour}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span>:</span>
+                                            <select
+                                                value={accidentForm.accidentMinute}
+                                                onChange={(e) => handleAccidentInputChange("accidentMinute", e.target.value)}
+                                                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "0.9rem" }}
+                                            >
+                                                {MINUTE_SECOND_OPTIONS.map((minute) => (
+                                                    <option key={`minute-${minute}`} value={minute}>
+                                                        {minute}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                            <span>:</span>
+                                            <select
+                                                value={accidentForm.accidentSecond}
+                                                onChange={(e) => handleAccidentInputChange("accidentSecond", e.target.value)}
+                                                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "0.9rem" }}
+                                            >
+                                                {MINUTE_SECOND_OPTIONS.map((second) => (
+                                                    <option key={`second-${second}`} value={second}>
+                                                        {second}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                                    <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>처리 담당자</label>
+                                    <input
+                                        type="text"
+                                        value={accidentForm.handlerName}
+                                        onChange={(e) => handleAccidentInputChange("handlerName", e.target.value)}
+                                        placeholder="담당자 이름을 입력하세요"
+                                        style={{
+                                            padding: "8px",
+                                            border: "1px solid #ddd",
+                                            borderRadius: "6px",
+                                            fontSize: "0.9rem",
+                                        }}
+                                        required
+                                    />
+                                </div>
+                            </div>
+                            <div
+                                style={{
+                                    background: "#f8f9fa",
+                                    padding: "16px",
+                                    borderRadius: "8px",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    gap: "12px",
+                                }}
+                            >
+                                <h3 style={{ margin: 0, fontSize: "1rem", color: "#333" }}>대여 정보</h3>
+                                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                                    <div>
+                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여 차량번호</strong>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.plate || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여 차종</strong>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.vehicleType || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여 기간</strong>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>
+                                            {formatDateTime(accidentTarget.rental_period?.start)} ~ {formatDateTime(accidentTarget.rental_period?.end)}
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여자</strong>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.renter_name || "-"}</div>
+                                    </div>
+                                    <div>
+                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여자 연락처</strong>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.contact_number || "-"}</div>
+                                    </div>
+                                </div>
+                                {accidentTarget.accidentReport?.accidentDisplayTime && (
+                                    <div
+                                        style={{
+                                            marginTop: "8px",
+                                            padding: "10px",
+                                            borderRadius: "6px",
+                                            background: "#fff3e0",
+                                            color: "#e65100",
+                                            fontSize: "0.85rem",
+                                        }}
+                                    >
+                                        최근 등록된 사고 시각: {accidentTarget.accidentReport.accidentDisplayTime}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
+                            <button type="submit" className="form-button">
+                                저장
+                            </button>
+                            <button
+                                type="button"
+                                className="form-button"
+                                style={{ background: "#6c757d" }}
+                                onClick={handleCloseAccidentModal}
+                            >
+                                닫기
+                            </button>
+                        </div>
+                    </form>
                 )}
             </Modal>
 
