@@ -13,7 +13,7 @@ import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
 import DeviceEventLog from "../components/DeviceEventLog";
-import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
+import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown } from "react-icons/fa";
 
 // 진단 코드 분류별 개수를 계산하는 함수
 const calculateDiagnosticCodes = (vehicle) => {
@@ -63,6 +63,14 @@ const generateDiagnosticDetails = (category, count, vehicleInfo) => {
 
 const MANAGEMENT_STAGE_DEFAULT = "대여가능";
 const MANAGEMENT_STAGE_SET = new Set(MANAGEMENT_STAGE_OPTIONS.map((opt) => opt.value));
+const MANAGEMENT_STAGE_BADGE_CLASS = {
+    대여가능: "badge--available",
+    대여중: "badge--rented",
+    예약중: "badge--pending",
+    "입고 대상": "badge--default",
+    "수리/점검 중": "badge--maintenance",
+    "수리/점검 완료": "badge--completed",
+};
 const LEGACY_STAGE_MAP = new Map([
     ["대여 중", "대여중"],
     ["대여 가능", "대여가능"],
@@ -161,6 +169,7 @@ export default function AssetStatus() {
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
+    const [openStageDropdown, setOpenStageDropdown] = useState(null);
     const [columnSettings, setColumnSettings] = useState(() => {
         const saved = localStorage.getItem("asset-columns-settings");
         return saved
@@ -330,11 +339,29 @@ export default function AssetStatus() {
             if (showColumnDropdown && !event.target.closest("[data-column-dropdown]")) {
                 setShowColumnDropdown(false);
             }
+            if (openStageDropdown !== null && !event.target.closest("[data-stage-dropdown]")) {
+                setOpenStageDropdown(null);
+            }
+        };
+
+        const handleKeyDown = (event) => {
+            if (event.key === "Escape") {
+                if (showColumnDropdown) {
+                    setShowColumnDropdown(false);
+                }
+                if (openStageDropdown !== null) {
+                    setOpenStageDropdown(null);
+                }
+            }
         };
 
         document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [showColumnDropdown]);
+        document.addEventListener("keydown", handleKeyDown);
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+            document.removeEventListener("keydown", handleKeyDown);
+        };
+    }, [showColumnDropdown, openStageDropdown]);
 
     const filtered = useMemo(() => {
         const term = q.trim().toLowerCase();
@@ -722,22 +749,65 @@ const handleMemoEdit = (assetId, currentMemo) => {
             case "managementStage": {
                 const stage = getManagementStage(row);
                 const isSaving = !!stageSaving[row.id];
+                const badgeClass = MANAGEMENT_STAGE_BADGE_CLASS[stage] || "badge--default";
+                const isOpen = openStageDropdown === row.id;
+                const dropdownId = `management-stage-${row.id}`;
                 return (
-                    <span style={{ display: "inline-flex", alignItems: "center", gap: "6px" }}>
-                        <select
-                            value={stage}
-                            onChange={(event) => handleManagementStageChange(row, event.target.value)}
+                    <span
+                        data-stage-dropdown
+                        style={{ display: "inline-flex", alignItems: "center", gap: "6px", position: "relative" }}
+                    >
+                        <button
+                            type="button"
+                            className={`badge badge-button badge--clickable ${badgeClass}`}
+                            onClick={() => setOpenStageDropdown((prev) => (prev === row.id ? null : row.id))}
                             disabled={isSaving}
-                            className="table-select"
-                            aria-label={(row.plate || row.id ? (row.plate || row.id) + " 관리 단계 선택" : "관리 단계 선택")}
-                            style={{ fontSize: "0.85rem", padding: "2px 6px" }}
+                            aria-haspopup="listbox"
+                            aria-expanded={isOpen}
+                            aria-controls={dropdownId}
+                            aria-label={(row.plate || row.id ? `${row.plate || row.id} 관리 단계 변경` : "관리 단계 변경")}
+                            style={{
+                                border: "none",
+                                cursor: isSaving ? "not-allowed" : "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                                fontSize: "0.85rem",
+                            }}
                         >
-                            {MANAGEMENT_STAGE_OPTIONS.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
+                            <span>{stage}</span>
+                            <FaChevronDown size={10} aria-hidden="true" />
+                        </button>
+                        {isOpen && (
+                            <ul
+                                id={dropdownId}
+                                role="listbox"
+                                aria-label="관리단계 선택"
+                                className="management-stage-dropdown"
+                            >
+                                {MANAGEMENT_STAGE_OPTIONS.map((option) => (
+                                    <li key={option.value}>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setOpenStageDropdown(null);
+                                                handleManagementStageChange(row, option.value);
+                                            }}
+                                            className="management-stage-dropdown__option"
+                                            disabled={isSaving}
+                                        >
+                                            <span
+                                                className={`badge management-stage-dropdown__badge ${
+                                                    MANAGEMENT_STAGE_BADGE_CLASS[option.value] || "badge--default"
+                                                }`}
+                                            >
+                                                {option.label}
+                                            </span>
+                                        </button>
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                         {isSaving && (
                             <span className="badge badge--pending" aria-live="polite">
                                 저장 중...
