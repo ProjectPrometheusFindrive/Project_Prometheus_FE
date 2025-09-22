@@ -8,19 +8,36 @@ export default function Table({
     onRowClick,
     className = "",
     emptyMessage = "데이터가 없습니다.",
+    stickyHeader = false,
+    stickyOffset = 0,
     ...props
 }) {
     const { selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected } = selection || {};
     const hasSelection = !!selection;
 
+    const wrapClassNames = ["table-wrap"];
+    const tableClassNames = ["asset-table", className];
+
+    if (stickyHeader) {
+        wrapClassNames.push("table-wrap--sticky");
+        tableClassNames.push("asset-table--sticky");
+    }
+
+    const stickyStyle = stickyHeader
+        ? {
+              "--table-sticky-offset":
+                  typeof stickyOffset === "number" ? `${stickyOffset}px` : stickyOffset || "0px",
+          }
+        : undefined;
+
     return (
-        <div className="table-wrap">
-            <table className={`asset-table ${className}`} {...props}>
+        <div className={wrapClassNames.filter(Boolean).join(" ")} style={stickyStyle}>
+            <table className={tableClassNames.filter(Boolean).join(" ")} {...props}>
                 <thead>
                     <tr>
                         {hasSelection && (
                             <th style={{ width: DIMENSIONS.ICON_SIZE_LG, textAlign: "center" }}>
-                                <input 
+                                <input
                                     type="checkbox" 
                                     aria-label="현재 목록 전체 선택" 
                                     checked={allVisibleSelected} 

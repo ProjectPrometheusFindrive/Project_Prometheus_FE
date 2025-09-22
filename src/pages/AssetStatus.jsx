@@ -1072,7 +1072,14 @@ export default function AssetStatus() {
                 <DeviceEventLog assetId={activeAsset?.id} fallbackInstallDate={deviceInitial?.installDate || "" || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""} />
             </Modal>
 
-            <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." />
+            <Table
+                columns={dynamicColumns}
+                data={filtered}
+                selection={selection}
+                emptyMessage="조건에 맞는 차량 자산이 없습니다."
+                stickyHeader
+                stickyOffset={DIMENSIONS.HEADER_HEIGHT}
+            />
 
             {/* inline panel removed */}
             <Modal

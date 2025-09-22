@@ -24,6 +24,18 @@
     font-weight: 600;
 }
 
+.table-wrap--sticky {
+    position: relative;
+}
+
+.asset-table--sticky thead th {
+    position: sticky;
+    top: var(--table-sticky-offset, 0px);
+    z-index: 5;
+    background: #fafafa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
 /* Asset/toolbars: align controls consistently */
 .asset-toolbar {
     display: flex;
