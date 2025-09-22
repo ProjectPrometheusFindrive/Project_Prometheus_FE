@@ -182,6 +182,11 @@
     color: #c2410c;
 }
 
+.badge--video {
+    background: #e0f2fe;
+    color: #0b57d0;
+}
+
 /* ê´€ë¦¬ë‹¨ê³?ë°°ì? ?¤í???*/
 .badge--pending {
     background: #fff4e5;

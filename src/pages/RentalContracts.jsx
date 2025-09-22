@@ -7,7 +7,19 @@ import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
 import { DIMENSIONS } from "../constants";
-import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
+import {
+    FaCar,
+    FaEdit,
+    FaSave,
+    FaTimes,
+    FaExclamationTriangle,
+    FaMapMarkerAlt,
+    FaCog,
+    FaEye,
+    FaEyeSlash,
+    FaGripVertical,
+    FaVideo,
+} from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 const DEFAULT_COLUMN_CONFIG = [
@@ -499,18 +511,31 @@ export default function RentalContracts() {
                         </span>
                     </label>
                 );
-            case "accident":
+            case "accident": {
+                const identifier = row.plate || row.rental_id || "계약";
+                const hasAccident = Boolean(row.accident_reported);
+                const videoTitle = row.accidentReport?.blackboxFileName?.trim();
+                const hasVideo = Boolean(videoTitle);
+                const variantClass = hasAccident ? (hasVideo ? "badge--video" : "badge--accident") : "badge--default";
+                const title = hasVideo ? videoTitle : hasAccident ? "등록된 사고 정보 보기" : "사고 등록";
+                const ariaLabel = hasVideo
+                    ? `${identifier} 사고 영상 ${videoTitle} 보기`
+                    : hasAccident
+                    ? `${identifier} 사고 정보 보기`
+                    : `${identifier} 사고 등록`;
+
                 return (
                     <button
                         type="button"
                         onClick={() => handleOpenAccidentModal(row)}
-                        className={`badge-button badge badge--clickable ${row.accident_reported ? "badge--accident" : "badge--default"}`}
-                        title={row.accident_reported ? "등록된 사고 정보 보기" : "사고 등록"}
-                        aria-label={row.accident_reported ? `${row.plate || row.rental_id} 사고 정보 보기` : `${row.plate || row.rental_id} 사고 등록`}
+                        className={`badge-button badge badge--clickable ${variantClass}`}
+                        title={title}
+                        aria-label={ariaLabel}
                     >
-                        <FiAlertTriangle size={14} />
+                        {hasVideo ? <FaVideo size={13} aria-hidden="true" /> : <FiAlertTriangle size={14} aria-hidden="true" />}
                     </button>
                 );
+            }
             case "memo":
                 return (
                     <div style={{ maxWidth: "150px" }}>
