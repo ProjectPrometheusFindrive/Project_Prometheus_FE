@@ -465,6 +465,31 @@ body {
     text-align: center;
 }
 
+/* Asset dialog layout (screenshot-based skeleton) */
+.asset-dialog { padding-bottom: 8px; }
+.asset-dialog__grid { display: grid; grid-template-columns: 380px 1fr; gap: 16px; align-items: start; }
+.asset-dialog__left { display: grid; gap: 12px; }
+.asset-doc { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; }
+.asset-doc__title { font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; }
+.asset-doc__box { border: 1px dashed #cfd8dc; border-radius: 8px; height: 180px; display: flex; align-items: center; justify-content: center; background: #fafbfc; }
+.asset-doc__placeholder { color: #90a4ae; font-size: 0.9rem; }
+
+.asset-dialog__right { display: grid; gap: 16px; }
+.asset-info { grid-template-columns: 140px 1fr; }
+.asset-info__label { color: #555; }
+.asset-info__value { color: #222; font-weight: 600; }
+
+.asset-dates { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.asset-dates__item { background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; }
+.asset-dates__label { color: #666; font-size: 0.85rem; margin-bottom: 4px; }
+.asset-dates__value { font-weight: 600; font-size: 0.95rem; }
+
+.asset-dialog__footer { margin-top: 12px; display: flex; justify-content: flex-end; }
+
+@media (max-width: 960px) {
+  .asset-dialog__grid { grid-template-columns: 1fr; }
+}
+
 /*
     Responsive behavior for phones (portrait):
     - Move navigation to the bottom as a horizontal bar

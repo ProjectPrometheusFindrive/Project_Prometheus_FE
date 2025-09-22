@@ -652,8 +652,13 @@ export default function AssetStatus() {
                 </div>
             </div>
 
-            <Modal isOpen={showAssetModal} onClose={() => setShowAssetModal(false)} title="자산 등록" formId="asset-create" onSubmit={handleAssetSubmit}>
-                <AssetForm formId="asset-create" onSubmit={handleAssetSubmit} initial={assetFormInitial} requireDocs={assetRequireDocs} showSubmit={false} />
+            <Modal isOpen={showAssetModal} onClose={() => setShowAssetModal(false)} title="자산 등록" showFooter={false}>
+                {(() => {
+                    const current = editingAssetId ? rows.find((r) => r.id === editingAssetId) : {};
+                    const data = { ...(current || {}), ...(assetFormInitial || {}) };
+                    const AssetDialog = require("../components/AssetDialog").default;
+                    return <AssetDialog asset={data} mode={editingAssetId ? "edit" : "create"} onClose={() => setShowAssetModal(false)} />;
+                })()}
             </Modal>
 
             <Modal
