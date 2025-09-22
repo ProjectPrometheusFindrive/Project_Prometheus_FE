@@ -4,7 +4,7 @@
     "asset": {
       "id": "VH-0001",
       "plate": "28가2345",
-      "vehicleType": "소나타 2025년형",
+      "vehicleType": "소나타 25년형",
       "make": "Hyundai",
       "model": "Sonata",
       "year": 2025,
@@ -70,7 +70,7 @@
       {
         "rental_id": 100000000100,
         "vin": "KMHDH41EX6U123456",
-        "vehicleType": "소나타 2025년형",
+        "vehicleType": "소나타 25년형",
         "plate": "28가2345",
         "renter_name": "김민수",
         "contact_number": "010-1234-5678",
@@ -114,7 +114,7 @@
       {
         "rental_id": 100000000090,
         "vin": "KMHDH41EX6U123456",
-        "vehicleType": "소나타 2025년형",
+        "vehicleType": "소나타 25년형",
         "plate": "28가2345",
         "renter_name": "이정훈",
         "contact_number": "010-2222-3333",
@@ -145,7 +145,7 @@
     "asset": {
       "id": "VH-0002",
       "plate": "05가0960",
-      "vehicleType": "스포티지 2019년형",
+      "vehicleType": "스포티지 19년형",
       "make": "Kia",
       "model": "Sportage",
       "year": 2019,
@@ -211,7 +211,7 @@
       {
         "rental_id": 100000000200,
         "vin": "KNDPB3AC7H7123456",
-        "vehicleType": "스포티지 2019년형",
+        "vehicleType": "스포티지 19년형",
         "plate": "05가0960",
         "renter_name": "박지현",
         "contact_number": "010-7777-8888",
@@ -242,7 +242,7 @@
       {
         "rental_id": 100000000180,
         "vin": "KNDPB3AC7H7123456",
-        "vehicleType": "스포티지 2019년형",
+        "vehicleType": "스포티지 19년형",
         "plate": "05가0960",
         "renter_name": "오세훈",
         "contact_number": "010-2222-1111",
@@ -273,7 +273,7 @@
     "asset": {
       "id": "VH-0003",
       "plate": "05가0961",
-      "vehicleType": "그랜저 2023년형",
+      "vehicleType": "그랜저 23년형",
       "make": "Hyundai",
       "model": "Grandeur",
       "year": 2023,
@@ -312,7 +312,7 @@
     "asset": {
       "id": "VH-0004",
       "plate": "05가0962",
-      "vehicleType": "쏘렌토 2024년형",
+      "vehicleType": "쏘렌토 24년형",
       "make": "Kia",
       "model": "Sorento",
       "year": 2024,
@@ -371,7 +371,7 @@
       {
         "rental_id": 100000000300,
         "vin": "WAUZZZF40LA123456",
-        "vehicleType": "쏘렌토 2024년형",
+        "vehicleType": "쏘렌토 24년형",
         "plate": "05가0962",
         "renter_name": "최아름",
         "contact_number": "010-7777-8888",
@@ -405,7 +405,7 @@
     "asset": {
       "id": "VH-0006",
       "plate": "48가7722",
-      "vehicleType": "이보크 2024년형",
+      "vehicleType": "이보크 24년형",
       "make": "Land Rover",
       "model": "Evoque",
       "year": 2024,
@@ -464,7 +464,7 @@
       {
         "rental_id": 100000000400,
         "vin": "SALVP2BG3FH123456",
-        "vehicleType": "이보크 2024년형",
+        "vehicleType": "이보크 24년형",
         "plate": "48가7722",
         "renter_name": "정도윤",
         "contact_number": "010-1111-2222",
@@ -498,7 +498,7 @@
     "asset": {
       "id": "VH-0008",
       "plate": "12가3456",
-      "vehicleType": "모닝 2020년형",
+      "vehicleType": "모닝 20년형",
       "make": "Kia",
       "model": "Morning",
       "year": 2020,
@@ -556,7 +556,7 @@
       {
         "rental_id": 100000000500,
         "vin": "WP0ZZZ99ZTS123456",
-        "vehicleType": "모닝 2020년형",
+        "vehicleType": "모닝 20년형",
         "plate": "12가3456",
         "renter_name": "이혜진",
         "contact_number": "010-5555-6666",
@@ -590,7 +590,7 @@
     "asset": {
       "id": "VH-0009",
       "plate": "29가0234",
-      "vehicleType": "GV80 2024년형",
+      "vehicleType": "GV80 24년형",
       "make": "Genesis",
       "model": "GV80",
       "year": 2024,
@@ -641,7 +641,7 @@
     "asset": {
       "id": "VH-0010",
       "plate": "30가0345",
-      "vehicleType": "G80 2023년형",
+      "vehicleType": "G80 23년형",
       "make": "Genesis",
       "model": "G80",
       "year": 2023,
@@ -683,7 +683,7 @@
     "asset": {
       "id": "VH-0011",
       "plate": "31가0456",
-      "vehicleType": "그랜저 2022년형",
+      "vehicleType": "그랜저 22년형",
       "make": "Hyundai",
       "model": "Grandeur",
       "year": 2022,
@@ -734,7 +734,7 @@
     "asset": {
       "id": "VH-0012",
       "plate": "32가0567",
-      "vehicleType": "아이오닉5 2024년형",
+      "vehicleType": "아이오닉5 24년형",
       "make": "Hyundai",
       "model": "Ioniq 5",
       "year": 2024,
@@ -773,7 +773,7 @@
       {
         "rental_id": 100000000600,
         "vin": "KMHAB51DBMU123460",
-        "vehicleType": "아이오닉5 2024년형",
+        "vehicleType": "아이오닉5 24년형",
         "plate": "32가0567",
         "renter_name": "최미래",
         "contact_number": "010-3333-7777",
@@ -805,7 +805,7 @@
     "asset": {
       "id": "VH-0013",
       "plate": "33가0678",
-      "vehicleType": "코나 2023년형",
+      "vehicleType": "코나 23년형",
       "make": "Hyundai",
       "model": "Kona",
       "year": 2023,
@@ -853,7 +853,7 @@
       {
         "rental_id": 100000000610,
         "vin": "KMHAB51DBMU123461",
-        "vehicleType": "코나 2023년형",
+        "vehicleType": "코나 23년형",
         "plate": "33가0678",
         "renter_name": "정현우",
         "contact_number": "010-5555-1212",
@@ -887,7 +887,7 @@
     "asset": {
       "id": "VH-0014",
       "plate": "24부1234",
-      "vehicleType": "K5 2022년형",
+      "vehicleType": "K5 22년형",
       "make": "Kia",
       "model": "K5",
       "year": 2022,
@@ -938,7 +938,7 @@
     "asset": {
       "id": "VH-0015",
       "plate": "25부2345",
-      "vehicleType": "K7 2021년형",
+      "vehicleType": "K7 21년형",
       "make": "Kia",
       "model": "K7",
       "year": 2021,
@@ -980,7 +980,7 @@
     "asset": {
       "id": "VH-0016",
       "plate": "26부3456",
-      "vehicleType": "스포티지 2022년형",
+      "vehicleType": "스포티지 22년형",
       "make": "Kia",
       "model": "Sportage",
       "year": 2022,
@@ -1031,7 +1031,7 @@
     "asset": {
       "id": "VH-0098",
       "plate": "12가9998",
-      "vehicleType": "아반떼 2023년형",
+      "vehicleType": "아반떼 23년형",
       "make": "Hyundai",
       "model": "Avante",
       "year": 2023,
@@ -1082,7 +1082,7 @@
     "asset": {
       "id": "VH-0099",
       "plate": "12가9999",
-      "vehicleType": "소나타 2022년형",
+      "vehicleType": "소나타 22년형",
       "make": "Hyundai",
       "model": "Sonata",
       "year": 2022,
@@ -1113,7 +1113,7 @@
     "asset": {
       "id": "VH-0100",
       "plate": "11가1000",
-      "vehicleType": "쏘나타 2021년형",
+      "vehicleType": "쏘나타 21년형",
       "make": "Hyundai",
       "model": "Sonata",
       "year": 2021,
@@ -1161,7 +1161,7 @@
       {
         "rental_id": 100000000620,
         "vin": "KMHVARIETY0000001",
-        "vehicleType": "쏘나타 2021년형",
+        "vehicleType": "쏘나타 21년형",
         "plate": "11가1000",
         "renter_name": "이현재",
         "contact_number": "010-8888-9999",
@@ -1195,7 +1195,7 @@
     "asset": {
       "id": "VH-0101",
       "plate": "11가1001",
-      "vehicleType": "K3 2020년형",
+      "vehicleType": "K3 20년형",
       "make": "Kia",
       "model": "K3",
       "year": 2020,
@@ -1249,7 +1249,7 @@
     "asset": {
       "id": "VH-0102",
       "plate": "11가1002",
-      "vehicleType": "그랜저 2022년형",
+      "vehicleType": "그랜저 22년형",
       "make": "Hyundai",
       "model": "Grandeur",
       "year": 2022,
@@ -1308,7 +1308,7 @@
       {
         "rental_id": 100000001000,
         "vin": "KMHVARIETY0000003",
-        "vehicleType": "그랜저 2022년형",
+        "vehicleType": "그랜저 22년형",
         "plate": "11가1002",
         "renter_name": "이의뢰",
         "contact_number": "010-1111-1111",
@@ -1343,7 +1343,7 @@
     "asset": {
       "id": "VH-0103",
       "plate": "11가1003",
-      "vehicleType": "스포티지 2021년형",
+      "vehicleType": "스포티지 21년형",
       "make": "Kia",
       "model": "Sportage",
       "year": 2021,
@@ -1402,7 +1402,7 @@
       {
         "rental_id": 100000001001,
         "vin": "KMHVARIETY0000004",
-        "vehicleType": "스포티지 2021년형",
+        "vehicleType": "스포티지 21년형",
         "plate": "11가1003",
         "renter_name": "박대여",
         "contact_number": "010-2222-2222",
@@ -1448,7 +1448,7 @@
     "asset": {
       "id": "VH-0104",
       "plate": "11가1004",
-      "vehicleType": "아반떼 2020년형",
+      "vehicleType": "아반떼 20년형",
       "make": "Hyundai",
       "model": "Avante",
       "year": 2020,
@@ -1510,7 +1510,7 @@
     "asset": {
       "id": "VH-0201",
       "plate": "77나2025",
-      "vehicleType": "그랜저 2023년형",
+      "vehicleType": "그랜저 23년형",
       "make": "Hyundai",
       "model": "Grandeur",
       "year": 2023,
@@ -1569,7 +1569,7 @@
       {
         "rental_id": 100000001200,
         "vin": "KMHLONGTERM000001",
-        "vehicleType": "그랜저 2023년형",
+        "vehicleType": "그랜저 23년형",
         "plate": "77나2025",
         "renter_name": "최장기",
         "contact_number": "010-5555-1212",
@@ -1613,7 +1613,7 @@
     "asset": {
       "id": "VH-0105",
       "plate": "11가1005",
-      "vehicleType": "K7 2019년형",
+      "vehicleType": "K7 19년형",
       "make": "Kia",
       "model": "K7",
       "year": 2019,
@@ -1664,7 +1664,7 @@
       {
         "rental_id": 100000001010,
         "vin": "KMHVARIETY0000006",
-        "vehicleType": "K7 2019년형",
+        "vehicleType": "K7 19년형",
         "plate": "11가1005",
         "renter_name": "신과거",
         "contact_number": "010-3333-3333",
@@ -1691,7 +1691,7 @@
       {
         "rental_id": 100000001011,
         "vin": "KMHVARIETY0000006",
-        "vehicleType": "K7 2019년형",
+        "vehicleType": "K7 19년형",
         "plate": "11가1005",
         "renter_name": "유현재",
         "contact_number": "010-4444-4444",
