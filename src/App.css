@@ -151,15 +151,7 @@
     align-items: center;
 }
 
-/* Danger button variant */
-.form-button--danger {
-    background: #ffcdd2;
-    color: #d32f2f;
-}
-.form-button--danger:hover {
-    background: #ffb3ba;
-    color: #c62828;
-}
+/* Danger button variant - moved to after base form-button styles */
 .form-button:disabled {
     opacity: 0.6;
     cursor: not-allowed;
@@ -1604,6 +1596,16 @@ body {
 }
 .form-button--accent:hover {
     background: #1976d2;
+}
+
+/* Danger button variant */
+.form-button--danger {
+    background: #ffcdd2 !important;
+    color: #d32f2f !important;
+}
+.form-button--danger:hover {
+    background: #ffb3ba !important;
+    color: #c62828 !important;
 }
 
 .form-button--neutral {
