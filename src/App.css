@@ -24,6 +24,35 @@
     font-weight: 600;
 }
 
+.asset-table thead th .table-sort-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    font: inherit;
+    text-align: inherit;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.asset-table thead th .table-sort-button:focus-visible {
+    outline: 2px solid #1976d2;
+    outline-offset: 2px;
+}
+
+.asset-table thead th .table-sort-icon {
+    display: inline-flex;
+    align-items: center;
+    color: #9e9e9e;
+}
+
+.asset-table thead th .table-sort-button.is-active .table-sort-icon {
+    color: #1976d2;
+}
+
 /* Asset/toolbars: align controls consistently */
 .asset-toolbar {
     display: flex;

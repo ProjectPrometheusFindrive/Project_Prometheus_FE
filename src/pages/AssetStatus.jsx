@@ -83,6 +83,49 @@ const LEGACY_STAGE_MAP = new Map([
     ["수리/점검 완료", "수리/점검 완료"],
 ]);
 
+const DEFAULT_ASSET_COLUMNS = [
+    { key: "select", label: "선택", visible: true, required: true, width: 36, sortable: false },
+    { key: "plate", label: "차량번호", visible: true, required: true, sortable: true, sortType: "string" },
+    { key: "vehicleType", label: "차종", visible: true, required: false, sortable: true, sortType: "string" },
+    { key: "registrationDate", label: "차량등록일", visible: true, required: false, sortable: true, sortType: "date" },
+    { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false, sortable: true, sortType: "date" },
+    { key: "vehicleHealth", label: "차량 상태", visible: true, required: false, sortable: true, sortType: "string" },
+    { key: "diagnosticCodes", label: "진단 요약", visible: true, required: false, sortable: false },
+    { key: "deviceStatus", label: "단말 상태", visible: true, required: false, sortable: false },
+    { key: "managementStage", label: "관리상태", visible: true, required: false, sortable: true, sortType: "string" },
+    { key: "memo", label: "메모", visible: true, required: false, sortable: true, sortType: "string" },
+];
+
+const mergeAssetColumnsWithDefaults = (savedColumns = []) => {
+    const merged = Array.isArray(savedColumns) ? savedColumns.map((column) => ({ ...column })) : [];
+    const existingKeys = new Set(merged.map((column) => column.key));
+
+    merged.forEach((column, index) => {
+        const defaults = DEFAULT_ASSET_COLUMNS.find((definition) => definition.key === column.key);
+        if (defaults) {
+            merged[index] = { ...defaults, ...column };
+        }
+    });
+
+    DEFAULT_ASSET_COLUMNS.forEach((defaults, defaultIndex) => {
+        if (!existingKeys.has(defaults.key)) {
+            let insertIndex = merged.length;
+            for (let i = defaultIndex - 1; i >= 0; i -= 1) {
+                const previousKey = DEFAULT_ASSET_COLUMNS[i].key;
+                const existingIndex = merged.findIndex((column) => column.key === previousKey);
+                if (existingIndex !== -1) {
+                    insertIndex = existingIndex + 1;
+                    break;
+                }
+            }
+            merged.splice(insertIndex, 0, { ...defaults });
+            existingKeys.add(defaults.key);
+        }
+    });
+
+    return merged;
+};
+
 // 요청된 단계 우선순위와 기존 자산 정보를 기반으로 관리단계를 계산
 const getManagementStage = (asset = {}) => {
     if (!asset) return MANAGEMENT_STAGE_DEFAULT;
@@ -166,23 +209,23 @@ export default function AssetStatus() {
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
     const [openStageDropdown, setOpenStageDropdown] = useState(null);
     const [columnSettings, setColumnSettings] = useState(() => {
-        const saved = localStorage.getItem("asset-columns-settings");
-        return saved
-            ? JSON.parse(saved)
-            : {
-                  columns: [
-                      { key: "select", label: "선택", visible: true, required: true, width: 36 },
-                      { key: "plate", label: "차량번호", visible: true, required: true },
-                      { key: "vehicleType", label: "차종", visible: true, required: false },
-                      { key: "registrationDate", label: "차량등록일", visible: true, required: false },
-                      { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
-                      { key: "vehicleHealth", label: "차량 상태", visible: true, required: false },
-                      { key: "diagnosticCodes", label: "진단 요약", visible: true, required: false },
-                      { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
-                      { key: "managementStage", label: "관리상태", visible: true, required: false },
-                      { key: "memo", label: "메모", visible: true, required: false },
-                  ],
-              };
+        try {
+            const saved = localStorage.getItem("asset-columns-settings");
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                const savedColumns = Array.isArray(parsed?.columns) ? parsed.columns : [];
+                return {
+                    ...parsed,
+                    columns: mergeAssetColumnsWithDefaults(savedColumns),
+                };
+            }
+        } catch (error) {
+            console.error("Failed to parse asset column settings", error);
+        }
+
+        return {
+            columns: DEFAULT_ASSET_COLUMNS.map((column) => ({ ...column })),
+        };
     });
     // Insurance modal state
     const [showInsuranceModal, setShowInsuranceModal] = useState(false);
@@ -702,6 +745,27 @@ export default function AssetStatus() {
     // '진단 요약'(diagnosticCodes) 컬럼은 노출하지 않음
     const visibleColumns = columnSettings.columns.filter((col) => col.visible && col.key !== "diagnosticCodes");
 
+    const getColumnSortValue = (columnKey, row) => {
+        switch (columnKey) {
+            case "registrationDate":
+                return row.registrationDate || "";
+            case "insuranceExpiryDate":
+                return row.insuranceExpiryDate || "";
+            case "vehicleHealth":
+                return row.diagnosticStatus || "";
+            case "managementStage":
+                return getManagementStage(row);
+            case "memo":
+                return row.memo || "";
+            case "vehicleType":
+                return row.vehicleType || "";
+            case "plate":
+                return row.plate || "";
+            default:
+                return row[columnKey];
+        }
+    };
+
     // 각 컬럼의 셀 내용을 렌더링하는 함수
     const renderCellContent = (column, row) => {
         switch (column.key) {
@@ -916,35 +980,43 @@ export default function AssetStatus() {
 
     // 동적 컬럼 생성
     const dynamicColumns = visibleColumns
-        .filter((col) => col.key !== "select") // select는 Table 컴포넌트에서 자동 처리
-        .map((column) =>
-            column.key === "deviceStatus"
-                ? {
-                      key: column.key,
-                      label: column.label,
-                      render: (row) => {
-                          const stored = typedStorage.devices.getInfo(row.id) || {};
-                          const hasDevice = row.deviceSerial || stored.serial;
-                          if (hasDevice) {
-                              return (
-                                  <button type="button" className="badge-button badge badge--on badge--clickable" onClick={() => openDeviceView(row)} title="단말 정보 보기">
-                                      연결됨
-                                  </button>
-                              );
-                          }
-                          return (
-                              <button type="button" className="badge-button badge badge--default badge--clickable" onClick={() => openDeviceRegister(row)} title="단말 등록">
-                                  단말 등록
-                              </button>
-                          );
-                      },
-                  }
-                : {
-                      key: column.key,
-                      label: column.label,
-                      render: (row) => renderCellContent(column, row),
-                  }
-        );
+        .filter((col) => col.key !== "select")
+        .map((column) => {
+            const base = {
+                key: column.key,
+                label: column.label,
+                sortable: column.sortable,
+                sortType: column.sortType,
+                sortAccessor: column.sortable ? (row) => getColumnSortValue(column.key, row) : undefined,
+            };
+
+            if (column.key === "deviceStatus") {
+                return {
+                    ...base,
+                    render: (row) => {
+                        const stored = typedStorage.devices.getInfo(row.id) || {};
+                        const hasDevice = row.deviceSerial || stored.serial;
+                        if (hasDevice) {
+                            return (
+                                <button type="button" className="badge-button badge badge--on badge--clickable" onClick={() => openDeviceView(row)} title="단말 정보 보기">
+                                    연결됨
+                                </button>
+                            );
+                        }
+                        return (
+                            <button type="button" className="badge-button badge badge--default badge--clickable" onClick={() => openDeviceRegister(row)} title="단말 등록">
+                                단말 등록
+                            </button>
+                        );
+                    },
+                };
+            }
+
+            return {
+                ...base,
+                render: (row) => renderCellContent(column, row),
+            };
+        });
 
     return (
         <div className="page">

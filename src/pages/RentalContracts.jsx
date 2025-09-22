@@ -6,21 +6,36 @@ import AccidentInfoModal from "../components/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
-import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical } from "react-icons/fa";
+import {
+    FaCar,
+    FaEdit,
+    FaSave,
+    FaTimes,
+    FaExclamationTriangle,
+    FaMapMarkerAlt,
+    FaCog,
+    FaEye,
+    FaEyeSlash,
+    FaGripVertical,
+    FaSort,
+    FaSortDown,
+    FaSortUp,
+} from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
+import { compareValues } from "../utils/sort";
 
 const DEFAULT_COLUMN_CONFIG = [
-    { key: "select", label: "선택", visible: true, required: true, width: 36 },
-    { key: "plate", label: "차량번호", visible: true, required: true },
-    { key: "vehicleType", label: "차종", visible: true, required: false },
-    { key: "renter_name", label: "예약자명", visible: true, required: false },
-    { key: "rental_period", label: "예약기간", visible: true, required: false },
-    { key: "rental_amount", label: "대여금액", visible: true, required: false },
-    { key: "contractStatus", label: "계약 상태", visible: true, required: false },
-    { key: "engine_status", label: "엔진 상태", visible: true, required: false },
-    { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
-    { key: "accident", label: "사고 등록", visible: true, required: false, width: 90 },
-    { key: "memo", label: "메모", visible: true, required: false },
+    { key: "select", label: "선택", visible: true, required: true, width: 36, sortable: false },
+    { key: "plate", label: "차량번호", visible: true, required: true, sortable: true, sortType: "string" },
+    { key: "vehicleType", label: "차종", visible: true, required: false, sortable: true, sortType: "string" },
+    { key: "renter_name", label: "예약자명", visible: true, required: false, sortable: true, sortType: "string" },
+    { key: "rental_period", label: "예약기간", visible: true, required: false, sortable: true, sortType: "date" },
+    { key: "rental_amount", label: "대여금액", visible: true, required: false, sortable: true, sortType: "number" },
+    { key: "contractStatus", label: "계약 상태", visible: true, required: false, sortable: true, sortType: "string" },
+    { key: "engine_status", label: "엔진 상태", visible: true, required: false, sortable: true, sortType: "boolean" },
+    { key: "restart_blocked", label: "재시동 금지", visible: true, required: false, sortable: true, sortType: "boolean" },
+    { key: "accident", label: "사고 등록", visible: true, required: false, width: 90, sortable: true, sortType: "boolean" },
+    { key: "memo", label: "메모", visible: true, required: false, sortable: true, sortType: "string" },
 ];
 
 const ACCIDENT_FORM_DEFAULT = {
@@ -95,6 +110,7 @@ export default function RentalContracts() {
             columns: DEFAULT_COLUMN_CONFIG.map((column) => ({ ...column })),
         };
     });
+    const [sortConfig, setSortConfig] = useState(null);
     const [showAccidentModal, setShowAccidentModal] = useState(false);
     const [showAccidentInfoModal, setShowAccidentInfoModal] = useState(false);
     const [accidentTarget, setAccidentTarget] = useState(null);
@@ -146,6 +162,14 @@ export default function RentalContracts() {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, [showColumnDropdown]);
+
+    useEffect(() => {
+        if (!sortConfig) return;
+        const activeColumn = columnSettings.columns.find((column) => column.key === sortConfig.key);
+        if (!activeColumn || !activeColumn.visible || !activeColumn.sortable) {
+            setSortConfig(null);
+        }
+    }, [columnSettings.columns, sortConfig]);
 
     const rows = useMemo(() => {
         const now = new Date();
@@ -207,7 +231,22 @@ export default function RentalContracts() {
             });
     }, [items]);
 
-    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rental_id");
+    const sortedRows = useMemo(() => {
+        if (!sortConfig) return rows;
+        const column = columnSettings.columns.find((col) => col.key === sortConfig.key);
+        if (!column || !column.sortable) return rows;
+        const accessor = (row) => getColumnSortValue(column.key, row);
+        const sortType = column.sortType || "string";
+        const next = [...rows];
+        next.sort((a, b) => {
+            const aValue = accessor(a);
+            const bValue = accessor(b);
+            return compareValues(aValue, bValue, sortType, sortConfig.direction);
+        });
+        return next;
+    }, [rows, sortConfig, columnSettings.columns]);
+
+    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(sortedRows, "rental_id");
 
     const handleDeleteSelected = () => {
         if (selectedCount === 0) return;
@@ -410,6 +449,33 @@ export default function RentalContracts() {
 
     const visibleColumns = columnSettings.columns.filter((col) => col.visible);
 
+    const getColumnSortValue = (columnKey, row) => {
+        switch (columnKey) {
+            case "plate":
+                return row.plate || "";
+            case "vehicleType":
+                return row.vehicleType || "";
+            case "renter_name":
+                return row.renter_name || "";
+            case "rental_period":
+                return row.rental_period?.start || "";
+            case "rental_amount":
+                return row.rental_amount ?? 0;
+            case "contractStatus":
+                return row.contractStatus || "";
+            case "engine_status":
+                return row.engineOn || false;
+            case "restart_blocked":
+                return row.restartBlocked || false;
+            case "accident":
+                return row.accident_reported || false;
+            case "memo":
+                return row.memo || "";
+            default:
+                return row[columnKey];
+        }
+    };
+
     // 드래그&드롭 이벤트 핸들러들
     const handleDragStart = (e, index) => {
         setDraggedColumnIndex(index);
@@ -438,6 +504,21 @@ export default function RentalContracts() {
     const handleDragEnd = () => {
         setDraggedColumnIndex(null);
         setDragOverColumnIndex(null);
+    };
+
+    const handleSort = (column) => {
+        if (!column.sortable || column.key === "select") return;
+        setSortConfig((prev) => {
+            if (prev?.key === column.key) {
+                if (prev.direction === "asc") {
+                    return { key: column.key, direction: "desc" };
+                }
+                if (prev.direction === "desc") {
+                    return null;
+                }
+            }
+            return { key: column.key, direction: "asc" };
+        });
     };
 
     // 각 컬럼의 셀 내용을 렌더링하는 함수
@@ -752,25 +833,61 @@ export default function RentalContracts() {
                     <table className="asset-table rentals-table">
                         <thead>
                             <tr>
-                                {visibleColumns.map((column) => (
-                                    <th
-                                        key={column.key}
-                                        style={{
-                                            width: column.width,
-                                            textAlign: column.key === "select" ? "center" : "left",
-                                        }}
-                                    >
-                                        {column.key === "select" ? (
-                                            <input type="checkbox" aria-label="Select all visible" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
-                                        ) : (
-                                            column.label
-                                        )}
-                                    </th>
-                                ))}
+                                {visibleColumns.map((column) => {
+                                    if (column.key === "select") {
+                                        return (
+                                            <th
+                                                key={column.key}
+                                                style={{
+                                                    width: column.width,
+                                                    textAlign: "center",
+                                                }}
+                                            >
+                                                <input type="checkbox" aria-label="Select all visible" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
+                                            </th>
+                                        );
+                                    }
+
+                                    const isSorted = sortConfig?.key === column.key;
+                                    const sortDirection = isSorted ? sortConfig.direction : null;
+                                    const ariaSort = column.sortable
+                                        ? sortDirection === "asc"
+                                            ? "ascending"
+                                            : sortDirection === "desc"
+                                            ? "descending"
+                                            : "none"
+                                        : undefined;
+
+                                    return (
+                                        <th
+                                            key={column.key}
+                                            style={{
+                                                width: column.width,
+                                                textAlign: "left",
+                                            }}
+                                            aria-sort={ariaSort}
+                                        >
+                                            {column.sortable ? (
+                                                <button
+                                                    type="button"
+                                                    className={`table-sort-button${isSorted ? " is-active" : ""}`}
+                                                    onClick={() => handleSort(column)}
+                                                >
+                                                    <span>{column.label}</span>
+                                                    <span className="table-sort-icon" aria-hidden="true">
+                                                        {isSorted ? (sortDirection === "asc" ? <FaSortUp /> : <FaSortDown />) : <FaSort />}
+                                                    </span>
+                                                </button>
+                                            ) : (
+                                                column.label
+                                            )}
+                                        </th>
+                                    );
+                                })}
                             </tr>
                         </thead>
                         <tbody>
-                            {rows.map((r, index) => (
+                            {sortedRows.map((r, index) => (
                                 <tr key={r.rental_id || `rental-${index}`}>
                                     {visibleColumns.map((column) => (
                                         <td
