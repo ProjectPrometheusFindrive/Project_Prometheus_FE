@@ -757,7 +757,6 @@ export default function AssetStatus() {
                                 display: "inline-flex",
                                 alignItems: "center",
                                 gap: "4px",
-                                fontSize: "0.85rem",
                             }}
                         >
                             <span>{stage}</span>
@@ -825,7 +824,7 @@ export default function AssetStatus() {
                                         key={category}
                                         type="button"
                                         className="badge badge--diagnostic badge--clickable"
-                                        style={{ fontSize: "10px", padding: "2px 6px", cursor: "pointer", border: "none" }}
+                                        style={{ padding: "2px 6px", cursor: "pointer", border: "none" }}
                                         onClick={() => openDiagnosticModal(row, category, count)}
                                         title={`${category} 세부 진단 보기`}
                                     >
