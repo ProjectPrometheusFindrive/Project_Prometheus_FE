@@ -615,7 +615,7 @@ export default function RentalContracts() {
                         aria-label={`${identifier} ${isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}`}
                         title={isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}
                     >
-                        {isBlocked ? "차단" : "허용"}
+                        {isBlocked ? "차단 중" : "허용 중"}
                     </button>
                 );
             }
