@@ -1,0 +1,1 @@
+﻿fix: remove deprecated 진단 요약 column from asset status settings

@@ -206,8 +206,6 @@ export default function AssetStatus() {
                       { key: "severity", label: "심각도", visible: true, required: false },
                       { key: "managementStage", label: "관리상태", visible: true, required: false },
                       { key: "memo", label: "메모", visible: true, required: false },
-                      // 진단 요약은 기본 테이블에서 제외 (토글로 표시 가능)
-                      { key: "diagnosticCodes", label: "진단 요약", visible: false, required: false },
                   ],
               };
     });
@@ -672,7 +670,7 @@ export default function AssetStatus() {
     const saveColumnSettings = (newSettings) => {
         const filtered = {
             ...newSettings,
-            columns: (newSettings?.columns || []).filter((col) => col.key !== "diagnosticCodes"),
+            columns: newSettings?.columns || [],
         };
         setColumnSettings(filtered);
         localStorage.setItem("asset-columns-settings", JSON.stringify(filtered));
@@ -726,8 +724,7 @@ export default function AssetStatus() {
         setDragOverColumnIndex(null);
     };
 
-    // '진단 요약'(diagnosticCodes) 컬럼은 노출하지 않음
-    const visibleColumns = columnSettings.columns.filter((col) => col.visible && col.key !== "diagnosticCodes");
+    const visibleColumns = columnSettings.columns.filter((col) => col.visible);
 
     // 각 컬럼의 셀 내용을 렌더링하는 함수
     const renderCellContent = (column, row) => {
