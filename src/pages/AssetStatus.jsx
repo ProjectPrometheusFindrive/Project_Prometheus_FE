@@ -200,11 +200,14 @@ export default function AssetStatus() {
                       { key: "vehicleType", label: "차종", visible: true, required: false },
                       { key: "registrationDate", label: "차량등록일", visible: true, required: false },
                       { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
-                      { key: "vehicleHealth", label: "차량 상태", visible: true, required: false },
-                      { key: "diagnosticCodes", label: "진단 요약", visible: true, required: false },
+                      // 보험만료일 다음 기본 순서
                       { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
+                      { key: "vehicleHealth", label: "차량 상태", visible: true, required: false },
+                      { key: "severity", label: "심각도", visible: true, required: false },
                       { key: "managementStage", label: "관리상태", visible: true, required: false },
                       { key: "memo", label: "메모", visible: true, required: false },
+                      // 진단 요약은 기본 테이블에서 제외 (토글로 표시 가능)
+                      { key: "diagnosticCodes", label: "진단 요약", visible: false, required: false },
                   ],
               };
     });
@@ -758,6 +761,12 @@ export default function AssetStatus() {
                 const hasDevice = row.deviceSerial;
                 const status = hasDevice ? "연결됨" : "미연결";
                 return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
+            case "severity": {
+                const val = Number.isFinite(Number(row.severity)) ? Number(row.severity) : null;
+                return val === null ? "-" : (
+                    <span className="badge" title={`심각도 ${val} / 10`}>{val} / 10</span>
+                );
+            }
             case "managementStage": {
                 const stage = getManagementStage(row);
                 const isSaving = !!stageSaving[row.id];

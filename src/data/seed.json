@@ -64,7 +64,8 @@
           "serial": "1ABCD-SONATA-26",
           "installer": "이상훈"
         }
-      ]
+      ],
+      "severity": 7
     },
     "rental": [
       {
@@ -205,7 +206,8 @@
           "serial": "KIA-SPTG-19-XY99",
           "installer": "김범기"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": [
       {
@@ -303,7 +305,8 @@
           "serial": "HYU-GRAN-23-ABCF",
           "installer": "김범기"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": []
   },
@@ -365,7 +368,8 @@
           "serial": "KIA-SORE-24-ABCG",
           "installer": "김범기"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": [
       {
@@ -458,7 +462,8 @@
           "serial": "LR-EVOQ-24-7722",
           "installer": "외부 설치"
         }
-      ]
+      ],
+      "severity": 2
     },
     "rental": [
       {
@@ -550,7 +555,8 @@
           "serial": "KIA-MORN-20-3456",
           "installer": "지점A"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": [
       {
@@ -632,7 +638,8 @@
           "serial": "GEN-GV80-24-0234",
           "installer": "지점B"
         }
-      ]
+      ],
+      "severity": 6
     },
     "rental": []
   },
@@ -674,7 +681,8 @@
           "docDataUrl": ""
         }
       ],
-      "deviceHistory": []
+      "deviceHistory": [],
+      "severity": 10
     },
     "rental": []
   },
@@ -725,7 +733,8 @@
           "serial": "HYU-GRAN-22-0456",
           "installer": "지점C"
         }
-      ]
+      ],
+      "severity": 1
     },
     "rental": []
   },
@@ -767,7 +776,8 @@
           "docDataUrl": ""
         }
       ],
-      "deviceHistory": []
+      "deviceHistory": [],
+      "severity": 10
     },
     "rental": [
       {
@@ -847,7 +857,8 @@
           "serial": "HYU-KONA-23-0678",
           "installer": "지점D"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": [
       {
@@ -929,7 +940,8 @@
           "serial": "KIA-K5-22-1234",
           "installer": "지점E"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": []
   },
@@ -971,7 +983,8 @@
           "docDataUrl": ""
         }
       ],
-      "deviceHistory": []
+      "deviceHistory": [],
+      "severity": 10
     },
     "rental": []
   },
@@ -1022,7 +1035,8 @@
           "serial": "KIA-SPTG-22-3456",
           "installer": "지점F"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": []
   },
@@ -1073,7 +1087,8 @@
           "serial": "TEST-0098-SN",
           "installer": "홍길동"
         }
-      ]
+      ],
+      "severity": 7
     },
     "rental": []
   },
@@ -1104,7 +1119,8 @@
       "insuranceInfo": "",
       "insuranceExpiryDate": "",
       "insuranceHistory": [],
-      "deviceHistory": []
+      "deviceHistory": [],
+      "severity": 1
     },
     "rental": []
   },
@@ -1155,7 +1171,8 @@
           "serial": "HYU-SONA-21-1000",
           "installer": "정우성"
         }
-      ]
+      ],
+      "severity": 7
     },
     "rental": [
       {
@@ -1240,7 +1257,8 @@
           "docDataUrl": ""
         }
       ],
-      "deviceHistory": []
+      "deviceHistory": [],
+      "severity": 6
     },
     "rental": []
   },
@@ -1302,7 +1320,8 @@
           "serial": "HYU-GRAN-22-1002",
           "installer": "김기사"
         }
-      ]
+      ],
+      "severity": 9
     },
     "rental": [
       {
@@ -1396,7 +1415,8 @@
           "serial": "KIA-SPTG-21-1003",
           "installer": "박설치"
         }
-      ]
+      ],
+      "severity": 10
     },
     "rental": [
       {
@@ -1501,7 +1521,8 @@
           "serial": "HYU-AVAN-20-1004",
           "installer": ""
         }
-      ]
+      ],
+      "severity": 4
     },
     "rental": []
   },
@@ -1563,7 +1584,8 @@
           "serial": "HYU-GRAN-23-7710",
           "installer": "박수현"
         }
-      ]
+      ],
+      "severity": 1
     },
     "rental": [
       {
@@ -1666,7 +1688,8 @@
           "serial": "KIA-SORE-24-7820",
           "installer": "이도현"
         }
-      ]
+      ],
+      "severity": 4
     },
     "rental": [
       {
@@ -1758,7 +1781,8 @@
           "serial": "KIA-EV6-25-7930",
           "installer": "정유나"
         }
-      ]
+      ],
+      "severity": 3
     },
     "rental": [
       {
@@ -1850,7 +1874,8 @@
           "docDataUrl": ""
         }
       ],
-      "deviceHistory": []
+      "deviceHistory": [],
+      "severity": 3
     },
     "rental": [
       {
