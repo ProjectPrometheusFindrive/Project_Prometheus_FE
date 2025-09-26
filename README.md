@@ -181,6 +181,17 @@ src/
 - GPS/실시간 추적(WebSocket) 스트리밍
 - i18n(국문/영문), 접근성 보완, 에러/로딩 상태 고도화
 
+## Swagger/OpenAPI 명세
+
+- 위치: `openapi/project-prometheus-openapi.yaml`
+- Fake API(`http://localhost:3001/api`)는 리소스 본문을 바로 반환하고, 실제 백엔드는 `status/data/error/timestamp` 래퍼를 사용한다는 점을 함께 반영했습니다(`oneOf` 사용).
+
+활용 방법 예시
+
+1. [Swagger Editor](https://editor.swagger.io/) → **File > Import file**로 로컬 YAML을 불러와 엔드포인트/모델을 탐색합니다.
+2. 로컬 미리보기: `npx @redocly/cli preview-docs openapi/project-prometheus-openapi.yaml` 실행 후 브라우저에서 `http://127.0.0.1:8080` 접속.
+3. 백엔드에 Swagger UI를 붙이고 싶다면 YAML을 서버의 정적 자원으로 제공하고, Swagger UI 초기화 시 `url: '/path/project-prometheus-openapi.yaml'`로 지정하면 됩니다.
+
 ## 참고 문서
 
 - `API_SPECIFICATION.md`: 프론트엔드가 기대하는 API 명세
