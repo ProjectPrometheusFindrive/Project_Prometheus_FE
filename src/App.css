@@ -1150,81 +1150,10 @@ body {
     min-width: 120px;
 }
 
-/* Leaflet Popup Styling */
-.leaflet-popup-content-wrapper {
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    padding: 4px;
-}
+/* Leaflet popup styles removed (migrated to Kakao Maps) */
 
-.leaflet-popup-content {
-    margin: 12px 16px;
-    line-height: 1.5;
-    font-size: 14px;
-    min-width: 200px;
-}
-
-.leaflet-popup-close-button {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 24px !important;
-    height: 24px !important;
-    font-size: 18px !important;
-    line-height: 22px !important;
-    text-align: center !important;
-    color: #666 !important;
-    text-decoration: none !important;
-    font-weight: bold !important;
-    background: rgba(255, 255, 255, 0.8) !important;
-    border-radius: 50% !important;
-    border: 1px solid #ddd !important;
-    transition: all 0.2s ease !important;
-}
-
-.leaflet-popup-close-button:hover {
-    background: #f5f5f5 !important;
-    color: #333 !important;
-    border-color: #bbb !important;
-}
-
-.leaflet-popup-tip-container {
-    margin: 0 auto;
-}
-
-.leaflet-popup-tip {
-    background: white;
-    border: 1px solid #ccc;
-}
-
-/* Map popup specific content styling */
-.popup-content {
-    font-family: inherit;
-}
-
-.popup-content strong {
-    color: #2563eb;
-    font-size: 13px;
-    display: inline;
-    margin: 0;
-    border: none;
-    padding: 0;
-}
-
-.popup-content .status-badge {
-    display: inline-block;
-    padding: 2px 8px;
-    border-radius: 12px;
-    font-size: 12px;
-    font-weight: 600;
-    margin-top: 4px;
-}
-
-/* Simple text-based markers for Leaflet */
-/* Leaflet divIcon markers: ensure our CSS wins regardless of load order */
-.marker,
-.leaflet-marker-icon.marker,
-.leaflet-div-icon.marker {
+/* Marker chip for map legends and icons */
+.marker {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1238,9 +1167,6 @@ body {
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 .marker--car {
-    background: #6b7280;
-}
-.leaflet-marker-icon.marker.marker--car {
     background: #6b7280;
 }
 .marker--rental {
@@ -1261,22 +1187,9 @@ body {
 .marker--suspicious {
     background: #c62828;
 }
-.leaflet-marker-icon.marker.marker--current {
-    background: #1565c0;
-}
-.leaflet-marker-icon.marker.marker--rented {
-    background: #0b57d0;
-}
-.leaflet-marker-icon.marker.marker--overdue {
-    background: #f59e0b;
-}
-.leaflet-marker-icon.marker.marker--suspicious {
-    background: #c62828;
-}
 
 /* Geofence marker: hatch pattern inside circle (gray, 45deg) */
-.marker--geo,
-.leaflet-marker-icon.marker.marker--geo {
+.marker--geo {
     background-color: #f3f4f6; /* light gray base */
     background-image: repeating-linear-gradient(
         45deg,
@@ -1303,96 +1216,7 @@ body {
     height: 16px;
 }
 
-/* MarkerCluster custom cluster icons */
-.cluster,
-.leaflet-marker-icon.cluster {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 40px !important;
-    height: 40px !important;
-    border-radius: 50%;
-    color: #fff;
-    font-weight: 700;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-    border: 2px solid #fff;
-    will-change: transform;
-}
-.cluster__inner {
-    line-height: 1;
-    font-size: 14px;
-}
-.cluster--active {
-    background: #0b57d0;
-}
-.cluster--mixed {
-    background: linear-gradient(180deg, #0b57d0, #0b57d0);
-    color: #fff;
-    position: relative;
-}
-.cluster__count {
-    font-size: 13px;
-    font-weight: 700;
-    line-height: 1;
-}
-.cluster__parts {
-    display: flex;
-    gap: 4px;
-    position: absolute;
-    bottom: -6px;
-    left: 50%;
-    transform: translateX(-50%);
-}
-/* === Cluster badges === */
-.cluster-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 18px;
-    height: 18px;
-    padding: 0 6px;
-    border-radius: 99px;
-    font-size: 11px;
-    color: #fff;
-    font-weight: 700;
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.cluster-badge--rented {
-    background: #0b57d0;
-}
-
-.cluster-badge--overdue {
-    background: #f59e0b;
-}
-
-.cluster-badge--suspicious {
-    background: #c62828;
-}
-.cluster--overdue {
-    background: #f59e0b;
-}
-.cluster--stolen {
-    background: #c62828;
-}
-
-/* Offset clusters so different status groups at same position don't overlap
-   Note: Leaflet positions markers using inline transform; use margins here so offsets apply additively. */
-.leaflet-marker-icon.cluster.cluster--active {
-    margin-left: -50px;
-    margin-top: -50px;
-    z-index: 402 !important;
-}
-.leaflet-marker-icon.cluster.cluster--overdue {
-    margin-left: 50px;
-    margin-top: -50px;
-    z-index: 403 !important;
-}
-.leaflet-marker-icon.cluster.cluster--stolen {
-    margin-left: 50px;
-    margin-top: 50px;
-    z-index: 404 !important;
-}
+/* MarkerCluster styles removed (Leaflet no longer used) */
 
 /* Left navigation (converted from bottom nav) */
 .bottom-nav {
