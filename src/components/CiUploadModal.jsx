@@ -59,7 +59,7 @@ function CiUploadModal({ isOpen, onClose, onSubmit, title = "CI 이미지 업로
         </div>
         <div className="ci-upload-modal__footer">
           <button className="ci-upload-modal__button ci-upload-modal__button--secondary" onClick={onClose}>
-            취소
+            닫기
           </button>
           <button
             className="ci-upload-modal__button ci-upload-modal__button--primary"

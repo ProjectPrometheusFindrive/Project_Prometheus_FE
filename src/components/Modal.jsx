@@ -11,7 +11,7 @@ const Modal = ({
   formId,
   onSubmit,
   submitText = "확인",
-  cancelText = "취소",
+  cancelText = "닫기",
   ariaLabel,
   customHeaderContent,
   className = "",
@@ -79,7 +79,7 @@ const Modal = ({
                       style={{ background: COLORS.GRAY_900 }} 
                       onClick={onClose}
                     >
-                      Close
+                      닫기
                     </button>
                   </div>
                 )}
