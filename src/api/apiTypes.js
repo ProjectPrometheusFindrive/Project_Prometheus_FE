@@ -125,3 +125,12 @@ export function transformRental(rental) {
         updatedAt: rental.updatedAt ? new Date(rental.updatedAt) : null
     };
 }
+
+// Standard operation result format
+export function createOperationResult(success, data = null, error = null) {
+    return {
+        ok: success,
+        data: success ? data : null,
+        error: success ? null : error
+    };
+}

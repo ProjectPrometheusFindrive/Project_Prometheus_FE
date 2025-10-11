@@ -11,7 +11,7 @@ import {
     problemVehiclesApi,
     issuesApi
 } from './apiClient';
-import { API_STATUS } from './apiTypes';
+import { API_STATUS, createOperationResult } from './apiTypes';
 
 // Helper to extract data from standardized response
 function extractData(response) {
@@ -28,6 +28,11 @@ export async function fetchAssets() {
 }
 export async function fetchAssetById(id) {
     const response = await assetsApi.fetchById(id);
+    return extractData(response);
+}
+
+export async function saveAsset(assetId, updatedFields) {
+    const response = await assetsApi.update(assetId, updatedFields);
     return extractData(response);
 }
 
@@ -106,7 +111,7 @@ export async function fetchProblemVehicles() {
 export async function createIssueDraft(data) {
     const response = await issuesApi.create(data);
     if (response.status === API_STATUS.SUCCESS) {
-        return { ok: true, data: response.data };
+        return createOperationResult(true, response.data);
     }
-    return { ok: false, error: response.error?.message || 'Failed to create issue' };
+    return createOperationResult(false, null, response.error?.message || 'Failed to create issue');
 }
