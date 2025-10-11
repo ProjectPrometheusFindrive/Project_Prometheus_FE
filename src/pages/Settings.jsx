@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import { fetchCompanyInfo as loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../api";
-import { COLORS, DIMENSIONS } from "../constants";
 import { CountBadge, GeofenceBadge } from "../components/StatusBadge";
 
 export default function Settings() {

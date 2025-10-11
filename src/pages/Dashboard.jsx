@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Gauge from "../components/Gauge";
 import { fetchAssets, fetchRentals } from "../api";
+import { computeContractStatus } from "../utils/contracts";
 
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
@@ -55,19 +56,8 @@ export default function Dashboard() {
                 const now = new Date();
                 const contractCounts = new Map();
                 (Array.isArray(rentals) ? rentals : []).forEach((r) => {
-                    const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
-                    const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
-                    const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
-                    const isReturned = returnedAt ? now >= returnedAt : false;
-                    if (isReturned) return; // 완료된 계약은 분포에서 제외
-                    const isActive = start && end ? now >= start && now <= end : false;
-                    const isOverdue = end ? now > end : false;
-                    const isStolen = Boolean(r?.reported_stolen);
-                    let status = "예약 중";
-                    if (isStolen) status = "도난의심";
-                    else if (isOverdue) status = "반납지연";
-                    else if (isActive) status = "대여중";
-                    else if (r?.accident_reported) status = "사고접수";
+                    const status = computeContractStatus(r, now);
+                    if (status === "완료") return; // 완료된 계약은 분포에서 제외
                     contractCounts.set(status, (contractCounts.get(status) || 0) + 1);
                 });
                 const contractDist = [...contractCounts.entries()].map(([name, value]) => ({ name, value, rawValue: value }));

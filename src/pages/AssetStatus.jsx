@@ -2,13 +2,20 @@ import React, { useEffect, useMemo, useState } from "react";
 import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset, fetchRentals, createRental, updateRental } from "../api";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
+import InfoGrid from "../components/InfoGrid";
+import AssetDialog from "../components/AssetDialog";
+import InsuranceDialog from "../components/InsuranceDialog";
+import DeviceEventLog from "../components/DeviceEventLog";
+import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Table from "../components/Table";
 import useTableSelection from "../hooks/useTableSelection";
 import { typedStorage } from "../utils/storage";
-import { DIMENSIONS, ASSET } from "../constants";
+import { ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
+import { getManagementStage, withManagementStage, getDiagnosticCount } from "../utils/managementStage";
+import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -20,12 +27,12 @@ const formatVehicleType = (vehicleType) => {
 
     if (match) {
         const yearPart = match[1];
-        const modelPart = vehicleType.replace(yearPattern, '').trim();
+        const modelPart = vehicleType.replace(yearPattern, "").trim();
 
         return (
             <span>
                 {modelPart}
-                {modelPart && yearPart && ' '}
+                {modelPart && yearPart && " "}
                 <span className="text-xs text-muted">{yearPart}</span>
             </span>
         );
@@ -33,12 +40,6 @@ const formatVehicleType = (vehicleType) => {
 
     return vehicleType;
 };
-import InfoGrid from "../components/InfoGrid";
-import AssetDialog from "../components/AssetDialog";
-import InsuranceDialog from "../components/InsuranceDialog";
-import DeviceEventLog from "../components/DeviceEventLog";
-import RentalForm from "../components/forms/RentalForm";
-import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
 
 // 진단 코드 유틸: 배열 기반만 사용
 const normalizeDiagnosticList = (asset) => {
@@ -59,10 +60,6 @@ const normalizeDiagnosticList = (asset) => {
     return [];
 };
 
-const getDiagnosticCount = (asset) => {
-    const raw = asset?.diagnosticCodes;
-    return Array.isArray(raw) ? raw.length : 0;
-};
 
 const severityNumber = (s) => {
     if (typeof s === "number") return Math.max(0, Math.min(10, s));
@@ -79,7 +76,6 @@ const severityNumber = (s) => {
 
 const severityClass = (n) => (n <= 3 ? "low" : n <= 7 ? "medium" : "high");
 
-const MANAGEMENT_STAGE_DEFAULT = "대여가능";
 const MANAGEMENT_STAGE_SET = new Set(MANAGEMENT_STAGE_OPTIONS.map((opt) => opt.value));
 const MANAGEMENT_STAGE_BADGE_CLASS = {
     대여가능: "badge--available",
@@ -88,76 +84,6 @@ const MANAGEMENT_STAGE_BADGE_CLASS = {
     "입고 대상": "badge--default",
     "수리/점검 중": "badge--maintenance",
     "수리/점검 완료": "badge--completed",
-};
-const LEGACY_STAGE_MAP = new Map([
-    ["대여 중", "대여중"],
-    ["대여 가능", "대여가능"],
-    ["입고대상", "입고 대상"],
-    ["입고 대상", "입고 대상"],
-    ["전산등록완료", "입고 대상"],
-    ["전산등록 완료", "입고 대상"],
-    ["단말 장착 완료", "대여가능"],
-    ["수리/점검 중", "수리/점검 중"],
-    ["수리/점검 완료", "수리/점검 완료"],
-]);
-
-// 요청된 단계 우선순위와 기존 자산 정보를 기반으로 관리단계를 계산
-const getManagementStage = (asset = {}) => {
-    if (!asset) return MANAGEMENT_STAGE_DEFAULT;
-
-    const current = asset.managementStage;
-    if (current) {
-        if (MANAGEMENT_STAGE_SET.has(current)) {
-            return current;
-        }
-        const legacy = LEGACY_STAGE_MAP.get(current.trim());
-        if (legacy) {
-            return legacy;
-        }
-    }
-
-    const vehicleStatus = (asset.vehicleStatus || "").trim();
-    const registrationStatus = (asset.registrationStatus || "").trim();
-    const deviceSerial = (asset.deviceSerial || "").trim();
-    const totalIssues = getDiagnosticCount(asset);
-
-    if (vehicleStatus === "대여중" || vehicleStatus === "운행중" || vehicleStatus === "반납대기") {
-        return "대여중";
-    }
-    if (vehicleStatus === "예약중") {
-        return "예약중";
-    }
-    if (vehicleStatus === "정비중" || vehicleStatus === "수리중" || vehicleStatus === "점검중" || vehicleStatus === "도난추적") {
-        return "수리/점검 중";
-    }
-
-    if (totalIssues > 0) {
-        return "수리/점검 중";
-    }
-
-    if (!deviceSerial) {
-        return "입고 대상";
-    }
-
-    if (vehicleStatus === "대기중" || vehicleStatus === "유휴" || vehicleStatus === "대여가능" || vehicleStatus === "준비중") {
-        return "대여가능";
-    }
-
-    if (vehicleStatus === "수리완료" || vehicleStatus === "점검완료") {
-        return "수리/점검 완료";
-    }
-
-    if (registrationStatus === "장비부착 완료" || registrationStatus === "장비장착 완료" || registrationStatus === "보험등록 완료") {
-        return "대여가능";
-    }
-
-    return MANAGEMENT_STAGE_DEFAULT;
-};
-
-const withManagementStage = (asset) => {
-    if (!asset) return asset;
-    const stage = getManagementStage(asset);
-    return { ...asset, managementStage: stage };
 };
 
 export default function AssetStatus() {

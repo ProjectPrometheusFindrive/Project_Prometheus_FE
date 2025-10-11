@@ -1,13 +1,14 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { fetchRentals, saveAsset, updateRental } from "../api";
+import { fetchRentals, updateRental } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import AccidentInfoModal from "../components/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
-import { DIMENSIONS } from "../constants";
-import { formatLocation } from "../utils/format";
+import { FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo, FaCheck } from "react-icons/fa";
+import { FiAlertTriangle } from "react-icons/fi";
+import { computeContractStatus, toDate } from "../utils/contracts";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -32,8 +33,6 @@ const formatVehicleType = (vehicleType) => {
 
     return vehicleType;
 };
-import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo, FaCheck } from "react-icons/fa";
-import { FiAlertTriangle } from "react-icons/fi";
 
 const DEFAULT_COLUMN_CONFIG = [
     { key: "select", label: "선택", visible: true, required: true, width: 36 },
@@ -177,45 +176,26 @@ export default function RentalContracts() {
         const now = new Date();
         return items
             .filter((r) => {
-                // 종료된 계약 필터링: contract_status가 "완료"이거나 returned_at가 현재 이전/같으면 제외
-                const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
-                const isReturned = returnedAt ? now >= returnedAt : false;
-                if (r.contract_status === "완료" || isReturned) return false;
+                // 완료 제외
+                const status = computeContractStatus(r, now);
+                if (status === "완료") return false;
 
-                const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
-                const isOverdue = !isReturned && end ? now > end : false;
-                const isStolen = Boolean(r.reported_stolen);
+                // 문제 상태는 항상 표시
+                if (status === "반납지연" || status === "도난의심" || status === "사고접수") return true;
 
-                // 반납지연, 도난의심, 사고접수 등의 문제가 있는 경우는 표시
-                if (isOverdue || isStolen || r.accident_reported) return true;
-
-                // 현재 진행중인 계약만 표시 (예약중, 대여중)
-                const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
-                const isActive = !isReturned && start && end ? now >= start && now <= end : false;
-                const isFuture = start ? now < start : false;
-
+                // 진행/예약 상태만 표시
+                const start = toDate(r?.rental_period?.start);
+                const isFuture = !!(start && now < start);
+                const end = toDate(r?.rental_period?.end);
+                const isActive = !!(start && end && now >= start && now <= end);
                 return isActive || isFuture;
             })
             .map((r) => {
-                const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
-                const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
-                const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
-                const isReturned = returnedAt ? now >= returnedAt : false;
-                const isActive = !isReturned && start && end ? now >= start && now <= end : false;
-                const isOverdue = !isReturned && end ? now > end : false;
-                const isStolen = Boolean(r.reported_stolen);
+                const now = new Date();
+                const start = toDate(r?.rental_period?.start);
+                const end = toDate(r?.rental_period?.end);
                 const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
-                // 계약 상태 결정
-                let contractStatus = "예약 중";
-                if (isStolen) {
-                    contractStatus = "도난의심";
-                } else if (isOverdue) {
-                    contractStatus = "반납지연";
-                } else if (isActive) {
-                    contractStatus = "대여중";
-                } else if (r.accident_reported) {
-                    contractStatus = "사고접수";
-                }
+                const status = computeContractStatus(r, now);
 
                 // 대여금액 관련 정보
                 const isLongTerm = (r.rental_duration_days || 0) > 30;
@@ -223,11 +203,11 @@ export default function RentalContracts() {
 
                 return {
                     ...r,
-                    isActive,
-                    isOverdue,
-                    isStolen,
+                    isActive: status === "대여중",
+                    isOverdue: status === "반납지연",
+                    isStolen: status === "도난의심",
                     overdueDays,
-                    contractStatus,
+                    contractStatus: status,
                     isLongTerm,
                     hasUnpaid,
                     engineOn: r.engine_status === "on",
