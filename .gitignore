@@ -53,3 +53,6 @@ temp/
 ### Claude code
 .claude/
 CLAUDE.md
+
+### instant python codes
+*.py
