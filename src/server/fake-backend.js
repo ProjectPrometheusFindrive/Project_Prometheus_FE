@@ -43,7 +43,7 @@ const delay = (ms = 100) => new Promise(resolve => setTimeout(resolve, ms));
 // In seed.json, root is the vehicles map
 const getVehiclesArray = () => Object.values(data);
 
-// Compute 4-stage vehicle health status: "-", "정상", "관심필요", "조치필요"
+// Compute vehicle health status based on max diagnostic severity: "-", "정상", "관심필요", "심각"
 const MANAGEMENT_STAGE_VALUES = new Set([
   "대여중",
   "대여가능",
@@ -77,12 +77,8 @@ const deriveManagementStage = (asset = {}) => {
   const vehicleStatus = (asset.vehicleStatus || '').trim();
   const registrationStatus = (asset.registrationStatus || '').trim();
   const deviceSerial = (asset.deviceSerial || '').trim();
-  const diagnosticCodes = asset.diagnosticCodes || {};
-  const totalIssues =
-    Number(diagnosticCodes.category1 || 0) +
-    Number(diagnosticCodes.category2 || 0) +
-    Number(diagnosticCodes.category3 || 0) +
-    Number(diagnosticCodes.category4 || 0);
+  const dc = asset.diagnosticCodes;
+  const totalIssues = Array.isArray(dc) ? dc.length : 0;
 
   if (vehicleStatus === '대여중' || vehicleStatus === '운행중' || vehicleStatus === '반납대기') {
     return '대여중';
@@ -117,21 +113,29 @@ const deriveManagementStage = (asset = {}) => {
   return MANAGEMENT_STAGE_DEFAULT;
 };
 
-const computeDiagnosticStatus = (asset, rental) => {
+const computeDiagnosticStatus = (asset) => {
   try {
-    if (!asset || !asset.deviceSerial) return "-";
-    // Critical: stolen => 조치필요
-    if (rental && rental.reported_stolen) return "조치필요";
-    // Overdue rental => 관심필요
-    const now = new Date();
-    const end = rental?.rental_period?.end ? new Date(rental.rental_period.end) : null;
-    if (end && now > end) return "관심필요";
-    // Insurance expiring within 30 days => 관심필요
-    const exp = asset.insuranceExpiryDate ? new Date(asset.insuranceExpiryDate) : null;
-    if (exp && (exp - now) / (1000 * 60 * 60 * 24) <= 30) return "관심필요";
-    return "정상";
+    if (!asset || !asset.deviceSerial || !String(asset.deviceSerial).trim()) return '-';
+    const list = Array.isArray(asset?.diagnosticCodes) ? asset.diagnosticCodes : [];
+    const toNum = (x) => {
+      const v = x?.severity;
+      if (typeof v === 'number') return Math.max(0, Math.min(10, v));
+      if (typeof v === 'string') {
+        const m = v.trim();
+        if (m === '낮음') return 2;
+        if (m === '보통') return 5;
+        if (m === '높음') return 8;
+        const n = parseFloat(m);
+        return isNaN(n) ? 0 : Math.max(0, Math.min(10, n));
+      }
+      return 0;
+    };
+    const max = list.reduce((acc, it) => Math.max(acc, toNum(it)), 0);
+    if (max <= 3) return '정상';
+    if (max <= 7) return '관심필요';
+    return '심각';
   } catch {
-    return "-";
+    return '-';
   }
 };
 

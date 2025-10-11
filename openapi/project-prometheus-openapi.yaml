@@ -766,21 +766,14 @@ components:
         diagnosticStatus:
           type: string
           nullable: true
-          enum: ["-", "정상", "관심필요", "조치필요"]
+          enum: ["-", "정상", "관심필요", "심각"]
           description: 진단 배지 상태
         diagnosticCodes:
-          type: object
+          type: array
           nullable: true
-          description: 진단 카테고리별 코드 개수
-          properties:
-            category1:
-              type: integer
-            category2:
-              type: integer
-            category3:
-              type: integer
-            category4:
-              type: integer
+          description: 차량 진단 코드 목록
+          items:
+            $ref: '#/components/schemas/DiagnosticEntry'
         deviceSerial:
           type: string
           nullable: true
@@ -895,18 +888,11 @@ components:
           enum: ["대여중", "대여가능", "예약중", "입고 대상", "수리/점검 중", "수리/점검 완료"]
         diagnosticStatus:
           type: string
-          enum: ["-", "정상", "관심필요", "조치필요"]
+          enum: ["-", "정상", "관심필요", "심각"]
         diagnosticCodes:
-          type: object
-          properties:
-            category1:
-              type: integer
-            category2:
-              type: integer
-            category3:
-              type: integer
-            category4:
-              type: integer
+          type: array
+          items:
+            $ref: '#/components/schemas/DiagnosticEntry'
         deviceSerial:
           type: string
         deviceInstallDate:
@@ -984,18 +970,11 @@ components:
           enum: ["대여중", "대여가능", "예약중", "입고 대상", "수리/점검 중", "수리/점검 완료"]
         diagnosticStatus:
           type: string
-          enum: ["-", "정상", "관심필요", "조치필요"]
+          enum: ["-", "정상", "관심필요", "심각"]
         diagnosticCodes:
-          type: object
-          properties:
-            category1:
-              type: integer
-            category2:
-              type: integer
-            category3:
-              type: integer
-            category4:
-              type: integer
+          type: array
+          items:
+            $ref: '#/components/schemas/DiagnosticEntry'
         deviceSerial:
           type: string
         deviceInstallDate:
@@ -1031,6 +1010,24 @@ components:
             $ref: '#/components/schemas/InsuranceHistoryEntry'
         memo:
           type: string
+    DiagnosticEntry:
+      type: object
+      description: 차량 진단 코드 항목
+      properties:
+        code:
+          type: string
+          description: 진단 코드
+        description:
+          type: string
+          description: 코드 설명
+        severity:
+          type: string
+          description: 심각도
+          enum: ["낮음", "보통", "높음"]
+        detectedDate:
+          type: string
+          format: date
+          description: 최초 발견일
     RentalCustomer:
       type: object
       required: [name, phone, address, licenseNumber]

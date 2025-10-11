@@ -127,8 +127,14 @@ DELETE /assets/{id}
 #### Asset Fields (추가)
 
 -   `diagnosticStatus` (string): 차량 상태 값. 백엔드에서 제공하며 프론트는 그대로 표시.
-    -   값: "-", "정상", "관심필요", "조치필요"
+    -   값: "-", "정상", "관심필요", "심각"
+    -   기준: 모든 `diagnosticCodes.severity`의 최댓값을 사용하여 분류(정상 ≤ 3.0, 관심필요 ≤ 7.0, 심각 > 7.0).
     -   배지를 클릭하면 진단 코드/내용 상세 모달을 노출.
+-   `diagnosticCodes` (array): 차량 진단 코드 목록. 각 항목은 아래 필드를 가진다.
+    -   `code` (string): 진단 코드
+    -   `description` (string): 코드 설명(내용)
+    -   `severity` (number): 0.0 ~ 10.0 범위의 소수점 1자리
+    -   `detectedDate` (string, YYYY-MM-DD): 발생일
 -   `managementStage` (string): 관리 단계. 프론트의 드롭다운에서 선택하며 `saveAsset(id, { managementStage })` 형태로 즉시 저장된다.
     -   허용값: "대여중", "대여가능", "예약중", "입고 대상", "수리/점검 중", "수리/점검 완료"
     -   페이크/실제 API 모두 해당 필드를 응답 및 저장 동작에 포함한다.

@@ -40,51 +40,44 @@ import DeviceEventLog from "../components/DeviceEventLog";
 import RentalForm from "../components/forms/RentalForm";
 import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
 
-// 진단 코드 분류별 개수를 계산하는 함수
-const calculateDiagnosticCodes = (vehicle) => {
-    // 각 차량의 진단 코드 데이터를 기반으로 분류별 개수 계산
-    const codes = vehicle.diagnosticCodes || {};
-    return {
-        분류1: codes.category1 || 0,
-        분류2: codes.category2 || 0,
-        분류3: codes.category3 || 0,
-        분류4: codes.category4 || 0,
-    };
+// 진단 코드 유틸: 배열 기반만 사용
+const normalizeDiagnosticList = (asset) => {
+    const raw = asset?.diagnosticCodes;
+    if (Array.isArray(raw)) {
+        // 이미 개별 코드 배열 형태인 경우 정규화
+        return raw
+            .filter(Boolean)
+            .map((it, idx) => ({
+                id: it.id || `${asset?.id || asset?.vin || "asset"}-diag-${idx}`,
+                code: it.code || "",
+                description: it.description || it.content || it.note || "",
+                severity: it.severity || it.level || "낮음",
+                detectedDate: it.detectedDate || it.date || it.detected_at || "",
+            }));
+    }
+    // 배열 데이터가 없으면 빈 목록 반환
+    return [];
 };
 
-// 진단 코드 세부 정보를 생성하는 함수
-const generateDiagnosticDetails = (category, count, vehicleInfo) => {
-    const categoryNames = {
-        분류1: "엔진/동력계",
-        분류2: "브레이크/안전",
-        분류3: "전기/전자",
-        분류4: "편의/기타",
-    };
-
-    const sampleIssues = {
-        분류1: ["엔진 온도 이상", "연료 시스템 경고", "배기가스 수치 높음", "터보차저 압력 부족", "점화 플러그 교체 필요"],
-        분류2: ["브레이크 패드 마모", "ABS 센서 오류", "타이어 공기압 부족", "안전벨트 센서 이상", "에어백 경고등"],
-        분류3: ["배터리 전압 부족", "충전 시스템 이상", "ECU 통신 오류", "센서 데이터 불일치", "전조등 오작동"],
-        분류4: ["에어컨 냉매 부족", "파워 스티어링 오일", "와이퍼 교체 필요", "오디오 시스템 오류", "도어락 작동 불량"],
-    };
-
-    const issues = sampleIssues[category] || [];
-    const selectedIssues = issues.slice(0, Math.min(count, issues.length));
-
-    return {
-        category,
-        categoryName: categoryNames[category] || category,
-        count,
-        vehicleInfo,
-        issues: selectedIssues.map((issue, index) => ({
-            id: `${category}-${index}`,
-            code: `${category.slice(-1)}${String(index + 1).padStart(3, "0")}`,
-            description: issue,
-            severity: Math.random() > 0.7 ? "높음" : Math.random() > 0.4 ? "보통" : "낮음",
-            detectedDate: new Date(Date.now() - Math.random() * 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-        })),
-    };
+const getDiagnosticCount = (asset) => {
+    const raw = asset?.diagnosticCodes;
+    return Array.isArray(raw) ? raw.length : 0;
 };
+
+const severityNumber = (s) => {
+    if (typeof s === "number") return Math.max(0, Math.min(10, s));
+    if (typeof s === "string") {
+        const m = s.trim();
+        if (m === "낮음") return 2;
+        if (m === "보통") return 5;
+        if (m === "높음") return 8;
+        const n = parseFloat(m);
+        return isNaN(n) ? 0 : Math.max(0, Math.min(10, n));
+    }
+    return 0;
+};
+
+const severityClass = (n) => (n <= 3 ? "low" : n <= 7 ? "medium" : "high");
 
 const MANAGEMENT_STAGE_DEFAULT = "대여가능";
 const MANAGEMENT_STAGE_SET = new Set(MANAGEMENT_STAGE_OPTIONS.map((opt) => opt.value));
@@ -126,8 +119,7 @@ const getManagementStage = (asset = {}) => {
     const vehicleStatus = (asset.vehicleStatus || "").trim();
     const registrationStatus = (asset.registrationStatus || "").trim();
     const deviceSerial = (asset.deviceSerial || "").trim();
-    const diagnosticCodes = asset.diagnosticCodes || {};
-    const totalIssues = Number(diagnosticCodes.category1 || 0) + Number(diagnosticCodes.category2 || 0) + Number(diagnosticCodes.category3 || 0) + Number(diagnosticCodes.category4 || 0);
+    const totalIssues = getDiagnosticCount(asset);
 
     if (vehicleStatus === "대여중" || vehicleStatus === "운행중" || vehicleStatus === "반납대기") {
         return "대여중";
@@ -653,55 +645,23 @@ export default function AssetStatus() {
         setShowAssetModal(true);
     };
 
-    const openDiagnosticModal = (vehicle, category, count) => {
-        const detail = generateDiagnosticDetails(category, count, {
-            plate: vehicle.plate,
-            vehicleType: vehicle.vehicleType,
-            id: vehicle.id,
-        });
+    const openDiagnosticModal = (vehicle) => {
+        const issues = normalizeDiagnosticList(vehicle);
+        const detail = {
+            category: "ALL",
+            categoryName: "전체 진단",
+            count: issues.length,
+            vehicleInfo: { plate: vehicle.plate, vehicleType: vehicle.vehicleType, id: vehicle.id },
+            issues,
+        };
         setDiagnosticDetail(detail);
         setShowDiagnosticModal(true);
     };
 
     // 상태 배지 클릭 시: 백엔드 제공 상태값 기반으로 종합 진단 상세 표시
     const openDiagnosticModalFromStatus = (vehicle) => {
-        const statusLabel = vehicle.diagnosticStatus || "-";
-        const countsFromStatus = (label) => {
-            switch (label) {
-                case "관심필요":
-                    return { 분류1: 2, 분류2: 1, 분류3: 0, 분류4: 1 };
-                case "조치필요":
-                    return { 분류1: 3, 분류2: 2, 분류3: 2, 분류4: 3 };
-                case "정상":
-                case "-":
-                default:
-                    return { 분류1: 0, 분류2: 0, 분류3: 0, 분류4: 0 };
-            }
-        };
-        const fromStatus = countsFromStatus(statusLabel);
-        const fallback = calculateDiagnosticCodes(vehicle);
-        const counts = Object.values(fallback).some((v) => v > 0) ? fallback : fromStatus;
-
-        const categories = ["분류1", "분류2", "분류3", "분류4"];
-        const total = categories.reduce((acc, c) => acc + (counts[c] || 0), 0);
-        const mergedIssues = categories.flatMap(
-            (c) =>
-                generateDiagnosticDetails(c, counts[c] || 0, {
-                    plate: vehicle.plate,
-                    vehicleType: vehicle.vehicleType,
-                    id: vehicle.id,
-                }).issues
-        );
-
-        const detail = {
-            category: "ALL",
-            categoryName: "전체 진단",
-            count: total,
-            vehicleInfo: { plate: vehicle.plate, vehicleType: vehicle.vehicleType, id: vehicle.id },
-            issues: mergedIssues,
-        };
-        setDiagnosticDetail(detail);
-        setShowDiagnosticModal(true);
+        // 상태 배지 클릭 시에도 실제 데이터 기반 목록을 그대로 노출
+        openDiagnosticModal(vehicle);
     };
 
     const handleDeviceInfoSubmit = (form) => {
@@ -959,9 +919,11 @@ export default function AssetStatus() {
                 const status = hasDevice ? "연결됨" : "미연결";
                 return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
             case "severity": {
-                const val = Number.isFinite(Number(row.severity)) ? Number(row.severity) : null;
-                return val === null ? "-" : (
-                    <span className="badge" title={`심각도 ${val} / 10`}>{val} / 10</span>
+                const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+                if (arr.length === 0) return "-";
+                const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+                return (
+                    <span className="badge" title={`심각도 ${max.toFixed(1)} / 10`}>{max.toFixed(1)} / 10</span>
                 );
             }
             case "managementStage": {
@@ -1102,7 +1064,7 @@ export default function AssetStatus() {
                     "-": "badge--default",
                     정상: "badge--normal",
                     관심필요: "badge--overdue",
-                    조치필요: "badge--maintenance",
+                    심각: "badge--maintenance",
                 };
                 const cls = clsMap[label] || "badge--default";
                 return label === "-" ? (
@@ -1119,25 +1081,18 @@ export default function AssetStatus() {
                 );
             }
             case "diagnosticCodes":
-                const codes = calculateDiagnosticCodes(row);
-                return (
-                    <div className="flex gap-4 flex-wrap">
-                        {Object.entries(codes).map(
-                            ([category, count]) =>
-                                count > 0 && (
-                                    <button
-                                        key={category}
-                                        type="button"
-                                        className="badge badge--diagnostic badge--clickable badge--compact"
-                                        onClick={() => openDiagnosticModal(row, category, count)}
-                                        title={`${category} 세부 진단 보기`}
-                                    >
-                                        {category} {count}개
-                                    </button>
-                                )
-                        )}
-                        {Object.values(codes).every((count) => count === 0) && <span className="badge badge--normal">정상</span>}
-                    </div>
+                const dcount = getDiagnosticCount(row);
+                return dcount > 0 ? (
+                    <button
+                        type="button"
+                        className="badge badge--diagnostic badge--clickable badge--compact"
+                        onClick={() => openDiagnosticModal(row)}
+                        title="진단 코드 상세 보기"
+                    >
+                        진단 {dcount}개
+                    </button>
+                ) : (
+                    <span className="badge badge--normal">정상</span>
                 );
             case "memo":
                 return (
@@ -1436,16 +1391,22 @@ export default function AssetStatus() {
                                         <div>코드</div>
                                         <div>내용</div>
                                         <div>심각도</div>
-                                        <div>발견일</div>
+                                        <div>발생일</div>
                                     </div>
                                     {diagnosticDetail.issues.map((issue) => (
                                         <div key={issue.id} className="diagnostic-table-row">
                                             <div className="diagnostic-code">{issue.code}</div>
                                             <div className="diagnostic-description">{issue.description}</div>
                                             <div>
-                                                <span className={`badge diagnostic-severity diagnostic-severity--${issue.severity === "높음" ? "high" : issue.severity === "보통" ? "medium" : "low"}`}>
-                                                    {issue.severity}
-                                                </span>
+                                                {(() => {
+                                                    const val = severityNumber(issue.severity);
+                                                    const cls = severityClass(val);
+                                                    return (
+                                                        <span className={`badge diagnostic-severity diagnostic-severity--${cls}`}>
+                                                            {val.toFixed(1)}
+                                                        </span>
+                                                    );
+                                                })()}
                                             </div>
                                             <div className="diagnostic-date">{issue.detectedDate}</div>
                                         </div>

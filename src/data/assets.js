@@ -59,13 +59,27 @@ const deriveHistory = (a) => {
 
 const computeDiagnosticStatus = (a) => {
   try {
-    if (!a || !a.deviceSerial) return "-";
-    const now = new Date();
-    const exp = a.insuranceExpiryDate ? new Date(a.insuranceExpiryDate) : null;
-    if (exp && (exp - now) / (1000 * 60 * 60 * 24) <= 30) return "관심필요";
-    return "정상";
+    if (!a || !a.deviceSerial || !String(a.deviceSerial).trim()) return "-";
+    const list = Array.isArray(a?.diagnosticCodes) ? a.diagnosticCodes : [];
+    const toNum = (x) => {
+      const v = x?.severity;
+      if (typeof v === 'number') return Math.max(0, Math.min(10, v));
+      if (typeof v === 'string') {
+        const m = v.trim();
+        if (m === '낮음') return 2;
+        if (m === '보통') return 5;
+        if (m === '높음') return 8;
+        const n = parseFloat(m);
+        return isNaN(n) ? 0 : Math.max(0, Math.min(10, n));
+      }
+      return 0;
+    };
+    const max = list.reduce((acc, it) => Math.max(acc, toNum(it)), 0);
+    if (max <= 3) return '정상';
+    if (max <= 7) return '관심필요';
+    return '심각';
   } catch {
-    return "-";
+    return '-';
   }
 };
 

@@ -37,12 +37,8 @@ const deriveManagementStage = (asset = {}) => {
   const vehicleStatus = (asset.vehicleStatus || "").trim();
   const registrationStatus = (asset.registrationStatus || "").trim();
   const deviceSerial = (asset.deviceSerial || "").trim();
-  const diagnosticCodes = asset.diagnosticCodes || {};
-  const totalIssues =
-    Number(diagnosticCodes.category1 || 0) +
-    Number(diagnosticCodes.category2 || 0) +
-    Number(diagnosticCodes.category3 || 0) +
-    Number(diagnosticCodes.category4 || 0);
+  const dc = asset.diagnosticCodes;
+  const totalIssues = Array.isArray(dc) ? dc.length : 0;
 
   if (vehicleStatus === "대여중" || vehicleStatus === "운행중" || vehicleStatus === "반납대기") {
     return "대여중";
