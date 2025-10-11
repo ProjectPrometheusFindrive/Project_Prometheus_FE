@@ -5,6 +5,18 @@ import { fetchAssets, fetchRentals } from "../api";
 
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
+// 도넛 차트 중심에 표시할 총계 컴포넌트
+const CenterTotal = ({ data, x, y, unit = "대" }) => {
+    const total = data.reduce((sum, item) => sum + (item.value || 0), 0);
+    return (
+        <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="recharts-text recharts-label">
+            <tspan x={x} dy="-0.5em" fontSize="32" fontWeight="700" fill="#333">
+                {total}
+            </tspan>
+        </text>
+    );
+};
+
 export default function Dashboard() {
     const RAD = Math.PI / 180;
     const renderDonutLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, payload }) => {
@@ -45,6 +57,9 @@ export default function Dashboard() {
                 (Array.isArray(rentals) ? rentals : []).forEach((r) => {
                     const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
                     const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
+                    const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
+                    const isReturned = returnedAt ? now >= returnedAt : false;
+                    if (isReturned) return; // 완료된 계약은 분포에서 제외
                     const isActive = start && end ? now >= start && now <= end : false;
                     const isOverdue = end ? now > end : false;
                     const isStolen = Boolean(r?.reported_stolen);
@@ -93,7 +108,7 @@ export default function Dashboard() {
                                         nameKey="name"
                                         cx="50%"
                                         cy="50%"
-                                        innerRadius="48%"
+                                        innerRadius="40%"
                                         outerRadius="78%"
                                         paddingAngle={2}
                                         label={renderDonutLabel}
@@ -103,6 +118,7 @@ export default function Dashboard() {
                                             <Cell key={`cell-v-${i}`} fill={COLORS[i % COLORS.length]} />
                                         ))}
                                     </Pie>
+                                    <CenterTotal data={vehicleStatus} x="50%" y="50%" unit="대" />
                                     <Tooltip />
                                     <Legend verticalAlign="bottom" height={24} />
                                 </PieChart>
@@ -131,6 +147,7 @@ export default function Dashboard() {
                                             <Cell key={`cell-b-${i}`} fill={COLORS[(i + 1) % COLORS.length]} />
                                         ))}
                                     </Pie>
+                                    <CenterTotal data={bizStatusLabeled} x="50%" y="50%" unit="건" />
                                     <Tooltip />
                                     <Legend verticalAlign="bottom" height={24} />
                                 </PieChart>
