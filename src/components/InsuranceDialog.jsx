@@ -1,7 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { formatDateShort } from "../utils/date";
 
-export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false }) {
+import { useEffect } from "react";
+
+export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false, allowEditToggle = false }) {
   const [form, setForm] = useState({
     insuranceCompany: asset.insuranceCompany || asset.insuranceInfo || "",
     insuranceProduct: asset.insuranceProduct || "",
@@ -11,6 +13,11 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     insuranceDoc: null,
     insuranceDocDataUrl: asset.insuranceDocDataUrl || "",
   });
+
+  const [isReadOnly, setIsReadOnly] = useState(!!readOnly);
+  useEffect(() => {
+    setIsReadOnly(!!readOnly);
+  }, [readOnly]);
 
   const onFile = (e) => {
     const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
@@ -73,7 +80,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
         <div className="asset-doc" style={{ marginBottom: 12 }}>
           <div className="asset-doc__title">보험증권 등록</div>
           <div className="asset-doc__box" aria-label="보험증권 파일 업로드">
-            {readOnly ? (
+            {isReadOnly ? (
               <div className="asset-doc__placeholder">
                 {asset.insuranceDocName || (asset.insuranceDocDataUrl ? "등록된 파일" : "등록된 파일 없음")}
               </div>
@@ -89,22 +96,22 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
         <div className="asset-info grid-info">
           {infoRow(
             "보험사명",
-            <input className="form-input" value={form.insuranceCompany} onChange={(e) => setForm((p) => ({ ...p, insuranceCompany: e.target.value }))} placeholder="예: 현대해상" disabled={readOnly} />
+            <input className="form-input" value={form.insuranceCompany} onChange={(e) => setForm((p) => ({ ...p, insuranceCompany: e.target.value }))} placeholder="예: 현대해상" disabled={isReadOnly} />
           )}
           {infoRow(
             "보험 상품",
-            <input className="form-input" value={form.insuranceProduct} onChange={(e) => setForm((p) => ({ ...p, insuranceProduct: e.target.value }))} placeholder="예: 자동차종합보험(개인용)" disabled={readOnly} />
+            <input className="form-input" value={form.insuranceProduct} onChange={(e) => setForm((p) => ({ ...p, insuranceProduct: e.target.value }))} placeholder="예: 자동차종합보험(개인용)" disabled={isReadOnly} />
           )}
           {infoRow(
             "보험 가입일",
-            <input className="form-input" type="date" value={form.insuranceStartDate} onChange={(e) => setForm((p) => ({ ...p, insuranceStartDate: e.target.value }))} disabled={readOnly} />
+            <input className="form-input" type="date" value={form.insuranceStartDate} onChange={(e) => setForm((p) => ({ ...p, insuranceStartDate: e.target.value }))} disabled={isReadOnly} />
           )}
           {infoRow(
             "보험 만료일",
-            <input className="form-input" type="date" value={form.insuranceExpiryDate} onChange={(e) => setForm((p) => ({ ...p, insuranceExpiryDate: e.target.value }))} disabled={readOnly} />
+            <input className="form-input" type="date" value={form.insuranceExpiryDate} onChange={(e) => setForm((p) => ({ ...p, insuranceExpiryDate: e.target.value }))} disabled={isReadOnly} />
           )}
           <div className="asset-info__label">특약사항</div>
-          <textarea className="form-input" rows={3} value={form.specialTerms} onChange={(e) => setForm((p) => ({ ...p, specialTerms: e.target.value }))} placeholder="예: 긴급출동 포함, 자기부담금 20만원" disabled={readOnly} />
+          <textarea className="form-input" rows={3} value={form.specialTerms} onChange={(e) => setForm((p) => ({ ...p, specialTerms: e.target.value }))} placeholder="예: 긴급출동 포함, 자기부담금 20만원" disabled={isReadOnly} />
         </div>
 
         {Array.isArray(asset.insuranceHistory) && asset.insuranceHistory.length > 0 && (
@@ -132,8 +139,13 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       </div>
 
       <div className="asset-dialog__footer">
-        {!readOnly && (
-          <button type="button" className="form-button" onClick={handleSave} style={{ marginRight: 8 }}>등록</button>
+        {(!isReadOnly) && (
+          <button type="button" className="form-button" onClick={handleSave} style={{ marginRight: 8 }}>
+            {(asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) ? '저장' : '등록'}
+          </button>
+        )}
+        {allowEditToggle && isReadOnly && (asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) && (
+          <button type="button" className="form-button" onClick={() => setIsReadOnly(false)} style={{ marginRight: 8 }}>수정</button>
         )}
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>

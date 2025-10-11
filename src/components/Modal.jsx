@@ -15,7 +15,8 @@ const Modal = ({
   ariaLabel,
   customHeaderContent,
   className = "",
-  size = "default"
+  size = "default",
+  showHeaderClose = true
 }) => {
   if (!isOpen) return null;
 
@@ -70,16 +71,18 @@ const Modal = ({
             ) : (
               <>
                 <strong>{title}</strong>
-                <div style={{ marginLeft: "auto" }}>
-                  <button 
-                    type="button" 
-                    className="form-button" 
-                    style={{ background: COLORS.GRAY_900 }} 
-                    onClick={onClose}
-                  >
-                    Close
-                  </button>
-                </div>
+                {showHeaderClose && (
+                  <div style={{ marginLeft: "auto" }}>
+                    <button 
+                      type="button" 
+                      className="form-button" 
+                      style={{ background: COLORS.GRAY_900 }} 
+                      onClick={onClose}
+                    >
+                      Close
+                    </button>
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -100,4 +103,3 @@ const Modal = ({
 };
 
 export default Modal;
-
