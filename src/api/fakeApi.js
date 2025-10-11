@@ -314,6 +314,47 @@ export async function fetchRentalById(rentalId) {
   }
 }
 
+export async function createRental(data) {
+  try {
+    return await postJSON(`${API_BASE_URL}/rentals`, data);
+  } catch (error) {
+    // Fallback: store as draft
+    try {
+      const arr = JSON.parse(localStorage.getItem("rentalDrafts") || "[]");
+      const rental_id = data?.rental_id && String(data.rental_id).trim() ? data.rental_id : Date.now();
+      const normalized = {
+        ...data,
+        rental_id,
+        rental_period: data?.rental_period || { start: data?.start || "", end: data?.end || "" },
+      };
+      arr.push({ ...normalized, createdAt: new Date().toISOString() });
+      localStorage.setItem("rentalDrafts", JSON.stringify(arr));
+      return normalized;
+    } catch (e) {
+      console.error("createRental fallback failed", e);
+      throw error;
+    }
+  }
+}
+
+export async function updateRental(rentalId, patch) {
+  try {
+    return await putJSON(`${API_BASE_URL}/rentals/${rentalId}`, patch || {});
+  } catch (error) {
+    // Fallback: store in local edits
+    try {
+      const edits = JSON.parse(localStorage.getItem("rentalEdits") || "{}");
+      const rid = String(rentalId);
+      edits[rid] = { ...(edits[rid] || {}), ...(patch || {}) };
+      localStorage.setItem("rentalEdits", JSON.stringify(edits));
+      return { rental_id: rentalId, ...(patch || {}) };
+    } catch (e) {
+      console.error("updateRental fallback failed", e);
+      throw error;
+    }
+  }
+}
+
 // Geofences
 export async function fetchGeofences() {
   try {

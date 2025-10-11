@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { fetchRentals } from "../api";
+import { fetchRentals, saveAsset, updateRental } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import AccidentInfoModal from "../components/AccidentInfoModal";
@@ -32,7 +32,7 @@ const formatVehicleType = (vehicleType) => {
 
     return vehicleType;
 };
-import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo } from "react-icons/fa";
+import { FaCar, FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo, FaCheck } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 
 const DEFAULT_COLUMN_CONFIG = [
@@ -177,11 +177,13 @@ export default function RentalContracts() {
         const now = new Date();
         return items
             .filter((r) => {
-                // 종료된 계약 필터링: contract_status가 "완료"이거나 대여 종료일이 지나고 반납이 완료된 경우 제외
-                if (r.contract_status === "완료") return false;
+                // 종료된 계약 필터링: contract_status가 "완료"이거나 returned_at가 현재 이전/같으면 제외
+                const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
+                const isReturned = returnedAt ? now >= returnedAt : false;
+                if (r.contract_status === "완료" || isReturned) return false;
 
                 const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
-                const isOverdue = end ? now > end : false;
+                const isOverdue = !isReturned && end ? now > end : false;
                 const isStolen = Boolean(r.reported_stolen);
 
                 // 반납지연, 도난의심, 사고접수 등의 문제가 있는 경우는 표시
@@ -189,7 +191,7 @@ export default function RentalContracts() {
 
                 // 현재 진행중인 계약만 표시 (예약중, 대여중)
                 const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
-                const isActive = start && end ? now >= start && now <= end : false;
+                const isActive = !isReturned && start && end ? now >= start && now <= end : false;
                 const isFuture = start ? now < start : false;
 
                 return isActive || isFuture;
@@ -197,8 +199,10 @@ export default function RentalContracts() {
             .map((r) => {
                 const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
                 const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
-                const isActive = start && end ? now >= start && now <= end : false;
-                const isOverdue = end ? now > end : false;
+                const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
+                const isReturned = returnedAt ? now >= returnedAt : false;
+                const isActive = !isReturned && start && end ? now >= start && now <= end : false;
+                const isOverdue = !isReturned && end ? now > end : false;
                 const isStolen = Boolean(r.reported_stolen);
                 const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
                 // 계약 상태 결정
@@ -922,6 +926,36 @@ export default function RentalContracts() {
                                 <FaExclamationTriangle size={16} aria-hidden="true" />
                                 {selectedContract.accident_reported ? "사고 정보 수정" : "사고 등록"}
                             </button>
+                            {/* 반납 등록 버튼 */}
+                            {(() => {
+                                const now = new Date();
+                                const returnedAt = selectedContract?.returned_at ? new Date(selectedContract.returned_at) : null;
+                                const isReturned = returnedAt ? now >= returnedAt : false;
+                                return (
+                                    <button
+                                        onClick={async () => {
+                                            const ok = window.confirm("반납 등록 하시겠습니까?");
+                                            if (!ok) return;
+                                            const rid = selectedContract.rental_id;
+                                            const ts = new Date().toISOString();
+                                            try {
+                                                await updateRental(rid, { returned_at: ts });
+                                            } catch (e) {
+                                                console.warn("updateRental failed; falling back to local state", e);
+                                            }
+                                            setItems((prev) => prev.map((it) => (it.rental_id === rid ? { ...it, returned_at: ts } : it)));
+                                            setShowDetail(false);
+                                            setSelectedContract(null);
+                                        }}
+                                        className="form-button"
+                                        disabled={isReturned}
+                                        title={isReturned ? "이미 반납 처리됨" : "반납 처리"}
+                                    >
+                                        <FaCheck size={16} aria-hidden="true" />
+                                        반납 등록
+                                    </button>
+                                );
+                            })()}
                             {selectedContract.accident_reported && (
                                 <StatusBadge type="accident">
                                     <FaExclamationTriangle size={14} aria-hidden="true" />

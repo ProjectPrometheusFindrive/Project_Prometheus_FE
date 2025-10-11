@@ -17,6 +17,8 @@ export const {
   fetchRentals,
   fetchRentalById,
   fetchLatestRentals,
+  createRental,
+  updateRental,
   fetchVehicles,
   buildRentalIndexByVin,
   resolveVehicleRentals,

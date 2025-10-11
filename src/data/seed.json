@@ -12,7 +12,7 @@
       "vin": "KMHDH41EX6U123456",
       "registrationDate": "2024-11-01",
       "registrationStatus": "장비부착 완료",
-      "vehicleStatus": "운행중",
+      "vehicleStatus": "대여가능",
       "installer": "이상훈",
       "deviceInstallDate": "2025-02-01",
       "deviceSerial": "1ABCD-SONATA-26",
@@ -141,7 +141,8 @@
         "engine_status": "off",
         "restart_blocked": false,
         "contract_status": "완료",
-        "return_confirmed": true
+        "return_confirmed": true,
+        "returned_at": "2025-06-01T18:30:00Z"
       }
     ]
   },
@@ -158,7 +159,7 @@
       "vin": "KNDPB3AC7H7123456",
       "registrationDate": "2024-11-01",
       "registrationStatus": "장비부착 완료",
-      "vehicleStatus": "운행중",
+      "vehicleStatus": "대여가능",
       "installer": "김범기",
       "deviceInstallDate": "2025-01-05",
       "deviceSerial": "KIA-SPTG-19-XY99",
@@ -243,7 +244,8 @@
         "restart_blocked": true,
         "rental_amount": 880000,
         "contract_status": "진행중",
-        "memo": "차량 반납 전 누유 점검 필요"
+        "memo": "차량 반납 전 누유 점검 필요",
+        "returned_at": "2025-05-08T17:30:00Z"
       },
       {
         "rental_id": 100000000180,
@@ -755,7 +757,7 @@
       "vin": "KMHAB51DBMU123460",
       "registrationDate": "2024-06-18",
       "registrationStatus": "보험등록 완료",
-      "vehicleStatus": "예약중",
+      "vehicleStatus": "대여중",
       "installer": "",
       "deviceSerial": "",
       "memo": "급속충전 시설 점검",
@@ -1543,7 +1545,7 @@
       "vin": "KMHLONGTERM000001",
       "registrationDate": "2024-12-15",
       "registrationStatus": "보험등록 완료",
-      "vehicleStatus": "운행중",
+      "vehicleStatus": "대여가능",
       "installer": "박수현",
       "deviceInstallDate": "2025-01-10",
       "deviceSerial": "HYU-GRAN-23-7710",
@@ -1630,6 +1632,7 @@
         "payment_method": "법인카드 자동결제",
         "memo": "부산 법인 고객 장기 렌트, 월별 정기 점검 예약 완료",
         "special_notes": "6개월 계약, 분기별 실내외 세차 제공",
+        "returned_at": "2025-07-05T19:00:00Z",
         "created_at": "2025-01-02T08:30:00+09:00"
       }
     ]

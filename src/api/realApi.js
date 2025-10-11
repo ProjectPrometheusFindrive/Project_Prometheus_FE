@@ -45,6 +45,16 @@ export async function fetchLatestRentals() {
     return extractData(response);
 }
 
+export async function createRental(data) {
+    const response = await rentalsApi.create(data);
+    return extractData(response);
+}
+
+export async function updateRental(rentalId, patch) {
+    const response = await rentalsApi.update(rentalId, patch || {});
+    return extractData(response);
+}
+
 // Vehicles snapshot
 export async function fetchVehicles() {
     const response = await vehiclesApi.fetchAll();
@@ -100,4 +110,3 @@ export async function createIssueDraft(data) {
     }
     return { ok: false, error: response.error?.message || 'Failed to create issue' };
 }
-

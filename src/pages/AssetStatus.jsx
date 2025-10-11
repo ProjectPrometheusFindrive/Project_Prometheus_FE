@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset } from "../api";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset, fetchRentals, createRental, updateRental } from "../api";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import Modal from "../components/Modal";
@@ -37,7 +37,8 @@ import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
 import DeviceEventLog from "../components/DeviceEventLog";
-import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown } from "react-icons/fa";
+import RentalForm from "../components/forms/RentalForm";
+import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
 
 // 진단 코드 분류별 개수를 계산하는 함수
 const calculateDiagnosticCodes = (vehicle) => {
@@ -189,6 +190,10 @@ export default function AssetStatus() {
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
     const [openStageDropdown, setOpenStageDropdown] = useState(null);
+    const [showRentalModal, setShowRentalModal] = useState(false);
+    const [rentalFormInitial, setRentalFormInitial] = useState({});
+    const [pendingStageAssetId, setPendingStageAssetId] = useState(null);
+    const [pendingNextStage, setPendingNextStage] = useState(null);
     const [columnSettings, setColumnSettings] = useState(() => {
         const saved = localStorage.getItem("asset-columns-settings");
         return saved
@@ -213,6 +218,8 @@ export default function AssetStatus() {
     const [showInsuranceModal, setShowInsuranceModal] = useState(false);
     const [insuranceAsset, setInsuranceAsset] = useState(null);
     const [insuranceReadOnly, setInsuranceReadOnly] = useState(false);
+    const [rentalsByVin, setRentalsByVin] = useState({});
+    const [openInconsistencyId, setOpenInconsistencyId] = useState(null);
     const openInsuranceModal = (asset) => {
         setInsuranceReadOnly(false);
         setInsuranceAsset(asset);
@@ -256,11 +263,104 @@ export default function AssetStatus() {
         const previousStage = getManagementStage(asset);
         if (previousStage === nextStage) return;
 
+        // Guardrails to keep consistency with contract state
+        try {
+            const now = new Date();
+            const rentals = await fetchRentals();
+            const list = Array.isArray(rentals) ? rentals : [];
+            const openForVin = list.filter((r) => String(r.vin) === String(asset.vin)).filter((r) => {
+                const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
+                return !(returnedAt && now >= returnedAt) && r?.contract_status !== "완료";
+            });
+
+            const startOf = (r) => (r?.rental_period?.start ? new Date(r.rental_period.start) : null);
+            const endOf = (r) => (r?.rental_period?.end ? new Date(r.rental_period.end) : null);
+            const isActive = (r) => {
+                const s = startOf(r);
+                const e = endOf(r);
+                return s && e ? now >= s && now <= e : false;
+            };
+            const isOverdue = (r) => {
+                const e = endOf(r);
+                const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
+                return !returnedAt && e ? now > e : false;
+            };
+            const isReserved = (r) => {
+                const s = startOf(r);
+                const returnedAt = r?.returned_at ? new Date(r.returned_at) : null;
+                return !returnedAt && s ? now < s : false;
+            };
+
+            // Case 1: switching to 대여가능 while rentals still open -> prompt return
+            if (nextStage === "대여가능") {
+                if (openForVin.length > 0) {
+                    const ok = window.confirm("해당 차량에 진행 중인 계약(대여/예약/연체/도난)이 있습니다. 반납 처리(returned_at 설정) 후 대여가능으로 변경하시겠습니까?");
+                    if (!ok) return; // Abort stage change
+                    const ts = new Date().toISOString();
+                    try {
+                        await Promise.all(openForVin.map((r) => updateRental(r.rental_id, { returned_at: ts }).catch(() => null)));
+                    } catch {}
+                }
+            }
+
+            // Case 2: switching to 대여중/예약중 without open rentals
+            if ((nextStage === "대여중" || nextStage === "예약중")) {
+                const hasOpen = openForVin.some((r) => isActive(r) || isOverdue(r) || isReserved(r) || r?.reported_stolen);
+                if (!hasOpen) {
+                    if (previousStage === "대여가능") {
+                        // Show confirmation first; only open modal on confirm
+                        const ok = window.confirm("현재 유효한 계약이 없습니다. 신규로 대여 계약을 입력하시겠습니까?");
+                        if (!ok) return; // keep previous stage as-is
+                    }
+                    // open rental create modal, then set stage on submit
+                    setPendingStageAssetId(assetId);
+                    setPendingNextStage(nextStage);
+                    setRentalFormInitial({ vin: asset.vin || "", plate: asset.plate || "", vehicleType: asset.vehicleType || "" });
+                    setShowRentalModal(true);
+                    return; // Postpone stage change until rental is created
+                }
+            }
+        } catch (e) {
+            // If rentals fetch fails, proceed with stage change as before
+            console.warn("Stage-guard rentals check failed", e);
+        }
+
+        // 대여중 → 대여가능 변경 시 반납 처리 확인
+        if (previousStage === "대여중" && nextStage === "대여가능") {
+            const ok = window.confirm("대여가능으로 변경하면 해당 차량의 모든 활성 계약이 반납 처리됩니다. 계속하시겠습니까?");
+            if (!ok) return;
+        }
+
         setRows((prev) => prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: nextStage }) : row)));
         setStageSaving((prev) => ({ ...prev, [assetId]: true }));
 
         try {
             const response = await saveAsset(assetId, { managementStage: nextStage });
+
+            // 대여중 → 대여가능 변경 시 관련 계약의 returned_at 업데이트
+            if (previousStage === "대여중" && nextStage === "대여가능") {
+                try {
+                    const now = new Date().toISOString();
+                    const edits = JSON.parse(localStorage.getItem("rentalEdits") || "{}");
+
+                    // 해당 VIN의 활성 계약들을 찾아서 반납 처리
+                    const assetVin = asset.vin;
+                    if (assetVin) {
+                        // localStorage에서 해당 VIN의 활성 계약들 찾아서 returned_at 설정
+                        // 실제 구현에서는 API 호출로 해당 VIN의 활성 계약들을 가져와야 함
+                        Object.keys(edits).forEach(rentalId => {
+                            if (edits[rentalId].vin === assetVin && !edits[rentalId].returned_at) {
+                                edits[rentalId] = { ...edits[rentalId], returned_at: now };
+                            }
+                        });
+
+                        localStorage.setItem("rentalEdits", JSON.stringify(edits));
+                    }
+                } catch (error) {
+                    console.error("Failed to update rental returned_at", error);
+                }
+            }
+
             setRows((prev) =>
                 prev.map((row) => {
                     if (row.id !== assetId) return row;
@@ -280,6 +380,61 @@ export default function AssetStatus() {
                 return next;
             });
         }
+    };
+
+    const handleRentalCreateSubmit = async (data) => {
+        // Create rental via API (fallback handled by API layer)
+        const { contract_file, driver_license_file, ...rest } = data || {};
+        const payload = {
+            ...rest,
+            rental_period: { start: rest.start || "", end: rest.end || "" },
+        };
+        try {
+            await createRental(payload);
+        } catch (e) {
+            console.warn("createRental failed; falling back to local draft", e);
+        }
+
+        // Adjust stage based on start date to keep consistency
+        const s = data?.start ? new Date(data.start) : null;
+        const e = data?.end ? new Date(data.end) : null;
+        const now = new Date();
+        let stageAfter = pendingNextStage || "대여중";
+        if (stageAfter === "예약중" && s && now >= s && e && now <= e) {
+            stageAfter = "대여중"; // 예약이지만 시작 시각이 현재와 겹치면 대여중으로 보정
+        } else if (stageAfter === "대여중" && s && now < s) {
+            stageAfter = "예약중"; // 대여중으로 바꾸려 했지만 시작이 미래면 예약중으로 보정
+        }
+
+        const id = pendingStageAssetId;
+        if (id) {
+            setRows((prev) => prev.map((row) => (row.id === id ? withManagementStage({ ...row, managementStage: stageAfter }) : row)));
+            setStageSaving((prev) => ({ ...prev, [id]: true }));
+            try {
+                const response = await saveAsset(id, { managementStage: stageAfter });
+                setRows((prev) =>
+                    prev.map((row) => {
+                        if (row.id !== id) return row;
+                        const updatedStage = response?.managementStage && MANAGEMENT_STAGE_SET.has(response.managementStage) ? response.managementStage : stageAfter;
+                        const merged = { ...row, ...(response || {}), managementStage: updatedStage };
+                        return withManagementStage(merged);
+                    })
+                );
+            } catch (error) {
+                console.error("Failed to save management stage after rental create", error);
+                alert("관리단계를 저장하지 못했습니다. 다시 시도해주세요.");
+            } finally {
+                setStageSaving((prev) => {
+                    const next = { ...prev };
+                    delete next[id];
+                    return next;
+                });
+            }
+        }
+
+        setShowRentalModal(false);
+        setPendingStageAssetId(null);
+        setPendingNextStage(null);
     };
 
     const deviceInitial = useMemo(() => {
@@ -350,7 +505,46 @@ export default function AssetStatus() {
         };
     }, []);
 
-    // 컬럼 드롭다운 외부 클릭 감지
+    // Load rentals map for consistency indicator
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const base = await fetchRentals();
+                let list = Array.isArray(base) ? base.map((r) => ({ ...r })) : [];
+                // merge rentalDrafts
+                try {
+                    const raw = localStorage.getItem("rentalDrafts");
+                    if (raw) {
+                        const drafts = JSON.parse(raw);
+                        if (Array.isArray(drafts)) {
+                            const existingIds = new Set(list.map((x) => String(x.rental_id)));
+                            const toAdd = drafts
+                                .filter((d) => d && d.rental_id && !existingIds.has(String(d.rental_id)))
+                                .map((d) => ({ ...d, rental_period: d.rental_period || { start: d.start || "", end: d.end || "" } }));
+                            if (toAdd.length > 0) list = [...list, ...toAdd];
+                        }
+                    }
+                } catch {}
+                const map = {};
+                list.forEach((r) => {
+                    const v = r?.vin ? String(r.vin) : "";
+                    if (!v) return;
+                    if (!map[v]) map[v] = [];
+                    map[v].push(r);
+                });
+                if (mounted) setRentalsByVin(map);
+            } catch (e) {
+                console.error("Failed to load rentals for consistency indicator", e);
+                if (mounted) setRentalsByVin({});
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    // 컬럼 드롭다운 / 상태 드롭다운 / 불일치 팝업 외부 클릭 감지
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (showColumnDropdown && !event.target.closest("[data-column-dropdown]")) {
@@ -358,6 +552,9 @@ export default function AssetStatus() {
             }
             if (openStageDropdown !== null && !event.target.closest("[data-stage-dropdown]")) {
                 setOpenStageDropdown(null);
+            }
+            if (openInconsistencyId !== null && !event.target.closest("[data-inconsistency-popover]")) {
+                setOpenInconsistencyId(null);
             }
         };
 
@@ -369,6 +566,9 @@ export default function AssetStatus() {
                 if (openStageDropdown !== null) {
                     setOpenStageDropdown(null);
                 }
+                if (openInconsistencyId !== null) {
+                    setOpenInconsistencyId(null);
+                }
             }
         };
 
@@ -378,7 +578,7 @@ export default function AssetStatus() {
             document.removeEventListener("mousedown", handleClickOutside);
             document.removeEventListener("keydown", handleKeyDown);
         };
-    }, [showColumnDropdown, openStageDropdown]);
+    }, [showColumnDropdown, openStageDropdown, openInconsistencyId]);
 
     const filtered = useMemo(() => {
         const term = q.trim().toLowerCase();
@@ -770,6 +970,59 @@ export default function AssetStatus() {
                 const badgeClass = MANAGEMENT_STAGE_BADGE_CLASS[stage] || "badge--default";
                 const isOpen = openStageDropdown === row.id;
                 const dropdownId = `management-stage-${row.id}`;
+                // Determine inconsistency between managementStage and contract state (from rentals)
+                const now = new Date();
+                const _rlist = rentalsByVin[String(row.vin || "")] || [];
+                const returnedAt = (r) => (r?.returned_at ? new Date(r.returned_at) : null);
+                const isReturned = (r) => {
+                    const ra = returnedAt(r);
+                    return !!(ra && now >= ra);
+                };
+                const start = (r) => (r?.rental_period?.start ? new Date(r.rental_period.start) : null);
+                const end = (r) => (r?.rental_period?.end ? new Date(r.rental_period.end) : null);
+                const isActive = (r) => {
+                    const s = start(r);
+                    const e = end(r);
+                    return !isReturned(r) && s && e ? now >= s && now <= e : false;
+                };
+                const isOverdue = (r) => {
+                    const e = end(r);
+                    return !isReturned(r) && e ? now > e : false;
+                };
+                const isReserved = (r) => {
+                    const s = start(r);
+                    return !isReturned(r) && s ? now < s : false;
+                };
+                const rlist = _rlist.filter((r) => !isReturned(r) && r?.contract_status !== "완료");
+                const hasActive = rlist.some((r) => isActive(r));
+                const hasOverdue = rlist.some((r) => isOverdue(r));
+                const hasStolen = rlist.some((r) => !!r?.reported_stolen);
+                const hasReserved = rlist.some((r) => isReserved(r));
+                const hasAnyOpen = hasActive || hasOverdue || hasStolen || hasReserved;
+                let inconsistent = false;
+                let reason = "";
+                if (stage === "대여중") {
+                    if (!(hasActive || hasOverdue || hasStolen)) {
+                        inconsistent = true;
+                        reason = "진행 중 계약 없음(대여/연체/도난 미해당)";
+                    }
+                } else if (stage === "예약중") {
+                    if (!hasReserved) {
+                        inconsistent = true;
+                        reason = "예약 계약 없음";
+                    }
+                } else if (stage === "대여가능") {
+                    if (hasAnyOpen) {
+                        inconsistent = true;
+                        reason = "진행 중/예약/연체/도난 계약 존재";
+                    }
+                } else {
+                    // 기타 상태(수리/점검 중, 입고 대상 등)에서도 계약이 열려 있으면 불일치
+                    if (hasAnyOpen) {
+                        inconsistent = true;
+                        reason = "계약(대여/예약/연체/도난) 진행 중";
+                    }
+                }
                 return (
                     <span data-stage-dropdown className="inline-flex items-center gap-6 relative">
                         <button
@@ -785,6 +1038,36 @@ export default function AssetStatus() {
                             <span>{stage}</span>
                             <FaChevronDown size={10} aria-hidden="true" />
                         </button>
+                        {inconsistent && (
+                            <span
+                                className={`inconsistency-indicator ${openInconsistencyId === row.id ? "is-open" : ""}`}
+                                data-inconsistency-popover
+                                role="button"
+                                tabIndex={0}
+                                aria-label={`관리상태와 계약상태 불일치: ${reason}`}
+                                aria-expanded={openInconsistencyId === row.id}
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenInconsistencyId((prev) => (prev === row.id ? null : row.id));
+                                }}
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' || e.key === ' ') {
+                                        e.preventDefault();
+                                        setOpenInconsistencyId((prev) => (prev === row.id ? null : row.id));
+                                    }
+                                }}
+                                title="관리상태와 계약상태 불일치"
+                            >
+                                <FaExclamationTriangle size={14} color="#f59e0b" aria-hidden="true" />
+                                <div className="inconsistency-popover" role="tooltip">
+                                    <div className="inconsistency-popover__title">상태 불일치</div>
+                                    <div className="inconsistency-popover__body">
+                                        관리상태와 계약상태가 일치하지 않습니다.
+                                        <br />사유: {reason}
+                                    </div>
+                                </div>
+                            </span>
+                        )}
                         {isOpen && (
                             <ul id={dropdownId} role="listbox" aria-label="관리단계 선택" className="management-stage-dropdown">
                                 {MANAGEMENT_STAGE_OPTIONS.map((option) => (
@@ -1174,6 +1457,21 @@ export default function AssetStatus() {
                         </div>
                     </div>
                 )}
+            </Modal>
+
+            {/* Rental create modal for keeping consistency with stage changes */}
+            <Modal
+                isOpen={showRentalModal}
+                onClose={() => {
+                    setShowRentalModal(false);
+                    setPendingStageAssetId(null);
+                    setPendingNextStage(null);
+                }}
+                title="계약 등록"
+                showFooter={false}
+                ariaLabel="Create Rental"
+            >
+                <RentalForm initial={rentalFormInitial} onSubmit={handleRentalCreateSubmit} formId="asset-rental-create" />
             </Modal>
         </div>
     );

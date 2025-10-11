@@ -1745,3 +1745,42 @@ html {
     border: none;
     border-top: 1px solid #e5e7eb;
 }
+/* Management stage inconsistency popover */
+.inconsistency-indicator {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 6px;
+  cursor: pointer;
+}
+.inconsistency-popover {
+  display: none;
+  position: absolute;
+  top: 120%;
+  right: 0;
+  background: #fff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 8px 10px;
+  max-width: 280px;
+  min-width: 100px;
+  white-space: normal;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 40;
+}
+.inconsistency-popover__title {
+  font-size: 12px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  color: #111827;
+}
+.inconsistency-popover__body {
+  font-size: 12px;
+  line-height: 1.5;
+  color: #374151;
+}
+.inconsistency-indicator:hover .inconsistency-popover,
+.inconsistency-indicator.is-open .inconsistency-popover {
+  display: block;
+}
