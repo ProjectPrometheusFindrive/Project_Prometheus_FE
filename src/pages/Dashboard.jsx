@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Gauge from "../components/Gauge";
-import { fetchDashboardData } from "../api";
+import { fetchAssets, fetchRentals } from "../api";
 
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
@@ -19,23 +19,44 @@ export default function Dashboard() {
         );
     };
 
-    const [vehicleStatus, setVehicleStatus] = useState([]);
-    const [bizStatusLabeled, setBizStatusLabeled] = useState([]);
+    const [vehicleStatus, setVehicleStatus] = useState([]); // 자산 관리상태 분포
+    const [bizStatusLabeled, setBizStatusLabeled] = useState([]); // 계약 상태 분포
 
     useEffect(() => {
         let mounted = true;
         (async () => {
             try {
-                const data = await fetchDashboardData();
+                // 자산 및 대여 데이터를 직접 불러와 프론트에서 분포 계산
+                const [assets, rentals] = await Promise.all([fetchAssets(), fetchRentals()]);
                 if (!mounted) return;
-                const vs = Array.isArray(data?.vehicleStatus) ? data.vehicleStatus : [];
-                const bs = Array.isArray(data?.bizStatus) ? data.bizStatus : [];
-                setVehicleStatus(vs.map((d) => ({ ...d, rawValue: d.value })).filter((d) => (d?.value ?? 0) > 0));
-                setBizStatusLabeled(
-                    bs
-                        .map((d) => ({ name: d.name, value: d.value, rawValue: d.value }))
-                        .filter((d) => (d?.value ?? 0) > 0)
-                );
+
+                // 1) 자산 현황: 관리상태(managementStage) 기준 분포
+                const stageCounts = new Map();
+                (Array.isArray(assets) ? assets : []).forEach((a) => {
+                    const stage = (a?.managementStage || "").trim() || "기타";
+                    stageCounts.set(stage, (stageCounts.get(stage) || 0) + 1);
+                });
+                const stageDist = [...stageCounts.entries()].map(([name, value]) => ({ name, value, rawValue: value }));
+                setVehicleStatus(stageDist.filter((d) => (d?.value ?? 0) > 0));
+
+                // 2) 계약 현황: 계약상태(contractStatus) 기준 분포 (RentalContracts와 동일 로직)
+                const now = new Date();
+                const contractCounts = new Map();
+                (Array.isArray(rentals) ? rentals : []).forEach((r) => {
+                    const start = r?.rental_period?.start ? new Date(r.rental_period.start) : null;
+                    const end = r?.rental_period?.end ? new Date(r.rental_period.end) : null;
+                    const isActive = start && end ? now >= start && now <= end : false;
+                    const isOverdue = end ? now > end : false;
+                    const isStolen = Boolean(r?.reported_stolen);
+                    let status = "예약 중";
+                    if (isStolen) status = "도난의심";
+                    else if (isOverdue) status = "반납지연";
+                    else if (isActive) status = "대여중";
+                    else if (r?.accident_reported) status = "사고접수";
+                    contractCounts.set(status, (contractCounts.get(status) || 0) + 1);
+                });
+                const contractDist = [...contractCounts.entries()].map(([name, value]) => ({ name, value, rawValue: value }));
+                setBizStatusLabeled(contractDist.filter((d) => (d?.value ?? 0) > 0));
             } catch (e) {
                 console.error("Failed to fetch dashboard data", e);
                 if (mounted) {
@@ -62,7 +83,7 @@ export default function Dashboard() {
             <div className="page-scroll">
                 <div className="dashboard-grid">
                     <section className="card chart-card">
-                        <h2 className="section-title">차량 등록상태 분포</h2>
+                        <h2 className="section-title">자산 현황</h2>
                         <div className="chart-wrap">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart margin={{ top: 10, right: 8, bottom: 28, left: 8 }}>
@@ -90,7 +111,7 @@ export default function Dashboard() {
                     </section>
 
                     <section className="card chart-card">
-                        <h2 className="section-title">업무현황</h2>
+                        <h2 className="section-title">계약 현황</h2>
                         <div className="chart-wrap">
                             <ResponsiveContainer width="100%" height="100%">
                                 <PieChart margin={{ top: 10, right: 8, bottom: 28, left: 8 }}>

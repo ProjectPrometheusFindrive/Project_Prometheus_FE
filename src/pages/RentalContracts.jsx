@@ -7,6 +7,7 @@ import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
 import { DIMENSIONS } from "../constants";
+import { formatLocation } from "../utils/format";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -966,6 +967,12 @@ export default function RentalContracts() {
                                     </div>
                                     <div>
                                         <strong>보험사:</strong> {selectedContract.insurance_name || "-"}
+                                    </div>
+                                    <div>
+                                        <strong>배차위치:</strong> {selectedContract.rental_location?.address || selectedContract.address || "-"}
+                                    </div>
+                                    <div>
+                                        <strong>반납위치:</strong> {selectedContract.return_location?.address || selectedContract.address || "-"}
                                     </div>
                                 </div>
                             </div>

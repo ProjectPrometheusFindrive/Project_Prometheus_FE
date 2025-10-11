@@ -83,11 +83,13 @@
         "insurance_name": "렌터카공제",
         "rental_location": {
           "lat": 37.5665,
-          "lng": 126.978
+          "lng": 126.978,
+          "address": "서울특별시 중구 을지로"
         },
         "return_location": {
           "lat": 37.4563,
-          "lng": 126.7052
+          "lng": 126.7052,
+          "address": "서울특별시 강서구 화곡로"
         },
         "current_location": {
           "lat": 37.5521,
@@ -127,11 +129,13 @@
         "insurance_name": "렌터카공제",
         "rental_location": {
           "lat": 37.498,
-          "lng": 127.027
+          "lng": 127.027,
+          "address": "서울특별시 강남구 테헤란로"
         },
         "return_location": {
           "lat": 37.498,
-          "lng": 127.027
+          "lng": 127.027,
+          "address": "서울특별시 강남구 테헤란로"
         },
         "current_location": null,
         "engine_status": "off",
