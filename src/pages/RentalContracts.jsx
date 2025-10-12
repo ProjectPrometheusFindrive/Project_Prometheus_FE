@@ -9,6 +9,7 @@ import KakaoMap from "../components/KakaoMap";
 import { FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo, FaCheck } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
 import { computeContractStatus, toDate } from "../utils/contracts";
+import { parseCurrency } from "../utils/formatters";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -242,12 +243,14 @@ export default function RentalContracts() {
         const normalized = {
             ...rest,
             rental_id,
+            rental_amount: parseCurrency(rest.rental_amount),
+            deposit: parseCurrency(rest.deposit),
             rental_period: { start: rest.start || "", end: rest.end || "" },
         };
         setItems((prev) => [normalized, ...prev]);
         try {
             const arr = JSON.parse(localStorage.getItem("rentalDrafts") || "[]");
-            arr.push({ ...rest, rental_id, createdAt: new Date().toISOString() });
+            arr.push({ ...normalized, createdAt: new Date().toISOString() });
             localStorage.setItem("rentalDrafts", JSON.stringify(arr));
         } catch {}
         setShowCreate(false);

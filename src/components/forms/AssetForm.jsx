@@ -4,6 +4,7 @@ import FormGrid from "./FormGrid";
 import FormField from "./FormField";
 import FormActions from "./FormActions";
 import { STATUS_OPTIONS } from "../../constants/forms";
+import { formatCurrency } from "../../utils/formatters";
 
 export default function AssetForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true, requireDocs = true }) {
     const initialFormValues = {
@@ -22,7 +23,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
         insuranceDoc: initial.insuranceDoc || null,
     };
 
-    const { form, update, handleSubmit, setForm } = useFormState(initialFormValues, { onSubmit });
+    const { form, update, handleSubmit, setForm, updateFields } = useFormState(initialFormValues, { onSubmit });
 
     useEffect(() => {
         if (!form.vehicleType) {
@@ -33,6 +34,18 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
             }
         }
     }, [initial, form.vehicleType, setForm]);
+
+    // Normalize vehicle value to comma-format on mount
+    useEffect(() => {
+        const vv = form.vehicleValue;
+        if (vv != null && typeof vv !== "undefined") {
+            const s = String(vv);
+            if (/^\d+$/.test(s) && !/,/.test(s)) {
+                updateFields({ vehicleValue: formatCurrency(s) });
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     return (
         <FormGrid id={formId} onSubmit={handleSubmit}>
@@ -103,10 +116,12 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
             <FormField
                 id="vehicleValue"
                 label="차량가액"
-                type="number"
+                type="text"
                 value={form.vehicleValue}
-                onChange={(value) => update("vehicleValue", value)}
-                placeholder="예: 25000000"
+                onChange={(value) => update("vehicleValue", formatCurrency(value))}
+                placeholder="예: 25,000,000"
+                inputMode="numeric"
+                maxLength={20}
                 disabled={readOnly}
             />
 

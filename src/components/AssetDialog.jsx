@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { formatCurrency } from "../utils/formatters";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -108,7 +109,15 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             )}
             {infoRow(
               "차량가액",
-              <input className="form-input" type="number" value={form.vehicleValue} onChange={(e) => setForm((p) => ({ ...p, vehicleValue: e.target.value }))} placeholder="예: 25000000" />
+              <input
+                className="form-input"
+                type="text"
+                value={form.vehicleValue}
+                onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
+                inputMode="numeric"
+                maxLength={20}
+                placeholder="예: 25,000,000"
+              />
             )}
           </div>
         )}

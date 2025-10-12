@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { formatPhone11 } from "../utils/formatters";
 
 
 export default function SignUp() {
@@ -33,13 +34,6 @@ export default function SignUp() {
     return phoneRegex.test(phone);
   }
 
-  function formatPhone(value) {
-    const numbers = value.replace(/[^\d]/g, '');
-    if (numbers.length <= 3) return numbers;
-    if (numbers.length <= 7) return `${numbers.slice(0, 3)}-${numbers.slice(3)}`;
-    return `${numbers.slice(0, 3)}-${numbers.slice(3, 7)}-${numbers.slice(7, 11)}`;
-  }
-
   function handlePhoneChange(e) {
     const value = e.target.value;
     // Prevent deletion of "010-" prefix
@@ -47,7 +41,7 @@ export default function SignUp() {
       setForm((p) => ({ ...p, phone: "010-" }));
       return;
     }
-    const formatted = formatPhone(value);
+    const formatted = formatPhone11(value);
     setForm((p) => ({ ...p, phone: formatted }));
   }
 
@@ -158,7 +152,7 @@ export default function SignUp() {
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-phone" style={{ width: "120px", marginBottom: 0 }}>전화번호</label>
-            <input id="su-phone" name="phone" type="tel" className="login-input" value={form.phone} onChange={handlePhoneChange} placeholder="010-xxxx-xxxx" required style={{ flex: 1, minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+            <input id="su-phone" name="phone" type="tel" className="login-input" value={form.phone} onChange={handlePhoneChange} placeholder="000-0000-0000" inputMode="numeric" maxLength={13} required style={{ flex: 1, minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
@@ -235,4 +229,3 @@ export default function SignUp() {
     </div>
   );
 }
-

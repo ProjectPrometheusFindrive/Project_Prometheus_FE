@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset, fetchRentals, createRental, updateRental } from "../api";
+import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import InfoGrid from "../components/InfoGrid";
@@ -305,6 +306,8 @@ export default function AssetStatus() {
         const { contract_file, driver_license_file, ...rest } = data || {};
         const payload = {
             ...rest,
+            rental_amount: parseCurrency(rest.rental_amount),
+            deposit: parseCurrency(rest.deposit),
             rental_period: { start: rest.start || "", end: rest.end || "" },
         };
         try {

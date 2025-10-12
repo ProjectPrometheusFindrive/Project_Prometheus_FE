@@ -6,6 +6,7 @@ import FormActions from "./FormActions";
 import { fetchAssets } from "../../api";
 import { getManagementStage } from "../../utils/managementStage";
 import StatusBadge from "../StatusBadge";
+import { formatPhone11, formatCurrency } from "../../utils/formatters";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
     const DEBUG = true;
@@ -155,8 +156,59 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
         if (DEBUG) console.log("[RentalForm] form", { plate: form.plate, vin: form.vin, vehicleType: form.vehicleType, insurance_name: form.insurance_name });
     }, [form.plate, form.vin, form.vehicleType, form.insurance_name]);
 
+    // Normalize initial numeric amounts to display with commas
+    useEffect(() => {
+        const normalizeAmount = (val) => {
+            if (val == null) return "";
+            const s = String(val);
+            // If already contains comma, assume formatted
+            if (/[,]/.test(s)) return s;
+            // If plain digits, format
+            if (/^\d+$/.test(s)) return formatCurrency(s);
+            return s;
+        };
+        const updates = {};
+        const ra = normalizeAmount(form.rental_amount);
+        if (ra !== form.rental_amount) updates.rental_amount = ra;
+        const dp = normalizeAmount(form.deposit);
+        if (dp !== form.deposit) updates.deposit = dp;
+        if (Object.keys(updates).length > 0) {
+            updateFields(updates);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
     return (
         <FormGrid id={formId} onSubmit={handleSubmit}>
+            {/* 계약서/면허 업로드 - 최상단 */}
+            <div className="form-row">
+                <div className="form-col">
+                    <FormField
+                        id="contract_file"
+                        label="대여 계약서 업로드"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        capture="environment"
+                        onChange={(value) => update("contract_file", value)}
+                        disabled={readOnly}
+                    >
+                        {form.contract_file && <div className="file-info">{form.contract_file.name}</div>}
+                    </FormField>
+                </div>
+                <div className="form-col">
+                    <FormField
+                        id="driver_license_file"
+                        label="운전면허증 업로드"
+                        type="file"
+                        accept="image/*,application/pdf"
+                        capture="environment"
+                        onChange={(value) => update("driver_license_file", value)}
+                        disabled={readOnly}
+                    >
+                        {form.driver_license_file && <div className="file-info">{form.driver_license_file.name}</div>}
+                    </FormField>
+                </div>
+            </div>
             {/* 차량번호를 최상단 드롭다운으로 변경 */}
             <FormField
                 id="plate"
@@ -257,9 +309,12 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     <FormField
                         id="contact_number"
                         label="계약자 연락처"
+                        type="tel"
                         value={form.contact_number}
-                        onChange={(value) => update("contact_number", value)}
-                        placeholder="예: 010-1234-5678"
+                        onChange={(value) => update("contact_number", formatPhone11(value))}
+                        placeholder="000-0000-0000"
+                        inputMode="numeric"
+                        maxLength={13}
                         disabled={readOnly}
                     />
                 </div>
@@ -299,32 +354,50 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 </div>
             </div>
 
-            {/* 계약 유형 */}
-            <div>
-                <label className="form-label" htmlFor="rental_type">계약 유형</label>
-                <div className="form-radio-row" role="radiogroup" aria-label="계약 유형">
-                    <label className="form-radio">
-                        <input
-                            type="radio"
-                            name="rental_type"
-                            value="단기"
-                            checked={form.rental_type === "단기"}
-                            onChange={(e) => update("rental_type", e.target.value)}
-                            disabled={readOnly}
-                        />
-                        단기
-                    </label>
-                    <label className="form-radio">
-                        <input
-                            type="radio"
-                            name="rental_type"
-                            value="장기"
-                            checked={form.rental_type === "장기"}
-                            onChange={(e) => update("rental_type", e.target.value)}
-                            disabled={readOnly}
-                        />
-                        장기
-                    </label>
+            {/* 계약 유형 / 결제 방식 */}
+            <div className="form-row">
+                <div className="form-col">
+                    <label className="form-label" htmlFor="rental_type">계약 기간</label>
+                    <div className="form-radio-row" role="radiogroup" aria-label="계약 유형">
+                        <label className="form-radio">
+                            <input
+                                type="radio"
+                                name="rental_type"
+                                value="단기"
+                                checked={form.rental_type === "단기"}
+                                onChange={(e) => update("rental_type", e.target.value)}
+                                disabled={readOnly}
+                            />
+                            단기
+                        </label>
+                        <label className="form-radio">
+                            <input
+                                type="radio"
+                                name="rental_type"
+                                value="장기"
+                                checked={form.rental_type === "장기"}
+                                onChange={(e) => update("rental_type", e.target.value)}
+                                disabled={readOnly}
+                            />
+                            장기
+                        </label>
+                    </div>
+                </div>
+                <div className="form-col">
+                    <FormField
+                        id="payment_method"
+                        label="결제 방식"
+                        type="select"
+                        value={form.payment_method}
+                        onChange={(value) => update("payment_method", value)}
+                        options={[
+                            { value: "월별 자동이체", label: "월별 자동이체" },
+                            { value: "일시불", label: "일시불" },
+                            { value: "계좌이체", label: "계좌이체" },
+                            { value: "카드 결제", label: "카드 결제" },
+                        ]}
+                        disabled={readOnly}
+                    />
                 </div>
             </div>
 
@@ -334,12 +407,12 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     <FormField
                         id="rental_amount"
                         label="대여금액"
-                        type="number"
+                        type="text"
                         value={form.rental_amount}
-                        onChange={(value) => update("rental_amount", value)}
-                        placeholder="예: 22800000"
-                        min="0"
-                        step="1000"
+                        onChange={(value) => update("rental_amount", formatCurrency(value))}
+                        placeholder="예: 22,800,000"
+                        inputMode="numeric"
+                        maxLength={20}
                         disabled={readOnly}
                     />
                 </div>
@@ -347,44 +420,17 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     <FormField
                         id="deposit"
                         label="보증금"
-                        type="number"
+                        type="text"
                         value={form.deposit}
-                        onChange={(value) => update("deposit", value)}
-                        placeholder="예: 3000000"
-                        min="0"
-                        step="1000"
+                        onChange={(value) => update("deposit", formatCurrency(value))}
+                        placeholder="예: 3,000,000"
+                        inputMode="numeric"
+                        maxLength={20}
                         disabled={readOnly}
                     />
                 </div>
             </div>
 
-            {/* 결제 방식 */}
-            <FormField
-                id="payment_method"
-                label="결제 방식"
-                type="select"
-                value={form.payment_method}
-                onChange={(value) => update("payment_method", value)}
-                options={[
-                    { value: "월별 자동이체", label: "월별 자동이체" },
-                    { value: "일시불", label: "일시불" },
-                    { value: "계좌이체", label: "계좌이체" },
-                    { value: "카드 결제", label: "카드 결제" },
-                ]}
-                disabled={readOnly}
-            />
-
-            <FormField
-                id="rental_amount"
-                label="대여금액"
-                type="number"
-                value={form.rental_amount}
-                onChange={(value) => update("rental_amount", value)}
-                placeholder="예: 1500000"
-                min="0"
-                step="1000"
-                disabled={readOnly}
-            />
 
             {false && (
                 <FormField
@@ -397,29 +443,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 />
             )}
 
-            <FormField
-                id="contract_file"
-                label="대여 계약서 업로드"
-                type="file"
-                accept="image/*,application/pdf"
-                capture="environment"
-                onChange={(value) => update("contract_file", value)}
-                disabled={readOnly}
-            >
-                {form.contract_file && <div className="file-info">{form.contract_file.name}</div>}
-            </FormField>
-
-            <FormField
-                id="driver_license_file"
-                label="운전면허증 업로드"
-                type="file"
-                accept="image/*,application/pdf"
-                capture="environment"
-                onChange={(value) => update("driver_license_file", value)}
-                disabled={readOnly}
-            >
-                {form.driver_license_file && <div className="file-info">{form.driver_license_file.name}</div>}
-            </FormField>
+            
 
             {!readOnly && showSubmit && (
                 <FormActions>
