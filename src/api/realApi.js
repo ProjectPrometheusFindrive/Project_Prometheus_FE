@@ -31,9 +31,25 @@ export async function fetchAssetById(id) {
     return extractData(response);
 }
 
+export async function createAsset(data) {
+    const response = await assetsApi.create(data);
+    return extractData(response);
+}
+
 export async function saveAsset(assetId, updatedFields) {
     const response = await assetsApi.update(assetId, updatedFields);
     return extractData(response);
+}
+
+export async function deleteAsset(assetId) {
+    const response = await assetsApi.delete(assetId);
+    if (response.status === API_STATUS.SUCCESS) {
+        return true;
+    }
+    if (response.error?.type === 'NOT_FOUND' || response.error?.status === 404) {
+        return false;
+    }
+    throw new Error(response.error?.message || 'Failed to delete asset');
 }
 
 // Rentals
@@ -58,6 +74,17 @@ export async function createRental(data) {
 export async function updateRental(rentalId, patch) {
     const response = await rentalsApi.update(rentalId, patch || {});
     return extractData(response);
+}
+
+export async function deleteRental(rentalId) {
+    const response = await rentalsApi.delete(rentalId);
+    if (response.status === API_STATUS.SUCCESS) {
+        return true;
+    }
+    if (response.error?.type === 'NOT_FOUND' || response.error?.status === 404) {
+        return false;
+    }
+    throw new Error(response.error?.message || 'Failed to delete rental');
 }
 
 // Vehicles snapshot

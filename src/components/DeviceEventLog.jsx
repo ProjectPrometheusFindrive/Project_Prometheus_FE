@@ -1,9 +1,8 @@
 import React, { useMemo } from "react";
-import { typedStorage } from "../utils/storage";
 
-export default function DeviceEventLog({ assetId, fallbackInstallDate = "" }) {
+export default function DeviceEventLog({ assetId, history = [], fallbackInstallDate = "" }) {
   const events = useMemo(() => {
-    const list = typedStorage.devices.getEvents(assetId) || [];
+    const list = Array.isArray(history) ? history : [];
     if ((!list || list.length === 0) && fallbackInstallDate) {
       return [
         {
@@ -15,8 +14,14 @@ export default function DeviceEventLog({ assetId, fallbackInstallDate = "" }) {
         },
       ];
     }
-    return list;
-  }, [assetId, fallbackInstallDate]);
+    return list.map((e, idx) => ({
+      id: e.id || `${assetId}-devhist-${idx}`,
+      type: e.type || "event",
+      label: e.label || (e.type === "install" ? "단말 장착" : "이벤트"),
+      date: e.date || e.installDate || "",
+      meta: e.meta || { installer: e.installer, supplier: e.supplier },
+    }));
+  }, [assetId, history, fallbackInstallDate]);
 
   return (
     <div style={{ marginTop: 16 }}>
@@ -42,4 +47,3 @@ export default function DeviceEventLog({ assetId, fallbackInstallDate = "" }) {
     </div>
   );
 }
-

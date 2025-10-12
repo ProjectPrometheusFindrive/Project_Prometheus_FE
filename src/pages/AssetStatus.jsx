@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset, fetchRentals, createRental, updateRental } from "../api";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset, fetchRentals, createRental, updateRental, createAsset, deleteAsset } from "../api";
 import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
@@ -11,7 +11,7 @@ import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Table from "../components/Table";
 import useTableSelection from "../hooks/useTableSelection";
-import { typedStorage } from "../utils/storage";
+// Local storage fallbacks removed; use API persistence instead
 import { ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
@@ -256,30 +256,6 @@ export default function AssetStatus() {
         try {
             const response = await saveAsset(assetId, { managementStage: nextStage });
 
-            // 대여중 → 대여가능 변경 시 관련 계약의 returned_at 업데이트
-            if (previousStage === "대여중" && nextStage === "대여가능") {
-                try {
-                    const now = new Date().toISOString();
-                    const edits = JSON.parse(localStorage.getItem("rentalEdits") || "{}");
-
-                    // 해당 VIN의 활성 계약들을 찾아서 반납 처리
-                    const assetVin = asset.vin;
-                    if (assetVin) {
-                        // localStorage에서 해당 VIN의 활성 계약들 찾아서 returned_at 설정
-                        // 실제 구현에서는 API 호출로 해당 VIN의 활성 계약들을 가져와야 함
-                        Object.keys(edits).forEach(rentalId => {
-                            if (edits[rentalId].vin === assetVin && !edits[rentalId].returned_at) {
-                                edits[rentalId] = { ...edits[rentalId], returned_at: now };
-                            }
-                        });
-
-                        localStorage.setItem("rentalEdits", JSON.stringify(edits));
-                    }
-                } catch (error) {
-                    console.error("Failed to update rental returned_at", error);
-                }
-            }
-
             setRows((prev) =>
                 prev.map((row) => {
                     if (row.id !== assetId) return row;
@@ -302,7 +278,7 @@ export default function AssetStatus() {
     };
 
     const handleRentalCreateSubmit = async (data) => {
-        // Create rental via API (fallback handled by API layer)
+        // Create rental via API
         const { contract_file, driver_license_file, ...rest } = data || {};
         const payload = {
             ...rest,
@@ -313,7 +289,9 @@ export default function AssetStatus() {
         try {
             await createRental(payload);
         } catch (e) {
-            console.warn("createRental failed; falling back to local draft", e);
+            console.error("Failed to create rental via API", e);
+            alert("계약 생성에 실패했습니다.");
+            return;
         }
 
         // Adjust stage based on start date to keep consistency
@@ -360,13 +338,12 @@ export default function AssetStatus() {
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};
-        const stored = typedStorage.devices.getInfo(activeAsset.id) || {};
         return {
-            supplier: stored.supplier || "",
-            installDate: stored.installDate || activeAsset.deviceInstallDate || activeAsset.installDate || "",
-            installer: stored.installer || activeAsset.installer || "",
-            serial: stored.serial || activeAsset.deviceSerial || "",
-            photos: stored.photos || [],
+            supplier: activeAsset.supplier || "",
+            installDate: activeAsset.deviceInstallDate || activeAsset.installDate || "",
+            installer: activeAsset.installer || "",
+            serial: activeAsset.deviceSerial || "",
+            photos: [],
         };
     }, [activeAsset]);
 
@@ -389,30 +366,7 @@ export default function AssetStatus() {
         (async () => {
             try {
                 const list = await fetchAssets();
-                let next = Array.isArray(list) ? list.map((a) => ({ ...a })) : [];
-                try {
-                    const map = typedStorage.devices.getAll() || {};
-                    next = next.map((a) => {
-                        const info = map[a.id];
-                        return info ? { ...a, deviceSerial: info.serial || a.deviceSerial, installer: info.installer || a.installer } : a;
-                    });
-                } catch {}
-                next = next.map((asset) => withManagementStage(asset));
-                // Seed device event history if missing
-                try {
-                    for (const a of next) {
-                        const hasEvents = (typedStorage.devices.getEvents(a.id) || []).length > 0;
-                        const installDateCandidate = (typedStorage.devices.getInfo(a.id) || {}).installDate || a.deviceInstallDate || "";
-                        if (!hasEvents && installDateCandidate) {
-                            typedStorage.devices.addEvent(a.id, {
-                                type: "install",
-                                label: "단말 장착일",
-                                date: installDateCandidate,
-                                meta: { seeded: true },
-                            });
-                        }
-                    }
-                } catch {}
+                let next = Array.isArray(list) ? list.map((a) => withManagementStage({ ...a })) : [];
                 // NOTE: Removed demo override that cleared insurance fields for a specific plate.
                 // Previously this forced one vehicle to appear without insurance data on purpose.
                 if (mounted) setRows(next);
@@ -433,20 +387,6 @@ export default function AssetStatus() {
             try {
                 const base = await fetchRentals();
                 let list = Array.isArray(base) ? base.map((r) => ({ ...r })) : [];
-                // merge rentalDrafts
-                try {
-                    const raw = localStorage.getItem("rentalDrafts");
-                    if (raw) {
-                        const drafts = JSON.parse(raw);
-                        if (Array.isArray(drafts)) {
-                            const existingIds = new Set(list.map((x) => String(x.rental_id)));
-                            const toAdd = drafts
-                                .filter((d) => d && d.rental_id && !existingIds.has(String(d.rental_id)))
-                                .map((d) => ({ ...d, rental_period: d.rental_period || { start: d.start || "", end: d.end || "" } }));
-                            if (toAdd.length > 0) list = [...list, ...toAdd];
-                        }
-                    }
-                } catch {}
                 const map = {};
                 list.forEach((r) => {
                     const v = r?.vin ? String(r.vin) : "";
@@ -515,10 +455,22 @@ export default function AssetStatus() {
     const selection = useTableSelection(filtered, "id");
     const { selected, selectedCount, clearSelection } = selection;
 
-    const handleDeleteSelected = () => {
+    const handleDeleteSelected = async () => {
         if (selectedCount === 0) return;
         const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
         if (!ok) return;
+        const ids = Array.from(selected);
+        try {
+            await Promise.all(
+                ids.map((id) =>
+                    deleteAsset(String(id))
+                        .then((res) => res)
+                        .catch(() => false)
+                )
+            );
+        } catch (e) {
+            // ignore; fall through to UI update
+        }
         setRows((prev) => prev.filter((a) => !selected.has(a.id)));
         clearSelection();
     };
@@ -593,71 +545,21 @@ export default function AssetStatus() {
         openDiagnosticModal(vehicle);
     };
 
-    const handleDeviceInfoSubmit = (form) => {
+    const handleDeviceInfoSubmit = async (form) => {
         if (!activeAsset) return;
-
-        const prev = typedStorage.devices.getInfo(activeAsset.id) || {};
-        const deviceInfo = {
+        const patch = {
             supplier: form.supplier || "",
-            installDate: form.installDate || "",
+            deviceInstallDate: form.installDate || "",
             installer: form.installer || "",
-            serial: form.serial || "",
-            updatedAt: new Date().toISOString(),
+            deviceSerial: form.serial || "",
         };
-
-        // Save info
-        typedStorage.devices.setInfo(activeAsset.id, deviceInfo);
-
-        // Record events
         try {
-            if (deviceInfo.installDate && !prev.installDate) {
-                typedStorage.devices.addEvent(activeAsset.id, {
-                    type: "install",
-                    label: "단말 장착일",
-                    date: deviceInfo.installDate,
-                    meta: { installer: deviceInfo.installer, supplier: deviceInfo.supplier },
-                });
-            } else if (prev.installDate && deviceInfo.installDate && prev.installDate !== deviceInfo.installDate) {
-                typedStorage.devices.addEvent(activeAsset.id, {
-                    type: "install_changed",
-                    label: "장착일 변경",
-                    date: deviceInfo.installDate,
-                    meta: { from: prev.installDate, to: deviceInfo.installDate },
-                });
-            }
-
-            if (prev.serial !== deviceInfo.serial) {
-                typedStorage.devices.addEvent(activeAsset.id, {
-                    type: "serial_changed",
-                    label: "S/N 변경",
-                    date: new Date().toISOString().slice(0, 10),
-                    meta: { from: prev.serial || "", to: deviceInfo.serial || "" },
-                });
-            }
-
-            if (prev.installer !== deviceInfo.installer) {
-                typedStorage.devices.addEvent(activeAsset.id, {
-                    type: "installer_changed",
-                    label: "장착자 변경",
-                    date: new Date().toISOString().slice(0, 10),
-                    meta: { from: prev.installer || "", to: deviceInfo.installer || "" },
-                });
-            }
-        } catch {}
-
-        // Reflect on table immediately
-        setRows((prevRows) =>
-            prevRows.map((a) => {
-                if (a.id !== activeAsset.id) return a;
-                const updated = {
-                    ...a,
-                    deviceSerial: deviceInfo.serial || a.deviceSerial,
-                    installer: deviceInfo.installer || a.installer,
-                };
-                return withManagementStage(updated);
-            })
-        );
-
+            const resp = await saveAsset(activeAsset.id, patch);
+            setRows((prev) => prev.map((a) => (a.id === activeAsset.id ? withManagementStage({ ...a, ...(resp || patch) }) : a)));
+        } catch (e) {
+            console.error("Failed to save device info", e);
+            alert("단말 정보 저장 실패");
+        }
         setShowDeviceModal(false);
         setActiveAsset(null);
     };
@@ -675,56 +577,73 @@ export default function AssetStatus() {
         return `${prefix}${String(max + 1).padStart(4, "0")}`;
     };
 
-    const handleAssetSubmit = (data) => {
+    const handleAssetSubmit = async (data) => {
         // Compose vehicleType from make/model when available
         const composedVehicleType = data.vehicleType || [data.make, data.model].filter(Boolean).join(" ");
 
         if (editingAssetId) {
-            // Update existing asset
-            setRows((prev) =>
-                prev.map((a) => {
-                    if (a.id !== editingAssetId) return a;
-                    const updated = {
-                        ...a,
-                        plate: data.plate || a.plate,
-                        vehicleType: composedVehicleType || a.vehicleType,
-                        make: data.make || a.make,
-                        model: data.model || a.model,
-                        vin: data.vin || a.vin,
-                        vehicleValue: data.vehicleValue || a.vehicleValue,
-                        purchaseDate: data.purchaseDate || a.purchaseDate,
-                        systemRegDate: data.systemRegDate || a.systemRegDate,
-                        systemDelDate: data.systemDelDate || a.systemDelDate,
-                        registrationStatus: data.registrationStatus || a.registrationStatus,
-                    };
-                    return withManagementStage(updated);
-                })
-            );
+            // Update existing asset via API (fallback: local merge)
+            const patch = {
+                plate: data.plate,
+                vehicleType: composedVehicleType,
+                make: data.make,
+                model: data.model,
+                vin: data.vin,
+                vehicleValue: data.vehicleValue,
+                purchaseDate: data.purchaseDate,
+                systemRegDate: data.systemRegDate,
+                systemDelDate: data.systemDelDate,
+                registrationStatus: data.registrationStatus,
+            };
+            try {
+                const resp = await saveAsset(editingAssetId, patch);
+                setRows((prev) =>
+                    prev.map((a) => (a.id === editingAssetId ? withManagementStage({ ...a, ...(resp || {}) }) : a))
+                );
+            } catch (e) {
+                // Fallback to local optimistic merge
+                setRows((prev) =>
+                    prev.map((a) => {
+                        if (a.id !== editingAssetId) return a;
+                        const updated = {
+                            ...a,
+                            plate: data.plate || a.plate,
+                            vehicleType: composedVehicleType || a.vehicleType,
+                            make: data.make || a.make,
+                            model: data.model || a.model,
+                            vin: data.vin || a.vin,
+                            vehicleValue: data.vehicleValue || a.vehicleValue,
+                            purchaseDate: data.purchaseDate || a.purchaseDate,
+                            systemRegDate: data.systemRegDate || a.systemRegDate,
+                            systemDelDate: data.systemDelDate || a.systemDelDate,
+                            registrationStatus: data.registrationStatus || a.registrationStatus,
+                        };
+                        return withManagementStage(updated);
+                    })
+                );
+            }
         } else {
-            // Create new asset
-            const id = nextAssetId();
+            // Create new asset via API
+            if (!data?.vin) {
+                alert("VIN은 필수입니다.");
+                return;
+            }
             const today = new Date().toISOString().slice(0, 10);
-            const next = withManagementStage({
-                id,
-                plate: data.plate || "",
-                vehicleType: composedVehicleType || "",
-                make: data.make || "",
-                model: data.model || "",
-                vin: data.vin || "",
-                vehicleValue: data.vehicleValue || "",
-                purchaseDate: data.purchaseDate || "",
-                systemRegDate: data.systemRegDate || today,
-                systemDelDate: data.systemDelDate || "",
-                insuranceInfo: "",
-                registrationDate: data.registrationDate || today,
-                registrationStatus: data.registrationStatus || "자산등록 완료",
-                installer: "",
-                deviceSerial: "",
-            });
-            setRows((prev) => [next, ...prev]);
             const { registrationDoc, insuranceDoc, ...rest } = data || {};
-            const draft = { ...rest, createdAt: new Date().toISOString(), id, managementStage: next.managementStage };
-            typedStorage.drafts.addAsset(draft);
+            const payload = {
+                ...rest,
+                vehicleType: composedVehicleType || rest.vehicleType || "",
+                registrationDate: rest.registrationDate || today,
+                registrationStatus: rest.registrationStatus || "자산등록 완료",
+            };
+            try {
+                const created = await createAsset(payload);
+                const normalized = withManagementStage(created || payload);
+                setRows((prev) => [normalized, ...prev]);
+            } catch (e) {
+                console.error("Failed to create asset via API", e);
+                alert("자산 생성에 실패했습니다.");
+            }
         }
 
         setShowAssetModal(false);
@@ -1115,8 +1034,7 @@ export default function AssetStatus() {
                       label: column.label,
                       style: { textAlign: "center" },
                       render: (row) => {
-                          const stored = typedStorage.devices.getInfo(row.id) || {};
-                          const hasDevice = row.deviceSerial || stored.serial;
+                          const hasDevice = !!row.deviceSerial;
                           if (hasDevice) {
                               return (
                                   <button type="button" className="badge badge--on badge--clickable" onClick={() => openDeviceView(row)} title="단말 정보 보기">
@@ -1227,7 +1145,7 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showDeviceModal && activeAsset}
                 onClose={() => setShowDeviceModal(false)}
-                title={`단말 정보 ${deviceReadOnly ? '보기' : ((typedStorage.devices.getInfo(activeAsset?.id || "") || {}).serial || activeAsset?.deviceSerial ? '수정' : '등록')} - ${activeAsset?.plate || activeAsset?.id || ""}`}
+                title={`단말 정보 ${deviceReadOnly ? '보기' : (activeAsset?.deviceSerial ? '수정' : '등록')} - ${activeAsset?.plate || activeAsset?.id || ""}`}
                 showFooter={false}
                 showHeaderClose={!deviceReadOnly}
             >
@@ -1238,7 +1156,7 @@ export default function AssetStatus() {
                     readOnly={deviceReadOnly}
                     showSubmit={!deviceReadOnly}
                 />
-                <DeviceEventLog assetId={activeAsset?.id} fallbackInstallDate={deviceInitial?.installDate || "" || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""} />
+                <DeviceEventLog assetId={activeAsset?.id} history={activeAsset?.deviceHistory || []} fallbackInstallDate={deviceInitial?.installDate || "" || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""} />
                 {deviceReadOnly && (
                     <div className="asset-dialog__footer">
                         <button type="button" className="form-button" onClick={() => setDeviceReadOnly(false)} style={{ marginRight: 8 }}>수정</button>

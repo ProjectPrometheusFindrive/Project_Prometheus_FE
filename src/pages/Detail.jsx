@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { fetchAssetById, fetchRentalById } from "../api";
+import { fetchAssetById, fetchRentalById, saveAsset, updateRental, createIssueDraft } from "../api";
 import AssetForm from "../components/forms/AssetForm";
 import RentalForm from "../components/forms/RentalForm";
 import IssueForm from "../components/forms/IssueForm";
@@ -100,15 +100,14 @@ export default function Detail() {
                         readOnly={!editing}
                         formId="detail-form"
                         showSubmit={false}
-                        onSubmit={(form) => {
+                        onSubmit={async (form) => {
                             try {
-                                const edits = JSON.parse(localStorage.getItem("assetEdits") || "{}");
                                 const { registrationDoc, insuranceDoc, ...rest } = form || {};
-                                edits[String(data.id)] = { ...data, ...rest };
-                                localStorage.setItem("assetEdits", JSON.stringify(edits));
-                                console.log("Asset saved:", edits[String(data.id)]);
+                                await saveAsset(data.id, rest);
                             } catch (e) {
-                                console.error("Failed saving asset edit", e);
+                                console.error("Failed saving asset via API", e);
+                                alert("자산 저장에 실패했습니다.");
+                                return;
                             }
                             setEditing(false);
                             setSaved(true);
@@ -123,15 +122,14 @@ export default function Detail() {
                         readOnly={!editing}
                         formId="detail-form"
                         showSubmit={false}
-                        onSubmit={(form) => {
+                        onSubmit={async (form) => {
                             try {
-                                const edits = JSON.parse(localStorage.getItem("rentalEdits") || "{}");
                                 const { contract_file, driver_license_file, ...rest } = form || {};
-                                edits[String(data.rental_id)] = { ...data, ...rest };
-                                localStorage.setItem("rentalEdits", JSON.stringify(edits));
-                                console.log("Rental saved:", edits[String(data.rental_id)]);
+                                await updateRental(data.rental_id, rest);
                             } catch (e) {
-                                console.error("Failed saving rental edit", e);
+                                console.error("Failed saving rental via API", e);
+                                alert("계약 저장에 실패했습니다.");
+                                return;
                             }
                             setEditing(false);
                             setSaved(true);
@@ -151,14 +149,14 @@ export default function Detail() {
                         readOnly={!editing}
                         formId="detail-form"
                         showSubmit={false}
-                        onSubmit={(form) => {
+                        onSubmit={async (form) => {
                             try {
-                                const edits = JSON.parse(localStorage.getItem("issueEdits") || "{}");
-                                edits[String(data.rental_id)] = form;
-                                localStorage.setItem("issueEdits", JSON.stringify(edits));
-                                console.log("Issue saved:", edits[String(data.rental_id)]);
+                                const result = await createIssueDraft(form);
+                                if (!result?.ok) throw new Error(result?.error || "Issue create failed");
                             } catch (e) {
-                                console.error("Failed saving issue edit", e);
+                                console.error("Failed creating issue via API", e);
+                                alert("이슈 저장에 실패했습니다.");
+                                return;
                             }
                             setEditing(false);
                             setSaved(true);

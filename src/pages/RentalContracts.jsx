@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { fetchRentals, updateRental } from "../api";
+import { fetchRentals, updateRental, createRental, deleteRental } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import AccidentInfoModal from "../components/AccidentInfoModal";
@@ -127,29 +127,13 @@ export default function RentalContracts() {
     const [accidentForm, setAccidentForm] = useState(() => ({ ...ACCIDENT_FORM_DEFAULT }));
     const [fileInputKey, setFileInputKey] = useState(0);
 
-    // Initial load via fake API, then merge any local drafts once
+    // Initial load via API
     useEffect(() => {
         let mounted = true;
         (async () => {
             try {
                 const base = await fetchRentals();
-                let list = Array.isArray(base) ? base.map((r) => ({ ...r })) : [];
-                try {
-                    const raw = localStorage.getItem("rentalDrafts");
-                    if (raw) {
-                        const drafts = JSON.parse(raw);
-                        if (Array.isArray(drafts)) {
-                            const existingIds = new Set(list.map((x) => String(x.rental_id)));
-                            const toAdd = drafts
-                                .filter((d) => d && d.rental_id && !existingIds.has(String(d.rental_id)))
-                                .map((d) => ({
-                                    ...d,
-                                    rental_period: d.rental_period || { start: d.start || "", end: d.end || "" },
-                                }));
-                            if (toAdd.length > 0) list = [...list, ...toAdd];
-                        }
-                    }
-                } catch {}
+                const list = Array.isArray(base) ? base.map((r) => ({ ...r })) : [];
                 if (mounted) setItems(list);
             } catch (e) {
                 console.error("Failed to load rentals", e);
@@ -220,39 +204,36 @@ export default function RentalContracts() {
 
     const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rental_id");
 
-    const handleDeleteSelected = () => {
+    const handleDeleteSelected = async () => {
         if (selectedCount === 0) return;
         const ok = window.confirm("Delete selected items?");
         if (!ok) return;
+        const ids = Array.from(selected);
+        try {
+            await Promise.all(ids.map((id) => deleteRental(id).catch(() => false)));
+        } catch (e) {
+            console.error("Failed deleting some rentals", e);
+        }
         setItems((prev) => prev.filter((r) => !selected.has(r.rental_id)));
         clearSelection();
     };
 
-    const nextRentalId = () => {
-        let max = 0;
-        items.forEach((r) => {
-            const n = parseInt(String(r.rental_id || 0), 10);
-            if (!Number.isNaN(n)) max = Math.max(max, n);
-        });
-        return max + 1;
-    };
-
-    const handleCreateSubmit = (data) => {
+    const handleCreateSubmit = async (data) => {
         const { contract_file, driver_license_file, ...rest } = data || {};
-        const rental_id = rest.rental_id && String(rest.rental_id).trim() ? rest.rental_id : nextRentalId();
-        const normalized = {
+        const payload = {
             ...rest,
-            rental_id,
             rental_amount: parseCurrency(rest.rental_amount),
             deposit: parseCurrency(rest.deposit),
             rental_period: { start: rest.start || "", end: rest.end || "" },
         };
-        setItems((prev) => [normalized, ...prev]);
         try {
-            const arr = JSON.parse(localStorage.getItem("rentalDrafts") || "[]");
-            arr.push({ ...normalized, createdAt: new Date().toISOString() });
-            localStorage.setItem("rentalDrafts", JSON.stringify(arr));
-        } catch {}
+            const created = await createRental(payload);
+            setItems((prev) => [created || payload, ...prev]);
+        } catch (e) {
+            console.error("Failed to create rental via API", e);
+            alert("계약 생성에 실패했습니다.");
+            return;
+        }
         setShowCreate(false);
     };
 
@@ -261,8 +242,16 @@ export default function RentalContracts() {
         setShowDetail(true);
     };
 
-    const handleToggleRestart = (rentalId) => {
-        setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, restart_blocked: !item.restart_blocked } : item)));
+    const handleToggleRestart = async (rentalId) => {
+        const target = rows.find((r) => r.rental_id === rentalId);
+        const next = !target?.restart_blocked;
+        try {
+            await updateRental(rentalId, { restart_blocked: next });
+            setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, restart_blocked: next } : item)));
+        } catch (e) {
+            console.error("Failed to update restart flag", e);
+            alert("재시동 금지 상태 변경 실패");
+        }
     };
 
     const handleMemoEdit = (rentalId, currentMemo) => {
@@ -270,10 +259,16 @@ export default function RentalContracts() {
         setMemoText(currentMemo || "");
     };
 
-    const handleMemoSave = (rentalId) => {
-        setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, memo: memoText } : item)));
-        setEditingMemo(null);
-        setMemoText("");
+    const handleMemoSave = async (rentalId) => {
+        try {
+            await updateRental(rentalId, { memo: memoText });
+            setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, memo: memoText } : item)));
+            setEditingMemo(null);
+            setMemoText("");
+        } catch (e) {
+            console.error("Failed to save memo", e);
+            alert("메모 저장 실패");
+        }
     };
 
     const handleMemoCancel = () => {
@@ -336,7 +331,7 @@ export default function RentalContracts() {
         return `${currentMemo} / ${note}`;
     };
 
-    const handleAccidentSubmit = (event) => {
+    const handleAccidentSubmit = async (event) => {
         event.preventDefault();
         if (!accidentTarget) return;
 
@@ -358,31 +353,38 @@ export default function RentalContracts() {
             blackboxFileName,
             recordedAt: now.toISOString(),
         };
-
-        setItems((prev) =>
-            prev.map((item) => {
-                if (item.rental_id !== accidentTarget.rental_id) return item;
+        try {
+            await updateRental(accidentTarget.rental_id, {
+                accident_reported: true,
+                accidentReport: updatedReport,
+                memo: buildAccidentMemo(accidentTarget.memo || "", memoNote),
+            });
+            setItems((prev) =>
+                prev.map((item) => {
+                    if (item.rental_id !== accidentTarget.rental_id) return item;
+                    return {
+                        ...item,
+                        accident_reported: true,
+                        memo: buildAccidentMemo(item.memo || "", memoNote),
+                        accidentReport: updatedReport,
+                    };
+                })
+            );
+            setSelectedContract((prev) => {
+                if (!prev || prev.rental_id !== accidentTarget.rental_id) return prev;
                 return {
-                    ...item,
+                    ...prev,
                     accident_reported: true,
-                    memo: buildAccidentMemo(item.memo || "", memoNote),
+                    memo: buildAccidentMemo(prev.memo || "", memoNote),
                     accidentReport: updatedReport,
                 };
-            })
-        );
-
-        setSelectedContract((prev) => {
-            if (!prev || prev.rental_id !== accidentTarget.rental_id) return prev;
-            return {
-                ...prev,
-                accident_reported: true,
-                memo: buildAccidentMemo(prev.memo || "", memoNote),
-                accidentReport: updatedReport,
-            };
-        });
-
-        alert("사고 등록이 저장되었습니다.");
-        handleCloseAccidentModal();
+            });
+            alert("사고 등록이 저장되었습니다.");
+            handleCloseAccidentModal();
+        } catch (e) {
+            console.error("Failed to submit accident info", e);
+            alert("사고 등록 저장 실패");
+        }
     };
 
     const handleShowLocation = () => {
