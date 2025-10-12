@@ -258,6 +258,38 @@ export const dashboardApi = {
 export const geofencesApi = {
     async fetchAll() {
         return await apiRequest(API_ENDPOINTS.GEOFENCES);
+    },
+
+    async create(geofenceData) {
+        return await apiRequest(API_ENDPOINTS.GEOFENCES, {
+            method: 'POST',
+            body: JSON.stringify(geofenceData)
+        });
+    },
+
+    async update(id, geofenceData) {
+        if (!id && id !== 0) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid geofence ID'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.GEOFENCE_BY_ID(id), {
+            method: 'PUT',
+            body: JSON.stringify(geofenceData)
+        });
+    },
+
+    async delete(id) {
+        if (!id && id !== 0) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid geofence ID'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.GEOFENCE_BY_ID(id), {
+            method: 'DELETE'
+        });
     }
 };
 

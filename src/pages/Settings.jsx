@@ -1,7 +1,15 @@
 import React, { useCallback, useEffect, useState } from "react";
 import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
-import { fetchCompanyInfo as loadCompanyInfo, saveCompanyInfo, defaultCompanyInfo } from "../api";
+import {
+    fetchCompanyInfo as loadCompanyInfo,
+    saveCompanyInfo,
+    defaultCompanyInfo,
+    fetchGeofences,
+    createGeofence,
+    updateGeofence,
+    deleteGeofence,
+} from "../api";
 import { CountBadge, GeofenceBadge } from "../components/StatusBadge";
 
 export default function Settings() {
@@ -15,15 +23,25 @@ export default function Settings() {
     const [newGeofenceDraft, setNewGeofenceDraft] = useState({ geofences: [] });
     const [newGeofenceName, setNewGeofenceName] = useState("");
 
-    // Load company info and migrate legacy geofences
+    // Load company info, then load geofences from backend and migrate legacy data if needed
     useEffect(() => {
         let mounted = true;
         (async () => {
             let base = await loadCompanyInfo();
 
             try {
+                // Fetch geofences from server
+                let serverGeofences = [];
+                try {
+                    const gf = await fetchGeofences();
+                    if (Array.isArray(gf)) serverGeofences = gf;
+                } catch (e) {
+                    console.error("Failed to fetch geofences from server:", e);
+                }
+
+                // Legacy migration from localStorage -> create on server if server has none
                 const raw = localStorage.getItem("geofenceSets");
-                if (raw) {
+                if (raw && (!serverGeofences || serverGeofences.length === 0)) {
                     const parsed = JSON.parse(raw);
                     const arr = Array.isArray(parsed?.geofences) ? parsed.geofences : [];
                     const items = arr
@@ -34,41 +52,52 @@ export default function Settings() {
                         })
                         .filter(Boolean);
                     if (items.length > 0) {
-                        const migratedBase = { ...base, geofences: items, geofencesUpdatedAt: parsed?.updatedAt || new Date().toISOString() };
-                        await saveCompanyInfo(migratedBase);
-                        base = migratedBase;
+                        for (const item of items) {
+                            try { await createGeofence(item); } catch (e) { console.error("Failed to migrate geofence:", e); }
+                        }
+                        try { localStorage.removeItem("geofenceSets"); } catch {}
                         try {
-                            localStorage.removeItem("geofenceSets");
+                            const gf2 = await fetchGeofences();
+                            if (Array.isArray(gf2)) serverGeofences = gf2;
                         } catch {}
                     }
                 }
-            } catch (e) {
-                console.error("Failed to load or migrate company info", e);
-            }
 
-            if (mounted) {
-                setViewData(base);
-                setEditData(base);
-                let geofences = Array.isArray(base?.geofences) ? base.geofences : [];
-
-                // 지오펜스가 없으면 기본 데이터 로드
-                if (geofences.length === 0) {
+                // If still empty, try to seed from dummy data
+                if ((!serverGeofences || serverGeofences.length === 0)) {
                     try {
                         const { dummyGeofences } = await import("../data/geofences");
-                        geofences = Array.isArray(dummyGeofences) ? dummyGeofences : [];
-
-                        if (geofences.length > 0) {
-                            const updatedBase = { ...base, geofences: geofences };
-                            await saveCompanyInfo(updatedBase);
-                            setViewData(updatedBase);
-                            setEditData(updatedBase);
+                        const seeds = Array.isArray(dummyGeofences) ? dummyGeofences : [];
+                        if (seeds.length > 0) {
+                            for (let i = 0; i < seeds.length; i++) {
+                                const s = seeds[i];
+                                try {
+                                    await createGeofence({ name: s.name || `Polygon ${i + 1}`, points: Array.isArray(s.points) ? s.points : s });
+                                } catch (e) {
+                                    console.error("Failed to seed geofence:", e);
+                                }
+                            }
+                            try {
+                                const gf3 = await fetchGeofences();
+                                if (Array.isArray(gf3)) serverGeofences = gf3;
+                            } catch {}
                         }
                     } catch (error) {
                         console.error("Failed to load default geofences:", error);
                     }
                 }
 
-                setGeofenceList(geofences);
+                if (mounted) {
+                    setViewData(base);
+                    setEditData(base);
+                    setGeofenceList(Array.isArray(serverGeofences) ? serverGeofences : []);
+                }
+            } catch (e) {
+                console.error("Failed to load or migrate company info", e);
+                if (mounted) {
+                    setViewData(base);
+                    setEditData(base);
+                }
             }
         })();
         return () => {
@@ -115,32 +144,55 @@ export default function Settings() {
         if (!Array.isArray(arr)) return [];
         return arr.map((it, i) => {
             if (Array.isArray(it)) return { name: `Polygon ${i + 1}`, points: it };
-            if (it && Array.isArray(it.points)) return { name: it.name || `Polygon ${i + 1}`, points: it.points };
+            if (it && Array.isArray(it.points)) return { id: it.id != null ? it.id : it.name, name: it.name || `Polygon ${i + 1}`, points: it.points };
             return { name: `Polygon ${i + 1}`, points: [] };
         });
     };
 
-    const saveGeofencesIntoCompany = async (items) => {
-        const now = new Date().toISOString();
-        const current = await loadCompanyInfo();
-        const next = { ...current, geofences: items, geofencesUpdatedAt: now };
-        await saveCompanyInfo(next);
-        setViewData(next);
-        setEditData(next);
-    };
-
     const handleGeofenceDeleteOne = async (idx) => {
+        const item = (geofenceList || [])[idx];
+        const identifier = item?.id != null ? item.id : item?.name;
+        if (identifier != null) {
+            try { await deleteGeofence(identifier); } catch (e) { console.error("Error deleting geofence:", e); }
+        }
         const next = (geofenceList || []).filter((_, i) => i !== idx);
         setGeofenceList(next);
-        await saveGeofencesIntoCompany(next);
     };
 
     const handleRenameOne = async (idx, name) => {
         const list = toItems(geofenceList || []);
         if (!list[idx]) return;
-        list[idx] = { ...list[idx], name: name || list[idx].name };
-        setGeofenceList(list);
-        await saveGeofencesIntoCompany(list);
+        const prev = list[idx];
+        const updated = { ...prev, name: name || prev.name };
+        const identifier = prev.id != null ? prev.id : prev.name;
+        setGeofenceList((prevList) => {
+            const next = [...(prevList || [])];
+            next[idx] = updated;
+            return next;
+        });
+        try {
+            let ok = true;
+            if (identifier != null) {
+                ok = await updateGeofence(identifier, { name: updated.name, points: updated.points });
+            }
+            if (!identifier || ok === false) {
+                const created = await createGeofence({ name: updated.name, points: updated.points });
+                setGeofenceList((prevList) => {
+                    const next = [...(prevList || [])];
+                    next[idx] = { ...updated, id: created?.name != null ? created.name : updated.name };
+                    return next;
+                });
+            } else {
+                // If backend uses name as identifier, sync id to new name
+                setGeofenceList((prevList) => {
+                    const next = [...(prevList || [])];
+                    next[idx] = { ...updated, id: updated.name };
+                    return next;
+                });
+            }
+        } catch (e) {
+            console.error("Failed to rename geofence:", e);
+        }
     };
 
     const handleNewGeofenceSubmit = async (data) => {
@@ -154,15 +206,28 @@ export default function Settings() {
 
             if (polys.length === 1) {
                 const name = (data?.name && data.name.trim()) || newGeofenceName.trim() || `Polygon ${newList.length + 1}`;
-                newList.push({ name, points: polys[0] });
+                try {
+                    const created = await createGeofence({ name, points: polys[0] });
+                    const newId = created?.name != null ? created.name : name;
+                    newList.push({ id: newId, name, points: polys[0] });
+                } catch (e) {
+                    console.error("Failed to create geofence:", e);
+                }
             } else {
-                polys.forEach((pts, i) => {
-                    newList.push({ name: `Polygon ${newList.length + i + 1}`, points: pts });
-                });
+                for (let i = 0; i < polys.length; i++) {
+                    const pts = polys[i];
+                    const nm = `Polygon ${newList.length + i + 1}`;
+                    try {
+                        const created = await createGeofence({ name: nm, points: pts });
+                        const newId = created?.name != null ? created.name : nm;
+                        newList.push({ id: newId, name: nm, points: pts });
+                    } catch (e) {
+                        console.error("Failed to create geofence:", e);
+                    }
+                }
             }
 
             setGeofenceList(newList);
-            await saveGeofencesIntoCompany(newList);
 
             // Reset form
             setNewGeofenceDraft({ geofences: [] });
@@ -241,8 +306,8 @@ export default function Settings() {
                                     <h2>지오펜스 관리</h2>
                                 </div>
                                 <div>
-                                    {Array.isArray(viewData?.geofences) && viewData.geofences.length > 0 ? (
-                                        <CountBadge count={viewData.geofences.length} label="개 저장됨" />
+                                    {Array.isArray(geofenceList) && geofenceList.length > 0 ? (
+                                        <CountBadge count={geofenceList.length} label="개 저장됨" />
                                     ) : (
                                         <span className="empty">지오펜스 없음</span>
                                     )}
@@ -288,18 +353,48 @@ export default function Settings() {
                                                                 <button
                                                                     className="form-button"
                                                                     type="button"
-                                                                    onClick={(e) => {
-                                                                        saveGeofencesIntoCompany(geofenceList);
-                                                                        const button = e.currentTarget;
-                                                                        button.textContent = "저장됨!";
-                                                                        button.style.background = "#4CAF50";
-                                                                        button.style.color = "white";
-
-                                                                        setTimeout(() => {
-                                                                            button.textContent = "저장";
-                                                                            button.style.background = saveButtonStyle.backgroundColor;
-                                                                            button.style.color = saveButtonStyle.color;
-                                                                        }, 1000);
+                                                                    onClick={async (e) => {
+                                                                        const buttonEl = e.currentTarget;
+                                                                        const item = geofenceList[idx];
+                                                                        if (item) {
+                                                                            try {
+                                                                                const identifier = item.id != null ? item.id : item.name;
+                                                                                let ok = true;
+                                                                                if (identifier != null) {
+                                                                                    ok = await updateGeofence(identifier, { name: item.name, points: item.points });
+                                                                                }
+                                                                                if (!identifier || ok === false) {
+                                                                                    const created = await createGeofence({ name: item.name, points: item.points });
+                                                                                    setGeofenceList((prev) => {
+                                                                                        const next = [...(prev || [])];
+                                                                                        next[idx] = { ...item, id: created?.name != null ? created.name : item.name };
+                                                                                        return next;
+                                                                                    });
+                                                                                } else {
+                                                                                    // Sync id to name if necessary
+                                                                                    setGeofenceList((prev) => {
+                                                                                        const next = [...(prev || [])];
+                                                                                        next[idx] = { ...item, id: item.name };
+                                                                                        return next;
+                                                                                    });
+                                                                                }
+                                                                            } catch (err) {
+                                                                                console.error("Failed to save geofence:", err);
+                                                                            }
+                                                                        }
+                                                                        // Visual feedback
+                                                                        try {
+                                                                            buttonEl.textContent = "저장됨!";
+                                                                            buttonEl.style.background = "#4CAF50";
+                                                                            buttonEl.style.color = "white";
+                                                                            setTimeout(() => {
+                                                                                try {
+                                                                                    buttonEl.textContent = "저장";
+                                                                                    buttonEl.style.background = saveButtonStyle.backgroundColor;
+                                                                                    buttonEl.style.color = saveButtonStyle.color;
+                                                                                } catch {}
+                                                                            }, 1000);
+                                                                        } catch {}
                                                                     }}
                                                                     style={saveButtonStyle}
                                                                 >
@@ -320,11 +415,37 @@ export default function Settings() {
                                                                 updatedList[idx] = { ...updatedList[idx], points: newPoints };
                                                                 setGeofenceList(updatedList);
 
-                                                                // 디바운스된 자동 저장
+                                                                // 디바운스된 자동 저장 (단일 항목 업데이트)
                                                                 clearTimeout(window.autoSaveTimeout);
-                                                                window.autoSaveTimeout = setTimeout(() => {
-                                                                    saveGeofencesIntoCompany(updatedList);
-                                                                }, 1000);
+                                                                window.autoSaveTimeout = setTimeout(async () => {
+                                                                    const item = updatedList[idx];
+                                                                    if (item) {
+                                                                        try {
+                                                                            const identifier = item.id != null ? item.id : item.name;
+                                                                            let ok = true;
+                                                                            if (identifier != null) {
+                                                                                ok = await updateGeofence(identifier, { name: item.name, points: item.points });
+                                                                            }
+                                                                            if (!identifier || ok === false) {
+                                                                                const created = await createGeofence({ name: item.name, points: item.points });
+                                                                                setGeofenceList((prev) => {
+                                                                                    const next = [...(prev || [])];
+                                                                                    next[idx] = { ...item, id: created?.name != null ? created.name : item.name };
+                                                                                    return next;
+                                                                                });
+                                                                            } else {
+                                                                                // Sync id to name if name is identifier
+                                                                                setGeofenceList((prev) => {
+                                                                                    const next = [...(prev || [])];
+                                                                                    next[idx] = { ...item, id: item.name };
+                                                                                    return next;
+                                                                                });
+                                                                            }
+                                                                        } catch (err) {
+                                                                            console.error("Failed to auto-save geofence:", err);
+                                                                        }
+                                                                    }
+                                                                }, 800);
                                                             }}
                                                         />
                                                     </div>

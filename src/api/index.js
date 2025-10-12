@@ -21,6 +21,9 @@ export const {
 
   // Geofences/Settings
   fetchGeofences,
+  createGeofence,
+  updateGeofence,
+  deleteGeofence,
   fetchCompanyInfo,
   saveCompanyInfo,
   defaultCompanyInfo,

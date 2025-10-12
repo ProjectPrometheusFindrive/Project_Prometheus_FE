@@ -110,16 +110,68 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                 }
             }, 100);
 
-            const handleDataChange = (e) => {
+            const handleDataChange = () => {
                 try {
                     const data = drawingManager.getData();
 
-                    if (data && data.polygon && Array.isArray(data.polygon)) {
-                        const newPolygons = data.polygon.map((p) => {
-                            return p.getPoints().map((point) => ({ lat: point.y, lng: point.x }));
-                        });
+                    if (data && Array.isArray(data.polygon)) {
+                        const toLatLng = (pt) => {
+                            try {
+                                if (!pt) return null;
+                                if (typeof pt.getLat === 'function' && typeof pt.getLng === 'function') {
+                                    return { lat: pt.getLat(), lng: pt.getLng() };
+                                }
+                                if (typeof pt.getY === 'function' && typeof pt.getX === 'function') {
+                                    return { lat: pt.getY(), lng: pt.getX() };
+                                }
+                                if (typeof pt.lat === 'number' && typeof pt.lng === 'number') {
+                                    return { lat: pt.lat, lng: pt.lng };
+                                }
+                                if (typeof pt.y === 'number' && typeof pt.x === 'number') {
+                                    return { lat: pt.y, lng: pt.x };
+                                }
+                                return null;
+                            } catch {
+                                return null;
+                            }
+                        };
 
-                        if (onChange) {
+                        const extractPath = (poly) => {
+                            try {
+                                if (!poly) return [];
+                                // Overlay instance with getPath()
+                                if (typeof poly.getPath === 'function') {
+                                    const path = poly.getPath();
+                                    const arr = typeof path?.getArray === 'function' ? path.getArray() : path;
+                                    return (Array.isArray(arr) ? arr : []).map(toLatLng).filter(Boolean);
+                                }
+                                // Overlay instance with getPoints()
+                                if (typeof poly.getPoints === 'function') {
+                                    const arr = poly.getPoints();
+                                    return (Array.isArray(arr) ? arr : []).map(toLatLng).filter(Boolean);
+                                }
+                                // Data object with path or points
+                                if (Array.isArray(poly.path)) {
+                                    return poly.path.map(toLatLng).filter(Boolean);
+                                }
+                                if (Array.isArray(poly.points)) {
+                                    return poly.points.map(toLatLng).filter(Boolean);
+                                }
+                                // Already an array of points
+                                if (Array.isArray(poly)) {
+                                    return poly.map(toLatLng).filter(Boolean);
+                                }
+                                return [];
+                            } catch {
+                                return [];
+                            }
+                        };
+
+                        const newPolygons = data.polygon
+                            .map(extractPath)
+                            .filter((pts) => Array.isArray(pts) && pts.length > 0);
+
+                        if (onChange && newPolygons) {
                             onChange(newPolygons);
                         }
                     }

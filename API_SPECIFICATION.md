@@ -314,6 +314,39 @@ GET /geofences
 ]
 ```
 
+POST /geofences
+
+- 설명: 지오펜스 생성
+- 요청 본문 예시
+
+```json
+{ 
+  "name": "서울 강남구 사업장",
+  "points": [
+    { "lat": 37.5665, "lng": 126.978 },
+    { "lat": 37.5675, "lng": 126.9785 },
+    { "lat": 37.567, "lng": 126.979 }
+  ]
+}
+```
+
+- 응답 예시 (201)
+
+```json
+{ "name": "서울 강남구 사업장", "message": "Geofence created successfully" }
+```
+
+PUT /geofences/{name}
+
+- 설명: 지오펜스 수정(이름/좌표)
+- 요청 본문 예시: POST와 동일 스키마
+- 응답: 200 (성공) 또는 404 (미존재)
+
+DELETE /geofences/{name}
+
+- 설명: 지오펜스 삭제
+- 응답: 200 (성공) 또는 404 (미존재)
+
 ### Company Information (회사 정보)
 
 GET /company

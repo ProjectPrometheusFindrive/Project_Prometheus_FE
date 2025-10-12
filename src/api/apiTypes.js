@@ -20,6 +20,7 @@ export const API_ENDPOINTS = {
     
     // Geofences
     GEOFENCES: '/geofences',
+    GEOFENCE_BY_ID: (id) => `/geofences/${encodeURIComponent(id)}`,
     
     // Company
     COMPANY: '/company',

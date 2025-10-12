@@ -136,6 +136,7 @@ src/
 - Kakao Maps SDK를 컴포넌트에서 동적으로 로드합니다(네트워크 필요).
 - `src/components/KakaoMap.jsx`: 차량 위치 및 이동 경로(속도에 따라 색상 구간) 시각화.
 - `src/components/forms/KakaoGeofenceInput.jsx`: services, drawing 라이브러리를 사용해 지오펜스 생성/편집. `VITE_KAKAO_MAP_API_KEY` 필요(미설정 시 내장 개발 키 시도).
+- 지오펜스 데이터는 Real API에서 별도 리소스로 관리합니다. 조회: `GET /geofences`, 생성: `POST /geofences`, 수정: `PUT /geofences/{id}`, 삭제: `DELETE /geofences/{id}`. 상세는 `API_SPECIFICATION.md` 참고.
 
 ## 스크립트
 

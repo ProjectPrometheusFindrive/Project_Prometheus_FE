@@ -93,6 +93,37 @@ export async function fetchGeofences() {
     const response = await geofencesApi.fetchAll();
     return extractData(response);
 }
+
+// Create/Update/Delete Geofence
+export async function createGeofence(data) {
+    const response = await geofencesApi.create(data);
+    if (response.status === API_STATUS.SUCCESS) {
+        return extractData(response);
+    }
+    throw new Error(response.error?.message || 'Failed to create geofence');
+}
+
+export async function updateGeofence(id, data) {
+    const response = await geofencesApi.update(id, data);
+    if (response.status === API_STATUS.SUCCESS) {
+        return true;
+    }
+    if (response.error?.type === 'NOT_FOUND' || response.error?.status === 404) {
+        return false;
+    }
+    throw new Error(response.error?.message || 'Failed to update geofence');
+}
+
+export async function deleteGeofence(id) {
+    const response = await geofencesApi.delete(id);
+    if (response.status === API_STATUS.SUCCESS) {
+        return true;
+    }
+    if (response.error?.type === 'NOT_FOUND' || response.error?.status === 404) {
+        return false;
+    }
+    throw new Error(response.error?.message || 'Failed to delete geofence');
+}
 export async function fetchCompanyInfo() {
     const response = await companyApi.fetchInfo();
     return extractData(response);
