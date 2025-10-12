@@ -2,7 +2,7 @@
 
 ## Project Structure & Module Organization
 - `src/` app code: `App.jsx`, `main.jsx`, `App.css`.
-- Key folders: `components/` (UI, forms), `pages/` (route views), `api/` (`apiClient`, `realApi`, `index.js` real-only), `utils/`, `constants/`, `data/` (seed.json, geofences, company), `assets/` (SVGs).
+- Key folders: `components/` (UI, forms), `pages/` (route views), `api/` (`apiClient`, `api.js`, `index.js` real-only), `utils/`, `constants/`, `data/` (seed.json, geofences, company), `assets/` (SVGs).
 - Routing uses `HashRouter` for static hosting. `index.html` loads map libraries via CDN. See `API_SPECIFICATION.md` for API details.
 
 ## Build, Test, and Development Commands

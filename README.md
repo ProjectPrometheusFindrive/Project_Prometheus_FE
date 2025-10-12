@@ -91,7 +91,7 @@ VITE_KAKAO_MAP_API_KEY=your_kakao_key
 ```
 src/
   App.jsx, main.jsx, App.css
-  api/            # index.js(Real 전용), realApi.js, apiClient.js, apiTypes.js
+  api/            # index.js(Real 전용), api.js, apiClient.js, apiTypes.js
   components/
     AppLayout.jsx, NavigationBar.jsx, KakaoMap.jsx, ErrorBoundary.jsx, ...
     forms/        # AssetForm.jsx, RentalForm.jsx, IssueForm.jsx, KakaoGeofenceInput.jsx 등

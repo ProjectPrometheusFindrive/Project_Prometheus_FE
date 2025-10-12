@@ -4,26 +4,17 @@ info:
   description: |
     Project Prometheus 프론트엔드가 기대하는 백엔드 REST API 명세입니다.
 
-    * `VITE_FAKE_API_BASE_URL`(기본 `http://localhost:3001/api`)로 구동되는 Fake API는 리소스(JSON) 자체를 반환합니다.
-    * 실제 백엔드(`VITE_API_BASE_URL`)는 `status/data/error/timestamp` 래퍼를 사용하는 것을 권장합니다.
-
-    이 OpenAPI 파일은 두 형태의 응답을 모두 허용하도록 `oneOf` 스키마를 사용합니다.
-  version: 1.0.0
+    실제 백엔드(`VITE_API_BASE_URL`)는 표준 응답 래퍼(`status/data/error/timestamp`) 사용을 권장하지만,
+    Plain JSON(리소스 객체/배열 직접 반환)도 허용합니다. 본 명세는 두 형태를 `oneOf`로 기술합니다.
+  version: 1.1.0
   license:
     name: Proprietary
     url: https://prometheus.test/license
 servers:
-  - url: http://{devHost}:{port}/api
-    description: 로컬 개발 Fake API 서버(기본값은 http://localhost:3001/api)
-    variables:
-      devHost:
-        default: dev.prometheus.test
-        description: 개발용 호스트명
-      port:
-        default: "3001"
-        description: 개발 서버 포트
   - url: https://api.prometheus.test
     description: 실제 백엔드 API (환경 변수 `VITE_API_BASE_URL`로 설정)
+  - url: http://localhost:5000/api
+    description: 로컬 실백엔드 호환 서버
 security: []
 tags:
   - name: Assets
@@ -41,7 +32,7 @@ tags:
   - name: Company
     description: 회사 기본 정보 및 지오펜스 저장
   - name: Issues
-    description: 문제 차량 신고·초안 생성
+    description: 문제 차량 신고
 paths:
   /assets:
     get:
@@ -445,6 +436,77 @@ paths:
           $ref: '#/components/responses/Error'
         default:
           $ref: '#/components/responses/Error'
+    post:
+      tags: [Geofences]
+      summary: 지오펜스 생성
+      operationId: createGeofence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Geofence'
+      responses:
+        "201":
+          description: 생성된 지오펜스
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/StandardResponse'
+                      - type: object
+                        properties:
+                          data:
+                            $ref: '#/components/schemas/Geofence'
+                  - $ref: '#/components/schemas/Geofence'
+        "400":
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /geofences/{id}:
+    parameters:
+      - $ref: '#/components/parameters/GeofenceIdParam'
+    put:
+      tags: [Geofences]
+      summary: 지오펜스 수정
+      operationId: updateGeofence
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Geofence'
+      responses:
+        "200":
+          description: 수정된 지오펜스 또는 성공 상태
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/StandardResponse'
+                      - type: object
+                        properties:
+                          data:
+                            $ref: '#/components/schemas/Geofence'
+                  - $ref: '#/components/schemas/Geofence'
+        "400":
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+    delete:
+      tags: [Geofences]
+      summary: 지오펜스 삭제
+      operationId: deleteGeofence
+      responses:
+        "204":
+          description: 삭제 완료
+        "400":
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
   /company:
     get:
       tags: [Company]
@@ -533,54 +595,39 @@ paths:
           $ref: '#/components/responses/Error'
         default:
           $ref: '#/components/responses/Error'
-  /issue-drafts:
-    post:
-      tags: [Issues]
-      summary: 문제 차량 이슈 초안 생성 (Fake API 전용)
-      operationId: createIssueDraft
-      description: 로컬 개발용 Fake API에서만 제공되는 엔드포인트입니다.
-      requestBody:
+  
+  components:
+    parameters:
+      AssetIdParam:
+        name: assetId
+        in: path
         required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/IssueCreateInput'
-      responses:
-        "201":
-          description: 생성된 이슈 초안
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Issue'
-        "400":
-          $ref: '#/components/responses/Error'
-        default:
-          $ref: '#/components/responses/Error'
-components:
-  parameters:
-    AssetIdParam:
-      name: assetId
-      in: path
-      required: true
-      schema:
-        type: string
-      description: 자산 ID
-    RentalIdParam:
-      name: rentalId
-      in: path
-      required: true
-      schema:
-        type: string
-      description: 렌탈 계약 ID
-    VinParam:
-      name: vin
-      in: path
-      required: true
-      schema:
-        type: string
-        minLength: 17
-        maxLength: 17
-      description: 차량 VIN(17자리)
+        schema:
+          type: string
+        description: 자산 ID
+      RentalIdParam:
+        name: rentalId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 렌탈 계약 ID
+      VinParam:
+        name: vin
+        in: path
+        required: true
+        schema:
+          type: string
+          minLength: 17
+          maxLength: 17
+        description: 차량 VIN(17자리)
+      GeofenceIdParam:
+        name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 지오펜스 식별자(백엔드 구현에 따라 name일 수 있음)
   responses:
     Error:
       description: 오류 응답
@@ -1021,9 +1068,12 @@ components:
           type: string
           description: 코드 설명
         severity:
-          type: string
-          description: 심각도
-          enum: ["낮음", "보통", "높음"]
+          type: number
+          format: float
+          description: 심각도(0.0~10.0, 소수점 첫째자리)
+          minimum: 0
+          maximum: 10
+          multipleOf: 0.1
         detectedDate:
           type: string
           format: date

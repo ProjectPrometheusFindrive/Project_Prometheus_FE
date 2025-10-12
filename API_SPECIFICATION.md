@@ -1,22 +1,19 @@
-# Project Prometheus Frontend API Specification (Real API)
+# Project Prometheus Frontend API Specification
 
 ## Overview
 
-프론트엔드가 실제 백엔드(Real API)와 통신할 때의 엔드포인트와 스키마를 요약한 문서입니다. 로컬 개발을 위한 Fake API도 존재하지만, 본 문서는 Real API 기준으로 정리합니다. 상세 스키마는 `openapi/project-prometheus-openapi.yaml`을 기준으로 유지됩니다.
+이 문서는 프론트엔드가 현재 구현(Real API 전용) 기준으로 기대하는 백엔드 REST API를 정리합니다. 상세 스키마는 `openapi/project-prometheus-openapi.yaml`을 참조하세요. 프론트엔드는 Real API만 사용하며, 베이스 URL은 `VITE_API_BASE_URL`에서 읽습니다(끝의 `/`는 제거).
 
-- Fake API: 로컬 Express 서버(기본값). 경로와 대략적인 응답은 동일하며, 리소스(JSON) 자체를 반환합니다.
-- Real API: 실제 서버. `VITE_USE_REAL_API=true`로 활성화하고 `VITE_API_BASE_URL`로 베이스 URL을 지정합니다.
+노트
 
-Base URLs
-
-- Fake API: `http://localhost:3001/api`
-- Real API: 환경변수 `VITE_API_BASE_URL` (마지막 슬래시는 제외)
+- 응답은 Plain JSON(리소스 그대로) 또는 표준 래퍼(`status/data/error/timestamp`) 두 형태를 모두 허용합니다. `src/api/apiClient.js`가 두 형태를 자동 처리합니다.
+- 과거 로컬 Fake API 관련 내용은 더 이상 사용하지 않습니다(코드에서 Real API만 사용). OpenAPI에는 개발 편의를 위한 보조 엔드포인트가 포함될 수 있으나, 본 문서는 실제 사용 중인 엔드포인트만 기술합니다.
 
 ## Response Format
 
-프론트엔드 `apiClient`는 두 형태를 모두 지원하며 동일한 래퍼로 정규화합니다.
+프론트엔드 `apiClient`는 두 형태를 모두 지원하고 동일한 형태로 정규화합니다.
 
-- Plain JSON: 리소스 객체/배열을 그대로 반환 (Fake/Real 모두 허용)
+- Plain JSON: 리소스 객체/배열을 그대로 반환
 - Standard Wrapper(권장): 아래 형식으로 감싸서 반환
 
 성공 응답(권장)
@@ -48,9 +45,9 @@ Error Types
 
 - `NETWORK_ERROR`, `NOT_FOUND`, `UNAUTHORIZED`, `VALIDATION_ERROR`, `SERVER_ERROR`
 
-참고: `openapi/project-prometheus-openapi.yaml`에서는 두 형태를 `oneOf`로 정의하여 호환되도록 되어 있습니다.
+참고: `openapi/project-prometheus-openapi.yaml`은 두 형태를 `oneOf`로 정의합니다.
 
-## API Endpoints (Real)
+## API Endpoints
 
 ### Assets (자산 관리)
 
@@ -120,15 +117,15 @@ PUT /assets/{id}
 
 DELETE /assets/{id}
 
--   설명: 자산 삭제
--   파라미터: `id`(string)
--   응답: 204 No Content
+- 설명: 자산 삭제
+- 파라미터: `id`(string)
+- 응답: 204 No Content
 
 #### Asset Fields (추가 권장)
 
 - `diagnosticStatus` ("-" | "정상" | "관심필요" | "심각"): 진단 배지 상태
 - 기준: `diagnosticCodes.severity` 최댓값 기준 분류(정상 ≤ 3.0, 관심필요 ≤ 7.0, 심각 > 7.0)
-- `diagnosticCodes` (array): `{ code, description, severity(0~10), detectedDate(YYYY-MM-DD) }`
+- `diagnosticCodes` (array): `{ code, description, severity(0.0~10.0, 소수점 첫째자리), detectedDate(YYYY-MM-DD) }`
 - `managementStage` (string): "대여중" | "대여가능" | "예약중" | "입고 대상" | "수리/점검 중" | "수리/점검 완료"
 
 위 필드는 Fake/Real 공통으로 응답 및 저장에 포함하는 것을 권장합니다.
@@ -142,7 +139,7 @@ GET /rentals
 
 GET /rentals/latest
 
-- 설명: VIN별 최신 렌탈 1건 조회(일부 구현에서는 전체 목록 반환 가능)
+- 설명: VIN별 최신 렌탈 1건 목록
 - 응답: Rental[]
 
 GET /rentals/{id}
@@ -193,9 +190,20 @@ POST /rentals
 
 메모: 일부 백엔드는 `renter_name/contact_number/address` 평문 필드를 사용할 수 있으며, 구조화된 `customer` 객체와 병행 지원 가능합니다.
 
-개발 메모(Fake API): 로컬 Express 서버(`src/server/fake-backend.js`)도 `/api/rentals/byVin/:vin`를 지원하며, 시드 기반 데이터로 동일 스키마를 반환합니다.
-
 -   응답: 생성된 Rental
+
+PUT /rentals/{id}
+
+- 설명: 렌탈 정보 수정(메모, 사고정보, 재시동 금지 등 부분 업데이트)
+- 파라미터: `id`(string|number)
+- 요청 본문: 변경 필드(JSON)
+- 응답: 수정된 Rental
+
+DELETE /rentals/{id}
+
+- 설명: 렌탈 계약 삭제
+- 파라미터: `id`(string|number)
+- 응답: 204 No Content
 
 ### Vehicles (통합 차량 정보)
 
@@ -330,22 +338,20 @@ POST /geofences
 }
 ```
 
-- 응답 예시 (201)
+- 응답: 생성된 Geofence 객체(201)
 
-```json
-{ "name": "서울 강남구 사업장", "message": "Geofence created successfully" }
-```
-
-PUT /geofences/{name}
+PUT /geofences/{id}
 
 - 설명: 지오펜스 수정(이름/좌표)
+- 파라미터: `id`(string) — 백엔드 구현에 따라 name이 식별자일 수 있습니다.
 - 요청 본문 예시: POST와 동일 스키마
-- 응답: 200 (성공) 또는 404 (미존재)
+- 응답: 200 OK(업데이트된 Geofence 또는 성공 상태)
 
-DELETE /geofences/{name}
+DELETE /geofences/{id}
 
 - 설명: 지오펜스 삭제
-- 응답: 200 (성공) 또는 404 (미존재)
+- 파라미터: `id`(string)
+- 응답: 204 No Content 또는 200 OK
 
 ### Company Information (회사 정보)
 
@@ -396,21 +402,7 @@ POST /issues
 }
 ```
 
-- 응답
-
-```json
-{
-    "ok": true,
-    "data": {
-        /* Issue */
-    }
-}
-```
-
-POST /issue-drafts (Fake API 전용)
-
-- 설명: 이슈 초안 생성(로컬 개발용)
-- 응답: 생성된 초안 객체
+- 응답: Issue(201) — 표준 래퍼 또는 Plain JSON
 
 ## Data Models
 
@@ -467,7 +459,7 @@ interface Asset {
   location?: { lat: number; lng: number };
   deviceStatus?: string; // 장치 상태
   diagnosticStatus?: "-" | "정상" | "관심필요" | "심각";
-  diagnosticCodes?: Array<{ code: string; description?: string; severity?: number | string; detectedDate?: string }>;
+  diagnosticCodes?: Array<{ code: string; description?: string; severity?: number; detectedDate?: string }>;
   memo?: string;
   createdAt?: Date;
   updatedAt?: Date;
@@ -547,9 +539,7 @@ interface VehicleSnapshot {
 
 ## Authentication
 
-데모 환경은 localStorage 기반의 단순 인증 플래그만 사용합니다(`localStorage.isLoggedIn`).
-
-실제 API 연동 시에는 Bearer 토큰(JWT) 또는 API Key 기반 인증을 권장합니다. 필요 시 `src/api/apiClient.js`에 `Authorization` 헤더를 추가하도록 확장하세요.
+데모 환경은 localStorage 기반의 단순 인증 플래그만 사용합니다(`localStorage.isLoggedIn`). 실제 API 연동 시에는 Bearer 토큰(JWT) 또는 API Key 기반 인증을 권장합니다. 필요 시 `src/api/apiClient.js`에 `Authorization` 헤더를 추가하도록 확장하세요.
 
 ## Error Handling
 
@@ -562,23 +552,15 @@ interface VehicleSnapshot {
 
 ## Development Notes
 
-- Fake API는 `src/server/fake-backend.js`(Express)에서 구동합니다.
 - Real API와의 통신 및 표준 응답 래퍼는 `src/api/apiClient.js`에서 처리합니다.
 - 응답의 날짜 문자열은 클라이언트에서 Date 객체로 변환됩니다(`transformAsset`, `transformRental`).
 - VIN은 반드시 17자리여야 합니다.
-- 대부분의 Fake API 응답에는 약 100ms의 지연이 추가돼 로딩 상태를 모사합니다.
 
 ## Environment Variables
 
 ```bash
-# Real API 사용 여부 (기본: false)
-VITE_USE_REAL_API=true
-
-# Real API 서버 URL
+# Real API 서버 URL(끝의 / 생략 권장)
 VITE_API_BASE_URL=https://api.example.com
-
-# Fake API 서버 URL (기본: http://localhost:3001/api)
-VITE_FAKE_API_BASE_URL=http://localhost:3001/api
 
 # Kakao Map API Key (선택)
 VITE_KAKAO_MAP_API_KEY=your_kakao_key

@@ -1,6 +1,3 @@
-// Real API client using standardized API client
-// Enable via .env: VITE_USE_REAL_API=true and set VITE_API_BASE_URL
-
 import {
     assetsApi,
     rentalsApi,
@@ -173,3 +170,4 @@ export async function createIssueDraft(data) {
     }
     return createOperationResult(false, null, response.error?.message || 'Failed to create issue');
 }
+

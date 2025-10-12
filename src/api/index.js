@@ -1,5 +1,5 @@
-// Real API only: always export real API bindings
-import * as api from "./realApi";
+// Real API only: export API bindings (no fake variant)
+import * as api from "./api";
 
 export default api;
 export const {
