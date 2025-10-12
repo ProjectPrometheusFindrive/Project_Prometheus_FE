@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { formatCurrency } from "../utils/formatters";
+import { formatDateShort } from "../utils/date";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -57,12 +58,16 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     </>
   );
 
-  const dateItem = (label, value) => (
-    <div className="asset-dates__item">
-      <div className="asset-dates__label">{label}</div>
-      <div className="asset-dates__value">{value || <span className="empty">-</span>}</div>
-    </div>
-  );
+  const dateItem = (label, value) => {
+    // Normalize incoming value (can be Date object or string) to display-safe string
+    const display = value ? formatDateShort(value) : "";
+    return (
+      <div className="asset-dates__item">
+        <div className="asset-dates__label">{label}</div>
+        <div className="asset-dates__value">{display || <span className="empty">-</span>}</div>
+      </div>
+    );
+  };
 
   return (
     <div className="asset-dialog">
