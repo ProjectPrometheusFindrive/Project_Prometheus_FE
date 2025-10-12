@@ -60,13 +60,13 @@ export default function ProblemVehicles() {
         setTimeout(() => setSaved(false), 1500);
     };
 
-    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(problems, "rental_id");
+    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(problems, "rentalId");
 
     const handleDeleteSelected = () => {
         if (selectedCount === 0) return;
         const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
         if (!ok) return;
-        setProblems((prev) => prev.filter((p) => !selected.has(p.rental_id)));
+        setProblems((prev) => prev.filter((p) => !selected.has(p.rentalId)));
         clearSelection();
     };
 
@@ -105,7 +105,7 @@ export default function ProblemVehicles() {
         }
         if (!L) return; // Leaflet not loaded
         const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
-        const cp = p?.current_location;
+        const cp = p?.currentLocation;
         if (!cp || typeof cp.lat !== "number" || typeof cp.lng !== "number") return;
 
         let map = miniMapInstanceRef.current;
@@ -198,7 +198,7 @@ export default function ProblemVehicles() {
                     <tbody>
                         {problems.map((p) => (
                             <tr
-                                key={p.rental_id}
+                                key={p.rentalId}
                                 onClick={() => openIssueModal({ vin: p.vin, type: (p.issue || "").includes("stolen") ? "stolen" : "overdue" })}
                                 style={{ cursor: "pointer" }}
                                 title="행을 클릭하면 이슈 등록 창이 열립니다."
@@ -206,20 +206,20 @@ export default function ProblemVehicles() {
                                 <td style={{ textAlign: "center" }}>
                                     <input
                                         type="checkbox"
-                                        aria-label={`선택: ${p.plate || p.rental_id}`}
-                                        checked={selected.has(p.rental_id)}
-                                        onChange={() => toggleSelect(p.rental_id)}
+                                        aria-label={`선택: ${p.plate || p.rentalId}`}
+                                        checked={selected.has(p.rentalId)}
+                                        onChange={() => toggleSelect(p.rentalId)}
                                         onClick={(e) => e.stopPropagation()}
                                     />
                                 </td>
                                 <td>{p.plate || (p.asset ? p.asset.plate : "-")}</td>
                                 <td>{p.vehicleType || (p.asset ? p.asset.vehicleType : "-")}</td>
                                 <td>
-                                    {p?.rental_period?.start ? new Date(p.rental_period.start).toLocaleDateString() : "-"} ~{" "}
-                                    {p?.rental_period?.end ? new Date(p.rental_period.end).toLocaleDateString() : "-"}
+                                    {p?.rentalPeriod?.start ? new Date(p.rentalPeriod.start).toLocaleDateString() : "-"} ~{" "}
+                                    {p?.rentalPeriod?.end ? new Date(p.rentalPeriod.end).toLocaleDateString() : "-"}
                                 </td>
-                                <td>{p.renter_name || "-"}</td>
-                                <td>{p.contact_number || "-"}</td>
+                                <td>{p.renterName || "-"}</td>
+                                <td>{p.contactNumber || "-"}</td>
                                 <td>
                                     {(() => {
                                         const issue = String(p.issue || "");
@@ -306,7 +306,7 @@ export default function ProblemVehicles() {
             >
                 {(() => {
                     const p = (problems || []).find((x) => String(x.vin) === String(locationVin));
-                    const cp = p?.current_location;
+        const cp = p?.currentLocation;
                     if (!cp || typeof cp.lat !== "number" || typeof cp.lng !== "number") {
                         return <div className="empty">현재 위치 정보가 없습니다.</div>;
                     }

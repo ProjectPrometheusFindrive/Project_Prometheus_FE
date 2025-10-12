@@ -11,22 +11,22 @@ import { formatPhone11, formatCurrency } from "../../utils/formatters";
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
     const DEBUG = true;
     const initialFormValues = useMemo(() => ({
-        rental_id: initial.rental_id || "",
+        rentalId: initial.rentalId || "",
         vin: initial.vin || "",
         vehicleType: initial.vehicleType || "",
         plate: initial.plate || "",
-        renter_name: initial.renter_name || "",
-        contact_number: initial.contact_number || "",
+        renterName: initial.renterName || "",
+        contactNumber: initial.contactNumber || "",
         address: initial.address || "",
-        start: initial.start || initial?.rental_period?.start || "",
-        end: initial.end || initial?.rental_period?.end || "",
-        rental_amount: initial.rental_amount || "",
-        rental_type: initial.rental_type || "단기",
+        start: initial.start || initial?.rentalPeriod?.start || "",
+        end: initial.end || initial?.rentalPeriod?.end || "",
+        rentalAmount: initial.rentalAmount || "",
+        rentalType: initial.rentalType || "단기",
         deposit: initial.deposit || "",
-        payment_method: initial.payment_method || "월별 자동이체",
-        insurance_name: initial.insurance_name || "",
-        contract_file: initial.contract_file || null,
-        driver_license_file: initial.driver_license_file || null,
+        paymentMethod: initial.paymentMethod || "월별 자동이체",
+        insuranceName: initial.insuranceName || "",
+        contractFile: initial.contractFile || null,
+        driverLicenseFile: initial.driverLicenseFile || null,
     }), [initial]);
 
     const hasInitial = !!(initial && Object.keys(initial).length > 0);
@@ -145,7 +145,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 if (DEBUG) console.log("[RentalForm] autofill after assets load from plate", form.plate, a);
                 if (!form.vin && a.vin) update("vin", a.vin);
                 if (!form.vehicleType && a.vehicleType) update("vehicleType", a.vehicleType);
-                if (!form.insurance_name && a.insuranceInfo) update("insurance_name", a.insuranceInfo);
+                if (!form.insuranceName && a.insuranceInfo) update("insuranceName", a.insuranceInfo);
             }
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -153,8 +153,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
 
     // Trace important fields
     useEffect(() => {
-        if (DEBUG) console.log("[RentalForm] form", { plate: form.plate, vin: form.vin, vehicleType: form.vehicleType, insurance_name: form.insurance_name });
-    }, [form.plate, form.vin, form.vehicleType, form.insurance_name]);
+        if (DEBUG) console.log("[RentalForm] form", { plate: form.plate, vin: form.vin, vehicleType: form.vehicleType, insuranceName: form.insuranceName });
+    }, [form.plate, form.vin, form.vehicleType, form.insuranceName]);
 
     // Normalize initial numeric amounts to display with commas
     useEffect(() => {
@@ -168,8 +168,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             return s;
         };
         const updates = {};
-        const ra = normalizeAmount(form.rental_amount);
-        if (ra !== form.rental_amount) updates.rental_amount = ra;
+        const ra = normalizeAmount(form.rentalAmount);
+        if (ra !== form.rentalAmount) updates.rentalAmount = ra;
         const dp = normalizeAmount(form.deposit);
         if (dp !== form.deposit) updates.deposit = dp;
         if (Object.keys(updates).length > 0) {
@@ -184,28 +184,28 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             <div className="form-row">
                 <div className="form-col">
                     <FormField
-                        id="contract_file"
+                        id="contractFile"
                         label="대여 계약서 업로드"
                         type="file"
                         accept="image/*,application/pdf"
                         capture="environment"
-                        onChange={(value) => update("contract_file", value)}
+                        onChange={(value) => update("contractFile", value)}
                         disabled={readOnly}
                     >
-                        {form.contract_file && <div className="file-info">{form.contract_file.name}</div>}
+                        {form.contractFile && <div className="file-info">{form.contractFile.name}</div>}
                     </FormField>
                 </div>
                 <div className="form-col">
                     <FormField
-                        id="driver_license_file"
+                        id="driverLicenseFile"
                         label="운전면허증 업로드"
                         type="file"
                         accept="image/*,application/pdf"
                         capture="environment"
-                        onChange={(value) => update("driver_license_file", value)}
+                        onChange={(value) => update("driverLicenseFile", value)}
                         disabled={readOnly}
                     >
-                        {form.driver_license_file && <div className="file-info">{form.driver_license_file.name}</div>}
+                        {form.driverLicenseFile && <div className="file-info">{form.driverLicenseFile.name}</div>}
                     </FormField>
                 </div>
             </div>
@@ -223,7 +223,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     if (asset) {
                         if (asset.vin) updates.vin = asset.vin;
                         if (asset.vehicleType) updates.vehicleType = asset.vehicleType;
-                        if (asset.insuranceInfo) updates.insurance_name = asset.insuranceInfo;
+                        if (asset.insuranceInfo) updates.insuranceName = asset.insuranceInfo;
                     }
                     // Batch update to prevent flicker
                     if (typeof updateFields === 'function') {
@@ -261,10 +261,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             </FormField>
 
             <FormField
-                id="rental_id"
+                id="rentalId"
                 label="대여 계약번호"
-                value={form.rental_id}
-                onChange={(value) => update("rental_id", value)}
+                value={form.rentalId}
+                onChange={(value) => update("rentalId", value)}
                 placeholder="예: 100000000017"
                 required
                 disabled={readOnly}
@@ -296,10 +296,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             <div className="form-row">
                 <div className="form-col">
                     <FormField
-                        id="renter_name"
+                        id="renterName"
                         label="계약자 이름"
-                        value={form.renter_name}
-                        onChange={(value) => update("renter_name", value)}
+                        value={form.renterName}
+                        onChange={(value) => update("renterName", value)}
                         placeholder="예: 홍길동"
                         required
                         disabled={readOnly}
@@ -307,11 +307,11 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 </div>
                 <div className="form-col">
                     <FormField
-                        id="contact_number"
+                        id="contactNumber"
                         label="계약자 연락처"
                         type="tel"
-                        value={form.contact_number}
-                        onChange={(value) => update("contact_number", formatPhone11(value))}
+                        value={form.contactNumber}
+                        onChange={(value) => update("contactNumber", formatPhone11(value))}
                         placeholder="000-0000-0000"
                         inputMode="numeric"
                         maxLength={13}
@@ -357,15 +357,15 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             {/* 계약 유형 / 결제 방식 */}
             <div className="form-row">
                 <div className="form-col">
-                    <label className="form-label" htmlFor="rental_type">계약 기간</label>
+                    <label className="form-label" htmlFor="rentalType">계약 기간</label>
                     <div className="form-radio-row" role="radiogroup" aria-label="계약 유형">
                         <label className="form-radio">
                             <input
                                 type="radio"
-                                name="rental_type"
+                                name="rentalType"
                                 value="단기"
-                                checked={form.rental_type === "단기"}
-                                onChange={(e) => update("rental_type", e.target.value)}
+                                checked={form.rentalType === "단기"}
+                                onChange={(e) => update("rentalType", e.target.value)}
                                 disabled={readOnly}
                             />
                             단기
@@ -373,10 +373,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         <label className="form-radio">
                             <input
                                 type="radio"
-                                name="rental_type"
+                                name="rentalType"
                                 value="장기"
-                                checked={form.rental_type === "장기"}
-                                onChange={(e) => update("rental_type", e.target.value)}
+                                checked={form.rentalType === "장기"}
+                                onChange={(e) => update("rentalType", e.target.value)}
                                 disabled={readOnly}
                             />
                             장기
@@ -385,11 +385,11 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 </div>
                 <div className="form-col">
                     <FormField
-                        id="payment_method"
+                        id="paymentMethod"
                         label="결제 방식"
                         type="select"
-                        value={form.payment_method}
-                        onChange={(value) => update("payment_method", value)}
+                        value={form.paymentMethod}
+                        onChange={(value) => update("paymentMethod", value)}
                         options={[
                             { value: "월별 자동이체", label: "월별 자동이체" },
                             { value: "일시불", label: "일시불" },
@@ -405,11 +405,11 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             <div className="form-row">
                 <div className="form-col">
                     <FormField
-                        id="rental_amount"
+                        id="rentalAmount"
                         label="대여금액"
                         type="text"
-                        value={form.rental_amount}
-                        onChange={(value) => update("rental_amount", formatCurrency(value))}
+                        value={form.rentalAmount}
+                        onChange={(value) => update("rentalAmount", formatCurrency(value))}
                         placeholder="예: 22,800,000"
                         inputMode="numeric"
                         maxLength={20}
@@ -434,10 +434,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
 
             {false && (
                 <FormField
-                    id="insurance_name"
+                    id="insuranceName"
                     label="보험사"
-                    value={form.insurance_name}
-                    onChange={(value) => update("insurance_name", value)}
+                    value={form.insuranceName}
+                    onChange={(value) => update("insuranceName", value)}
                     placeholder="예: ABC 보험"
                     disabled={readOnly}
                 />

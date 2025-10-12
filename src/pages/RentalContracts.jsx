@@ -39,12 +39,12 @@ const DEFAULT_COLUMN_CONFIG = [
     { key: "select", label: "선택", visible: true, required: true, width: 36 },
     { key: "plate", label: "차량번호", visible: true, required: true },
     { key: "vehicleType", label: "차종", visible: true, required: false },
-    { key: "renter_name", label: "예약자명", visible: true, required: false },
-    { key: "rental_period", label: "예약기간", visible: true, required: false },
-    { key: "rental_amount", label: "대여금액", visible: true, required: false },
+    { key: "renterName", label: "예약자명", visible: true, required: false },
+    { key: "rentalPeriod", label: "예약기간", visible: true, required: false },
+    { key: "rentalAmount", label: "대여금액", visible: true, required: false },
     { key: "contractStatus", label: "계약 상태", visible: true, required: false },
-    { key: "engine_status", label: "엔진 상태", visible: true, required: false },
-    { key: "restart_blocked", label: "재시동 금지", visible: true, required: false },
+    { key: "engineStatus", label: "엔진 상태", visible: true, required: false },
+    { key: "restartBlocked", label: "재시동 금지", visible: true, required: false },
     { key: "accident", label: "사고 등록", visible: true, required: false, width: 100 },
     { key: "memo", label: "메모", visible: true, required: false },
 ];
@@ -169,22 +169,22 @@ export default function RentalContracts() {
                 if (status === "반납지연" || status === "도난의심" || status === "사고접수") return true;
 
                 // 진행/예약 상태만 표시
-                const start = toDate(r?.rental_period?.start);
+                const start = toDate(r?.rentalPeriod?.start);
                 const isFuture = !!(start && now < start);
-                const end = toDate(r?.rental_period?.end);
+                const end = toDate(r?.rentalPeriod?.end);
                 const isActive = !!(start && end && now >= start && now <= end);
                 return isActive || isFuture;
             })
             .map((r) => {
                 const now = new Date();
-                const start = toDate(r?.rental_period?.start);
-                const end = toDate(r?.rental_period?.end);
+                const start = toDate(r?.rentalPeriod?.start);
+                const end = toDate(r?.rentalPeriod?.end);
                 const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
                 const status = computeContractStatus(r, now);
 
                 // 대여금액 관련 정보
-                const isLongTerm = (r.rental_duration_days || 0) > 30;
-                const hasUnpaid = (r.unpaid_amount || 0) > 0;
+                const isLongTerm = (r.rentalDurationDays || 0) > 30;
+                const hasUnpaid = (r.unpaidAmount || 0) > 0;
 
                 return {
                     ...r,
@@ -195,14 +195,14 @@ export default function RentalContracts() {
                     contractStatus: status,
                     isLongTerm,
                     hasUnpaid,
-                    engineOn: r.engine_status === "on",
-                    restartBlocked: Boolean(r.restart_blocked),
+                    engineOn: r.engineStatus === "on",
+                    restartBlocked: Boolean(r.restartBlocked),
                     memo: r.memo || "",
                 };
             });
     }, [items]);
 
-    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rental_id");
+    const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rentalId");
 
     const handleDeleteSelected = async () => {
         if (selectedCount === 0) return;
@@ -214,17 +214,17 @@ export default function RentalContracts() {
         } catch (e) {
             console.error("Failed deleting some rentals", e);
         }
-        setItems((prev) => prev.filter((r) => !selected.has(r.rental_id)));
+        setItems((prev) => prev.filter((r) => !selected.has(r.rentalId)));
         clearSelection();
     };
 
     const handleCreateSubmit = async (data) => {
-        const { contract_file, driver_license_file, ...rest } = data || {};
+        const { contractFile, driverLicenseFile, ...rest } = data || {};
         const payload = {
             ...rest,
-            rental_amount: parseCurrency(rest.rental_amount),
+            rentalAmount: parseCurrency(rest.rentalAmount),
             deposit: parseCurrency(rest.deposit),
-            rental_period: { start: rest.start || "", end: rest.end || "" },
+            rentalPeriod: { start: rest.start || "", end: rest.end || "" },
         };
         try {
             const created = await createRental(payload);
@@ -243,11 +243,11 @@ export default function RentalContracts() {
     };
 
     const handleToggleRestart = async (rentalId) => {
-        const target = rows.find((r) => r.rental_id === rentalId);
-        const next = !target?.restart_blocked;
+        const target = rows.find((r) => r.rentalId === rentalId);
+        const next = !target?.restartBlocked;
         try {
-            await updateRental(rentalId, { restart_blocked: next });
-            setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, restart_blocked: next } : item)));
+            await updateRental(rentalId, { restartBlocked: next });
+            setItems((prev) => prev.map((item) => (item.rentalId === rentalId ? { ...item, restartBlocked: next } : item)));
         } catch (e) {
             console.error("Failed to update restart flag", e);
             alert("재시동 금지 상태 변경 실패");
@@ -262,7 +262,7 @@ export default function RentalContracts() {
     const handleMemoSave = async (rentalId) => {
         try {
             await updateRental(rentalId, { memo: memoText });
-            setItems((prev) => prev.map((item) => (item.rental_id === rentalId ? { ...item, memo: memoText } : item)));
+            setItems((prev) => prev.map((item) => (item.rentalId === rentalId ? { ...item, memo: memoText } : item)));
             setEditingMemo(null);
             setMemoText("");
         } catch (e) {
@@ -293,7 +293,7 @@ export default function RentalContracts() {
         if (!contract) return;
 
         // 이미 사고가 등록된 경우 정보 조회 모달을 열고, 아닌 경우 등록 모달을 연다
-        if (contract.accident_reported && contract.accidentReport) {
+        if (contract.accidentReported && contract.accidentReport) {
             setAccidentTarget(contract);
             setShowAccidentInfoModal(true);
         } else {
@@ -354,27 +354,27 @@ export default function RentalContracts() {
             recordedAt: now.toISOString(),
         };
         try {
-            await updateRental(accidentTarget.rental_id, {
-                accident_reported: true,
+            await updateRental(accidentTarget.rentalId, {
+                accidentReported: true,
                 accidentReport: updatedReport,
                 memo: buildAccidentMemo(accidentTarget.memo || "", memoNote),
             });
             setItems((prev) =>
                 prev.map((item) => {
-                    if (item.rental_id !== accidentTarget.rental_id) return item;
+                    if (item.rentalId !== accidentTarget.rentalId) return item;
                     return {
                         ...item,
-                        accident_reported: true,
+                        accidentReported: true,
                         memo: buildAccidentMemo(item.memo || "", memoNote),
                         accidentReport: updatedReport,
                     };
                 })
             );
             setSelectedContract((prev) => {
-                if (!prev || prev.rental_id !== accidentTarget.rental_id) return prev;
+                if (!prev || prev.rentalId !== accidentTarget.rentalId) return prev;
                 return {
                     ...prev,
-                    accident_reported: true,
+                    accidentReported: true,
                     memo: buildAccidentMemo(prev.memo || "", memoNote),
                     accidentReport: updatedReport,
                 };
@@ -476,16 +476,16 @@ export default function RentalContracts() {
         switch (key) {
             case "plate":
             case "vehicleType":
-            case "renter_name":
+            case "renterName":
             case "contractStatus":
             case "memo":
                 return row?.[key] ?? "";
-            case "rental_period": {
-                const start = row?.rental_period?.start || "";
+            case "rentalPeriod": {
+                const start = row?.rentalPeriod?.start || "";
                 return start;
             }
-            case "rental_amount": {
-                const v = row?.rental_amount;
+            case "rentalAmount": {
+                const v = row?.rentalAmount;
                 if (typeof v === "number") return v;
                 if (typeof v === "string") {
                     const m = v.replace(/[^0-9.-]/g, "");
@@ -494,12 +494,12 @@ export default function RentalContracts() {
                 }
                 return 0;
             }
-            case "engine_status":
-                return row?.engine_status === "on" || !!row?.engineOn;
-            case "restart_blocked":
-                return !!(row?.restart_blocked || row?.restartBlocked);
+            case "engineStatus":
+                return row?.engineStatus === "on" || !!row?.engineOn;
+            case "restartBlocked":
+                return !!(row?.restartBlocked);
             case "accident":
-                return !!row?.accident_reported;
+                return !!row?.accidentReported;
             default:
                 return row?.[key];
         }
@@ -569,7 +569,7 @@ export default function RentalContracts() {
     const renderCellContent = (column, row) => {
         switch (column.key) {
             case "select":
-                return <input type="checkbox" aria-label={`Select: ${row.plate || row.rental_id}`} checked={selected.has(row.rental_id)} onChange={() => toggleSelect(row.rental_id)} />;
+                return <input type="checkbox" aria-label={`Select: ${row.plate || row.rentalId}`} checked={selected.has(row.rentalId)} onChange={() => toggleSelect(row.rentalId)} />;
             case "plate":
                 return (
                     <button type="button" className="simple-button" onClick={() => handlePlateClick(row)} title="계약 상세 정보 보기">
@@ -578,28 +578,28 @@ export default function RentalContracts() {
                 );
             case "vehicleType":
                 return formatVehicleType(row.vehicleType);
-            case "renter_name":
-                return row.renter_name || "-";
-            case "rental_period":
+            case "renterName":
+                return row.renterName || "-";
+            case "rentalPeriod":
                 return (
                     <div style={{ fontSize: "0.9rem", lineHeight: "1.4" }}>
-                        <div>{formatDateTime(row.rental_period?.start)} ~</div>
-                        <div>{formatDateTime(row.rental_period?.end)}</div>
+                        <div>{formatDateTime(row.rentalPeriod?.start)} ~</div>
+                        <div>{formatDateTime(row.rentalPeriod?.end)}</div>
                     </div>
                 );
-            case "rental_amount":
+            case "rentalAmount":
                 return getRentalAmountBadges(row);
             case "contractStatus":
                 return getContractStatusBadge(row.contractStatus);
-            case "engine_status":
+            case "engineStatus":
                 return <StatusBadge type={row.engineOn ? "on" : "off"}>{row.engineOn ? "ON" : "OFF"}</StatusBadge>;
-            case "restart_blocked": {
-                const isBlocked = Boolean(row.restartBlocked || row.restart_blocked);
-                const identifier = row.plate || row.renter_name || row.rental_id || "계약";
+            case "restartBlocked": {
+                const isBlocked = Boolean(row.restartBlocked);
+                const identifier = row.plate || row.renterName || row.rentalId || "계약";
                 return (
                     <button
                         type="button"
-                        onClick={() => handleToggleRestart(row.rental_id)}
+                        onClick={() => handleToggleRestart(row.rentalId)}
                         className={`badge badge--clickable badge--compact ${isBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}`}
                         aria-pressed={isBlocked}
                         aria-label={`${identifier} ${isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}`}
@@ -610,8 +610,8 @@ export default function RentalContracts() {
                 );
             }
             case "accident": {
-                const identifier = row.plate || row.rental_id || "계약";
-                const hasAccident = Boolean(row.accident_reported);
+                const identifier = row.plate || row.rentalId || "계약";
+                const hasAccident = Boolean(row.accidentReported);
                 const videoTitle = row.accidentReport?.blackboxFileName?.trim();
                 const hasVideo = Boolean(videoTitle);
                 const variantClass = hasAccident ? (hasVideo ? "badge--video" : "badge--accident") : "badge--default";
@@ -627,7 +627,7 @@ export default function RentalContracts() {
             case "memo":
                 return (
                     <div style={{ maxWidth: "150px" }}>
-                        {editingMemo === row.rental_id ? (
+                        {editingMemo === row.rentalId ? (
                             <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                                 <input
                                     type="text"
@@ -645,7 +645,7 @@ export default function RentalContracts() {
                                     autoFocus
                                 />
                                 <button
-                                    onClick={() => handleMemoSave(row.rental_id)}
+                                    onClick={() => handleMemoSave(row.rentalId)}
                                     style={{
                                         background: "none",
                                         border: "none",
@@ -686,7 +686,7 @@ export default function RentalContracts() {
                                     {row.memo || "메모 없음"}
                                 </span>
                                 <button
-                                    onClick={() => handleMemoEdit(row.rental_id, row.memo)}
+                                    onClick={() => handleMemoEdit(row.rentalId, row.memo)}
                                     style={{
                                         background: "none",
                                         border: "none",
@@ -734,7 +734,7 @@ export default function RentalContracts() {
     };
 
     const getRentalAmountBadges = (row) => {
-        const amount = row.rental_amount || 0;
+        const amount = row.rentalAmount || 0;
         const formattedAmount = new Intl.NumberFormat("ko-KR").format(amount);
 
         return (
@@ -743,7 +743,7 @@ export default function RentalContracts() {
                 <div className="flex gap-4 flex-wrap">
                     <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>{row.isLongTerm ? "장기" : "단기"}</StatusBadge>
                     <StatusBadge variant="badge--contract-amount">
-                        {row.isLongTerm ? `월 ₩${new Intl.NumberFormat("ko-KR").format(Math.floor(amount / Math.max(1, Math.floor((row.rental_duration_days || 1) / 30))))}` : `총 ₩${formattedAmount}`}
+                        {row.isLongTerm ? `월 ₩${new Intl.NumberFormat("ko-KR").format(Math.floor(amount / Math.max(1, Math.floor((row.rentalDurationDays || 1) / 30))))}` : `총 ₩${formattedAmount}`}
                     </StatusBadge>
                     {row.hasUnpaid && <StatusBadge variant="badge--contract-unpaid">미납</StatusBadge>}
                 </div>
@@ -857,7 +857,7 @@ export default function RentalContracts() {
                         </thead>
                         <tbody>
                             {sortedRows.map((r, index) => (
-                                <tr key={r.rental_id || `rental-${index}`}>
+                                <tr key={r.rentalId || `rental-${index}`}>
                                     {visibleColumns.map((column) => (
                                         <td
                                             key={column.key}
@@ -899,9 +899,9 @@ export default function RentalContracts() {
                             {/* 현재 위치 보기 버튼 */}
                             <button
                                 onClick={handleShowLocation}
-                                disabled={!selectedContract.current_location}
+                                disabled={!selectedContract.currentLocation}
                                 className="form-button form-button--accent"
-                                title={selectedContract.current_location ? "현재 위치를 지도에서 확인" : "현재 위치 정보 없음"}
+                                title={selectedContract.currentLocation ? "현재 위치를 지도에서 확인" : "현재 위치 정보 없음"}
                             >
                                 <FaMapMarkerAlt size={16} aria-hidden="true" />
                                 현재 위치
@@ -909,26 +909,26 @@ export default function RentalContracts() {
                             {/* 사고 접수 버튼 */}
                             <button onClick={() => handleOpenAccidentModal(selectedContract)} className="form-button form-button--warning">
                                 <FaExclamationTriangle size={16} aria-hidden="true" />
-                                {selectedContract.accident_reported ? "사고 정보 수정" : "사고 등록"}
+                                {selectedContract.accidentReported ? "사고 정보 수정" : "사고 등록"}
                             </button>
                             {/* 반납 등록 버튼 */}
                             {(() => {
                                 const now = new Date();
-                                const returnedAt = selectedContract?.returned_at ? new Date(selectedContract.returned_at) : null;
+                                const returnedAt = selectedContract?.returnedAt ? new Date(selectedContract.returnedAt) : null;
                                 const isReturned = returnedAt ? now >= returnedAt : false;
                                 return (
                                     <button
                                         onClick={async () => {
                                             const ok = window.confirm("반납 등록 하시겠습니까?");
                                             if (!ok) return;
-                                            const rid = selectedContract.rental_id;
+                                            const rid = selectedContract.rentalId;
                                             const ts = new Date().toISOString();
                                             try {
-                                                await updateRental(rid, { returned_at: ts });
+                                                await updateRental(rid, { returnedAt: ts });
                                             } catch (e) {
                                                 console.warn("updateRental failed; falling back to local state", e);
                                             }
-                                            setItems((prev) => prev.map((it) => (it.rental_id === rid ? { ...it, returned_at: ts } : it)));
+                                            setItems((prev) => prev.map((it) => (it.rentalId === rid ? { ...it, returnedAt: ts } : it)));
                                             setShowDetail(false);
                                             setSelectedContract(null);
                                         }}
@@ -941,7 +941,7 @@ export default function RentalContracts() {
                                     </button>
                                 );
                             })()}
-                            {selectedContract.accident_reported && (
+                            {selectedContract.accidentReported && (
                                 <StatusBadge type="accident">
                                     <FaExclamationTriangle size={14} aria-hidden="true" />
                                     사고 접수됨
@@ -959,10 +959,10 @@ export default function RentalContracts() {
                                         <strong>차종:</strong> {selectedContract.vehicleType || "-"}
                                     </div>
                                     <div>
-                                        <strong>예약자명:</strong> {selectedContract.renter_name || "-"}
+                                        <strong>예약자명:</strong> {selectedContract.renterName || "-"}
                                     </div>
                                     <div>
-                                        <strong>연락처:</strong> {selectedContract.contact_number || "-"}
+                                        <strong>연락처:</strong> {selectedContract.contactNumber || "-"}
                                     </div>
                                     <div>
                                         <strong>면허번호:</strong> {selectedContract.license_number || "-"}
@@ -973,25 +973,25 @@ export default function RentalContracts() {
                                 <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>계약 정보</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <div>
-                                        <strong>계약 상태:</strong> {getContractStatusBadge(selectedContract.accident_reported ? "사고접수" : selectedContract.contractStatus)}
+                                        <strong>계약 상태:</strong> {getContractStatusBadge(selectedContract.accidentReported ? "사고접수" : selectedContract.contractStatus)}
                                     </div>
                                     <div>
-                                        <strong>대여 시작:</strong> {formatDateTime(selectedContract.rental_period?.start)}
+                                        <strong>대여 시작:</strong> {formatDateTime(selectedContract.rentalPeriod?.start)}
                                     </div>
                                     <div>
-                                        <strong>대여 종료:</strong> {formatDateTime(selectedContract.rental_period?.end)}
+                                        <strong>대여 종료:</strong> {formatDateTime(selectedContract.rentalPeriod?.end)}
                                     </div>
                                     <div>
-                                        <strong>대여 기간:</strong> {selectedContract.rental_duration_days || "-"}일
+                                        <strong>대여 기간:</strong> {selectedContract.rentalDurationDays || "-"}일
                                     </div>
                                     <div>
-                                        <strong>보험사:</strong> {selectedContract.insurance_name || "-"}
+                                        <strong>보험사:</strong> {selectedContract.insuranceName || "-"}
                                     </div>
                                     <div>
-                                        <strong>배차위치:</strong> {selectedContract.rental_location?.address || selectedContract.address || "-"}
+                                        <strong>배차위치:</strong> {selectedContract.rentalLocation?.address || selectedContract.address || "-"}
                                     </div>
                                     <div>
-                                        <strong>반납위치:</strong> {selectedContract.return_location?.address || selectedContract.address || "-"}
+                                        <strong>반납위치:</strong> {selectedContract.returnLocation?.address || selectedContract.address || "-"}
                                     </div>
                                 </div>
                             </div>
@@ -1030,16 +1030,16 @@ export default function RentalContracts() {
                                 <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>금액 정보</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <div>
-                                        <strong>대여 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.rental_amount || 0)}
+                                        <strong>대여 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.rentalAmount || 0)}
                                     </div>
                                     <div>
                                         <strong>보증금:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.deposit || 0)}
                                     </div>
                                     <div>
-                                        <strong>미납 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.unpaid_amount || 0)}
+                                        <strong>미납 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.unpaidAmount || 0)}
                                     </div>
                                     <div>
-                                        <strong>결제 방법:</strong> {selectedContract.payment_method || "-"}
+                                        <strong>결제 방법:</strong> {selectedContract.paymentMethod || "-"}
                                     </div>
                                 </div>
                             </div>
@@ -1051,10 +1051,10 @@ export default function RentalContracts() {
                                     <strong>메모:</strong> {selectedContract.memo || "메모가 없습니다."}
                                 </div>
                                 <div>
-                                    <strong>특이사항:</strong> {selectedContract.special_notes || "없음"}
+                                    <strong>특이사항:</strong> {selectedContract.specialNotes || "없음"}
                                 </div>
                                 <div>
-                                    <strong>등록일:</strong> {selectedContract.created_at ? new Date(selectedContract.created_at).toLocaleString("ko-KR") : "-"}
+                                    <strong>등록일:</strong> {selectedContract.createdAt ? new Date(selectedContract.createdAt).toLocaleString("ko-KR") : "-"}
                                 </div>
                             </div>
                         </div>
@@ -1176,16 +1176,16 @@ export default function RentalContracts() {
                                     <div>
                                         <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여 기간</strong>
                                         <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>
-                                            {formatDateTime(accidentTarget.rental_period?.start)} ~ {formatDateTime(accidentTarget.rental_period?.end)}
+                                            {formatDateTime(accidentTarget.rentalPeriod?.start)} ~ {formatDateTime(accidentTarget.rentalPeriod?.end)}
                                         </div>
                                     </div>
                                     <div>
                                         <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여자</strong>
-                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.renter_name || "-"}</div>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.renterName || "-"}</div>
                                     </div>
                                     <div>
                                         <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여자 연락처</strong>
-                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.contact_number || "-"}</div>
+                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.contactNumber || "-"}</div>
                                     </div>
                                 </div>
                                 {accidentTarget.accidentReport?.accidentDisplayTime && (
@@ -1238,7 +1238,7 @@ export default function RentalContracts() {
                                 </div>
                                 <div style={{ fontSize: "0.9rem", color: "#555", lineHeight: 1.6 }}>
                                     <div>
-                                        <strong>대여자 정보:</strong> {selectedContract.renter_name || "-"}, {selectedContract.contact_number || "-"}, {selectedContract.address || "-"}
+                                        <strong>대여자 정보:</strong> {selectedContract.renterName || "-"}, {selectedContract.contactNumber || "-"}, {selectedContract.address || "-"}
                                     </div>
                                 </div>
                             </div>
@@ -1248,19 +1248,19 @@ export default function RentalContracts() {
                         </div>
 
                         {/* 지도 영역 */}
-                        {selectedContract.current_location ? (
+                        {selectedContract.currentLocation ? (
                             <div style={{ position: "relative", height: "400px" }}>
                                 <KakaoMap
-                                    latitude={selectedContract.current_location.lat}
-                                    longitude={selectedContract.current_location.lng}
+                                    latitude={selectedContract.currentLocation.lat}
+                                    longitude={selectedContract.currentLocation.lng}
                                     vehicleNumber={selectedContract.plate}
-                                    lastUpdateTime={selectedContract.location_updated_at || "업데이트 시간 없음"}
+                                    lastUpdateTime={selectedContract.locationUpdatedAt || "업데이트 시간 없음"}
                                     markerTitle={`${selectedContract.plate} (${selectedContract.vehicleType})`}
                                     width="100%"
                                     height="100%"
-                                    renterName={selectedContract.renter_name}
+                                    renterName={selectedContract.renterName}
                                     engineOn={selectedContract.engineOn}
-                                    isOnline={!!selectedContract.current_location}
+                                    isOnline={!!selectedContract.currentLocation}
                                     trackingData={selectedContract.logRecord || []}
                                 />
                             </div>

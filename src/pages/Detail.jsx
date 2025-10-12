@@ -117,15 +117,15 @@ export default function Detail() {
                 )}
                 {t === "rental" && (
                     <RentalForm
-                        key={`rental-${editing}-${data.rental_id}`}
+                        key={`rental-${editing}-${data.rentalId}`}
                         initial={data}
                         readOnly={!editing}
                         formId="detail-form"
                         showSubmit={false}
                         onSubmit={async (form) => {
                             try {
-                                const { contract_file, driver_license_file, ...rest } = form || {};
-                                await updateRental(data.rental_id, rest);
+                                const { contractFile, driverLicenseFile, ...rest } = form || {};
+                                await updateRental(data.rentalId, rest);
                             } catch (e) {
                                 console.error("Failed saving rental via API", e);
                                 alert("계약 저장에 실패했습니다.");
@@ -139,12 +139,12 @@ export default function Detail() {
                 )}
                 {t === "issue" && (
                     <IssueForm
-                        key={`issue-${editing}-${data.rental_id}`}
+                        key={`issue-${editing}-${data.rentalId}`}
                         initial={{
                             vin: data.vin,
-                            type: data.reported_stolen ? "stolen" : new Date() > new Date(data.rental_period.end) ? "overdue" : "other",
-                            severity: data.reported_stolen ? "high" : "medium",
-                            description: `From rental #${data.rental_id}`,
+                            type: data.reportedStolen ? "stolen" : new Date() > new Date(data.rentalPeriod.end) ? "overdue" : "other",
+                            severity: data.reportedStolen ? "high" : "medium",
+                            description: `From rental #${data.rentalId}`,
                         }}
                         readOnly={!editing}
                         formId="detail-form"

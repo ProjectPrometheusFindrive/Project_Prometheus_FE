@@ -19,18 +19,18 @@ export function toDate(v) {
  * @param {Date} [now]
  */
 export function isReturned(r, now = new Date()) {
-  const returnedAt = toDate(r?.returned_at);
+  const returnedAt = toDate(r?.returnedAt);
   return !!(returnedAt && now >= returnedAt);
 }
 
 /**
  * Compute high-level contract status from rental data.
  * Priority order:
- * - 완료: if returned_at is in the past
- * - 도난의심: if reported_stolen
+ * - 완료: if returnedAt is in the past
+ * - 도난의심: if reportedStolen
  * - 반납지연: now > end and not returned
  * - 대여중: start <= now <= end
- * - 사고접수: accident_reported true
+ * - 사고접수: accidentReported true
  * - 예약 중: start in future (or default when dates missing)
  * @param {object} r rental row
  * @param {Date} [now]
@@ -38,9 +38,9 @@ export function isReturned(r, now = new Date()) {
  */
 export function computeContractStatus(r, now = new Date()) {
   if (isReturned(r, now)) return "완료";
-  const start = toDate(r?.rental_period?.start);
-  const end = toDate(r?.rental_period?.end);
-  const isStolen = Boolean(r?.reported_stolen);
+  const start = toDate(r?.rentalPeriod?.start);
+  const end = toDate(r?.rentalPeriod?.end);
+  const isStolen = Boolean(r?.reportedStolen);
 
   if (isStolen) return "도난의심";
 
@@ -51,7 +51,7 @@ export function computeContractStatus(r, now = new Date()) {
   const isActive = !!(start && end && now >= start && now <= end);
   if (isActive) return "대여중";
 
-  if (r?.accident_reported) return "사고접수";
+  if (r?.accidentReported) return "사고접수";
 
   const isFuture = !!(start && now < start);
   if (isFuture) return "예약 중";
@@ -89,9 +89,9 @@ export function classifyRental(r, now = new Date()) {
  */
 export function rentalInterval(r) {
   return {
-    start: toDate(r?.rental_period?.start),
-    end: toDate(r?.rental_period?.end),
-    returnedAt: toDate(r?.returned_at),
+    start: toDate(r?.rentalPeriod?.start),
+    end: toDate(r?.rentalPeriod?.end),
+    returnedAt: toDate(r?.returnedAt),
   };
 }
 

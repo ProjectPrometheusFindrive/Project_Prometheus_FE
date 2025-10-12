@@ -132,6 +132,11 @@ DELETE /assets/{id}
 
 ### Rentals (렌탈 계약)
 
+Casing
+
+- Backend and frontend use camelCase for all fields.
+- Rental fields include: `renterName`, `contactNumber`, `rentalPeriod { start, end }`, `insuranceName`, `rentalAmount`, `contractStatus`, `engineStatus`, `restartBlocked`, `accidentReported`, `returnedAt`, `reportedStolen`, `unpaidAmount`, `rentalDurationDays`, `currentLocation`, `locationUpdatedAt`, `rentalLocation`, `returnLocation`.
+
 GET /rentals
 
 - 설명: 모든 렌탈 계약 목록 조회
@@ -188,7 +193,7 @@ POST /rentals
 }
 ```
 
-메모: 일부 백엔드는 `renter_name/contact_number/address` 평문 필드를 사용할 수 있으며, 구조화된 `customer` 객체와 병행 지원 가능합니다.
+메모: 고객 정보는 평문 필드(`renterName/contactNumber/address`) 또는 구조화된 `customer` 객체로 전달할 수 있습니다(둘 중 하나만 사용 권장).
 
 -   응답: 생성된 Rental
 
@@ -470,33 +475,30 @@ Rental
 
 ```typescript
 interface Rental {
-  rental_id: string | number; // 계약 ID
-  vin: string; // VIN(17자리)
+  rentalId: string | number;
+  vin: string;
   vehicleType?: string;
   plate?: string;
-  renter_name?: string;
-  contact_number?: string;
+  renterName?: string;
+  contactNumber?: string;
   address?: string;
-  customer?: {
-    name: string;
-    phone: string;
-    address: string;
-    licenseNumber: string;
-  };
-  rental_period: { start: Date; end: Date };
-  insurance_name?: string;
-  rental_amount?: number; // 대여 금액
-  contract_status?: string; // 계약 상태
-  status?: string; // UI 상태
-  reported_stolen?: boolean;
-  return_confirmed?: boolean;
-  accident_reported?: boolean;
+  customer?: { name: string; phone: string; address: string; licenseNumber: string };
+  rentalPeriod: { start: Date; end: Date };
+  insuranceName?: string;
+  rentalAmount?: number;
+  contractStatus?: string;
+  status?: string; // UI status
+  reportedStolen?: boolean;
+  returnConfirmed?: boolean;
+  accidentReported?: boolean;
   accidentReport?: object;
-  rental_location?: { lat: number; lng: number };
-  return_location?: { lat: number; lng: number };
-  current_location?: { lat: number; lng: number };
-  engine_status?: "on" | "off";
-  restart_blocked?: boolean;
+  returnedAt?: string;
+  rentalLocation?: { lat: number; lng: number };
+  returnLocation?: { lat: number; lng: number };
+  currentLocation?: { lat: number; lng: number };
+  locationUpdatedAt?: string;
+  engineStatus?: "on" | "off";
+  restartBlocked?: boolean;
   memo?: string;
   createdAt?: Date;
   updatedAt?: Date;

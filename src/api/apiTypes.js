@@ -107,6 +107,7 @@ export function validateVin(vin) {
 
 // Common data transformers
 export function transformAsset(asset) {
+    if (!asset || typeof asset !== 'object') return asset;
     return {
         ...asset,
         registrationDate: asset.registrationDate ? new Date(asset.registrationDate) : null,
@@ -116,15 +117,46 @@ export function transformAsset(asset) {
 }
 
 export function transformRental(rental) {
+    if (!rental || typeof rental !== 'object') return rental;
+    const period = rental.rentalPeriod && typeof rental.rentalPeriod === 'object' ? rental.rentalPeriod : null;
     return {
         ...rental,
-        rental_period: rental.rental_period ? {
-            start: rental.rental_period.start ? new Date(rental.rental_period.start) : null,
-            end: rental.rental_period.end ? new Date(rental.rental_period.end) : null
-        } : null,
+        rentalId: rental.rentalId ?? rental.id ?? null,
+        renterName: rental.renterName ?? '',
+        contactNumber: rental.contactNumber ?? '',
+        insuranceName: rental.insuranceName ?? '',
+        rentalAmount: rental.rentalAmount ?? null,
+        rentalType: rental.rentalType,
+        paymentMethod: rental.paymentMethod,
+        contractStatus: rental.contractStatus,
+        engineStatus: rental.engineStatus,
+        restartBlocked: Boolean(rental.restartBlocked),
+        accidentReported: Boolean(rental.accidentReported),
+        returnedAt: rental.returnedAt ? new Date(rental.returnedAt) : null,
+        reportedStolen: Boolean(rental.reportedStolen),
+        unpaidAmount: typeof rental.unpaidAmount === 'number' ? rental.unpaidAmount : (rental.unpaidAmount == null ? undefined : Number(rental.unpaidAmount)),
+        rentalDurationDays: typeof rental.rentalDurationDays === 'number' ? rental.rentalDurationDays : (rental.rentalDurationDays == null ? undefined : Number(rental.rentalDurationDays)),
+        currentLocation: rental.currentLocation,
+        rentalLocation: rental.rentalLocation,
+        returnLocation: rental.returnLocation,
+        locationUpdatedAt: rental.locationUpdatedAt ? new Date(rental.locationUpdatedAt) : null,
+        rentalPeriod: period ? { start: period.start ? new Date(period.start) : null, end: period.end ? new Date(period.end) : null } : null,
         createdAt: rental.createdAt ? new Date(rental.createdAt) : null,
-        updatedAt: rental.updatedAt ? new Date(rental.updatedAt) : null
+        updatedAt: rental.updatedAt ? new Date(rental.updatedAt) : null,
     };
+}
+
+// Convert outgoing rental payload to camelCase for backend
+export function toCamelRentalPayload(payload) {
+    if (!payload || typeof payload !== 'object') return payload;
+    const out = { ...payload };
+    if (payload.rentalPeriod) {
+        out.rentalPeriod = {
+            start: payload.rentalPeriod.start ?? '',
+            end: payload.rentalPeriod.end ?? '',
+        };
+    }
+    return out;
 }
 
 // Standard operation result format

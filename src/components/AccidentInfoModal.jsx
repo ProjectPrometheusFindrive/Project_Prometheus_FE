@@ -205,20 +205,20 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                             <div>
                                 <strong style={{ color: "#666", fontSize: "0.9rem" }}>대여자:</strong>
                                 <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
-                                    {vehicleData?.renter_name || "-"}
+                                    {vehicleData?.renterName || "-"}
                                 </div>
                             </div>
                             <div>
                                 <strong style={{ color: "#666", fontSize: "0.9rem" }}>연락처:</strong>
                                 <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
-                                    {vehicleData?.contact_number || "-"}
+                                    {vehicleData?.contactNumber || "-"}
                                 </div>
                             </div>
                             <div>
                                 <strong style={{ color: "#666", fontSize: "0.9rem" }}>대여 기간:</strong>
                                 <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
-                                    {vehicleData?.rental_period?.start && vehicleData?.rental_period?.end
-                                        ? `${new Date(vehicleData.rental_period.start).toLocaleDateString()} ~ ${new Date(vehicleData.rental_period.end).toLocaleDateString()}`
+                                    {vehicleData?.rentalPeriod?.start && vehicleData?.rentalPeriod?.end
+                                        ? `${new Date(vehicleData.rentalPeriod.start).toLocaleDateString()} ~ ${new Date(vehicleData.rentalPeriod.end).toLocaleDateString()}`
                                         : "-"
                                     }
                                 </div>

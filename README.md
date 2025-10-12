@@ -130,6 +130,7 @@ src/
 - `src/api/index.js`는 Real API만 사용합니다.
 - `src/api/apiClient.js`, `src/api/apiTypes.js`를 통해 일관된 응답 포맷(`data/status/error/timestamp`)을 처리합니다.
 - 엔드포인트 경로는 `API_SPECIFICATION.md`의 Real API 섹션을 따르며, 기본 베이스는 `VITE_API_BASE_URL`입니다.
+ - Rentals 필드 케이스: 프론트/백엔드 모두 camelCase를 사용합니다.
 
 ## 지도/지오펜스
 

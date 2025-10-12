@@ -8,7 +8,8 @@ import {
     validateId,
     validateVin,
     transformAsset,
-    transformRental
+    transformRental,
+    toCamelRentalPayload
 } from './apiTypes';
 
 // Base URL and configuration
@@ -219,9 +220,10 @@ export const rentalsApi = {
     },
     
     async create(rentalData) {
+        const payload = toCamelRentalPayload(rentalData);
         return await apiRequest(API_ENDPOINTS.RENTALS, {
             method: 'POST',
-            body: JSON.stringify(rentalData)
+            body: JSON.stringify(payload)
         });
     },
 
@@ -233,9 +235,10 @@ export const rentalsApi = {
             });
         }
         const rid = typeof id === 'number' ? id : String(id);
+        const payload = toCamelRentalPayload(rentalData);
         return await apiRequest(API_ENDPOINTS.RENTAL_BY_ID(rid), {
             method: 'PUT',
-            body: JSON.stringify(rentalData)
+            body: JSON.stringify(payload)
         });
     },
 
@@ -323,7 +326,11 @@ export const companyApi = {
 // Problem Vehicles API methods
 export const problemVehiclesApi = {
     async fetchAll() {
-        return await apiRequest(API_ENDPOINTS.PROBLEM_VEHICLES);
+        const response = await apiRequest(API_ENDPOINTS.PROBLEM_VEHICLES);
+        if (response.status === API_STATUS.SUCCESS && Array.isArray(response.data)) {
+            response.data = response.data.map(transformRental);
+        }
+        return response;
     }
 };
 
