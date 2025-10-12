@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 // Simple deep equality for plain objects/arrays/primitives
 const deepEqual = (a, b) => {
@@ -155,18 +155,18 @@ const useFormState = (initialValues = {}, options = {}) => {
     }
   }, [form, validate]);
 
-  // Update form when initialValues change (for editing scenarios)
-  // Guard against infinite loops when callers pass a new object each render
+  // Track last applied initial values to detect real changes from caller
+  const lastInitialRef = useRef(initialValues);
+
+  // Update form when caller's initial values actually change
   useEffect(() => {
     if (!syncOnInitialChange) return;
     if (!initialValues) return;
-    setForm((prev) => {
-      // Only update if values actually differ
-      if (!deepEqual(prev, initialValues)) {
-        return initialValues;
-      }
-      return prev;
-    });
+    // Only sync when the provided initialValues object meaningfully changed
+    if (!deepEqual(lastInitialRef.current, initialValues)) {
+      lastInitialRef.current = initialValues;
+      setForm(initialValues);
+    }
   }, [initialValues, syncOnInitialChange]);
 
   // Legacy compatibility: provide 'update' function for existing components

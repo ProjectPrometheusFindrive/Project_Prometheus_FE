@@ -408,6 +408,11 @@ export default function AssetStatus() {
     // 컬럼 드롭다운 / 상태 드롭다운 / 불일치 팝업 외부 클릭 감지
     useEffect(() => {
         const handleClickOutside = (event) => {
+            // Ignore clicks that originate inside an open modal to avoid
+            // disrupting focus/interaction within modal dialogs.
+            if (event.target.closest('.modal') || event.target.closest('.modal-backdrop')) {
+                return;
+            }
             if (showColumnDropdown && !event.target.closest("[data-column-dropdown]")) {
                 setShowColumnDropdown(false);
             }

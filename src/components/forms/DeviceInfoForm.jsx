@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import useFormState from "../../hooks/useFormState";
 
 export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = false, formId, showSubmit = true }) {
@@ -10,10 +10,36 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
     photos: initial.photos || [], // in-memory only
   };
 
-  const { form, update, handleSubmit } = useFormState(initialFormValues, { onSubmit });
+  const submitProxy = async (values) => {
+    console.log("[DeviceInfoForm] onSubmit called", { values });
+    if (onSubmit) {
+      return onSubmit(values);
+    }
+  };
+
+  const { form, update, handleSubmit } = useFormState(initialFormValues, { onSubmit: submitProxy });
+
+  useEffect(() => {
+    console.log("[DeviceInfoForm] mount", { initial, readOnly, formId, showSubmit });
+    console.log("[DeviceInfoForm] initialFormValues", initialFormValues);
+    return () => {
+      console.log("[DeviceInfoForm] unmount");
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    console.log("[DeviceInfoForm] props changed", { initial, readOnly, formId, showSubmit });
+    console.log("[DeviceInfoForm] recomputed initialFormValues", initialFormValues);
+  }, [initial, readOnly, formId, showSubmit]);
+
+  useEffect(() => {
+    console.log("[DeviceInfoForm] form changed", form);
+  }, [form]);
 
   const handlePhotos = (e) => {
     const files = Array.from(e.target.files || []);
+    console.log("[DeviceInfoForm] handlePhotos", { count: files.length, names: files.map((f) => f && f.name) });
     update("photos", files);
   };
 
@@ -45,6 +71,7 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
                   accept="image/*"
                   capture="environment"
                   multiple
+                  onFocus={() => console.log("[DeviceInfoForm] focus photos")}
                   onChange={handlePhotos}
                   disabled={readOnly}
                 />
@@ -67,7 +94,11 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
                 id="supplier"
                 className="form-input"
                 value={form.supplier}
-                onChange={(e) => update("supplier", e.target.value)}
+                onFocus={() => console.log("[DeviceInfoForm] focus supplier")}
+                onChange={(e) => {
+                  console.log("[DeviceInfoForm] change supplier", { value: e.target.value, readOnly });
+                  update("supplier", e.target.value);
+                }}
                 placeholder="예: ABC 디바이스"
                 disabled={readOnly}
                 required
@@ -80,7 +111,11 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
                 type="date"
                 className="form-input"
                 value={form.installDate}
-                onChange={(e) => update("installDate", e.target.value)}
+                onFocus={() => console.log("[DeviceInfoForm] focus installDate")}
+                onChange={(e) => {
+                  console.log("[DeviceInfoForm] change installDate", { value: e.target.value, readOnly });
+                  update("installDate", e.target.value);
+                }}
                 disabled={readOnly}
                 required
               />
@@ -91,7 +126,11 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
                 id="installer"
                 className="form-input"
                 value={form.installer}
-                onChange={(e) => update("installer", e.target.value)}
+                onFocus={() => console.log("[DeviceInfoForm] focus installer")}
+                onChange={(e) => {
+                  console.log("[DeviceInfoForm] change installer", { value: e.target.value, readOnly });
+                  update("installer", e.target.value);
+                }}
                 placeholder="예: 홍길동"
                 disabled={readOnly}
                 required
@@ -103,7 +142,11 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
                 id="serial"
                 className="form-input"
                 value={form.serial}
-                onChange={(e) => update("serial", e.target.value)}
+                onFocus={() => console.log("[DeviceInfoForm] focus serial")}
+                onChange={(e) => {
+                  console.log("[DeviceInfoForm] change serial", { value: e.target.value, readOnly });
+                  update("serial", e.target.value);
+                }}
                 placeholder="예: DEV-2024-0001"
                 disabled={readOnly}
                 required
@@ -121,4 +164,3 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
     </div>
   );
 }
-
