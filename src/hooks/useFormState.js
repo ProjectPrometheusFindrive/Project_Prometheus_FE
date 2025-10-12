@@ -35,7 +35,7 @@ const deepEqual = (a, b) => {
  * @returns {Object} Form state and methods
  */
 const useFormState = (initialValues = {}, options = {}) => {
-  const { onSubmit, validate, validateOnChange = false } = options;
+  const { onSubmit, validate, validateOnChange = false, syncOnInitialChange = true } = options;
   
   const [form, setForm] = useState(initialValues);
   const [errors, setErrors] = useState({});
@@ -158,6 +158,7 @@ const useFormState = (initialValues = {}, options = {}) => {
   // Update form when initialValues change (for editing scenarios)
   // Guard against infinite loops when callers pass a new object each render
   useEffect(() => {
+    if (!syncOnInitialChange) return;
     if (!initialValues) return;
     setForm((prev) => {
       // Only update if values actually differ
@@ -166,7 +167,7 @@ const useFormState = (initialValues = {}, options = {}) => {
       }
       return prev;
     });
-  }, [initialValues]);
+  }, [initialValues, syncOnInitialChange]);
 
   // Legacy compatibility: provide 'update' function for existing components
   const update = updateField;

@@ -871,7 +871,7 @@ export default function RentalContracts() {
                 </div>
             </div>
 
-            <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="Create Rental" showFooter={false} ariaLabel="Create Rental">
+            <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="계약 등록" showFooter={false} ariaLabel="Create Rental">
                 <RentalForm onSubmit={handleCreateSubmit} formId="rental-create" />
             </Modal>
 

@@ -1466,6 +1466,28 @@ body {
     border-radius: 8px;
     font-size: 1rem;
 }
+.form-row {
+    display: flex;
+    gap: 0.6rem;
+}
+.form-col {
+    flex: 1 1 0;
+    min-width: 0;
+}
+/* Radios inline styling */
+.form-radio-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+.form-radio input[type="radio"] {
+    margin-right: 0.35rem;
+}
+/* Ensure labels in horizontal rows sit above inputs */
+.form-row .form-label {
+    display: block;
+    margin-bottom: 0.25rem;
+}
 .form-actions {
     margin-top: 0.5rem;
 }
