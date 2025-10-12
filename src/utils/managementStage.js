@@ -92,8 +92,9 @@ export const getManagementStage = (asset = {}) => {
  */
 export const withManagementStage = (asset) => {
     if (!asset) return asset;
+    const hasStage = !!(asset.managementStage && String(asset.managementStage).trim());
     const stage = getManagementStage(asset);
-    return { ...asset, managementStage: stage };
+    return { ...asset, managementStage: stage, __hasManagementStage: hasStage };
 };
 
 export { MANAGEMENT_STAGE_VALUES, MANAGEMENT_STAGE_DEFAULT, LEGACY_STAGE_MAP };

@@ -822,7 +822,9 @@ export default function AssetStatus() {
                 );
             }
             case "managementStage": {
-                const stage = getManagementStage(row);
+                // Display as '-' if no explicit managementStage value was provided from backend
+                const hasStageValue = !!row.__hasManagementStage;
+                const stage = hasStageValue ? (row.managementStage || "-") : "-";
                 const isSaving = !!stageSaving[row.id];
                 const badgeClass = MANAGEMENT_STAGE_BADGE_CLASS[stage] || "badge--default";
                 const isOpen = openStageDropdown === row.id;
@@ -858,26 +860,29 @@ export default function AssetStatus() {
                 const hasAnyOpen = hasActive || hasOverdue || hasStolen || hasReserved;
                 let inconsistent = false;
                 let reason = "";
-                if (stage === "대여중") {
-                    if (!(hasActive || hasOverdue || hasStolen)) {
-                        inconsistent = true;
-                        reason = "진행 중 계약 없음(대여/연체/도난 미해당)";
-                    }
-                } else if (stage === "예약중") {
-                    if (!hasReserved) {
-                        inconsistent = true;
-                        reason = "예약 계약 없음";
-                    }
-                } else if (stage === "대여가능") {
-                    if (hasAnyOpen) {
-                        inconsistent = true;
-                        reason = "진행 중/예약/연체/도난 계약 존재";
-                    }
-                } else {
-                    // 기타 상태(수리/점검 중, 입고 대상 등)에서도 계약이 열려 있으면 불일치
-                    if (hasAnyOpen) {
-                        inconsistent = true;
-                        reason = "계약(대여/예약/연체/도난) 진행 중";
+                const isKnownStage = MANAGEMENT_STAGE_SET.has(stage);
+                if (isKnownStage) {
+                    if (stage === "대여중") {
+                        if (!(hasActive || hasOverdue || hasStolen)) {
+                            inconsistent = true;
+                            reason = "진행 중 계약 없음(대여/연체/도난 미해당)";
+                        }
+                    } else if (stage === "예약중") {
+                        if (!hasReserved) {
+                            inconsistent = true;
+                            reason = "예약 계약 없음";
+                        }
+                    } else if (stage === "대여가능") {
+                        if (hasAnyOpen) {
+                            inconsistent = true;
+                            reason = "진행 중/예약/연체/도난 계약 존재";
+                        }
+                    } else {
+                        // 기타 상태(수리/점검 중, 입고 대상 등)에서도 계약이 열려 있으면 불일치
+                        if (hasAnyOpen) {
+                            inconsistent = true;
+                            reason = "계약(대여/예약/연체/도난) 진행 중";
+                        }
                     }
                 }
                 return (
