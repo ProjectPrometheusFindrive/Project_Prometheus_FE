@@ -2,13 +2,11 @@
 
 ## Project Structure & Module Organization
 - `src/` app code: `App.jsx`, `main.jsx`, `App.css`.
-- Key folders: `components/` (UI, forms), `pages/` (route views), `api/` (`apiClient`, `fakeApi`, `realApi`, `index.js` switcher), `server/` (Express fake backend), `utils/`, `constants/`, `data/` (seed.json, geofences, company), `assets/` (SVGs).
+- Key folders: `components/` (UI, forms), `pages/` (route views), `api/` (`apiClient`, `realApi`, `index.js` real-only), `utils/`, `constants/`, `data/` (seed.json, geofences, company), `assets/` (SVGs).
 - Routing uses `HashRouter` for static hosting. `index.html` loads map libraries via CDN. See `API_SPECIFICATION.md` for API details.
 
 ## Build, Test, and Development Commands
 - `npm run dev` / `npm start`: Start Vite dev server on `5173`.
-- `npm run backend`: Start fake API (Express) on `3001`.
-- `npm run dev:full`: Run frontend + fake API concurrently.
 - `npm run build`: Production build to `dist/`.
 - `npm run preview`: Serve the built app locally.
 
@@ -22,7 +20,7 @@
 ## Testing Guidelines
 - Current: `npm test` is a placeholder. When adding tests, prefer Vitest + React Testing Library.
 - Naming: `*.test.jsx`; colocate near modules or under `src/__tests__/`.
-- Scope: cover utilities (`utils/`), API switching (`api/index.js`), and component behavior with accessible queries. Add minimal tests for new features.
+- Scope: cover utilities (`utils/`), API client behavior (`api/apiClient.js`), and component behavior with accessible queries. Add minimal tests for new features.
 
 ## Commit & Pull Request Guidelines
 - Use Conventional Commits: `feat:`, `fix:`, `refactor:`, `docs:`; optional scopes (e.g., `feat(settings): ...`).
@@ -31,9 +29,9 @@
 
 ## Security & Configuration Tips
 - Environment: use `VITE_`-prefixed vars. Do not commit secrets; prefer `.env.local` for local keys.
-- API mode toggles via `VITE_USE_REAL_API`, `VITE_API_BASE_URL`, and `VITE_FAKE_API_BASE_URL` (see `src/api/index.js`).
+- Real API base configured via `VITE_API_BASE_URL` (see `src/api/index.js`).
 - If adjusting `index.html`, preserve CDN references needed by maps. Hash-based routing eases static hosting.
 
 ## Agent-Specific Instructions
 - Follow these conventions for any edits. Touch only relevant files. When altering API or routes, update `API_SPECIFICATION.md` and README.
-- Verify locally with `npm run dev:full` when changes affect data flows or maps.
+- Verify locally with `npm run dev` when changes affect data flows or maps.

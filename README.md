@@ -5,7 +5,7 @@
 ## 개요
 
 - 기본값으로 로컬 브라우저 `localStorage`와 시드 데이터로 동작합니다.
-- `.env` 설정으로 로컬 Fake API(Express) 또는 실제 백엔드 API로 전환할 수 있습니다.
+- 실제 백엔드 API(Real API)만 사용하도록 구성되었습니다. `.env.local`에 Real API 주소를 설정하세요.
 
 ## 주요 기능
 
@@ -22,7 +22,7 @@
 - Vite 7 (개발/빌드)
 - Recharts(차트), React Icons(아이콘)
 - Kakao Maps SDK(동적 로드)
-- Express 기반 Fake API(Server)
+ 
 
 ## 빠른 시작
 
@@ -39,20 +39,13 @@ npm install
 개발 서버 실행
 
 ```bash
-# 프론트엔드만 실행
 npm run dev
 # 또는
 npm start
-
-# Fake API 서버 실행(포트 3001)
-npm run backend
-
-# 프론트엔드 + Fake API 동시 실행
-npm run dev:full
 ```
 
 - 프론트엔드: http://localhost:5173
-- Fake API 기본 Base URL: http://localhost:3001/api
+ 
 
 프로덕션 빌드/미리보기
 
@@ -67,23 +60,20 @@ npm run preview
 
 ## 환경 변수(.env*)
 
-`src/api/index.js`에서 환경 변수로 실제/가짜 API를 전환합니다.
+환경 변수(.env.local)
 
-- `VITE_USE_REAL_API`: `true`이면 실제 API(`realApi.js`) 사용, 기본은 `false`로 Fake API(`fakeApi.js`) 사용
-- `VITE_API_BASE_URL`: 실제 API Base URL(끝의 `/` 생략 권장)
-- `VITE_FAKE_API_BASE_URL`: Fake API Base URL(기본 `http://localhost:3001/api`)
+`src/api/index.js`는 Real API만 사용합니다. 다음 변수만 설정하면 됩니다.
+
+- `VITE_API_BASE_URL`: 실제 API Base URL(끝의 `/` 생략 권장). 예: `http://localhost:5000` 또는 `http://localhost:5000/api`
 - `VITE_KAKAO_MAP_API_KEY`: 카카오 지도 API Key(미설정 시 내장 개발 키로 로드 시도)
 
-예시(.env.development)
+예시(.env.local)
 
 ```env
-VITE_USE_REAL_API=false
-VITE_API_BASE_URL=http://localhost:3000
-VITE_FAKE_API_BASE_URL=http://localhost:3001/api
+VITE_API_BASE_URL=http://localhost:5000/api
 VITE_KAKAO_MAP_API_KEY=your_kakao_key
 ```
-
-Fake API 모드에서는 주요 데이터가 브라우저 `localStorage` 또는 로컬 JSON 시드에서 관리됩니다.
+ 
 
 ## 라우팅
 
@@ -101,7 +91,7 @@ Fake API 모드에서는 주요 데이터가 브라우저 `localStorage` 또는 
 ```
 src/
   App.jsx, main.jsx, App.css
-  api/            # index.js(모드 스위처), fakeApi.js, realApi.js, apiClient.js, apiTypes.js
+  api/            # index.js(Real 전용), realApi.js, apiClient.js, apiTypes.js
   components/
     AppLayout.jsx, NavigationBar.jsx, KakaoMap.jsx, ErrorBoundary.jsx, ...
     forms/        # AssetForm.jsx, RentalForm.jsx, IssueForm.jsx, KakaoGeofenceInput.jsx 등
@@ -109,8 +99,7 @@ src/
     Dashboard.jsx, AssetStatus.jsx, RentalContracts.jsx,
     ProblemVehicles.jsx, Detail.jsx,
     Login.jsx, SignUp.jsx, FindId.jsx, ForgotPassword.jsx, Settings.jsx
-  server/
-    fake-backend.js   # Express 기반 Fake API
+  server/              # (deprecated) 과거 Fake API용 코드
   data/
     db.js, seed.json, geofences.json, company-info.json, assets.js, rentals.js, company.js
   utils/
@@ -136,20 +125,11 @@ src/
 
 자세한 사용법은 `src/utils/storage.js` 참고.
 
-## API 모드와 동작
+## API 동작(Real 전용)
 
-- 스위처: `src/api/index.js`가 `VITE_USE_REAL_API`에 따라 `realApi`/`fakeApi`를 선택합니다.
-
-- Fake API 모드
-  - 서버: `src/server/fake-backend.js` (기본 포트 `3001`)에서 `/api/*` 엔드포인트 제공
-  - 자산/대여/대시보드/지오펜스: Express 엔드포인트(`/api/assets`, `/api/rentals`, `/api/dashboard`, `/api/geofences`)
-  - 회사 정보: 서버 엔드포인트가 아닌 `src/data/company.js`를 통해 `localStorage`에 저장되며, 기본값은 `src/data/company-info.json`과 `src/data/geofences.json`에서 초기화됩니다.
-  - 이슈: Fake 모드에서는 `/api/issue-drafts`로 초안 생성만 지원
-
-- Real API 모드
-  - `src/api/apiClient.js`, `src/api/apiTypes.js`를 통해 일관된 응답 포맷(`data/status/error/timestamp`) 사용
-  - 엔드포인트 경로는 `API_SPECIFICATION.md`를 따르며, 기본 베이스는 `VITE_API_BASE_URL`
-  - 예상 엔드포인트: `/assets`, `/rentals`, `/vehicles`, `/dashboard`, `/geofences`, `/company`, `/issues` 등
+- `src/api/index.js`는 Real API만 사용합니다.
+- `src/api/apiClient.js`, `src/api/apiTypes.js`를 통해 일관된 응답 포맷(`data/status/error/timestamp`)을 처리합니다.
+- 엔드포인트 경로는 `API_SPECIFICATION.md`의 Real API 섹션을 따르며, 기본 베이스는 `VITE_API_BASE_URL`입니다.
 
 ## 지도/지오펜스
 
@@ -164,8 +144,6 @@ src/
 - `npm run dev` / `npm start`: Vite 개발 서버(5173)
 - `npm run build`: 프로덕션 빌드
 - `npm run preview`: 빌드 미리보기
-- `npm run backend`: Fake API(Express) 서버 실행(3001)
-- `npm run dev:full`: 프론트엔드 + Fake API 동시 실행
 - `npm test`: 현재 테스트 없음(placeholder)
 
 ## 개발 메모
@@ -184,7 +162,7 @@ src/
 ## Swagger/OpenAPI 명세
 
 - 위치: `openapi/project-prometheus-openapi.yaml`
-- Fake API(`http://localhost:3001/api`)는 리소스 본문을 바로 반환하고, 실제 백엔드는 `status/data/error/timestamp` 래퍼를 사용한다는 점을 함께 반영했습니다(`oneOf` 사용).
+명세는 실제 백엔드의 표준 래퍼(`status/data/error/timestamp`)와 Plain JSON을 모두 허용(`oneOf`)하도록 구성되어 있습니다.
 
 활용 방법 예시
 
@@ -195,4 +173,3 @@ src/
 ## 참고 문서
 
 - `API_SPECIFICATION.md`: 프론트엔드가 기대하는 API 명세
-

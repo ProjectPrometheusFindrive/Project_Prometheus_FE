@@ -60,3 +60,46 @@ export function computeContractStatus(r, now = new Date()) {
   return "예약 중";
 }
 
+/**
+ * Classify rental into coarse categories for aggregations.
+ * Returns one of: 'ACTIVE' | 'OVERDUE' | 'RESERVED' | 'STOLEN' | 'COMPLETED' | 'ACCIDENT' | 'UNKNOWN'
+ */
+export function classifyRental(r, now = new Date()) {
+  const status = computeContractStatus(r, now);
+  switch (status) {
+    case "완료":
+      return "COMPLETED";
+    case "도난의심":
+      return "STOLEN";
+    case "반납지연":
+      return "OVERDUE";
+    case "대여중":
+      return "ACTIVE";
+    case "사고접수":
+      return "ACCIDENT";
+    case "예약 중":
+      return "RESERVED";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+/**
+ * Extract normalized interval fields from rental.
+ */
+export function rentalInterval(r) {
+  return {
+    start: toDate(r?.rental_period?.start),
+    end: toDate(r?.rental_period?.end),
+    returnedAt: toDate(r?.returned_at),
+  };
+}
+
+/**
+ * Check if two closed intervals [a.start, a.end] and [b.start, b.end] overlap.
+ */
+export function intervalsOverlap(a, b) {
+  if (!a || !b) return false;
+  if (!a.start || !a.end || !b.start || !b.end) return false;
+  return a.start <= b.end && b.start <= a.end;
+}

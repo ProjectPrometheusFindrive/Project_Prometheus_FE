@@ -8,9 +8,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "echo 'No tests' && exit 0",
-    "backend": "node src/server/fake-backend.js",
-    "dev:full": "concurrently \"npm run backend\" \"npm run dev\""
+    "test": "echo 'No tests' && exit 0"
   },
   "dependencies": {
     "cors": "^2.8.5",

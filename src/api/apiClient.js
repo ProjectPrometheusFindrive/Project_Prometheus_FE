@@ -13,7 +13,7 @@ import {
 
 // Base URL and configuration
 const getBaseUrl = () => {
-    const base = import.meta?.env?.VITE_API_BASE_URL || '';
+    const base = import.meta.env.VITE_API_BASE_URL || '';
     return base.replace(/\/$/, '');
 };
 
@@ -22,23 +22,86 @@ async function apiRequest(endpoint, options = {}) {
     try {
         const baseUrl = getBaseUrl();
         const url = baseUrl ? `${baseUrl}${endpoint}` : endpoint;
-        
-        const response = await fetch(url, {
-            headers: {
-                'Content-Type': 'application/json',
-                ...options.headers
-            },
-            ...options
-        });
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+
+        // Extract custom options we don't want to pass to fetch
+        const { timeoutMs, signal: userSignal, ...restOptions } = options || {};
+
+        // Merge options with safe headers (avoid being overwritten by spreading order)
+        const method = (restOptions.method || 'GET').toUpperCase();
+        const baseHeaders = (restOptions && restOptions.headers) ? restOptions.headers : {};
+        const headers = {
+            ...(method !== 'GET' ? { 'Content-Type': 'application/json' } : {}),
+            ...baseHeaders,
+        };
+
+        const controller = userSignal ? null : new AbortController();
+        const fetchOptions = {
+            ...restOptions,
+            headers,
+            ...(controller ? { signal: controller.signal } : { signal: userSignal })
+        };
+
+        // Timeout handling via AbortController (default 15s)
+        const ms = typeof timeoutMs === 'number' && isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 15000;
+        let timer = null;
+        if (controller) {
+            timer = setTimeout(() => {
+                try { controller.abort(); } catch {}
+            }, ms);
         }
-        
-        const data = await response.json();
-        return createApiResponse(data);
-        
+
+        const response = await fetch(url, fetchOptions);
+        if (timer) clearTimeout(timer);
+
+        const status = response.status;
+        const contentType = response.headers.get('content-type') || '';
+
+        // No Content responses
+        if (status === 204 || status === 205) {
+            return createApiResponse(null);
+        }
+
+        // Try to parse response according to content-type
+        const parseJson = async () => {
+            try {
+                return await response.json();
+            } catch {
+                return null;
+            }
+        };
+        const parseText = async () => {
+            try {
+                return await response.text();
+            } catch {
+                return '';
+            }
+        };
+
+        let payload = null;
+        if (contentType.includes('application/json')) {
+            payload = await parseJson();
+        } else {
+            // If content-type is not JSON, attempt text (may still be empty)
+            payload = await parseText();
+        }
+
+        if (!response.ok) {
+            const err = new Error(`HTTP ${status}: ${response.statusText}`);
+            // Preserve status details for upper-layer error handling
+            err.status = status;
+            err.statusText = response.statusText;
+            err.url = url;
+            err.data = payload;
+            throw err;
+        }
+
+        return createApiResponse(payload);
     } catch (error) {
+        // Normalize AbortError shape (optional)
+        if (error && (error.name === 'AbortError' || error.message?.toLowerCase().includes('aborted'))) {
+            error.status = error.status || 0;
+            error.statusText = error.statusText || 'Request aborted';
+        }
         return handleApiError(error, endpoint);
     }
 }

@@ -1,12 +1,5 @@
-// API switcher: export real API when configured, otherwise fake API
-// Usage: set VITE_USE_REAL_API=true and VITE_API_BASE_URL in your .env to enable real API.
-
-// Default to fake API unless explicitly turned on
-const useReal = (import.meta?.env?.VITE_USE_REAL_API || "").toString().toLowerCase() === "true";
-
-import * as real from "./realApi";
-import * as fake from "./fakeApi";
-const api = useReal ? real : fake;
+// Real API only: always export real API bindings
+import * as api from "./realApi";
 
 export default api;
 export const {

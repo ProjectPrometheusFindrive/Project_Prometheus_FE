@@ -62,7 +62,7 @@ const KakaoMap = ({
             return;
         }
         const script = document.createElement("script");
-        const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY || "4c8883615b01fddf76310cc10535008a";
+        const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
         script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services,drawing&autoload=false`;
         script.onload = () => {
             if (window.kakao && window.kakao.maps) {

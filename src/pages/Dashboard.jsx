@@ -3,6 +3,7 @@ import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recha
 import Gauge from "../components/Gauge";
 import { fetchAssets, fetchRentals } from "../api";
 import { computeContractStatus } from "../utils/contracts";
+import { getManagementStage } from "../utils/managementStage";
 
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
@@ -46,7 +47,8 @@ export default function Dashboard() {
                 // 1) 자산 현황: 관리상태(managementStage) 기준 분포
                 const stageCounts = new Map();
                 (Array.isArray(assets) ? assets : []).forEach((a) => {
-                    const stage = (a?.managementStage || "").trim() || "기타";
+                    // 백엔드가 managementStage를 주지 않는 경우가 있어, 프론트 기준 유틸로 산출
+                    const stage = getManagementStage(a);
                     stageCounts.set(stage, (stageCounts.get(stage) || 0) + 1);
                 });
                 const stageDist = [...stageCounts.entries()].map(([name, value]) => ({ name, value, rawValue: value }));
