@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import {
@@ -147,6 +147,64 @@ export default function Settings() {
             if (it && Array.isArray(it.points)) return { id: it.id != null ? it.id : it.name, name: it.name || `Polygon ${i + 1}`, points: it.points };
             return { name: `Polygon ${i + 1}`, points: [] };
         });
+    };
+
+    const autoSaveTimeoutRef = useRef(null);
+
+    const handlePointsChange = useCallback(
+        (idx, newPoints) => {
+            // Update state immutably and keep a snapshot for save
+            let listForSave = [];
+            setGeofenceList((prev) => {
+                const next = Array.isArray(prev) ? [...prev] : [];
+                if (next[idx]) {
+                    next[idx] = { ...next[idx], points: newPoints };
+                }
+                listForSave = next;
+                return next;
+            });
+
+            // Debounced auto-save for a single item
+            if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
+            autoSaveTimeoutRef.current = setTimeout(async () => {
+                const item = listForSave[idx];
+                if (!item) return;
+                try {
+                    const identifier = item.id != null ? item.id : item.name;
+                    let ok = true;
+                    if (identifier != null) {
+                        ok = await updateGeofence(identifier, { name: item.name, points: item.points });
+                    }
+                    if (!identifier || ok === false) {
+                        const created = await createGeofence({ name: item.name, points: item.points });
+                        setGeofenceList((prev) => {
+                            const next = [...(prev || [])];
+                            next[idx] = { ...item, id: created?.name != null ? created.name : item.name };
+                            return next;
+                        });
+                    } else {
+                        // Sync id to name if name is identifier
+                        setGeofenceList((prev) => {
+                            const next = [...(prev || [])];
+                            next[idx] = { ...item, id: item.name };
+                            return next;
+                        });
+                    }
+                } catch (err) {
+                    console.error("Failed to auto-save geofence:", err);
+                }
+            }, 800);
+        },
+        [updateGeofence, createGeofence]
+    );
+
+    // Stable wrapper to pass memoized polygons array and callback per item
+    const GeofenceItemMap = ({ idx, points }) => {
+        const memoPolygons = React.useMemo(() => [points], [points]);
+        const onChange = React.useCallback((newPoints) => handlePointsChange(idx, newPoints), [idx, handlePointsChange]);
+        return (
+            <KakaoMap polygons={memoPolygons} height="300px" editable={true} onPolygonChange={onChange} />
+        );
     };
 
     const handleGeofenceDeleteOne = async (idx) => {
@@ -405,49 +463,7 @@ export default function Settings() {
                                                                 </button>
                                                             </div>
                                                         </div>
-                                                        <KakaoMap
-                                                            polygons={[item.points]}
-                                                            height="300px"
-                                                            editable={true}
-                                                            onPolygonChange={(newPoints) => {
-                                                                // 상태만 업데이트 (자동 저장은 디바운스 적용)
-                                                                const updatedList = [...geofenceList];
-                                                                updatedList[idx] = { ...updatedList[idx], points: newPoints };
-                                                                setGeofenceList(updatedList);
-
-                                                                // 디바운스된 자동 저장 (단일 항목 업데이트)
-                                                                clearTimeout(window.autoSaveTimeout);
-                                                                window.autoSaveTimeout = setTimeout(async () => {
-                                                                    const item = updatedList[idx];
-                                                                    if (item) {
-                                                                        try {
-                                                                            const identifier = item.id != null ? item.id : item.name;
-                                                                            let ok = true;
-                                                                            if (identifier != null) {
-                                                                                ok = await updateGeofence(identifier, { name: item.name, points: item.points });
-                                                                            }
-                                                                            if (!identifier || ok === false) {
-                                                                                const created = await createGeofence({ name: item.name, points: item.points });
-                                                                                setGeofenceList((prev) => {
-                                                                                    const next = [...(prev || [])];
-                                                                                    next[idx] = { ...item, id: created?.name != null ? created.name : item.name };
-                                                                                    return next;
-                                                                                });
-                                                                            } else {
-                                                                                // Sync id to name if name is identifier
-                                                                                setGeofenceList((prev) => {
-                                                                                    const next = [...(prev || [])];
-                                                                                    next[idx] = { ...item, id: item.name };
-                                                                                    return next;
-                                                                                });
-                                                                            }
-                                                                        } catch (err) {
-                                                                            console.error("Failed to auto-save geofence:", err);
-                                                                        }
-                                                                    }
-                                                                }, 800);
-                                                            }}
-                                                        />
+                                                        <GeofenceItemMap idx={idx} points={item.points} />
                                                     </div>
                                                 ))}
                                             </div>

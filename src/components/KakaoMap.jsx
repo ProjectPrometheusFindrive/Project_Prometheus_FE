@@ -1,6 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
 import carIcon from "../assets/car.svg";
 
+// Precompute small edit-handle marker images once per module
+const VERTEX_SVG_BASE64 =
+  "data:image/svg+xml;base64," +
+  (typeof btoa === "function"
+    ? btoa(
+        `\
+<svg width=\"8\" height=\"8\" viewBox=\"0 0 8 8\" xmlns=\"http://www.w3.org/2000/svg\">\
+  <rect width=\"8\" height=\"8\" fill=\"#ffffff\" stroke=\"#ff6b6b\" stroke-width=\"2\"/>\
+</svg>`
+      )
+    : "");
+const MIDPOINT_SVG_BASE64 =
+  "data:image/svg+xml;base64," +
+  (typeof btoa === "function"
+    ? btoa(
+        `\
+<svg width=\"6\" height=\"6\" viewBox=\"0 0 6 6\" xmlns=\"http://www.w3.org/2000/svg\">\
+  <circle cx=\"3\" cy=\"3\" r=\"3\" fill=\"#ff6b6b\" stroke=\"#ffffff\" stroke-width=\"1\"/>\
+</svg>`
+      )
+    : "");
+
 const KakaoMap = ({
     latitude,
     longitude,
@@ -21,7 +43,17 @@ const KakaoMap = ({
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState(null);
     const [isScriptLoaded, setIsScriptLoaded] = useState(false);
-    const editablePolygonsRef = useRef([]);
+    const mapRef = useRef(null);
+    const vehicleMarkerRef = useRef(null);
+    const infoWindowRef = useRef(null);
+    const geocoderRef = useRef(null);
+    const hasFittedBoundsRef = useRef(false);
+
+    // Keep overlays and edit handles for cleanup/reuse
+    const overlaysRef = useRef({
+        polygons: [], // [{ polygon, vertexMarkers: [], midMarkers: [], listeners: [] }]
+        polylines: [],
+    });
 
     // 속도에 따른 색상 계산 (3단계)
     const getSpeedColor = (speed) => {
@@ -61,9 +93,22 @@ const KakaoMap = ({
             setIsScriptLoaded(true);
             return;
         }
-        const script = document.createElement("script");
         const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
-        script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services,drawing&autoload=false`;
+        const src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services,drawing&autoload=false`;
+        const existing = document.querySelector(`script[src=\"${src}\"]`) || document.querySelector("script[src*='dapi.kakao.com']");
+        if (existing) {
+            // Poll until loaded
+            const t = setInterval(() => {
+                if (window.kakao && window.kakao.maps) {
+                    setIsScriptLoaded(true);
+                    clearInterval(t);
+                }
+            }, 100);
+            setTimeout(() => clearInterval(t), 5000);
+            return;
+        }
+        const script = document.createElement("script");
+        script.src = src;
         script.onload = () => {
             if (window.kakao && window.kakao.maps) {
                 setIsScriptLoaded(true);
@@ -80,10 +125,276 @@ const KakaoMap = ({
         document.head.appendChild(script);
     }, []);
 
-    // 지도 초기화
-    useEffect(() => {
-        if (!isScriptLoaded || !mapContainer.current) return;
+    // Helpers
+    const clearPolylines = () => {
+        const list = overlaysRef.current.polylines || [];
+        list.forEach((pl) => pl && pl.setMap && pl.setMap(null));
+        overlaysRef.current.polylines = [];
+    };
 
+    const clearPolygons = () => {
+        const list = overlaysRef.current.polygons || [];
+        list.forEach((entry) => {
+            try {
+                if (!entry) return;
+                if (Array.isArray(entry.vertexMarkers)) entry.vertexMarkers.forEach((m) => m && m.setMap && m.setMap(null));
+                if (Array.isArray(entry.midMarkers)) entry.midMarkers.forEach((m) => m && m.setMap && m.setMap(null));
+                if (entry.polygon && entry.polygon.setMap) entry.polygon.setMap(null);
+            } catch {}
+        });
+        overlaysRef.current.polygons = [];
+    };
+
+    const toLatLngPath = (points = []) => {
+        return points
+            .filter((p) => p && typeof p.lat === "number" && typeof p.lng === "number")
+            .map((p) => new window.kakao.maps.LatLng(p.lat, p.lng));
+    };
+
+    const attachEditHandles = (map, polygon, index) => {
+        if (!editable || !onPolygonChange) return { vertexMarkers: [], midMarkers: [] };
+        const path = polygon.getPath();
+        const vertexMarkers = [];
+        const midMarkers = [];
+
+        // Vertex markers
+        for (let i = 0; i < path.length; i++) {
+            const point = path[i];
+            const marker = new window.kakao.maps.Marker({
+                position: point,
+                image: new window.kakao.maps.MarkerImage(
+                    VERTEX_SVG_BASE64,
+                    new window.kakao.maps.Size(8, 8),
+                    { offset: new window.kakao.maps.Point(4, 4) }
+                ),
+                draggable: true,
+            });
+            marker.setMap(map);
+            window.kakao.maps.event.addListener(marker, "dragend", function () {
+                const newPosition = marker.getPosition();
+                const currentPath = polygon.getPath();
+                currentPath[i] = newPosition;
+                polygon.setPath(currentPath);
+                const newPoints = currentPath.map((pt) => ({ lat: pt.getLat(), lng: pt.getLng() }));
+                onPolygonChange(newPoints, index);
+                // sync other vertex markers
+                vertexMarkers.forEach((vm, vmIndex) => {
+                    if (vmIndex !== i) vm.setPosition(currentPath[vmIndex]);
+                });
+                // update mid markers positions
+                for (let k = 0; k < currentPath.length; k++) {
+                    const a = currentPath[k];
+                    const b = currentPath[(k + 1) % currentPath.length];
+                    const midLat = (a.getLat() + b.getLat()) / 2;
+                    const midLng = (a.getLng() + b.getLng()) / 2;
+                    midMarkers[k].setPosition(new window.kakao.maps.LatLng(midLat, midLng));
+                }
+            });
+            vertexMarkers.push(marker);
+        }
+
+        // Midpoint markers
+        for (let i = 0; i < path.length; i++) {
+            const current = path[i];
+            const next = path[(i + 1) % path.length];
+            const midLat = (current.getLat() + next.getLat()) / 2;
+            const midLng = (current.getLng() + next.getLng()) / 2;
+            const midPoint = new window.kakao.maps.LatLng(midLat, midLng);
+            const midMarker = new window.kakao.maps.Marker({
+                position: midPoint,
+                image: new window.kakao.maps.MarkerImage(
+                    MIDPOINT_SVG_BASE64,
+                    new window.kakao.maps.Size(6, 6),
+                    { offset: new window.kakao.maps.Point(3, 3) }
+                ),
+                draggable: true,
+            });
+            midMarker.setMap(map);
+            window.kakao.maps.event.addListener(midMarker, "dragend", (function (segmentIdx) {
+                return function () {
+                    const newPosition = midMarker.getPosition();
+                    const currentPath = polygon.getPath();
+                    currentPath.splice(segmentIdx + 1, 0, newPosition);
+                    polygon.setPath(currentPath);
+                    const newPoints = currentPath.map((pt) => ({ lat: pt.getLat(), lng: pt.getLng() }));
+                    onPolygonChange(newPoints, index);
+                };
+            })(i));
+            midMarkers.push(midMarker);
+        }
+
+        return { vertexMarkers, midMarkers };
+    };
+
+    const drawOrUpdatePolygons = (map) => {
+        if (!Array.isArray(polygons) || polygons.length === 0) {
+            clearPolygons();
+            return;
+        }
+        const existing = overlaysRef.current.polygons;
+        // If count differs, clear and recreate
+        if (existing.length !== polygons.length) {
+            clearPolygons();
+        }
+
+        const results = [];
+        for (let i = 0; i < polygons.length; i++) {
+            const pts = polygons[i];
+            if (!Array.isArray(pts) || pts.length === 0) continue;
+            const path = toLatLngPath(pts);
+            let entry = overlaysRef.current.polygons[i];
+            if (!entry) {
+                const polygon = new window.kakao.maps.Polygon({
+                    path,
+                    strokeWeight: 3,
+                    strokeColor: editable ? "#ff6b6b" : "#0b57d0",
+                    strokeOpacity: 0.8,
+                    strokeStyle: "solid",
+                    fillColor: editable ? "#ff6b6b" : "#0b57d0",
+                    fillOpacity: editable ? 0.2 : 0.1,
+                    draggable: !!editable,
+                    editable: !!editable,
+                    removable: !!editable,
+                });
+                polygon.setMap(map);
+                const handles = attachEditHandles(map, polygon, i);
+                entry = { polygon, ...handles };
+            } else {
+                // Update path and colors according to editable
+                entry.polygon.setPath(path);
+                try {
+                    const currentPath = entry.polygon.getPath();
+                    // Reposition existing handles if counts match
+                    if (Array.isArray(entry.vertexMarkers) && entry.vertexMarkers.length === currentPath.length) {
+                        entry.vertexMarkers.forEach((vm, k) => vm.setPosition(currentPath[k]));
+                    }
+                    if (Array.isArray(entry.midMarkers) && entry.midMarkers.length === currentPath.length) {
+                        for (let k = 0; k < currentPath.length; k++) {
+                            const a = currentPath[k];
+                            const b = currentPath[(k + 1) % currentPath.length];
+                            const midLat = (a.getLat() + b.getLat()) / 2;
+                            const midLng = (a.getLng() + b.getLng()) / 2;
+                            entry.midMarkers[k].setPosition(new window.kakao.maps.LatLng(midLat, midLng));
+                        }
+                    }
+                } catch {}
+            }
+            results[i] = entry;
+        }
+        overlaysRef.current.polygons = results.filter(Boolean);
+    };
+
+    const drawOrUpdatePolylines = (map) => {
+        clearPolylines();
+        if (!trackingData || trackingData.length < 2) return;
+        const segments = processTrackingData(trackingData);
+        const list = [];
+        for (const segment of segments) {
+            const path = [
+                new window.kakao.maps.LatLng(segment.start.lat, segment.start.lng),
+                new window.kakao.maps.LatLng(segment.end.lat, segment.end.lng),
+            ];
+            const polyline = new window.kakao.maps.Polyline({
+                path,
+                strokeWeight: 5,
+                strokeColor: segment.color,
+                strokeOpacity: 0.8,
+                strokeStyle: "solid",
+            });
+            polyline.setMap(map);
+            list.push(polyline);
+        }
+        overlaysRef.current.polylines = list;
+    };
+
+    const initOrGetGeocoder = () => {
+        if (geocoderRef.current) return geocoderRef.current;
+        if (window.kakao?.maps?.services?.Geocoder) {
+            geocoderRef.current = new window.kakao.maps.services.Geocoder();
+        }
+        return geocoderRef.current;
+    };
+
+    const createOrUpdateVehicleMarker = (map) => {
+        if (!latitude || !longitude) return;
+        const pos = new window.kakao.maps.LatLng(latitude, longitude);
+        if (!vehicleMarkerRef.current) {
+            const markerImage = new window.kakao.maps.MarkerImage(
+                carIcon,
+                new window.kakao.maps.Size(30, 20),
+                { offset: new window.kakao.maps.Point(10, 7.5) }
+            );
+            vehicleMarkerRef.current = new window.kakao.maps.Marker({ position: pos, image: markerImage });
+            vehicleMarkerRef.current.setMap(map);
+        } else {
+            vehicleMarkerRef.current.setPosition(pos);
+        }
+
+        // InfoWindow
+        const formatTime = (timeString) => {
+            if (!timeString || timeString === "업데이트 시간 없음") return "업데이트 시간 없음";
+            try {
+                const date = new Date(timeString);
+                const year = date.getFullYear().toString().slice(-2);
+                const month = String(date.getMonth() + 1).padStart(2, "0");
+                const day = String(date.getDate()).padStart(2, "0");
+                const hours = String(date.getHours()).padStart(2, "0");
+                const minutes = String(date.getMinutes()).padStart(2, "0");
+                return `${year}.${month}.${day} ${hours}:${minutes}`;
+            } catch (error) {
+                return timeString;
+            }
+        };
+
+        const buildInfoWindow = (address = "주소를 가져오는 중...") => {
+            const formattedTime = formatTime(lastUpdateTime);
+            const infoContent = `
+                <div style=\"padding: 5px; font-family: Arial, sans-serif; width: 240px; line-height: 1.5;\">
+                    <div style=\"font-weight: bold; color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 8px; font-size: 14px;\">
+                        ${vehicleNumber || "차량번호 없음"}
+                    </div>
+                    <div style=\"font-size: 12px; color: #333; display: flex; align-items: center; margin-bottom: 4px;\">
+                        <span style=\"margin-right: 5px;\">📍</span>
+                        <span>${address}</span>
+                    </div>
+                    <div style=\"font-size: 12px; color: #555; display: flex; align-items: center;\">
+                        <span style=\"margin-right: 5px;\">🕒</span>
+                        <span>마지막 GPS: ${formattedTime}</span>
+                    </div>
+                </div>
+            `;
+            return new window.kakao.maps.InfoWindow({ content: infoContent, removable: true });
+        };
+
+        if (!infoWindowRef.current) {
+            infoWindowRef.current = buildInfoWindow();
+            infoWindowRef.current.open(map, vehicleMarkerRef.current);
+            window.kakao.maps.event.addListener(
+                vehicleMarkerRef.current,
+                "click",
+                () => infoWindowRef.current && infoWindowRef.current.open(map, vehicleMarkerRef.current)
+            );
+        } else {
+            infoWindowRef.current.open(map, vehicleMarkerRef.current);
+        }
+
+        const geocoder = initOrGetGeocoder();
+        if (geocoder) {
+            geocoder.coord2Address(longitude, latitude, (result, status) => {
+                if (status === window.kakao.maps.services.Status.OK && result[0]) {
+                    if (infoWindowRef.current) {
+                        infoWindowRef.current.close();
+                        infoWindowRef.current = buildInfoWindow(result[0].address.address_name);
+                        infoWindowRef.current.open(map, vehicleMarkerRef.current);
+                    }
+                }
+            });
+        }
+    };
+
+    // Initialize map once
+    useEffect(() => {
+        if (!isScriptLoaded || !mapContainer.current || mapRef.current) return;
         const initializeMap = () => {
             try {
                 const mapOption = {
@@ -91,223 +402,22 @@ const KakaoMap = ({
                     level: latitude && longitude ? 3 : 7,
                 };
                 const map = new window.kakao.maps.Map(mapContainer.current, mapOption);
-
-                let bounds = new window.kakao.maps.LatLngBounds();
-
-                // 폴리곤 그리기
-                if (polygons && polygons.length > 0) {
-                    polygons.forEach((polyPoints, index) => {
-                        if (!Array.isArray(polyPoints) || polyPoints.length === 0) return;
-
-                        const path = polyPoints.map((p) => new window.kakao.maps.LatLng(p.lat, p.lng));
-                        const polygon = new window.kakao.maps.Polygon({
-                            path: path,
-                            strokeWeight: 3,
-                            strokeColor: editable ? "#ff6b6b" : "#0b57d0",
-                            strokeOpacity: 0.8,
-                            strokeStyle: "solid",
-                            fillColor: editable ? "#ff6b6b" : "#0b57d0",
-                            fillOpacity: editable ? 0.2 : 0.1,
-                            draggable: editable,
-                            editable: editable,
-                            removable: editable
-                        });
-
-                        polygon.setMap(map);
-                        path.forEach((p) => bounds.extend(p));
-
-                        // 편집 가능한 경우 이벤트 리스너와 편집점 표시
-                        if (editable && onPolygonChange) {
-                            editablePolygonsRef.current.push(polygon);
-
-                            // 꼭짓점 마커 표시
-                            const vertexMarkers = [];
-                            path.forEach((point, vertexIndex) => {
-                                const marker = new window.kakao.maps.Marker({
-                                    position: point,
-                                    image: new window.kakao.maps.MarkerImage(
-                                        'data:image/svg+xml;base64,' + btoa(`
-                                            <svg width="8" height="8" viewBox="0 0 8 8" xmlns="http://www.w3.org/2000/svg">
-                                                <rect width="8" height="8" fill="#ffffff" stroke="#ff6b6b" stroke-width="2"/>
-                                            </svg>
-                                        `),
-                                        new window.kakao.maps.Size(8, 8),
-                                        { offset: new window.kakao.maps.Point(4, 4) }
-                                    ),
-                                    draggable: true
-                                });
-
-                                marker.setMap(map);
-                                vertexMarkers.push(marker);
-
-                                // 마커 드래그 이벤트
-                                window.kakao.maps.event.addListener(marker, 'dragend', function() {
-                                    const newPosition = marker.getPosition();
-                                    const currentPath = polygon.getPath();
-                                    currentPath[vertexIndex] = newPosition;
-                                    polygon.setPath(currentPath);
-
-                                    const newPoints = currentPath.map(point => ({
-                                        lat: point.getLat(),
-                                        lng: point.getLng()
-                                    }));
-                                    onPolygonChange(newPoints, index);
-
-                                    // 다른 꼭짓점 마커들 위치 업데이트
-                                    vertexMarkers.forEach((vm, vmIndex) => {
-                                        if (vmIndex !== vertexIndex) {
-                                            vm.setPosition(currentPath[vmIndex]);
-                                        }
-                                    });
-                                });
-                            });
-
-                            // 중간점 마커 표시
-                            const midPointMarkers = [];
-                            for (let i = 0; i < path.length; i++) {
-                                const current = path[i];
-                                const next = path[(i + 1) % path.length];
-
-                                const midLat = (current.getLat() + next.getLat()) / 2;
-                                const midLng = (current.getLng() + next.getLng()) / 2;
-                                const midPoint = new window.kakao.maps.LatLng(midLat, midLng);
-
-                                const midMarker = new window.kakao.maps.Marker({
-                                    position: midPoint,
-                                    image: new window.kakao.maps.MarkerImage(
-                                        'data:image/svg+xml;base64,' + btoa(`
-                                            <svg width="6" height="6" viewBox="0 0 6 6" xmlns="http://www.w3.org/2000/svg">
-                                                <circle cx="3" cy="3" r="3" fill="#ff6b6b" stroke="#ffffff" stroke-width="1"/>
-                                            </svg>
-                                        `),
-                                        new window.kakao.maps.Size(6, 6),
-                                        { offset: new window.kakao.maps.Point(3, 3) }
-                                    ),
-                                    draggable: true
-                                });
-
-                                midMarker.setMap(map);
-                                midPointMarkers.push({ marker: midMarker, segmentIndex: i });
-
-                                // 중간점 드래그로 새 점 추가
-                                window.kakao.maps.event.addListener(midMarker, 'dragend', (function(segmentIdx) {
-                                    return function() {
-                                        const newPosition = midMarker.getPosition();
-                                        const currentPath = polygon.getPath();
-
-                                        // 새 점을 해당 세그먼트 다음에 삽입
-                                        currentPath.splice(segmentIdx + 1, 0, newPosition);
-                                        polygon.setPath(currentPath);
-
-                                        const newPoints = currentPath.map(point => ({
-                                            lat: point.getLat(),
-                                            lng: point.getLng()
-                                        }));
-                                        onPolygonChange(newPoints, index);
-                                    };
-                                })(i));
-                            }
-
-                            // 폴리곤 클릭 이벤트
-                            window.kakao.maps.event.addListener(polygon, 'click', function() {
-                                // Polygon clicked for editing
-                            });
-                        }
-                    });
-                }
-
-                // 이동 경로 표시
-                if (trackingData && trackingData.length > 0) {
-                    const segments = processTrackingData(trackingData);
-                    
-                    segments.forEach((segment) => {
-                        const path = [
-                            new window.kakao.maps.LatLng(segment.start.lat, segment.start.lng),
-                            new window.kakao.maps.LatLng(segment.end.lat, segment.end.lng)
-                        ];
-                        
-                        const polyline = new window.kakao.maps.Polyline({
-                            path: path,
-                            strokeWeight: 5,
-                            strokeColor: segment.color,
-                            strokeOpacity: 0.8,
-                            strokeStyle: 'solid'
-                        });
-                        
-                        polyline.setMap(map);
-                        
-                        // 경로 범위에 추가
-                        path.forEach(p => bounds.extend(p));
-                    });
-
-                }
-
-                // 마커 표시 (위치 정보가 있을 경우에만)
-                if (latitude && longitude) {
-                    const markerPosition = new window.kakao.maps.LatLng(latitude, longitude);
-                    const markerImage = new window.kakao.maps.MarkerImage(carIcon, new window.kakao.maps.Size(30, 20), { offset: new window.kakao.maps.Point(10, 7.5) });
-                    const marker = new window.kakao.maps.Marker({ position: markerPosition, image: markerImage });
-                    marker.setMap(map);
-                    bounds.extend(markerPosition);
-
-                    // 인포윈도우
-                    const formatTime = (timeString) => {
-                        if (!timeString || timeString === "업데이트 시간 없음") return "업데이트 시간 없음";
-                        try {
-                            const date = new Date(timeString);
-                            const year = date.getFullYear().toString().slice(-2);
-                            const month = String(date.getMonth() + 1).padStart(2, "0");
-                            const day = String(date.getDate()).padStart(2, "0");
-                            const hours = String(date.getHours()).padStart(2, "0");
-                            const minutes = String(date.getMinutes()).padStart(2, "0");
-                            return `${year}.${month}.${day} ${hours}:${minutes}`;
-                        } catch (error) {
-                            return timeString;
-                        }
-                    };
-
-                    const createInfoWindow = (address = "주소를 가져오는 중...") => {
-                        const formattedTime = formatTime(lastUpdateTime);
-                        const infoContent = `
-                            <div style="padding: 5px; font-family: Arial, sans-serif; width: 240px; line-height: 1.5;">
-                                <div style="font-weight: bold; color: #d9534f; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-bottom: 8px; font-size: 14px;">
-                                    ${vehicleNumber || "차량번호 없음"}
-                                </div>
-                                <div style="font-size: 12px; color: #333; display: flex; align-items: center; margin-bottom: 4px;">
-                                    <span style="margin-right: 5px;">📍</span>
-                                    <span>${address}</span>
-                                </div>
-                                <div style="font-size: 12px; color: #555; display: flex; align-items: center;">
-                                    <span style="margin-right: 5px;">🕒</span>
-                                    <span>마지막 GPS: ${formattedTime}</span>
-                                </div>
-                            </div>
-                        `;
-                        return new window.kakao.maps.InfoWindow({ content: infoContent, removable: true });
-                    };
-
-                    let infowindow = createInfoWindow();
-                    infowindow.open(map, marker);
-
-                    window.kakao.maps.event.addListener(marker, "click", () => infowindow.open(map, marker));
-
-                    if (window.kakao.maps.services.Geocoder) {
-                        const geocoder = new window.kakao.maps.services.Geocoder();
-                        geocoder.coord2Address(longitude, latitude, (result, status) => {
-                            if (status === window.kakao.maps.services.Status.OK && result[0]) {
-                                infowindow.close();
-                                infowindow = createInfoWindow(result[0].address.address_name);
-                                infowindow.open(map, marker);
-                            }
-                        });
-                    }
-                }
-
-                // 지도 범위 조정
+                mapRef.current = map;
+                // Initial draw
+                drawOrUpdatePolygons(map);
+                drawOrUpdatePolylines(map);
+                createOrUpdateVehicleMarker(map);
+                // Fit once
+                const bounds = new window.kakao.maps.LatLngBounds();
+                overlaysRef.current.polygons.forEach((entry) => {
+                    const path = entry.polygon.getPath();
+                    for (let i = 0; i < path.length; i++) bounds.extend(path[i]);
+                });
+                if (vehicleMarkerRef.current) bounds.extend(vehicleMarkerRef.current.getPosition());
                 if (!bounds.isEmpty()) {
                     map.setBounds(bounds);
+                    hasFittedBoundsRef.current = true;
                 }
-
                 setIsLoading(false);
                 setError(null);
             } catch (err) {
@@ -316,9 +426,42 @@ const KakaoMap = ({
                 setIsLoading(false);
             }
         };
-
         window.kakao.maps.load(initializeMap);
-    }, [isScriptLoaded, latitude, longitude, polygons, trackingData]); // trackingData를 의존성 배열에 추가
+        return () => {
+            // Cleanup on unmount
+            try {
+                clearPolylines();
+                clearPolygons();
+                if (vehicleMarkerRef.current) {
+                    vehicleMarkerRef.current.setMap(null);
+                    vehicleMarkerRef.current = null;
+                }
+                if (infoWindowRef.current) {
+                    infoWindowRef.current.close();
+                    infoWindowRef.current = null;
+                }
+                mapRef.current = null;
+            } catch {}
+        };
+    }, [isScriptLoaded]);
+
+    // Update polygons when data changes (no full re-init)
+    useEffect(() => {
+        if (!mapRef.current || !isScriptLoaded) return;
+        drawOrUpdatePolygons(mapRef.current);
+    }, [polygons, editable, isScriptLoaded]);
+
+    // Update polylines when tracking data changes
+    useEffect(() => {
+        if (!mapRef.current || !isScriptLoaded) return;
+        drawOrUpdatePolylines(mapRef.current);
+    }, [trackingData, isScriptLoaded]);
+
+    // Update vehicle marker and optionally center on change
+    useEffect(() => {
+        if (!mapRef.current || !isScriptLoaded) return;
+        createOrUpdateVehicleMarker(mapRef.current);
+    }, [latitude, longitude, lastUpdateTime, vehicleNumber, isScriptLoaded]);
 
     const showLoading = isLoading && !error;
 
@@ -422,4 +565,37 @@ const KakaoMap = ({
     );
 };
 
-export default KakaoMap;
+// Shallow-deep compare helper for polygons
+function equalPolygons(a, b) {
+    if (a === b) return true;
+    if (!Array.isArray(a) || !Array.isArray(b)) return false;
+    if (a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) {
+        const pa = a[i];
+        const pb = b[i];
+        if (!Array.isArray(pa) || !Array.isArray(pb)) return false;
+        if (pa.length !== pb.length) return false;
+        for (let k = 0; k < pa.length; k++) {
+            const A = pa[k];
+            const B = pb[k];
+            if (!A || !B) return false;
+            if (A.lat !== B.lat || A.lng !== B.lng) return false;
+        }
+    }
+    return true;
+}
+
+const KakaoMapMemo = React.memo(KakaoMap, (prev, next) => {
+    // Re-render if dimensions changed (style), polygon data, tracking, or marker position changed
+    if (prev.width !== next.width || prev.height !== next.height) return false;
+    if (prev.latitude !== next.latitude || prev.longitude !== next.longitude) return false;
+    if (prev.vehicleNumber !== next.vehicleNumber || prev.lastUpdateTime !== next.lastUpdateTime) return false;
+    if (prev.editable !== next.editable) return false;
+    if (!equalPolygons(prev.polygons, next.polygons)) return false;
+    const prevTD = Array.isArray(prev.trackingData) ? prev.trackingData.length : 0;
+    const nextTD = Array.isArray(next.trackingData) ? next.trackingData.length : 0;
+    if (prevTD !== nextTD) return false;
+    return true;
+});
+
+export default KakaoMapMemo;
