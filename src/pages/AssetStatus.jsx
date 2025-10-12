@@ -113,6 +113,8 @@ export default function AssetStatus() {
     const [rentalFormInitial, setRentalFormInitial] = useState({});
     const [pendingStageAssetId, setPendingStageAssetId] = useState(null);
     const [pendingNextStage, setPendingNextStage] = useState(null);
+    // Placement of management stage dropdown (flip up if not enough space below)
+    const [stageDropdownUp, setStageDropdownUp] = useState(false);
     const [columnSettings, setColumnSettings] = useState(() => {
         const saved = localStorage.getItem("asset-columns-settings");
         return saved
@@ -418,6 +420,7 @@ export default function AssetStatus() {
             }
             if (openStageDropdown !== null && !event.target.closest("[data-stage-dropdown]")) {
                 setOpenStageDropdown(null);
+                setStageDropdownUp(false);
             }
             if (openInconsistencyId !== null && !event.target.closest("[data-inconsistency-popover]")) {
                 setOpenInconsistencyId(null);
@@ -431,6 +434,7 @@ export default function AssetStatus() {
                 }
                 if (openStageDropdown !== null) {
                     setOpenStageDropdown(null);
+                    setStageDropdownUp(false);
                 }
                 if (openInconsistencyId !== null) {
                     setOpenInconsistencyId(null);
@@ -445,6 +449,44 @@ export default function AssetStatus() {
             document.removeEventListener("keydown", handleKeyDown);
         };
     }, [showColumnDropdown, openStageDropdown, openInconsistencyId]);
+
+    // Recalculate stage dropdown placement on open, scroll, and resize
+    useEffect(() => {
+        const recalc = () => {
+            if (openStageDropdown == null) {
+                setStageDropdownUp(false);
+                return;
+            }
+            const dropdownId = `management-stage-${openStageDropdown}`;
+            const trigger = document.querySelector(`[aria-controls="${dropdownId}"]`);
+            const listEl = document.getElementById(dropdownId);
+            if (!trigger || !listEl) {
+                setStageDropdownUp(false);
+                return;
+            }
+            const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+            const rect = trigger.getBoundingClientRect();
+            const spaceBelow = viewportHeight - rect.bottom;
+            const spaceAbove = rect.top;
+            const dropdownHeight = listEl.offsetHeight || listEl.scrollHeight || 0;
+            const gap = 8; // matches CSS spacing
+            const shouldFlipUp = spaceBelow < dropdownHeight + gap && spaceAbove > spaceBelow;
+            setStageDropdownUp(!!shouldFlipUp);
+        };
+
+        if (openStageDropdown != null) {
+            // Defer until after dropdown is rendered
+            requestAnimationFrame(recalc);
+        }
+
+        const tableWrap = document.querySelector('.table-wrap--sticky');
+        window.addEventListener('resize', recalc);
+        if (tableWrap) tableWrap.addEventListener('scroll', recalc, { passive: true });
+        return () => {
+            window.removeEventListener('resize', recalc);
+            if (tableWrap) tableWrap.removeEventListener('scroll', recalc);
+        };
+    }, [openStageDropdown]);
 
     const filtered = useMemo(() => {
         const term = q.trim().toLowerCase();
@@ -884,13 +926,14 @@ export default function AssetStatus() {
                             </span>
                         )}
                         {isOpen && (
-                            <ul id={dropdownId} role="listbox" aria-label="관리단계 선택" className="management-stage-dropdown">
+                            <ul id={dropdownId} role="listbox" aria-label="관리단계 선택" className={`management-stage-dropdown${stageDropdownUp ? " is-up" : ""}`}>
                                 {MANAGEMENT_STAGE_OPTIONS.map((option) => (
                                     <li key={option.value}>
                                         <button
                                             type="button"
                                             onClick={() => {
                                                 setOpenStageDropdown(null);
+                                                setStageDropdownUp(false);
                                                 handleManagementStageChange(row, option.value);
                                             }}
                                             className="management-stage-dropdown__option"

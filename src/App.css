@@ -411,11 +411,22 @@
     margin: 4px 0 0;
     padding: 4px 0;
     min-width: 180px;
+    max-height: 240px;
+    overflow-y: auto;
     background: #ffffff;
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
     z-index: 20;
+}
+
+.management-stage-dropdown.is-up {
+    top: auto;
+    bottom: calc(100% + 4px);
+    margin-top: 0;
+    margin-bottom: 4px;
+    /* subtle flipped shadow for upward menu */
+    box-shadow: 0 -10px 25px rgba(15, 23, 42, 0.12);
 }
 
 .management-stage-dropdown li {
