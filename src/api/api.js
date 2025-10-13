@@ -53,6 +53,12 @@ export async function deleteAsset(assetId) {
     throw new Error(response.error?.message || 'Failed to delete asset');
 }
 
+// Asset memo history
+export async function fetchAssetMemoHistory(assetId) {
+    const response = await assetsApi.fetchMemoHistory(assetId);
+    return extractData(response);
+}
+
 // Rentals
 export async function fetchRentals() {
     const response = await rentalsApi.fetchAll();
@@ -86,6 +92,12 @@ export async function deleteRental(rentalId) {
         return false;
     }
     throw new Error(response.error?.message || 'Failed to delete rental');
+}
+
+// Rental memo history
+export async function fetchRentalMemoHistory(rentalId) {
+    const response = await rentalsApi.fetchMemoHistory(rentalId);
+    return extractData(response);
 }
 
 // Vehicles snapshot

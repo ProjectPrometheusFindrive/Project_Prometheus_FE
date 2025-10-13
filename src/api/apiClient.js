@@ -178,6 +178,16 @@ export const assetsApi = {
         return await apiRequest(API_ENDPOINTS.ASSET_BY_ID(id), {
             method: 'DELETE'
         });
+    },
+
+    async fetchMemoHistory(id) {
+        if (!validateId(id)) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid asset ID'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.ASSET_MEMO_HISTORY(id));
     }
 };
 
@@ -267,6 +277,17 @@ export const rentalsApi = {
         return await apiRequest(API_ENDPOINTS.RENTAL_BY_ID(rid), {
             method: 'DELETE'
         });
+    },
+
+    async fetchMemoHistory(id) {
+        if (!validateId(id) && typeof id !== 'number') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid rental ID'
+            });
+        }
+        const rid = typeof id === 'number' ? id : String(id);
+        return await apiRequest(API_ENDPOINTS.RENTAL_MEMO_HISTORY(rid));
     }
 };
 

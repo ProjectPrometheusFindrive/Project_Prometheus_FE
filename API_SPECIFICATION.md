@@ -113,7 +113,7 @@ PUT /assets/{id}
 -   설명: 자산 정보 수정
 -   파라미터: `id`(string)
 -   요청 본문: 변경 필드
--   응답: 수정된 Asset
+-   응답: 204 No Content (본문 없음)
 
 DELETE /assets/{id}
 
@@ -245,7 +245,7 @@ PUT /rentals/{id}
 - 설명: 렌탈 정보 수정(메모, 사고정보, 재시동 금지 등 부분 업데이트)
 - 파라미터: `id`(string|number)
 - 요청 본문: 변경 필드(JSON)
-- 응답: 수정된 Rental
+- 응답: 204 No Content (본문 없음)
 
 DELETE /rentals/{id}
 

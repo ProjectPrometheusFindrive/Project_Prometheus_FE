@@ -5,6 +5,7 @@ export const API_ENDPOINTS = {
     ASSETS: '/assets',
     ASSETS_SUMMARY: '/assets/summary',
     ASSET_BY_ID: (id) => `/assets/${encodeURIComponent(id)}`,
+    ASSET_MEMO_HISTORY: (id) => `/assets/${encodeURIComponent(id)}/memoHistory`,
     
     // Rentals
     RENTALS: '/rentals',
@@ -12,6 +13,7 @@ export const API_ENDPOINTS = {
     LATEST_RENTALS: '/rentals/latest',
     RENTALS_BY_VIN: (vin) => `/rentals/byVin/${encodeURIComponent(vin)}`,
     RENTAL_INDEX_BY_VIN: '/rentals/indexByVin',
+    RENTAL_MEMO_HISTORY: (id) => `/rentals/${encodeURIComponent(id)}/memoHistory`,
     
     // Vehicles
     VEHICLES: '/vehicles',

@@ -2,12 +2,16 @@ import React, { useEffect, useMemo, useState } from "react";
 import { fetchRentals, updateRental, createRental, deleteRental } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
+import Toast from "../components/Toast";
 import AccidentInfoModal from "../components/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
-import { FaEdit, FaSave, FaTimes, FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo, FaCheck } from "react-icons/fa";
+import { FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo, FaCheck } from "react-icons/fa";
 import { FiAlertTriangle } from "react-icons/fi";
+import MemoHistoryModal from "../components/MemoHistoryModal";
+import MemoCell from "../components/MemoCell";
+import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
 import { parseCurrency } from "../utils/formatters";
 
@@ -98,8 +102,9 @@ export default function RentalContracts() {
     const [showDetail, setShowDetail] = useState(false);
     const [showLocationMap, setShowLocationMap] = useState(false);
     const [selectedContract, setSelectedContract] = useState(null);
-    const [editingMemo, setEditingMemo] = useState(null);
-    const [memoText, setMemoText] = useState("");
+    const { editingId: editingMemo, memoText, onEdit: onMemoEdit, onChange: onMemoChange, onCancel: onMemoCancel } = useMemoEditor();
+    const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
+    const [memoHistoryTarget, setMemoHistoryTarget] = useState(null); // { id, plate or renterName }
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
@@ -126,6 +131,7 @@ export default function RentalContracts() {
     const [accidentTarget, setAccidentTarget] = useState(null);
     const [accidentForm, setAccidentForm] = useState(() => ({ ...ACCIDENT_FORM_DEFAULT }));
     const [fileInputKey, setFileInputKey] = useState(0);
+    const [toast, setToast] = useState(null);
 
     // Initial load via API
     useEffect(() => {
@@ -254,27 +260,21 @@ export default function RentalContracts() {
         }
     };
 
-    const handleMemoEdit = (rentalId, currentMemo) => {
-        setEditingMemo(rentalId);
-        setMemoText(currentMemo || "");
-    };
-
-    const handleMemoSave = async (rentalId) => {
+    const handleMemoEdit = (rentalId, currentMemo) => onMemoEdit(rentalId, currentMemo);
+    const handleMemoSave = async (rentalId, newText) => {
         try {
-            await updateRental(rentalId, { memo: memoText });
-            setItems((prev) => prev.map((item) => (item.rentalId === rentalId ? { ...item, memo: memoText } : item)));
-            setEditingMemo(null);
-            setMemoText("");
+            const resp = await updateRental(rentalId, { memo: newText });
+            setItems((prev) => prev.map((item) => (item.rentalId === rentalId ? { ...item, memo: newText } : item)));
+            if (resp == null) {
+                setToast({ message: "메모가 저장되었습니다.", type: "success" });
+            }
+            onMemoCancel();
         } catch (e) {
             console.error("Failed to save memo", e);
             alert("메모 저장 실패");
         }
     };
-
-    const handleMemoCancel = () => {
-        setEditingMemo(null);
-        setMemoText("");
-    };
+    const handleMemoCancel = () => onMemoCancel();
 
     const handleAccidentInputChange = (name, value) => {
         setAccidentForm((prev) => ({ ...prev, [name]: value }));
@@ -626,80 +626,22 @@ export default function RentalContracts() {
             }
             case "memo":
                 return (
-                    <div style={{ maxWidth: "150px" }}>
-                        {editingMemo === row.rentalId ? (
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                <input
-                                    type="text"
-                                    value={memoText}
-                                    onChange={(e) => setMemoText(e.target.value)}
-                                    style={{
-                                        width: "100px",
-                                        padding: "4px",
-                                        border: "1px solid #ddd",
-                                        borderRadius: "4px",
-                                        fontSize: "var(--badge-font-size)",
-                                        lineHeight: "var(--badge-line-height)",
-                                        fontWeight: "var(--badge-font-weight)",
-                                    }}
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={() => handleMemoSave(row.rentalId)}
-                                    style={{
-                                        background: "none",
-                                        border: "none",
-                                        color: "#4caf50",
-                                        cursor: "pointer",
-                                        padding: "2px",
-                                    }}
-                                >
-                                    <FaSave size={12} />
-                                </button>
-                                <button
-                                    onClick={handleMemoCancel}
-                                    style={{
-                                        background: "none",
-                                        border: "none",
-                                        color: "#f44336",
-                                        cursor: "pointer",
-                                        padding: "2px",
-                                    }}
-                                >
-                                    <FaTimes size={12} />
-                                </button>
-                            </div>
-                        ) : (
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                <span
-                                    style={{
-                                        fontSize: "var(--badge-font-size)",
-                                        lineHeight: "var(--badge-line-height)",
-                                        fontWeight: "var(--badge-font-weight)",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
-                                        maxWidth: "100px",
-                                    }}
-                                    title={row.memo}
-                                >
-                                    {row.memo || "메모 없음"}
-                                </span>
-                                <button
-                                    onClick={() => handleMemoEdit(row.rentalId, row.memo)}
-                                    style={{
-                                        background: "none",
-                                        border: "none",
-                                        color: "#1976d2",
-                                        cursor: "pointer",
-                                        padding: "2px",
-                                    }}
-                                >
-                                    <FaEdit size={12} />
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <MemoCell
+                        id={row.rentalId}
+                        value={row.memo}
+                        isEditing={editingMemo === row.rentalId}
+                        memoText={memoText}
+                        onEdit={handleMemoEdit}
+                        onChange={onMemoChange}
+                        onSave={handleMemoSave}
+                        onCancel={handleMemoCancel}
+                        onOpenHistory={(id) => {
+                            const label = row.plate || row.renterName || id;
+                            setMemoHistoryTarget({ id, label });
+                            setShowMemoHistoryModal(true);
+                        }}
+                        maxWidth={150}
+                    />
                 );
             default:
                 return "-";
@@ -1295,6 +1237,21 @@ export default function RentalContracts() {
                 vehicleData={accidentTarget}
                 title="사고 정보 조회"
             />
+            <MemoHistoryModal
+                isOpen={showMemoHistoryModal && !!memoHistoryTarget}
+                onClose={() => setShowMemoHistoryModal(false)}
+                entityType="rental"
+                entityId={memoHistoryTarget?.id}
+                title={memoHistoryTarget ? `메모 히스토리 - ${memoHistoryTarget.label}` : undefined}
+            />
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    duration={3000}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }

@@ -17,7 +17,10 @@ import { ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
 import { getManagementStage, withManagementStage, getDiagnosticCount } from "../utils/managementStage";
-import { FaEdit, FaSave, FaTimes, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
+import { FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
+import MemoHistoryModal from "../components/MemoHistoryModal";
+import MemoCell from "../components/MemoCell";
+import useMemoEditor from "../hooks/useMemoEditor";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -104,8 +107,7 @@ export default function AssetStatus() {
     const [infoVehicle, setInfoVehicle] = useState(null);
     const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
     const [diagnosticDetail, setDiagnosticDetail] = useState(null);
-    const [editingMemo, setEditingMemo] = useState(null);
-    const [memoText, setMemoText] = useState("");
+    const { editingId: editingMemo, memoText, onEdit: onMemoEdit, onChange: onMemoChange, onCancel: onMemoCancel } = useMemoEditor();
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
@@ -143,6 +145,8 @@ export default function AssetStatus() {
     const [rentalsByVin, setRentalsByVin] = useState({});
     const [openInconsistencyId, setOpenInconsistencyId] = useState(null);
     const [toast, setToast] = useState(null);
+    const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
+    const [memoHistoryTarget, setMemoHistoryTarget] = useState(null);
     const openInsuranceModal = (asset) => {
         setInsuranceReadOnly(false);
         setInsuranceAsset(asset);
@@ -704,30 +708,21 @@ export default function AssetStatus() {
         setAssetRequireDocs(true);
     };
 
-    const handleMemoEdit = (assetId, currentMemo) => {
-        setEditingMemo(assetId);
-        setMemoText(currentMemo || "");
-    };
-
-    const handleMemoSave = async (assetId) => {
+    const handleMemoEdit = (assetId, currentMemo) => onMemoEdit(assetId, currentMemo);
+    const handleMemoSave = async (assetId, newText) => {
         try {
-            const resp = await saveAsset(assetId, { memo: memoText });
-            setRows((prev) => prev.map((asset) => (asset.id === assetId ? { ...asset, memo: memoText } : asset)));
+            const resp = await saveAsset(assetId, { memo: newText });
+            setRows((prev) => prev.map((asset) => (asset.id === assetId ? { ...asset, memo: newText } : asset)));
             if (resp == null) {
                 setToast({ message: "메모가 저장되었습니다.", type: "success" });
             }
-            setEditingMemo(null);
-            setMemoText("");
+            onMemoCancel();
         } catch (error) {
             console.error("Failed to save memo:", error);
             alert("메모 저장에 실패했습니다.");
         }
     };
-
-    const handleMemoCancel = () => {
-        setEditingMemo(null);
-        setMemoText("");
-    };
+    const handleMemoCancel = () => onMemoCancel();
 
     // 컬럼 설정 관련 함수들
     const saveColumnSettings = (newSettings) => {
@@ -1010,89 +1005,22 @@ export default function AssetStatus() {
                 );
             case "memo":
                 return (
-                    <div style={{ maxWidth: "150px" }}>
-                        {editingMemo === row.id ? (
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                <input
-                                    type="text"
-                                    value={memoText}
-                                    onChange={(e) => setMemoText(e.target.value)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter") {
-                                            e.preventDefault();
-                                            handleMemoSave(row.id);
-                                        } else if (e.key === "Escape") {
-                                            e.preventDefault();
-                                            handleMemoCancel();
-                                        }
-                                    }}
-                                    style={{
-                                        width: "100px",
-                                        padding: "4px",
-                                        border: "1px solid #ddd",
-                                        borderRadius: "4px",
-                                        fontSize: "var(--badge-font-size)",
-                                        lineHeight: "var(--badge-line-height)",
-                                        fontWeight: "var(--badge-font-weight)",
-                                    }}
-                                    autoFocus
-                                />
-                                <button
-                                    onClick={() => handleMemoSave(row.id)}
-                                    style={{
-                                        background: "none",
-                                        border: "none",
-                                        color: "#4caf50",
-                                        cursor: "pointer",
-                                        padding: "2px",
-                                    }}
-                                >
-                                    <FaSave size={12} />
-                                </button>
-                                <button
-                                    onClick={handleMemoCancel}
-                                    style={{
-                                        background: "none",
-                                        border: "none",
-                                        color: "#f44336",
-                                        cursor: "pointer",
-                                        padding: "2px",
-                                    }}
-                                >
-                                    <FaTimes size={12} />
-                                </button>
-                            </div>
-                        ) : (
-                            <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                                <span
-                                    style={{
-                                        fontSize: "var(--badge-font-size)",
-                                        lineHeight: "var(--badge-line-height)",
-                                        fontWeight: "var(--badge-font-weight)",
-                                        overflow: "hidden",
-                                        textOverflow: "ellipsis",
-                                        whiteSpace: "nowrap",
-                                        maxWidth: "100px",
-                                    }}
-                                    title={row.memo}
-                                >
-                                    {row.memo || "메모 없음"}
-                                </span>
-                                <button
-                                    onClick={() => handleMemoEdit(row.id, row.memo)}
-                                    style={{
-                                        background: "none",
-                                        border: "none",
-                                        color: "#1976d2",
-                                        cursor: "pointer",
-                                        padding: "2px",
-                                    }}
-                                >
-                                    <FaEdit size={12} />
-                                </button>
-                            </div>
-                        )}
-                    </div>
+                    <MemoCell
+                        id={row.id}
+                        value={row.memo}
+                        isEditing={editingMemo === row.id}
+                        memoText={memoText}
+                        onEdit={handleMemoEdit}
+                        onChange={onMemoChange}
+                        onSave={handleMemoSave}
+                        onCancel={handleMemoCancel}
+                        onOpenHistory={(id) => {
+                            const plate = row.plate || id;
+                            setMemoHistoryTarget({ id, plate });
+                            setShowMemoHistoryModal(true);
+                        }}
+                        maxWidth={150}
+                    />
                 );
             default:
                 return "-";
@@ -1239,6 +1167,14 @@ export default function AssetStatus() {
                     </div>
                 )}
             </Modal>
+
+            <MemoHistoryModal
+                isOpen={showMemoHistoryModal && !!memoHistoryTarget}
+                onClose={() => setShowMemoHistoryModal(false)}
+                entityType="asset"
+                entityId={memoHistoryTarget?.id}
+                title={memoHistoryTarget ? `메모 히스토리 - ${memoHistoryTarget.plate}` : undefined}
+            />
 
             <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." stickyHeader />
 
