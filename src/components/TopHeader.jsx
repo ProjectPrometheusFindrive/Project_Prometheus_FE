@@ -1,28 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
-import { fetchCompanyInfo, saveCompanyInfo } from "../api";
 import defaultLogo from "../assets/default-logo.svg";
 import CiUploadModal from "./CiUploadModal";
+import { useCompany } from "../contexts/CompanyContext";
 
 export default function TopHeader() {
     const navigate = useNavigate();
-    const [companyInfo, setCompanyInfo] = useState(null);
+    const { companyInfo, updateCompanyInfo } = useCompany();
     const [uploading, setUploading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
-
-    useEffect(() => {
-        const loadCompanyInfo = async () => {
-            try {
-                const info = await fetchCompanyInfo();
-                setCompanyInfo(info);
-            } catch (error) {
-                console.error('Failed to load company info:', error);
-            }
-        };
-        loadCompanyInfo();
-    }, []);
 
     function handleLogout() {
         typedStorage.auth.logout();
@@ -45,9 +33,7 @@ export default function TopHeader() {
 
         setUploading(true);
         try {
-            const next = { ...(companyInfo || {}), logoDataUrl: previewUrl };
-            await saveCompanyInfo(next);
-            setCompanyInfo(next);
+            updateCompanyInfo({ logoDataUrl: previewUrl });
             setIsModalOpen(false);
         } catch (err) {
             console.error("Failed to save logo:", err);
