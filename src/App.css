@@ -639,6 +639,7 @@ body {
     font-weight: 700;
     font-size: 25px;
     color: #1a73e8;
+    cursor: pointer;
 }
 
 .top-header__right {

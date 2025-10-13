@@ -78,7 +78,21 @@ export default function TopHeader() {
                         e.target.src = defaultLogo;
                     }}
                 />
-                <div className="top-header__service-name">Findrive</div>
+                <div
+                    className="top-header__service-name"
+                    role="link"
+                    tabIndex={0}
+                    title="대시보드로 이동"
+                    onClick={() => navigate("/dashboard")}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            navigate("/dashboard");
+                        }
+                    }}
+                >
+                    Findrive
+                </div>
             </div>
 
             <div className="top-header__right">
