@@ -24,9 +24,9 @@ export const CompanyProvider = ({ children }) => {
         };
         setCompanyInfo(next);
       } catch (e) {
-        // Fallback to defaults on error
+        // Fallback: keep as-is so default favicon remains
         if (mounted) {
-          setCompanyInfo((prev) => ({ ...prev, logoDataUrl: prev.logoDataUrl || defaultLogo }));
+          setCompanyInfo((prev) => ({ ...prev, logoDataUrl: prev.logoDataUrl || "" }));
         }
       }
     })();
