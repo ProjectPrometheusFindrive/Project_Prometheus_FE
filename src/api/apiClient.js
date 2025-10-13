@@ -193,6 +193,13 @@ export const assetsApi = {
 
 // Rental API methods
 export const rentalsApi = {
+    async fetchSummary() {
+        const response = await apiRequest(API_ENDPOINTS.RENTALS_SUMMARY);
+        if (response.status === API_STATUS.SUCCESS && Array.isArray(response.data)) {
+            response.data = response.data.map(transformRental);
+        }
+        return response;
+    },
     async fetchAll() {
         const response = await apiRequest(API_ENDPOINTS.RENTALS);
         if (response.status === API_STATUS.SUCCESS && Array.isArray(response.data)) {

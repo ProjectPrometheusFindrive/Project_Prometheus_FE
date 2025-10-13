@@ -12,6 +12,7 @@ export const {
   deleteAsset,
   fetchAssetMemoHistory,
   fetchRentals,
+  fetchRentalsSummary,
   fetchRentalById,
   fetchLatestRentals,
   createRental,

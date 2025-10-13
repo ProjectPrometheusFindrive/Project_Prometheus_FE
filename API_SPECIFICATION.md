@@ -185,6 +185,45 @@ GET /rentals
 - 설명: 모든 렌탈 계약 목록 조회
 - 응답: Rental[]
 
+GET /rentals/summary
+
+- 설명: 렌탈 목록(표)용 요약 데이터 조회 — 테이블에 필요한 필드만 반환해 페이로드를 최소화
+- 응답: RentalSummary[]
+
+예시
+
+```json
+[
+  {
+    "rentalId": "string",
+    "plate": "string",
+    "vehicleType": "string",
+    "renterName": "string",
+    "rentalPeriod": {
+      "start": "ISO 8601 datetime string",
+      "end": "ISO 8601 datetime string"
+    },
+    "rentalAmount": 0,
+    "unpaidAmount": 0,
+    "rentalDurationDays": 0,
+    "contractStatus": "string",
+    "engineStatus": "on",
+    "restartBlocked": false,
+    "accidentReported": false,
+    "accidentReport": {
+      "blackboxFileName": null
+    },
+    "memo": "",
+    "returnedAt": null,
+    "reportedStolen": false
+  }
+]
+```
+
+비고
+
+- 목록 화면은 `/rentals/summary` 사용을 권장합니다. 상세/편집, 지도/사고 정보 등은 필요 시 `/rentals/{id}`로 전체 정보를 조회합니다.
+
 GET /rentals/latest
 
 - 설명: VIN별 최신 렌탈 1건 목록

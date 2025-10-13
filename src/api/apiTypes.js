@@ -9,6 +9,7 @@ export const API_ENDPOINTS = {
     
     // Rentals
     RENTALS: '/rentals',
+    RENTALS_SUMMARY: '/rentals/summary',
     RENTAL_BY_ID: (id) => `/rentals/${encodeURIComponent(id)}`,
     LATEST_RENTALS: '/rentals/latest',
     RENTALS_BY_VIN: (vin) => `/rentals/byVin/${encodeURIComponent(vin)}`,

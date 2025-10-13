@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { fetchRentals, updateRental, createRental, deleteRental } from "../api";
+import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, createRental, deleteRental } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
@@ -133,12 +133,15 @@ export default function RentalContracts() {
     const [fileInputKey, setFileInputKey] = useState(0);
     const [toast, setToast] = useState(null);
 
-    // Initial load via API
+    // Initial load via API (prefer summary)
     useEffect(() => {
         let mounted = true;
         (async () => {
             try {
-                const base = await fetchRentals();
+                let base = await fetchRentalsSummary().catch(() => null);
+                if (!Array.isArray(base)) {
+                    base = await fetchRentals();
+                }
                 const list = Array.isArray(base) ? base.map((r) => ({ ...r })) : [];
                 if (mounted) setItems(list);
             } catch (e) {
@@ -244,8 +247,21 @@ export default function RentalContracts() {
     };
 
     const handlePlateClick = (contract) => {
+        if (!contract) return;
+        // Open with summary data, then hydrate with full details
         setSelectedContract(contract);
         setShowDetail(true);
+        (async () => {
+            try {
+                const full = await fetchRentalById(contract.rentalId);
+                setSelectedContract((prev) => {
+                    if (!prev || prev.rentalId !== contract.rentalId) return prev;
+                    return { ...prev, ...full };
+                });
+            } catch (e) {
+                console.error("Failed to load rental details", e);
+            }
+        })();
     };
 
     const handleToggleRestart = async (rentalId) => {

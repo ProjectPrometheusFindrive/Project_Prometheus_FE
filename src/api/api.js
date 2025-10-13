@@ -64,6 +64,10 @@ export async function fetchRentals() {
     const response = await rentalsApi.fetchAll();
     return extractData(response);
 }
+export async function fetchRentalsSummary() {
+    const response = await rentalsApi.fetchSummary();
+    return extractData(response);
+}
 export async function fetchRentalById(id) {
     const response = await rentalsApi.fetchById(id);
     return extractData(response);
