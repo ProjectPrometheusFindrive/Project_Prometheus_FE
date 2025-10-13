@@ -250,6 +250,13 @@ export const rentalsApi = {
         return response;
     },
     
+    async fetchIndexByVin() {
+        // Returns aggregated consistency info per VIN.
+        // Server may return an array of { vin, hasActive, hasReserved, hasOverdue, hasStolen, ... }
+        // or a map keyed by VIN. We pass through raw data; upper layer normalizes.
+        return await apiRequest(API_ENDPOINTS.RENTAL_INDEX_BY_VIN);
+    },
+    
     async create(rentalData) {
         const payload = toCamelRentalPayload(rentalData);
         return await apiRequest(API_ENDPOINTS.RENTALS, {

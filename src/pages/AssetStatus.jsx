@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, fetchRentals, createRental, updateRental, createAsset, deleteAsset } from "../api";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, fetchRentals, createRental, updateRental, createAsset, deleteAsset } from "../api";
 import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
@@ -390,21 +390,13 @@ export default function AssetStatus() {
         };
     }, []);
 
-    // Load rentals map for consistency indicator
+    // Load rental consistency index per VIN (lightweight)
     useEffect(() => {
         let mounted = true;
         (async () => {
             try {
-                const base = await fetchRentals();
-                let list = Array.isArray(base) ? base.map((r) => ({ ...r })) : [];
-                const map = {};
-                list.forEach((r) => {
-                    const v = r?.vin ? String(r.vin) : "";
-                    if (!v) return;
-                    if (!map[v]) map[v] = [];
-                    map[v].push(r);
-                });
-                if (mounted) setRentalsByVin(map);
+                const index = await buildRentalIndexByVin();
+                if (mounted) setRentalsByVin(index || {});
             } catch (e) {
                 console.error("Failed to load rentals for consistency indicator", e);
                 if (mounted) setRentalsByVin({});
@@ -837,34 +829,12 @@ export default function AssetStatus() {
                 const badgeClass = MANAGEMENT_STAGE_BADGE_CLASS[stage] || "badge--default";
                 const isOpen = openStageDropdown === row.id;
                 const dropdownId = `management-stage-${row.id}`;
-                // Determine inconsistency between managementStage and contract state (from rentals)
-                const now = new Date();
-                const _rlist = rentalsByVin[String(row.vin || "")] || [];
-                const returnedAt = (r) => (r?.returnedAt ? new Date(r.returnedAt) : null);
-                const isReturned = (r) => {
-                    const ra = returnedAt(r);
-                    return !!(ra && now >= ra);
-                };
-                const start = (r) => (r?.rentalPeriod?.start ? new Date(r.rentalPeriod.start) : null);
-                const end = (r) => (r?.rentalPeriod?.end ? new Date(r.rentalPeriod.end) : null);
-                const isActive = (r) => {
-                    const s = start(r);
-                    const e = end(r);
-                    return !isReturned(r) && s && e ? now >= s && now <= e : false;
-                };
-                const isOverdue = (r) => {
-                    const e = end(r);
-                    return !isReturned(r) && e ? now > e : false;
-                };
-                const isReserved = (r) => {
-                    const s = start(r);
-                    return !isReturned(r) && s ? now < s : false;
-                };
-                const rlist = _rlist.filter((r) => !isReturned(r) && r?.contractStatus !== "완료");
-                const hasActive = rlist.some((r) => isActive(r));
-                const hasOverdue = rlist.some((r) => isOverdue(r));
-                const hasStolen = rlist.some((r) => !!r?.reportedStolen);
-                const hasReserved = rlist.some((r) => isReserved(r));
+                // Determine inconsistency between managementStage and contract state (from aggregated index)
+                const agg = rentalsByVin[String(row.vin || "")] || null;
+                const hasActive = !!agg?.hasActive;
+                const hasOverdue = !!agg?.hasOverdue;
+                const hasStolen = !!agg?.hasStolen;
+                const hasReserved = !!agg?.hasReserved;
                 const hasAnyOpen = hasActive || hasOverdue || hasStolen || hasReserved;
                 let inconsistent = false;
                 let reason = "";

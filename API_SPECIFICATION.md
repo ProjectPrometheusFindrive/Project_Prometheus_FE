@@ -253,6 +253,29 @@ GET /rentals/byVin/{vin}
 }
 ```
 
+GET /rentals/indexByVin
+
+- 설명: 자산 목록의 일관성 검토를 위한 VIN별 경량 집계
+- 응답: Array<{ vin, hasActive, hasReserved, hasOverdue, hasStolen, openCount, currentPeriod?, recommendedStage?, asOf }>
+
+예시
+
+```json
+[
+  {
+    "vin": "KMHXX...",
+    "hasActive": true,
+    "hasReserved": false,
+    "hasOverdue": false,
+    "hasStolen": false,
+    "openCount": 1,
+    "currentPeriod": { "start": "2025-01-01T00:00:00Z", "end": "2025-01-10T00:00:00Z" },
+    "recommendedStage": "대여중",
+    "asOf": "2025-01-05T12:00:00Z"
+  }
+]
+```
+
 POST /rentals
 
 - 설명: 신규 렌탈 생성

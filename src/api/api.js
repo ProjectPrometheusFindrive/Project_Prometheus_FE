@@ -110,13 +110,68 @@ export async function fetchVehicles() {
     return extractData(response);
 }
 export async function buildRentalIndexByVin() {
-    // This would need to be implemented in the API client if needed
+    // Prefer lightweight aggregated index from backend
+    try {
+        const idxResp = await rentalsApi.fetchIndexByVin();
+        const data = extractData(idxResp);
+        if (Array.isArray(data)) {
+            // Normalize array -> map keyed by VIN
+            const map = {};
+            for (const item of data) {
+                const vin = item && (item.vin || item.VIN || item.Vin);
+                if (!vin) continue;
+                map[String(vin)] = {
+                    hasActive: !!item.hasActive,
+                    hasReserved: !!item.hasReserved,
+                    hasOverdue: !!item.hasOverdue,
+                    hasStolen: !!item.hasStolen,
+                    openCount: typeof item.openCount === 'number' ? item.openCount : (item.openCount ? Number(item.openCount) : 0),
+                    recommendedStage: item.recommendedStage || undefined,
+                    currentPeriod: item.currentPeriod || null,
+                    asOf: item.asOf || undefined,
+                };
+            }
+            return map;
+        }
+        if (data && typeof data === 'object') {
+            // Assume map keyed by VIN
+            const map = {};
+            for (const [vin, item] of Object.entries(data)) {
+                map[String(vin)] = {
+                    hasActive: !!item?.hasActive,
+                    hasReserved: !!item?.hasReserved,
+                    hasOverdue: !!item?.hasOverdue,
+                    hasStolen: !!item?.hasStolen,
+                    openCount: typeof item?.openCount === 'number' ? item.openCount : (item?.openCount ? Number(item.openCount) : 0),
+                    recommendedStage: item?.recommendedStage || undefined,
+                    currentPeriod: item?.currentPeriod || null,
+                    asOf: item?.asOf || undefined,
+                };
+            }
+            return map;
+        }
+    } catch (e) {
+        // Fall through to legacy full fetch if index is unavailable
+    }
+
+    // Fallback: build from full rentals list (legacy behavior)
     const response = await rentalsApi.fetchAll();
     const rentals = extractData(response);
-    return rentals.reduce((acc, rental) => {
-        if (rental.vin) {
-            if (!acc[rental.vin]) acc[rental.vin] = [];
-            acc[rental.vin].push(rental);
+    return rentals.reduce((acc, r) => {
+        const vin = r?.vin ? String(r.vin) : '';
+        if (!vin) return acc;
+        const now = new Date();
+        const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
+        const open = !(returnedAt && now >= returnedAt) && r?.contractStatus !== '완료';
+        if (!acc[vin]) acc[vin] = { hasActive: false, hasReserved: false, hasOverdue: false, hasStolen: false, openCount: 0 };
+        if (open) {
+            acc[vin].openCount += 1;
+            const start = r?.rentalPeriod?.start ? new Date(r.rentalPeriod.start) : null;
+            const end = r?.rentalPeriod?.end ? new Date(r.rentalPeriod.end) : null;
+            if (r?.reportedStolen) acc[vin].hasStolen = true;
+            if (start && end && now >= start && now <= end) acc[vin].hasActive = true;
+            else if (end && now > end) acc[vin].hasOverdue = true;
+            else if (start && now < start) acc[vin].hasReserved = true;
         }
         return acc;
     }, {});
