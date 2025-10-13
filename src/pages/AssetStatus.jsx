@@ -9,6 +9,7 @@ import InsuranceDialog from "../components/InsuranceDialog";
 import DeviceEventLog from "../components/DeviceEventLog";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
+import Toast from "../components/Toast";
 import Table from "../components/Table";
 import useTableSelection from "../hooks/useTableSelection";
 // Local storage fallbacks removed; use API persistence instead
@@ -141,6 +142,7 @@ export default function AssetStatus() {
     const [insuranceReadOnly, setInsuranceReadOnly] = useState(false);
     const [rentalsByVin, setRentalsByVin] = useState({});
     const [openInconsistencyId, setOpenInconsistencyId] = useState(null);
+    const [toast, setToast] = useState(null);
     const openInsuranceModal = (asset) => {
         setInsuranceReadOnly(false);
         setInsuranceAsset(asset);
@@ -646,8 +648,9 @@ export default function AssetStatus() {
             };
             try {
                 const resp = await saveAsset(editingAssetId, patch);
+                // If backend returns 204 No Content, resp will be null; merge local patch instead
                 setRows((prev) =>
-                    prev.map((a) => (a.id === editingAssetId ? withManagementStage({ ...a, ...(resp || {}) }) : a))
+                    prev.map((a) => (a.id === editingAssetId ? withManagementStage({ ...a, ...(resp || patch) }) : a))
                 );
             } catch (e) {
                 // Fallback to local optimistic merge
@@ -708,8 +711,11 @@ export default function AssetStatus() {
 
     const handleMemoSave = async (assetId) => {
         try {
-            await saveAsset(assetId, { memo: memoText });
+            const resp = await saveAsset(assetId, { memo: memoText });
             setRows((prev) => prev.map((asset) => (asset.id === assetId ? { ...asset, memo: memoText } : asset)));
+            if (resp == null) {
+                setToast({ message: "메모가 저장되었습니다.", type: "success" });
+            }
             setEditingMemo(null);
             setMemoText("");
         } catch (error) {
@@ -1011,6 +1017,15 @@ export default function AssetStatus() {
                                     type="text"
                                     value={memoText}
                                     onChange={(e) => setMemoText(e.target.value)}
+                                    onKeyDown={(e) => {
+                                        if (e.key === "Enter") {
+                                            e.preventDefault();
+                                            handleMemoSave(row.id);
+                                        } else if (e.key === "Escape") {
+                                            e.preventDefault();
+                                            handleMemoCancel();
+                                        }
+                                    }}
                                     style={{
                                         width: "100px",
                                         padding: "4px",
@@ -1343,6 +1358,14 @@ export default function AssetStatus() {
             >
                 <RentalForm initial={rentalFormInitial} onSubmit={handleRentalCreateSubmit} formId="asset-rental-create" />
             </Modal>
+            {toast && (
+                <Toast
+                    message={toast.message}
+                    type={toast.type}
+                    duration={3000}
+                    onClose={() => setToast(null)}
+                />
+            )}
         </div>
     );
 }
