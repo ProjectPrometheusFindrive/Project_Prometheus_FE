@@ -1297,8 +1297,8 @@ export default function AssetStatus() {
                                         <div>심각도</div>
                                         <div>발생일</div>
                                     </div>
-                                    {diagnosticDetail.issues.map((issue) => (
-                                        <div key={issue.id} className="diagnostic-table-row">
+                                    {diagnosticDetail.issues.map((issue, idx) => (
+                                        <div key={`${issue?.id ?? issue?.code ?? "issue"}-${idx}`} className="diagnostic-table-row">
                                             <div className="diagnostic-code">{issue.code}</div>
                                             <div className="diagnostic-description">{issue.description}</div>
                                             <div>
