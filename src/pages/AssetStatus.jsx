@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { resolveVehicleRentals, fetchAssetById, fetchAssets, saveAsset, fetchRentals, createRental, updateRental, createAsset, deleteAsset } from "../api";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, fetchRentals, createRental, updateRental, createAsset, deleteAsset } from "../api";
 import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
@@ -367,10 +367,12 @@ export default function AssetStatus() {
         let mounted = true;
         (async () => {
             try {
-                const list = await fetchAssets();
+                // Prefer lightweight summary for table; gracefully fall back
+                let list = await fetchAssetsSummary().catch(() => null);
+                if (!Array.isArray(list)) {
+                    list = await fetchAssets();
+                }
                 let next = Array.isArray(list) ? list.map((a) => withManagementStage({ ...a })) : [];
-                // NOTE: Removed demo override that cleared insurance fields for a specific plate.
-                // Previously this forced one vehicle to appear without insurance data on purpose.
                 if (mounted) setRows(next);
             } catch (e) {
                 console.error("Failed to load assets", e);
@@ -814,11 +816,16 @@ export default function AssetStatus() {
                 const status = hasDevice ? "연결됨" : "미연결";
                 return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
             case "severity": {
-                const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
-                if (arr.length === 0) return "-";
-                const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+                // Prefer server-provided max severity when available
+                const fromField = typeof row?.diagnosticMaxSeverity === "number" ? row.diagnosticMaxSeverity : null;
+                let max = fromField;
+                if (max == null) {
+                    const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+                    if (arr.length === 0) return "-";
+                    max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+                }
                 return (
-                    <span className="badge" title={`심각도 ${max.toFixed(1)} / 10`}>{max.toFixed(1)} / 10</span>
+                    <span className="badge" title={`심각도 ${Number(max).toFixed(1)} / 10`}>{Number(max).toFixed(1)} / 10</span>
                 );
             }
             case "managementStage": {

@@ -5,6 +5,7 @@ export default api;
 export const {
   // Common slices
   fetchAssets,
+  fetchAssetsSummary,
   fetchAssetById,
   createAsset,
   saveAsset,

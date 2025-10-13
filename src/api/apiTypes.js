@@ -3,6 +3,7 @@
 export const API_ENDPOINTS = {
     // Assets
     ASSETS: '/assets',
+    ASSETS_SUMMARY: '/assets/summary',
     ASSET_BY_ID: (id) => `/assets/${encodeURIComponent(id)}`,
     
     // Rentals

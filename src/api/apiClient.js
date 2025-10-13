@@ -116,6 +116,20 @@ export const assetsApi = {
         }
         return response;
     },
+
+    async fetchSummary() {
+        // Lightweight list for table views
+        const response = await apiRequest(API_ENDPOINTS.ASSETS_SUMMARY);
+        // Keep as-is; consumer formats dates. Optionally normalize known dates.
+        if (response.status === API_STATUS.SUCCESS && Array.isArray(response.data)) {
+            // Ensure registrationDate stays parseable; leave insuranceExpiryDate as-is (string or Date)
+            response.data = response.data.map((a) => ({
+                ...a,
+                registrationDate: a && a.registrationDate ? new Date(a.registrationDate) : a?.registrationDate || null,
+            }));
+        }
+        return response;
+    },
     
     async fetchById(id) {
         if (!validateId(id)) {

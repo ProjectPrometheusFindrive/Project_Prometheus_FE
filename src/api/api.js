@@ -23,6 +23,10 @@ export async function fetchAssets() {
     const response = await assetsApi.fetchAll();
     return extractData(response);
 }
+export async function fetchAssetsSummary() {
+    const response = await assetsApi.fetchSummary();
+    return extractData(response);
+}
 export async function fetchAssetById(id) {
     const response = await assetsApi.fetchById(id);
     return extractData(response);
@@ -170,4 +174,3 @@ export async function createIssueDraft(data) {
     }
     return createOperationResult(false, null, response.error?.message || 'Failed to create issue');
 }
-

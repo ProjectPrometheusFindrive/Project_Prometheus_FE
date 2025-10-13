@@ -121,6 +121,49 @@ DELETE /assets/{id}
 - 파라미터: `id`(string)
 - 응답: 204 No Content
 
+GET /assets/summary
+
+- 설명: 자산 목록(표)용 요약 데이터 조회 — 테이블에 필요한 필드만 반환해 페이로드를 최소화
+- 응답: AssetSummary[]
+
+예시
+
+```json
+[
+  {
+    "id": "VH001",
+    "vin": "1HGCM82633A123456",
+    "plate": "123가4567",
+    "vehicleType": "쏘나타 23년형",
+    "registrationDate": "2023-01-15",
+    "insuranceExpiryDate": "2025-06-30",
+    "deviceSerial": "DEV-2024-0001",
+    "diagnosticStatus": "정상",
+    "diagnosticMaxSeverity": 1.2,
+    "managementStage": "대여가능",
+    "memo": ""
+  }
+]
+```
+
+필드 정의
+
+- `id`(string): 자산 ID(행 식별자)
+- `vin`(string): 17자리 VIN
+- `plate`(string): 차량번호
+- `vehicleType`(string): 차종 표시 문자열
+- `registrationDate`(string|Date): 차량 등록일(YYYY-MM-DD)
+- `insuranceExpiryDate`(string|Date): 보험 만료일(YYYY-MM-DD)
+- `deviceSerial`(string|null): 단말 시리얼(유/무로 연결 상태 표시)
+- `diagnosticStatus`("-"|"정상"|"관심필요"|"심각"): 차량 상태 배지 텍스트
+- `diagnosticMaxSeverity`(number): 0.0~10.0 범위의 최대 심각도(한 자리 소수). 제공 시 상세 코드 배열 전송 불필요
+- `managementStage`(string): "대여중" | "대여가능" | "예약중" | "입고 대상" | "수리/점검 중" | "수리/점검 완료"
+- `memo`(string): 메모
+
+비고
+
+- 목록 화면은 `/assets/summary` 사용을 권장합니다. 상세/편집, 외부 모달(보험/단말 상세) 등은 필요 시 `/assets/{id}`로 전체 정보를 조회합니다.
+
 #### Asset Fields (추가 권장)
 
 - `diagnosticStatus` ("-" | "정상" | "관심필요" | "심각"): 진단 배지 상태
