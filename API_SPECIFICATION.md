@@ -164,6 +164,207 @@ GET /assets/summary
 
 - 목록 화면은 `/assets/summary` 사용을 권장합니다. 상세/편집, 외부 모달(보험/단말 상세) 등은 필요 시 `/assets/{id}`로 전체 정보를 조회합니다.
 
+#### 클릭 액션용 경량 엔드포인트 (권장)
+
+목록(테이블)에서 특정 버튼/배지를 클릭할 때는 아래 경량 엔드포인트로 필요한 데이터만 조회하는 것을 권장합니다. 응답은 Plain JSON 또는 표준 래퍼 둘 다 허용합니다.
+
+1) 차량번호 클릭 → 프로필(편집) 데이터
+
+- URL: `GET /assets/{id}/profile`
+- 설명: 자산 편집/프로필 모달에 필요한 최소 필드만 반환
+- 응답 스키마
+
+```typescript
+interface AssetProfileResponse {
+  id: string;
+  vin: string;              // 17자리 VIN
+  plate: string;            // 차량번호
+  make?: string;            // 제조사
+  model?: string;           // 모델
+  vehicleType?: string;     // 차종 표시 문자열
+  year?: number;
+  fuelType?: string;
+  vehicleValue?: string | number; // 차량가액(문자열 or 숫자 허용)
+  registrationStatus?: string;    // 등록 상태 텍스트
+  registrationDate?: string;      // YYYY-MM-DD
+  purchaseDate?: string;          // YYYY-MM-DD
+  systemRegDate?: string;         // YYYY-MM-DD
+  systemDelDate?: string;         // YYYY-MM-DD
+  memo?: string;
+}
+```
+
+- 응답 예시
+
+```json
+{
+  "id": "VH-0001",
+  "vin": "KMHDH41EX6U123456",
+  "plate": "28가2345",
+  "make": "Hyundai",
+  "model": "Sonata",
+  "vehicleType": "소나타 25년형",
+  "year": 2025,
+  "fuelType": "가솔린",
+  "vehicleValue": 25000000,
+  "registrationStatus": "장비장착 완료",
+  "registrationDate": "2024-11-01",
+  "purchaseDate": null,
+  "systemRegDate": "2024-11-01",
+  "systemDelDate": null,
+  "memo": "엔진오일 교체 완료"
+}
+```
+
+2) 보험 만료일 클릭 → 보험 상세 데이터
+
+- URL: `GET /assets/{id}/insurance`
+- 설명: 보험 모달(읽기/편집)에 필요한 데이터 조회
+- 응답 스키마
+
+```typescript
+interface AssetInsuranceResponse {
+  id: string;
+  plate?: string;
+  insuranceCompany?: string;     // 보험사명(표시/편집)
+  insuranceProduct?: string;     // 보험 상품명(표시/편집)
+  insuranceStartDate?: string;   // YYYY-MM-DD
+  insuranceExpiryDate?: string;  // YYYY-MM-DD (만료일 배지에 표시)
+  insuranceSpecialTerms?: string;// 특약사항
+  insuranceDocName?: string;     // 첨부 파일명(옵션)
+  insuranceDocDataUrl?: string;  // 첨부 파일 Data URL(옵션)
+  insuranceHistory?: Array<{
+    type: "등록" | "갱신";
+    date?: string;               // YYYY-MM-DD
+    company?: string;
+    product?: string;
+    startDate?: string;          // YYYY-MM-DD
+    expiryDate?: string;         // YYYY-MM-DD
+    specialTerms?: string;
+    docName?: string;
+    docDataUrl?: string;
+  }>;
+}
+```
+
+- 응답 예시
+
+```json
+{
+  "id": "VH-0001",
+  "plate": "28가2345",
+  "insuranceCompany": "렌터카공제",
+  "insuranceProduct": "자동차종합보험",
+  "insuranceStartDate": "2025-11-01",
+  "insuranceExpiryDate": "2026-11-01",
+  "insuranceSpecialTerms": "자기부담금 20만원",
+  "insuranceDocName": "policy_2025.pdf",
+  "insuranceDocDataUrl": "data:application/pdf;base64,....",
+  "insuranceHistory": [
+    {
+      "type": "등록",
+      "date": "2024-11-01",
+      "company": "렌터카공제",
+      "product": "자동차종합보험",
+      "startDate": "2024-11-01",
+      "expiryDate": "2025-11-01"
+    },
+    {
+      "type": "갱신",
+      "date": "2025-11-01",
+      "company": "렌터카공제",
+      "product": "자동차종합보험",
+      "startDate": "2025-11-01",
+      "expiryDate": "2026-11-01"
+    }
+  ]
+}
+```
+
+3) 단말 상태 클릭 → 단말 정보/이력 데이터
+
+- URL: `GET /assets/{id}/device`
+- 설명: 단말 정보 모달(읽기/편집)과 이벤트 이력에 필요한 데이터 조회
+- 응답 스키마
+
+```typescript
+interface AssetDeviceResponse {
+  id: string;
+  plate?: string;
+  deviceSerial?: string;       // 시리얼
+  deviceInstallDate?: string;  // YYYY-MM-DD
+  supplier?: string;           // 공급사
+  installer?: string;          // 설치자
+  deviceHistory?: Array<{
+    id?: string;
+    type: "install" | "replace" | "update" | string;
+    date?: string;             // YYYY-MM-DD
+    installDate?: string;      // YYYY-MM-DD
+    serial?: string;
+    installer?: string;
+    supplier?: string;
+    label?: string;
+    meta?: object;
+  }>;
+}
+```
+
+- 응답 예시
+
+```json
+{
+  "id": "VH-0001",
+  "plate": "28가2345",
+  "deviceSerial": "1ABCD-SONATA-26",
+  "deviceInstallDate": "2025-02-01",
+  "supplier": "ABC 디바이스",
+  "installer": "이상훈",
+  "deviceHistory": [
+    { "type": "install", "date": "2024-11-01", "installDate": "2024-11-01", "serial": "1ABCD-SONATA-25", "installer": "김범기" },
+    { "type": "replace", "date": "2025-02-01", "installDate": "2025-02-01", "serial": "1ABCD-SONATA-26", "installer": "이상훈" }
+  ]
+}
+```
+
+4) 차량 상태(건강/진단) 클릭 → 진단 상세 데이터
+
+- URL: `GET /assets/{id}/diagnostics`
+- 설명: 차량 상태 배지 클릭 시 표시되는 진단 상세 모달 데이터 조회
+- 응답 스키마
+
+```typescript
+interface AssetDiagnosticsResponse {
+  id: string;
+  plate?: string;
+  vehicleType?: string;
+  diagnosticStatus?: "-" | "정상" | "관심필요" | "심각";
+  diagnosticMaxSeverity?: number; // 0.0~10.0
+  diagnosticCodes?: Array<{
+    id?: string;
+    code: string;
+    description?: string;
+    severity?: number;          // 0.0~10.0
+    detectedDate?: string;      // YYYY-MM-DD
+  }>;
+}
+```
+
+- 응답 예시
+
+```json
+{
+  "id": "VH-0002",
+  "plate": "05가0960",
+  "vehicleType": "스포티지 19년형",
+  "diagnosticStatus": "관심필요",
+  "diagnosticMaxSeverity": 8.0,
+  "diagnosticCodes": [
+    { "code": "1001", "description": "엔진 온도 이상", "severity": 8, "detectedDate": "2025-09-24" },
+    { "code": "2001", "description": "브레이크 패드 마모", "severity": 5, "detectedDate": "2025-09-17" }
+  ]
+}
+```
+
 #### Asset Fields (추가 권장)
 
 - `diagnosticStatus` ("-" | "정상" | "관심필요" | "심각"): 진단 배지 상태

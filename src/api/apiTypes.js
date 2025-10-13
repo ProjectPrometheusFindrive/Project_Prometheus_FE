@@ -5,6 +5,10 @@ export const API_ENDPOINTS = {
     ASSETS: '/assets',
     ASSETS_SUMMARY: '/assets/summary',
     ASSET_BY_ID: (id) => `/assets/${encodeURIComponent(id)}`,
+    ASSET_PROFILE: (id) => `/assets/${encodeURIComponent(id)}/profile`,
+    ASSET_INSURANCE: (id) => `/assets/${encodeURIComponent(id)}/insurance`,
+    ASSET_DEVICE: (id) => `/assets/${encodeURIComponent(id)}/device`,
+    ASSET_DIAGNOSTICS: (id) => `/assets/${encodeURIComponent(id)}/diagnostics`,
     ASSET_MEMO_HISTORY: (id) => `/assets/${encodeURIComponent(id)}/memoHistory`,
     
     // Rentals

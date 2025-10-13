@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, fetchRentals, createRental, updateRental, createAsset, deleteAsset } from "../api";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, fetchRentals, createRental, updateRental, createAsset, deleteAsset, fetchAssetProfile, fetchAssetInsurance, fetchAssetDevice, fetchAssetDiagnostics } from "../api";
 import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
@@ -151,11 +151,31 @@ export default function AssetStatus() {
         setInsuranceReadOnly(false);
         setInsuranceAsset(asset);
         setShowInsuranceModal(true);
+        if (asset?.id) {
+            (async () => {
+                try {
+                    const detail = await fetchAssetInsurance(asset.id);
+                    if (detail) setInsuranceAsset((prev) => ({ ...(prev || {}), ...detail }));
+                } catch (e) {
+                    console.error("Failed to load insurance detail", e);
+                }
+            })();
+        }
     };
     const openInsuranceModalReadOnly = (asset) => {
         setInsuranceReadOnly(true);
         setInsuranceAsset(asset);
         setShowInsuranceModal(true);
+        if (asset?.id) {
+            (async () => {
+                try {
+                    const detail = await fetchAssetInsurance(asset.id);
+                    if (detail) setInsuranceAsset((prev) => ({ ...(prev || {}), ...detail }));
+                } catch (e) {
+                    console.error("Failed to load insurance detail", e);
+                }
+            })();
+        }
     };
     const closeInsuranceModal = () => {
         setInsuranceAsset(null);
@@ -359,12 +379,32 @@ export default function AssetStatus() {
         setActiveAsset(asset);
         setDeviceReadOnly(false);
         setShowDeviceModal(true);
+        if (asset?.id) {
+            (async () => {
+                try {
+                    const detail = await fetchAssetDevice(asset.id);
+                    if (detail) setActiveAsset((prev) => ({ ...(prev || {}), ...detail }));
+                } catch (e) {
+                    console.error("Failed to load device detail", e);
+                }
+            })();
+        }
     };
 
     const openDeviceView = (asset) => {
         setActiveAsset(asset);
         setDeviceReadOnly(true);
         setShowDeviceModal(true);
+        if (asset?.id) {
+            (async () => {
+                try {
+                    const detail = await fetchAssetDevice(asset.id);
+                    if (detail) setActiveAsset((prev) => ({ ...(prev || {}), ...detail }));
+                } catch (e) {
+                    console.error("Failed to load device detail", e);
+                }
+            })();
+        }
     };
 
     // Date formatting handled by utils/date
@@ -567,23 +607,57 @@ export default function AssetStatus() {
             vehicleType: asset?.vehicleType || "",
             registrationStatus: asset?.registrationStatus || "자산등록 완료",
         };
+        // Open immediately with summary data
         setAssetFormInitial(initial);
         setEditingAssetId(asset?.id || null);
         setAssetRequireDocs(false);
         setShowAssetModal(true);
+
+        // Hydrate with profile details via GET /assets/:id/profile
+        if (asset?.id) {
+            (async () => {
+                try {
+                    const full = await fetchAssetProfile(asset.id);
+                    if (full && full.id === asset.id) {
+                        setAssetFormInitial((prev) => ({ ...prev, ...full }));
+                    } else if (full) {
+                        // Fallback: still merge if id shape differs
+                        setAssetFormInitial((prev) => ({ ...prev, ...full }));
+                    }
+                } catch (e) {
+                    console.error("Failed to load asset profile", e);
+                }
+            })();
+        }
     };
 
     const openDiagnosticModal = (vehicle) => {
-        const issues = normalizeDiagnosticList(vehicle);
-        const detail = {
-            category: "ALL",
-            categoryName: "전체 진단",
-            count: issues.length,
-            vehicleInfo: { plate: vehicle.plate, vehicleType: vehicle.vehicleType, id: vehicle.id },
-            issues,
+        const buildAndOpen = (v, diag) => {
+            const issues = Array.isArray(diag?.diagnosticCodes) ? diag.diagnosticCodes : normalizeDiagnosticList(v);
+            const detail = {
+                category: "ALL",
+                categoryName: "전체 진단",
+                count: issues.length,
+                vehicleInfo: { plate: v.plate, vehicleType: v.vehicleType, id: v.id },
+                issues,
+            };
+            setDiagnosticDetail(detail);
+            setShowDiagnosticModal(true);
         };
-        setDiagnosticDetail(detail);
-        setShowDiagnosticModal(true);
+        // Try to fetch remote diagnostics; fall back to local
+        if (vehicle?.id) {
+            (async () => {
+                try {
+                    const diag = await fetchAssetDiagnostics(vehicle.id);
+                    buildAndOpen(vehicle, diag || {});
+                } catch (e) {
+                    console.error("Failed to load diagnostics", e);
+                    buildAndOpen(vehicle, null);
+                }
+            })();
+        } else {
+            buildAndOpen(vehicle, null);
+        }
     };
 
     // 상태 배지 클릭 시: 백엔드 제공 상태값 기반으로 종합 진단 상세 표시

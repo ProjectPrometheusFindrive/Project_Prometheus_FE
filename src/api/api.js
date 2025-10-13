@@ -32,6 +32,24 @@ export async function fetchAssetById(id) {
     return extractData(response);
 }
 
+// Asset slices (profile/insurance/device/diagnostics)
+export async function fetchAssetProfile(id) {
+    const response = await assetsApi.fetchProfile(id);
+    return extractData(response);
+}
+export async function fetchAssetInsurance(id) {
+    const response = await assetsApi.fetchInsurance(id);
+    return extractData(response);
+}
+export async function fetchAssetDevice(id) {
+    const response = await assetsApi.fetchDevice(id);
+    return extractData(response);
+}
+export async function fetchAssetDiagnostics(id) {
+    const response = await assetsApi.fetchDiagnostics(id);
+    return extractData(response);
+}
+
 export async function createAsset(data) {
     const response = await assetsApi.create(data);
     return extractData(response);

@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false, allowEditToggle = false }) {
   const [form, setForm] = useState({
-    insuranceCompany: asset.insuranceCompany || asset.insuranceInfo || "",
+    insuranceCompany: asset.insuranceCompany || "",
     insuranceProduct: asset.insuranceProduct || "",
     insuranceStartDate: asset.insuranceStartDate || "",
     insuranceExpiryDate: asset.insuranceExpiryDate || "",
@@ -18,6 +18,27 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   useEffect(() => {
     setIsReadOnly(!!readOnly);
   }, [readOnly]);
+
+  // Sync form fields when asset prop updates (e.g., after fetching /assets/{id}/insurance)
+  useEffect(() => {
+    setForm((prev) => ({
+      insuranceCompany: asset.insuranceCompany || "",
+      insuranceProduct: asset.insuranceProduct || "",
+      insuranceStartDate: asset.insuranceStartDate || "",
+      insuranceExpiryDate: asset.insuranceExpiryDate || "",
+      specialTerms: asset.insuranceSpecialTerms || "",
+      insuranceDoc: null,
+      insuranceDocDataUrl: asset.insuranceDocDataUrl || "",
+    }));
+  }, [
+    asset?.id,
+    asset?.insuranceCompany,
+    asset?.insuranceProduct,
+    asset?.insuranceStartDate,
+    asset?.insuranceExpiryDate,
+    asset?.insuranceSpecialTerms,
+    asset?.insuranceDocDataUrl,
+  ]);
 
   const onFile = (e) => {
     const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
@@ -96,11 +117,23 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
         <div className="asset-info grid-info">
           {infoRow(
             "보험사명",
-            <input className="form-input" value={form.insuranceCompany} onChange={(e) => setForm((p) => ({ ...p, insuranceCompany: e.target.value }))} placeholder="예: 현대해상" disabled={isReadOnly} />
+            <input
+              className="form-input"
+              value={form.insuranceCompany}
+              onChange={(e) => setForm((p) => ({ ...p, insuranceCompany: e.target.value }))}
+              placeholder={isReadOnly ? undefined : "예: 현대해상"}
+              disabled={isReadOnly}
+            />
           )}
           {infoRow(
             "보험 상품",
-            <input className="form-input" value={form.insuranceProduct} onChange={(e) => setForm((p) => ({ ...p, insuranceProduct: e.target.value }))} placeholder="예: 자동차종합보험(개인용)" disabled={isReadOnly} />
+            <input
+              className="form-input"
+              value={form.insuranceProduct}
+              onChange={(e) => setForm((p) => ({ ...p, insuranceProduct: e.target.value }))}
+              placeholder={isReadOnly ? undefined : "예: 자동차종합보험(개인용)"}
+              disabled={isReadOnly}
+            />
           )}
           {infoRow(
             "보험 가입일",
@@ -111,7 +144,14 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
             <input className="form-input" type="date" value={form.insuranceExpiryDate} onChange={(e) => setForm((p) => ({ ...p, insuranceExpiryDate: e.target.value }))} disabled={isReadOnly} />
           )}
           <div className="asset-info__label">특약사항</div>
-          <textarea className="form-input" rows={3} value={form.specialTerms} onChange={(e) => setForm((p) => ({ ...p, specialTerms: e.target.value }))} placeholder="예: 긴급출동 포함, 자기부담금 20만원" disabled={isReadOnly} />
+          <textarea
+            className="form-input"
+            rows={3}
+            value={form.specialTerms}
+            onChange={(e) => setForm((p) => ({ ...p, specialTerms: e.target.value }))}
+            placeholder={isReadOnly ? undefined : "예: 긴급출동 포함, 자기부담금 20만원"}
+            disabled={isReadOnly}
+          />
         </div>
 
         {Array.isArray(asset.insuranceHistory) && asset.insuranceHistory.length > 0 && (

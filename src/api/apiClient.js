@@ -145,6 +145,50 @@ export const assetsApi = {
         }
         return response;
     },
+
+    async fetchProfile(id) {
+        if (!validateId(id)) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid asset ID'
+            });
+        }
+        const response = await apiRequest(API_ENDPOINTS.ASSET_PROFILE(id));
+        if (response.status === API_STATUS.SUCCESS && response.data) {
+            response.data = transformAsset(response.data);
+        }
+        return response;
+    },
+
+    async fetchInsurance(id) {
+        if (!validateId(id)) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid asset ID'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.ASSET_INSURANCE(id));
+    },
+
+    async fetchDevice(id) {
+        if (!validateId(id)) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid asset ID'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.ASSET_DEVICE(id));
+    },
+
+    async fetchDiagnostics(id) {
+        if (!validateId(id)) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid asset ID'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.ASSET_DIAGNOSTICS(id));
+    },
     
     async create(assetData) {
         return await apiRequest(API_ENDPOINTS.ASSETS, {
