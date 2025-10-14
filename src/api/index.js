@@ -45,4 +45,8 @@ export const {
   // Upload helpers
   requestUploadSign,
   requestResumableSession,
+
+  // Auth
+  signup,
+  checkUserId,
 } = api;

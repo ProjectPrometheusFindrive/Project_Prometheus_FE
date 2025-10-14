@@ -7,7 +7,8 @@ import {
     companyApi,
     problemVehiclesApi,
     issuesApi,
-    uploadsApi
+    uploadsApi,
+    authApi
 } from './apiClient';
 import { API_STATUS, createOperationResult } from './apiTypes';
 
@@ -273,5 +274,16 @@ export async function requestUploadSign({ fileName, contentType, folder }) {
 
 export async function requestResumableSession({ fileName, contentType, folder }) {
     const response = await uploadsApi.createSession({ fileName, contentType, folder });
+    return extractData(response);
+}
+
+// Auth
+export async function signup(userData) {
+    const response = await authApi.signup(userData);
+    return extractData(response);
+}
+
+export async function checkUserId(userId) {
+    const response = await authApi.checkUserId(userId);
     return extractData(response);
 }

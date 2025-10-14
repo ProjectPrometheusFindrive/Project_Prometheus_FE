@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatPhone11 } from "../utils/formatters";
 import FilePreview from "../components/FilePreview";
+import { signup, requestUploadSign } from "../api";
 
 
 export default function SignUp() {
@@ -18,6 +19,7 @@ export default function SignUp() {
   });
   const [bizCert, setBizCert] = useState(null); // File object (not persisted)
   const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
 
 
   function onChange(e) {
@@ -51,7 +53,7 @@ export default function SignUp() {
     setBizCert(file);
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
     setMessage("");
 
@@ -105,24 +107,50 @@ export default function SignUp() {
       return;
     }
 
+    setLoading(true);
+
     try {
-      const raw = localStorage.getItem("registeredUsers");
-      const arr = Array.isArray(JSON.parse(raw)) ? JSON.parse(raw) : [];
-      // Save basic profile (demo). Do not persist file; store filename only.
-      arr.push({
+      // 1. Upload business certificate file to GCS
+      const uploadSignData = await requestUploadSign({
+        fileName: bizCert.name,
+        contentType: bizCert.type,
+        folder: "business-certificates"
+      });
+
+      // Upload file using signed URL
+      const uploadResponse = await fetch(uploadSignData.signedUrl, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': bizCert.type
+        },
+        body: bizCert
+      });
+
+      if (!uploadResponse.ok) {
+        throw new Error("파일 업로드에 실패했습니다.");
+      }
+
+      // 2. Call signup API with uploaded file URL
+      const userData = {
         userId: form.userId,
+        password: form.password,
         name: form.name,
         phone: form.phone,
         email: form.email,
         position: form.position,
         company: form.company,
-        bizCertName: bizCert ? bizCert.name : null,
-        createdAt: new Date().toISOString(),
-      });
-      localStorage.setItem("registeredUsers", JSON.stringify(arr));
+        bizCertUrl: uploadSignData.publicUrl || uploadSignData.fileUrl
+      };
+
+      await signup(userData);
+
+      // Success
       setMessage("success");
-    } catch {
-      setMessage("데모 환경: 저장에 실패했습니다. 다시 시도해주세요.");
+    } catch (error) {
+      console.error("회원가입 오류:", error);
+      setMessage(error.message || "회원가입에 실패했습니다. 다시 시도해주세요.");
+    } finally {
+      setLoading(false);
     }
   }
 
@@ -191,7 +219,9 @@ export default function SignUp() {
             >
               돌아가기
             </button>
-            <button type="submit" className="login-button" style={{ flex: 1 }}>가입하기</button>
+            <button type="submit" className="login-button" style={{ flex: 1 }} disabled={loading}>
+              {loading ? "처리 중..." : "가입하기"}
+            </button>
           </div>
         </form>
         {message && message !== "success" && <p className="login-help" style={{ color: "#b71c1c" }}>{message}</p>}

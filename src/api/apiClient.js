@@ -454,3 +454,20 @@ export const uploadsApi = {
         });
     }
 };
+
+// Auth API methods
+export const authApi = {
+    async signup(userData) {
+        // userData: { userId, password, name, phone, email, position, company, bizCertUrl }
+        return await apiRequest(API_ENDPOINTS.AUTH_SIGNUP, {
+            method: 'POST',
+            body: JSON.stringify(userData)
+        });
+    },
+
+    async checkUserId(userId) {
+        // Check if userId (email) is available
+        const params = new URLSearchParams({ userId });
+        return await apiRequest(`${API_ENDPOINTS.AUTH_CHECK_USERID}?${params.toString()}`);
+    }
+};
