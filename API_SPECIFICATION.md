@@ -871,6 +871,13 @@ POST /uploads/resumable
   2) `PUT sessionUrl`로 전체 또는 청크 업로드 (`Content-Range` 사용) — 최종 `2xx` 응답이면 완료
   3) 완료 후 `objectName` 또는 `publicUrl`을 도메인 엔티티에 저장
 
+POST /uploads/download-url
+
+- 설명: private GCS 객체를 다운로드하기 위한 일회성 서명된 GET URL 발급
+- 요청 본문: `{ objectName: string, ttlSeconds?: number }`
+- 응답 본문: `{ downloadUrl: string }`
+- 비고: 프론트엔드에서는 GCS에 저장된 `objectName`만 DB에 저장하고, 이미지를 표시할 때마다 이 API를 호출하여 403을 방지합니다.
+
 폴더 규칙(예)
 
 - 자산 보험서류: `assets/<assetId>/insurance`
