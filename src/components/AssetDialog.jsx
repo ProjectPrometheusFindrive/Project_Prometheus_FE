@@ -1,19 +1,61 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { formatCurrency } from "../utils/formatters";
 import { formatDateShort } from "../utils/date";
 import { isValidKoreanPlate, normalizeKoreanPlate } from "../utils/validators";
+import { getSignedDownloadUrl } from "../utils/gcsApi";
+import GCSImage from "./GCSImage";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
   const [form, setForm] = useState({
     make: asset.make || "",
     model: asset.model || "",
+    year: asset.year || "",
+    fuelType: asset.fuelType || "",
     plate: asset.plate || "",
     vin: asset.vin || "",
     vehicleValue: asset.vehicleValue || "",
     registrationDoc: null,
     insuranceDoc: null, // 원리금 상환 계획표 (placeholder)
   });
+
+  // State for displaying documents in view mode
+  const [insuranceDocUrl, setInsuranceDocUrl] = useState("");
+  const [registrationDocUrl, setRegistrationDocUrl] = useState("");
+  const [loadingDocs, setLoadingDocs] = useState(false);
+
+  // Fetch signed URLs for documents when in view mode
+  useEffect(() => {
+    if (!isEdit || !asset) return;
+
+    let cancelled = false;
+    const fetchUrls = async () => {
+      setLoadingDocs(true);
+      try {
+        const promises = [];
+        if (asset.insuranceDocGcsObjectName) {
+          promises.push(
+            getSignedDownloadUrl(asset.insuranceDocGcsObjectName)
+              .then(url => !cancelled && setInsuranceDocUrl(url))
+              .catch(err => console.error("Failed to get insurance doc URL:", err))
+          );
+        }
+        if (asset.registrationDocGcsObjectName) {
+          promises.push(
+            getSignedDownloadUrl(asset.registrationDocGcsObjectName)
+              .then(url => !cancelled && setRegistrationDocUrl(url))
+              .catch(err => console.error("Failed to get registration doc URL:", err))
+          );
+        }
+        await Promise.all(promises);
+      } finally {
+        if (!cancelled) setLoadingDocs(false);
+      }
+    };
+
+    fetchUrls();
+    return () => { cancelled = true; };
+  }, [isEdit, asset]);
 
   const onFile = (key) => (e) => {
     const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
@@ -37,14 +79,36 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     onSubmit(form);
   };
 
-  const docBoxView = (title) => (
-    <div className="asset-doc">
-      <div className="asset-doc__title">{title}</div>
-      <div className="asset-doc__box" aria-label={`${title} 미리보기 영역`}>
-        <div className="asset-doc__placeholder">프리뷰</div>
+  const docBoxView = (title, url, docName) => {
+    const renderContent = () => {
+      if (loadingDocs) {
+        return <div className="asset-doc__placeholder">로딩 중...</div>;
+      }
+      if (!url) {
+        return <div className="asset-doc__placeholder">문서 없음</div>;
+      }
+      // Check if it's a PDF or image
+      const isPdf = docName?.toLowerCase().endsWith('.pdf') || url.includes('content-type=application%2Fpdf');
+      if (isPdf) {
+        return (
+          <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'underline' }}>
+            {docName || "문서 보기"}
+          </a>
+        );
+      }
+      // Display as image
+      return <img src={url} alt={title} style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }} />;
+    };
+
+    return (
+      <div className="asset-doc">
+        <div className="asset-doc__title">{title}</div>
+        <div className="asset-doc__box" aria-label={`${title} 미리보기 영역`}>
+          {renderContent()}
+        </div>
       </div>
-    </div>
-  );
+    );
+  };
 
   const docBoxEdit = (title, key, accept = "image/*,application/pdf") => (
     <div className="asset-doc">
@@ -82,8 +146,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         <div className="asset-docs-section" style={{ marginBottom: 16 }}>
           {isEdit ? (
             <>
-              {docBoxView("원리금 상환 계획표")}
-              {docBoxView("자동차 등록증")}
+              {docBoxView("원리금 상환 계획표", insuranceDocUrl, asset.insuranceDocName)}
+              {docBoxView("자동차 등록증", registrationDocUrl, asset.registrationDocName)}
             </>
           ) : (
             <>
@@ -97,6 +161,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           <div className="asset-info grid-info">
             {infoRow("제조사", asset.make || "")}
             {infoRow("차종", asset.model || "")}
+            {infoRow("연식", asset.year || "")}
+            {infoRow("연료 타입", asset.fuelType || "")}
             {infoRow("차량번호", asset.plate || "")}
             {infoRow("차대번호(VIN)", asset.vin || "")}
             {infoRow("차량가액", asset.vehicleValue || "")}
@@ -110,6 +176,32 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             {infoRow(
               "차종",
               <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+            )}
+            {infoRow(
+              "연식",
+              <select className="form-input" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+                {(() => {
+                  const CURRENT_YEAR = new Date().getFullYear();
+                  const YEAR_START = 1990;
+                  const options = [{ value: "", label: "선택" }].concat(
+                    Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
+                      const y = CURRENT_YEAR - i;
+                      return { value: String(y), label: String(y) };
+                    })
+                  );
+                  return options.map((opt) => (
+                    <option key={opt.value} value={opt.value}>{opt.label}</option>
+                  ));
+                })()}
+              </select>
+            )}
+            {infoRow(
+              "연료 타입",
+              <select className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
+                {["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"].map((v) => (
+                  <option key={v} value={v}>{v || "선택"}</option>
+                ))}
+              </select>
             )}
             {infoRow(
               "차량번호",
