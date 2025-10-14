@@ -5,6 +5,7 @@ import { isValidKoreanPlate, normalizeKoreanPlate } from "../utils/validators";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
 import GCSImage from "./GCSImage";
 import FilePreview from "./FilePreview";
+import DocumentViewer from "./DocumentViewer";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -80,6 +81,18 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     onSubmit(form);
   };
 
+  const [viewer, setViewer] = useState({ open: false, src: "", type: "", title: "" });
+
+  const openViewer = (src, name) => {
+    if (!src) return;
+    const lower = String(name || "").toLowerCase();
+    const isPdf = lower.endsWith(".pdf") || /(?:^|[.?=&])content-type=application%2Fpdf/.test(src);
+    const isVideo = /\.(mp4|webm|mov|avi|mpeg|mpg)$/.test(lower) || /[?&]type=video\//.test(src);
+    const type = isPdf ? "pdf" : isVideo ? "video" : "image";
+    const t = name ? `${title} - ${name}` : title;
+    setViewer({ open: true, src, type, title: t });
+  };
+
   const docBoxView = (title, url, docName) => {
     const renderContent = () => {
       if (loadingDocs) {
@@ -92,19 +105,26 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       const isPdf = docName?.toLowerCase().endsWith('.pdf') || url.includes('content-type=application%2Fpdf');
       if (isPdf) {
         return (
-          <a href={url} target="_blank" rel="noopener noreferrer" style={{ color: '#007bff', textDecoration: 'underline' }}>
+          <button type="button" className="simple-button" onClick={() => openViewer(url, docName)} title="문서 미리보기">
             {docName || "문서 보기"}
-          </a>
+          </button>
         );
       }
       // Display as image
-      return <img src={url} alt={title} style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain' }} />;
+      return (
+        <img
+          src={url}
+          alt={title}
+          style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain', cursor: 'zoom-in' }}
+          onClick={() => openViewer(url, docName)}
+        />
+      );
     };
 
     return (
       <div className="asset-doc">
         <div className="asset-doc__title">{title}</div>
-        <div className="asset-doc__box" aria-label={`${title} 미리보기 영역`}>
+        <div className="asset-doc__box" aria-label={`${title} 미리보기 영역`} style={{ height: 'auto', minHeight: 80, padding: 8 }}>
           {renderContent()}
         </div>
       </div>
@@ -263,6 +283,13 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>
+      <DocumentViewer
+        isOpen={viewer.open}
+        onClose={() => setViewer((v) => ({ ...v, open: false }))}
+        src={viewer.src}
+        type={viewer.type}
+        title={viewer.title}
+      />
     </div>
   );
 }

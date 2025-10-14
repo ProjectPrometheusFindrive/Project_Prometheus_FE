@@ -280,7 +280,7 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                                 ref={videoRef}
                                 style={{
                                     width: "100%",
-                                    height: "400px",
+                                    height: "60vh",
                                     objectFit: "contain",
                                     backgroundColor: "#000",
                                 }}

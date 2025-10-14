@@ -1814,6 +1814,11 @@ html {
     max-width: 480px;
 }
 
+/* Document viewer modal should utilize more viewport space */
+.modal.document-viewer-modal {
+    max-width: 95vw;
+}
+
 /* ProblemVehicles current-location modal styling */
 .header-row.has-overlay {
     display: flex;

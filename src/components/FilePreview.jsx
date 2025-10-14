@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import "./FilePreview.css";
+import DocumentViewer from "./DocumentViewer";
 
 /**
  * FilePreview Component
@@ -15,6 +16,7 @@ import "./FilePreview.css";
 export default function FilePreview({ file, className = "" }) {
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewType, setPreviewType] = useState(""); // "image", "pdf", "unsupported"
+  const [showViewer, setShowViewer] = useState(false);
 
   useEffect(() => {
     if (!file) {
@@ -66,11 +68,21 @@ export default function FilePreview({ file, className = "" }) {
           src={previewUrl}
           alt={file.name}
           className="file-preview__image"
+          onClick={() => setShowViewer(true)}
+          style={{ cursor: "zoom-in" }}
         />
         <div className="file-preview__info">
           <span className="file-preview__filename">{file.name}</span>
           <span className="file-preview__filesize">{formatFileSize(file.size)}</span>
         </div>
+        <DocumentViewer
+          isOpen={showViewer}
+          onClose={() => setShowViewer(false)}
+          src={previewUrl}
+          type="image"
+          title={file.name}
+          allowDownload={false}
+        />
       </div>
     );
   }
@@ -83,10 +95,21 @@ export default function FilePreview({ file, className = "" }) {
           className="file-preview__pdf-viewer"
           title={file.name}
         />
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 12px" }}>
+          <button type="button" className="form-button" onClick={() => setShowViewer(true)} title="창 크기에 맞게 보기">확대</button>
+        </div>
         <div className="file-preview__info">
           <span className="file-preview__filename">{file.name}</span>
           <span className="file-preview__filesize">{formatFileSize(file.size)}</span>
         </div>
+        <DocumentViewer
+          isOpen={showViewer}
+          onClose={() => setShowViewer(false)}
+          src={previewUrl}
+          type="pdf"
+          title={file.name}
+          allowDownload={false}
+        />
       </div>
     );
   }

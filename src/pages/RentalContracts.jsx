@@ -7,7 +7,8 @@ import AccidentInfoModal from "../components/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
-import { FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaVideo, FaCheck } from "react-icons/fa";
+import { FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaCheck } from "react-icons/fa";
+import VideoIcon from "../components/VideoIcon";
 import { FiAlertTriangle } from "react-icons/fi";
 import MemoHistoryModal from "../components/MemoHistoryModal";
 import MemoCell from "../components/MemoCell";
@@ -677,7 +678,7 @@ export default function RentalContracts() {
 
                 return (
                     <button type="button" onClick={() => handleOpenAccidentModal(row)} className={`badge badge--clickable ${variantClass}`} title={title} aria-label={ariaLabel}>
-                        {hasVideo ? <FaVideo size={13} aria-hidden="true" /> : <FiAlertTriangle size={14} aria-hidden="true" />}
+                        {hasVideo ? <VideoIcon size={13} aria-hidden="true" /> : <FiAlertTriangle size={14} aria-hidden="true" />}
                     </button>
                 );
             }
