@@ -13,19 +13,27 @@ export default function FormField({
     rows = 4, // for textarea
     accept, // for file inputs
     capture, // for camera capture
+    multiple = false, // allow multi-file selection
     className = "",
     children,
     ...props
 }) {
     const handleChange = (e) => {
         if (type === "file") {
-            const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-            if (file) {
-                console.debug("[upload-ui] file input selected:", { id, name: file.name, size: file.size, type: file.type });
+            const files = Array.from(e.target.files || []);
+            if (files.length > 0) {
+                if (multiple) {
+                    console.debug("[upload-ui] file input selected (multiple):", { id, count: files.length, names: files.map(f => f.name) });
+                    onChange(files);
+                } else {
+                    const file = files[0];
+                    console.debug("[upload-ui] file input selected:", { id, name: file.name, size: file.size, type: file.type });
+                    onChange(file);
+                }
             } else {
                 console.debug("[upload-ui] file input cleared:", { id });
+                onChange(multiple ? [] : null);
             }
-            onChange(file);
         } else {
             onChange(e.target.value);
         }
@@ -73,6 +81,7 @@ export default function FormField({
                         className={`form-input ${className}`}
                         accept={accept}
                         capture={capture}
+                        multiple={multiple}
                         onChange={handleChange}
                         required={required}
                         disabled={disabled}

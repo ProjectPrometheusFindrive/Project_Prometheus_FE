@@ -189,10 +189,16 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         type="file"
                         accept="image/*,application/pdf"
                         capture="environment"
+                        multiple
                         onChange={(value) => update("contractFile", value)}
                         disabled={readOnly}
                     >
-                        {form.contractFile && <div className="file-info">{form.contractFile.name}</div>}
+                        {Array.isArray(form.contractFile) && form.contractFile.length > 0 && (
+                            <div className="file-info">{form.contractFile.map(f => f.name).join(", ")}</div>
+                        )}
+                        {form.contractFile && !Array.isArray(form.contractFile) && (
+                            <div className="file-info">{form.contractFile.name}</div>
+                        )}
                     </FormField>
                 </div>
                 <div className="form-col">
@@ -202,10 +208,16 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         type="file"
                         accept="image/*,application/pdf"
                         capture="environment"
+                        multiple
                         onChange={(value) => update("driverLicenseFile", value)}
                         disabled={readOnly}
                     >
-                        {form.driverLicenseFile && <div className="file-info">{form.driverLicenseFile.name}</div>}
+                        {Array.isArray(form.driverLicenseFile) && form.driverLicenseFile.length > 0 && (
+                            <div className="file-info">{form.driverLicenseFile.map(f => f.name).join(", ")}</div>
+                        )}
+                        {form.driverLicenseFile && !Array.isArray(form.driverLicenseFile) && (
+                            <div className="file-info">{form.driverLicenseFile.name}</div>
+                        )}
                     </FormField>
                 </div>
             </div>

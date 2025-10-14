@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchAssetById, fetchRentalById, saveAsset, updateRental, createIssueDraft } from "../api";
+import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
+import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import AssetForm from "../components/forms/AssetForm";
 import RentalForm from "../components/forms/RentalForm";
 import IssueForm from "../components/forms/IssueForm";
@@ -129,7 +131,69 @@ export default function Detail() {
                         onSubmit={async (form) => {
                             try {
                                 const { contractFile, driverLicenseFile, ...rest } = form || {};
-                                await updateRental(data.rentalId, rest);
+                                const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
+                                const contractFiles = toArray(contractFile);
+                                const licenseFiles = toArray(driverLicenseFile);
+                                const patch = { ...rest };
+                                // Upload new files if provided
+                                if (contractFiles.length > 0 || licenseFiles.length > 0) {
+                                    const folderBase = `rentals/${encodeURIComponent(data.rentalId)}`;
+                                const uploadOne = async (file, keyLabel) => {
+                                        if (!file) return null;
+                                        const type = file.type || "";
+                                        if (type && !ALLOWED_MIME_TYPES.includes(type)) return null;
+                                        const folder = `${folderBase}/${keyLabel}`;
+                                        const mode = chooseUploadMode(file.size || 0);
+                                        try {
+                                            if (mode === "signed-put") {
+                                                const { promise } = uploadViaSignedPut(file, { folder });
+                                                const res = await promise;
+                                                return { url: res?.publicUrl || null, objectName: res?.objectName || null };
+                                            } else {
+                                                const { promise } = uploadResumable(file, { folder });
+                                                const res = await promise;
+                                                return { url: res?.publicUrl || null, objectName: res?.objectName || null };
+                                            }
+                                        } catch {
+                                            return null;
+                                        }
+                                    };
+                                    const uploadMany = async (files, label) => {
+                                        const urls = [];
+                                        const objects = [];
+                                        const names = [];
+                                        for (const f of files) {
+                                            const res = await uploadOne(f, label);
+                                            if (res && (res.url || res.objectName)) {
+                                                names.push(f.name);
+                                                if (res.url) urls.push(res.url);
+                                                if (res.objectName) objects.push(res.objectName);
+                                            }
+                                        }
+                                        return { names, urls, objects };
+                                    };
+                                    const [contractRes, licenseRes] = await Promise.all([
+                                        uploadMany(contractFiles, "contracts"),
+                                        uploadMany(licenseFiles, "licenses"),
+                                    ]);
+                                    if (contractRes.names.length > 0) {
+                                        patch.contractDocNames = contractRes.names;
+                                        if (contractRes.urls.length > 0) patch.contractDocUrls = contractRes.urls;
+                                        if (contractRes.objects.length > 0) patch.contractDocGcsObjectNames = contractRes.objects;
+                                        patch.contractDocName = contractRes.names[0];
+                                        if (contractRes.urls[0]) patch.contractDocUrl = contractRes.urls[0];
+                                        if (contractRes.objects[0]) patch.contractDocGcsObjectName = contractRes.objects[0];
+                                    }
+                                    if (licenseRes.names.length > 0) {
+                                        patch.licenseDocNames = licenseRes.names;
+                                        if (licenseRes.urls.length > 0) patch.licenseDocUrls = licenseRes.urls;
+                                        if (licenseRes.objects.length > 0) patch.licenseDocGcsObjectNames = licenseRes.objects;
+                                        patch.licenseDocName = licenseRes.names[0];
+                                        if (licenseRes.urls[0]) patch.licenseDocUrl = licenseRes.urls[0];
+                                        if (licenseRes.objects[0]) patch.licenseDocGcsObjectName = licenseRes.objects[0];
+                                    }
+                                }
+                                await updateRental(data.rentalId, patch);
                             } catch (e) {
                                 console.error("Failed saving rental via API", e);
                                 alert("계약 저장에 실패했습니다.");

@@ -308,20 +308,92 @@ export default function AssetStatus() {
     };
 
     const handleRentalCreateSubmit = async (data) => {
-        // Create rental via API
+        // Create rental via API, then upload any provided docs (multi-file)
         const { contractFile, driverLicenseFile, ...rest } = data || {};
+        const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
+        const contractFiles = toArray(contractFile);
+        const licenseFiles = toArray(driverLicenseFile);
         const payload = {
             ...rest,
             rentalAmount: parseCurrency(rest.rentalAmount),
             deposit: parseCurrency(rest.deposit),
             rentalPeriod: { start: rest.start || "", end: rest.end || "" },
         };
+        let created;
         try {
-            await createRental(payload);
+            created = await createRental(payload);
         } catch (e) {
             console.error("Failed to create rental via API", e);
             alert("계약 생성에 실패했습니다.");
             return;
+        }
+
+        // Upload documents after creation
+        if (created && (contractFiles.length > 0 || licenseFiles.length > 0)) {
+            console.groupCollapsed("[upload-ui] rental create docs (from Asset) start");
+            try {
+                const rentalId = created.rentalId || rest.rentalId;
+                const folderBase = `rentals/${encodeURIComponent(rentalId)}`;
+                const uploadOne = async (file, keyLabel) => {
+                    if (!file) return null;
+                    const type = file.type || "";
+                    if (type && !ALLOWED_MIME_TYPES.includes(type)) {
+                        console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
+                        return null;
+                    }
+                    const folder = `${folderBase}/${keyLabel}`;
+                    const mode = chooseUploadMode(file.size || 0);
+                    try {
+                        if (mode === "signed-put") {
+                            const { promise } = uploadViaSignedPut(file, { folder });
+                            const res = await promise;
+                            return res?.publicUrl || null;
+                        } else {
+                            const { promise } = uploadResumable(file, { folder });
+                            const res = await promise;
+                            return res?.publicUrl || null;
+                        }
+                    } catch (e) {
+                        console.error(`[upload-ui] ${keyLabel} upload failed`, e);
+                        return null;
+                    }
+                };
+                const uploadMany = async (files, label) => {
+                    const names = [];
+                    const objects = [];
+                    for (const f of files) {
+                        const objectName = await uploadOne(f, label);
+                        if (objectName) {
+                            names.push(f.name);
+                            objects.push(objectName);
+                        }
+                    }
+                    return { names, objects };
+                };
+                const [contractRes, licenseRes] = await Promise.all([
+                    uploadMany(contractFiles, "contracts"),
+                    uploadMany(licenseFiles, "licenses"),
+                ]);
+                if ((contractRes.objects.length > 0) || (licenseRes.objects.length > 0)) {
+                    const patch = {};
+                    if (contractRes.objects.length > 0) {
+                        patch.contractDocNames = contractRes.names;
+                        patch.contractDocGcsObjectNames = contractRes.objects;
+                        patch.contractDocName = contractRes.names[0];
+                        patch.contractDocGcsObjectName = contractRes.objects[0];
+                    }
+                    if (licenseRes.objects.length > 0) {
+                        patch.licenseDocNames = licenseRes.names;
+                        patch.licenseDocGcsObjectNames = licenseRes.objects;
+                        patch.licenseDocName = licenseRes.names[0];
+                        patch.licenseDocGcsObjectName = licenseRes.objects[0];
+                    }
+                    await updateRental(created.rentalId, patch).catch((e) => console.warn("Failed to patch rental with doc URLs", e));
+                    created = { ...created, ...patch };
+                }
+            } finally {
+                console.groupEnd();
+            }
         }
 
         // Adjust stage based on start date to keep consistency
@@ -720,9 +792,12 @@ export default function AssetStatus() {
                 systemDelDate: data.systemDelDate,
                 registrationStatus: data.registrationStatus,
             };
-            // Optional: upload new docs if user selected
+            // Optional: upload new docs if user selected (single or multiple)
             const { insuranceDoc, registrationDoc } = data || {};
-            if (insuranceDoc instanceof File || registrationDoc instanceof File) {
+            const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
+            const insuranceFiles = toArray(insuranceDoc);
+            const registrationFiles = toArray(registrationDoc);
+            if (insuranceFiles.length > 0 || registrationFiles.length > 0) {
                 console.groupCollapsed("[upload-ui] asset update docs start");
                 const vin = (data.vin || "").trim();
                 const folder = vin ? `assets/${vin}/docs` : `assets/docs`;
@@ -752,17 +827,33 @@ export default function AssetStatus() {
                         return null;
                     }
                 };
-                const [insuranceObjectName, registrationObjectName] = await Promise.all([
-                    uploadOne(insuranceDoc, "insuranceDoc"),
-                    uploadOne(registrationDoc, "registrationDoc"),
+                const uploadMany = async (files, keyLabel) => {
+                    const names = [];
+                    const objects = [];
+                    for (const f of files) {
+                        const objectName = await uploadOne(f, keyLabel);
+                        if (objectName) {
+                            names.push(f.name);
+                            objects.push(objectName);
+                        }
+                    }
+                    return { names, objects };
+                };
+                const [insRes, regRes] = await Promise.all([
+                    uploadMany(insuranceFiles, "insuranceDoc"),
+                    uploadMany(registrationFiles, "registrationDoc"),
                 ]);
-                if (insuranceObjectName) {
-                    patch.insuranceDocName = insuranceDoc?.name;
-                    patch.insuranceDocGcsObjectName = insuranceObjectName;
+                if (insRes.objects.length > 0) {
+                    patch.insuranceDocNames = insRes.names;
+                    patch.insuranceDocGcsObjectNames = insRes.objects;
+                    patch.insuranceDocName = insRes.names[0];
+                    patch.insuranceDocGcsObjectName = insRes.objects[0];
                 }
-                if (registrationObjectName) {
-                    patch.registrationDocName = registrationDoc?.name;
-                    patch.registrationDocGcsObjectName = registrationObjectName;
+                if (regRes.objects.length > 0) {
+                    patch.registrationDocNames = regRes.names;
+                    patch.registrationDocGcsObjectNames = regRes.objects;
+                    patch.registrationDocName = regRes.names[0];
+                    patch.registrationDocGcsObjectName = regRes.objects[0];
                 }
                 console.groupEnd();
             }
@@ -812,59 +903,82 @@ export default function AssetStatus() {
                 registrationDate: rest.registrationDate || today,
                 registrationStatus: rest.registrationStatus || "자산등록 완료",
             };
-            // Upload docs first (if provided) then include URLs in payload
-            if (insuranceDoc instanceof File || registrationDoc instanceof File) {
-                console.groupCollapsed("[upload-ui] asset create docs start");
-                console.debug("[upload-ui] incoming files:", {
-                    insuranceDoc: insuranceDoc ? { name: insuranceDoc.name, size: insuranceDoc.size, type: insuranceDoc.type } : null,
-                    registrationDoc: registrationDoc ? { name: registrationDoc.name, size: registrationDoc.size, type: registrationDoc.type } : null,
-                });
-                const vin = (data.vin || "").trim();
-                const folder = vin ? `assets/${vin}/docs` : `assets/docs`;
-                const uploadOne = async (file, keyLabel) => {
-                    if (!file) return null;
-                    const type = file.type || "";
-                    if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-                        console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
-                        return null;
-                    }
-                    const mode = chooseUploadMode(file.size || 0);
-                    console.debug(`[upload-ui] ${keyLabel} mode:`, mode, "folder:", folder);
-                    try {
-                        if (mode === "signed-put") {
-                            const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
-                            const res = await promise;
-                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.objectName || null;
-                        } else {
-                            const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
-                            const res = await promise;
-                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.objectName || null;
+            // Upload docs first (if provided) then include objectNames in payload (single or multiple)
+            {
+                const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
+                const insuranceFiles = toArray(insuranceDoc);
+                const registrationFiles = toArray(registrationDoc);
+                if (insuranceFiles.length > 0 || registrationFiles.length > 0) {
+                    console.groupCollapsed("[upload-ui] asset create docs start");
+                    console.debug("[upload-ui] incoming files:", {
+                        insuranceDoc: Array.isArray(insuranceDoc) ? insuranceDoc.map(f => ({ name: f.name, size: f.size, type: f.type })) : (insuranceDoc ? { name: insuranceDoc.name, size: insuranceDoc.size, type: insuranceDoc.type } : null),
+                        registrationDoc: Array.isArray(registrationDoc) ? registrationDoc.map(f => ({ name: f.name, size: f.size, type: f.type })) : (registrationDoc ? { name: registrationDoc.name, size: registrationDoc.size, type: registrationDoc.type } : null),
+                    });
+                    const vin = (data.vin || "").trim();
+                    const folder = vin ? `assets/${vin}/docs` : `assets/docs`;
+                    const uploadOne = async (file, keyLabel) => {
+                        if (!file) return null;
+                        const type = file.type || "";
+                        if (type && !ALLOWED_MIME_TYPES.includes(type)) {
+                            console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
+                            return null;
                         }
-                    } catch (e) {
-                        console.error(`[upload-ui] ${keyLabel} upload failed`, e);
-                        return null;
+                        const mode = chooseUploadMode(file.size || 0);
+                        console.debug(`[upload-ui] ${keyLabel} mode:`, mode, "folder:", folder);
+                        try {
+                            if (mode === "signed-put") {
+                                const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
+                                const res = await promise;
+                                console.debug(`[upload-ui] ${keyLabel} result:`, res);
+                                return res?.objectName || null;
+                            } else {
+                                const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
+                                const res = await promise;
+                                console.debug(`[upload-ui] ${keyLabel} result:`, res);
+                                return res?.objectName || null;
+                            }
+                        } catch (e) {
+                            console.error(`[upload-ui] ${keyLabel} upload failed`, e);
+                            return null;
+                        }
+                    };
+                    const uploadMany = async (files, keyLabel) => {
+                        const names = [];
+                        const objects = [];
+                        for (const f of files) {
+                            const objectName = await uploadOne(f, keyLabel);
+                            if (objectName) {
+                                names.push(f.name);
+                                objects.push(objectName);
+                            }
+                        }
+                        return { names, objects };
+                    };
+                    const [insRes, regRes] = await Promise.all([
+                        uploadMany(insuranceFiles, "insuranceDoc"),
+                        uploadMany(registrationFiles, "registrationDoc"),
+                    ]);
+                    if (insRes.objects.length > 0) {
+                        payload.insuranceDocNames = insRes.names;
+                        payload.insuranceDocGcsObjectNames = insRes.objects;
+                        payload.insuranceDocName = insRes.names[0];
+                        payload.insuranceDocGcsObjectName = insRes.objects[0];
                     }
-                };
-                const [insuranceObjectName, registrationObjectName] = await Promise.all([
-                    uploadOne(insuranceDoc, "insuranceDoc"),
-                    uploadOne(registrationDoc, "registrationDoc"),
-                ]);
-                if (insuranceObjectName) {
-                    payload.insuranceDocName = insuranceDoc?.name;
-                    payload.insuranceDocGcsObjectName = insuranceObjectName;
+                    if (regRes.objects.length > 0) {
+                        payload.registrationDocNames = regRes.names;
+                        payload.registrationDocGcsObjectNames = regRes.objects;
+                        payload.registrationDocName = regRes.names[0];
+                        payload.registrationDocGcsObjectName = regRes.objects[0];
+                    }
+                    console.groupEnd();
                 }
-                if (registrationObjectName) {
-                    payload.registrationDocName = registrationDoc?.name;
-                    payload.registrationDocGcsObjectName = registrationObjectName;
-                }
-                console.groupEnd();
             }
             try {
                 console.debug("[upload-ui] creating asset with payload (doc objectNames present?):", {
                     hasInsuranceDocObjectName: !!payload.insuranceDocGcsObjectName,
                     hasRegistrationDocObjectName: !!payload.registrationDocGcsObjectName,
+                    insuranceDocGcsObjectNames: payload.insuranceDocGcsObjectNames?.length || 0,
+                    registrationDocGcsObjectNames: payload.registrationDocGcsObjectNames?.length || 0,
                 });
                 const created = await createAsset(payload);
                 console.debug("[upload-ui] createAsset result:", created);

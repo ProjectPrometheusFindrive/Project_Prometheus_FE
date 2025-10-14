@@ -60,11 +60,20 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 type="file"
                 accept="image/*,application/pdf"
                 capture="environment"
+                multiple
                 onChange={(value) => update("insuranceDoc", value)}
                 required={requireDocs}
                 disabled={readOnly}
             >
-                <FilePreview file={form.insuranceDoc} />
+                {Array.isArray(form.insuranceDoc) ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                        {form.insuranceDoc.map((f, idx) => (
+                            <FilePreview key={f.name + idx} file={f} />
+                        ))}
+                    </div>
+                ) : (
+                    <FilePreview file={form.insuranceDoc} />
+                )}
             </FormField>
 
             <FormField
@@ -73,11 +82,20 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 type="file"
                 accept="image/*,application/pdf"
                 capture="environment"
+                multiple
                 onChange={(value) => update("registrationDoc", value)}
                 required={requireDocs}
                 disabled={readOnly}
             >
-                <FilePreview file={form.registrationDoc} />
+                {Array.isArray(form.registrationDoc) ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                        {form.registrationDoc.map((f, idx) => (
+                            <FilePreview key={f.name + idx} file={f} />
+                        ))}
+                    </div>
+                ) : (
+                    <FilePreview file={form.registrationDoc} />
+                )}
             </FormField>
 
             {/* 차량 기본 정보 */}

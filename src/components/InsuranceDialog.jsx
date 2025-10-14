@@ -45,21 +45,26 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   ]);
 
   const onFile = (e) => {
-    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-    if (!file) {
-      setForm((p) => ({ ...p, insuranceDoc: null, insuranceDocDataUrl: "" }));
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) {
+      setForm((p) => ({ ...p, insuranceDoc: e.target.multiple ? [] : null, insuranceDocDataUrl: "" }));
       return;
     }
-    // Pre-validate type
-    if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
+    const allowed = files.filter((f) => !f.type || ALLOWED_MIME_TYPES.includes(f.type));
+    if (allowed.length === 0) {
       alert("허용되지 않는 파일 형식입니다.");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm((p) => ({ ...p, insuranceDoc: file, insuranceDocDataUrl: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    if (e.target.multiple || allowed.length > 1) {
+      setForm((p) => ({ ...p, insuranceDoc: allowed }));
+    } else {
+      const file = allowed[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        setForm((p) => ({ ...p, insuranceDoc: file, insuranceDocDataUrl: reader.result }));
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSave = async () => {
@@ -77,7 +82,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       startDate: form.insuranceStartDate || today,
       expiryDate: form.insuranceExpiryDate,
       specialTerms: form.specialTerms || "",
-      docName: form.insuranceDoc?.name || asset.insuranceDocName || "",
+      docName: (Array.isArray(form.insuranceDoc) ? (form.insuranceDoc[0]?.name) : form.insuranceDoc?.name) || asset.insuranceDocName || "",
       docDataUrl: form.insuranceDocDataUrl || asset.insuranceDocDataUrl || "",
     };
     const nextHistory = [...(Array.isArray(asset.insuranceHistory) ? asset.insuranceHistory : []), historyEntry];
@@ -91,37 +96,46 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       insuranceExpiryDate: form.insuranceExpiryDate,
       insuranceSpecialTerms: form.specialTerms,
       insuranceDocDataUrl: form.insuranceDocDataUrl,
-      insuranceDocName: form.insuranceDoc?.name || asset.insuranceDocName || "",
+      insuranceDocName: (Array.isArray(form.insuranceDoc) ? (form.insuranceDoc[0]?.name) : form.insuranceDoc?.name) || asset.insuranceDocName || "",
       // Full history array
       insuranceHistory: nextHistory,
     };
 
-    // Upload insurance document first (prefer private mode → store object name)
-    if (form.insuranceDoc && asset?.id) {
+    // Upload insurance document(s) first (prefer private mode → store object name)
+    const files = Array.isArray(form.insuranceDoc) ? form.insuranceDoc : (form.insuranceDoc ? [form.insuranceDoc] : []);
+    if (files.length > 0 && asset?.id) {
       const folder = `assets/${encodeURIComponent(asset.id)}/insurance`;
-      const mode = chooseUploadMode(form.insuranceDoc.size);
-      setUploadState({ status: "uploading", percent: 0, error: "", cancel: null, mode });
-      const onProgress = (p) => setUploadState((s) => ({ ...s, percent: p.percent }));
       try {
-        if (mode === "signed-put") {
-          const { promise, cancel } = uploadViaSignedPut(form.insuranceDoc, { folder, onProgress });
-          setUploadState((s) => ({ ...s, cancel }));
-          const result = await promise;
-          // Private mode: do not expose public URL for sensitive docs
-          patch.insuranceDocGcsObjectName = result.objectName || "";
-          // For backward compatibility, keep name
-          patch.insuranceDocName = form.insuranceDoc.name;
-        } else {
-          const { promise, cancel } = uploadResumable(form.insuranceDoc, { folder, onProgress });
-          setUploadState((s) => ({ ...s, cancel }));
-          const result = await promise;
-          patch.insuranceDocGcsObjectName = result.objectName || "";
-          patch.insuranceDocName = form.insuranceDoc.name;
+        let uploaded = [];
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          const mode = chooseUploadMode(file.size);
+          setUploadState({ status: "uploading", percent: Math.round((i / files.length) * 100), error: "", cancel: null, mode });
+          const onProgress = (p) => {
+            const overall = Math.min(100, Math.round(((i + p.percent / 100) / files.length) * 100));
+            setUploadState((s) => ({ ...s, percent: overall, mode }));
+          };
+          if (mode === "signed-put") {
+            const { promise, cancel } = uploadViaSignedPut(file, { folder, onProgress });
+            setUploadState((s) => ({ ...s, cancel }));
+            const result = await promise;
+            uploaded.push({ name: file.name, objectName: result.objectName || "" });
+          } else {
+            const { promise, cancel } = uploadResumable(file, { folder, onProgress });
+            setUploadState((s) => ({ ...s, cancel }));
+            const result = await promise;
+            uploaded.push({ name: file.name, objectName: result.objectName || "" });
+          }
+        }
+        if (uploaded.length > 0) {
+          patch.insuranceDocList = uploaded;
+          patch.insuranceDocName = uploaded[0].name;
+          patch.insuranceDocGcsObjectName = uploaded[0].objectName;
         }
         setUploadState((s) => ({ ...s, status: "success", percent: 100, cancel: null }));
       } catch (e) {
         console.error("Insurance doc upload failed", e);
-        setUploadState({ status: "error", percent: 0, error: e?.message || "문서 업로드 실패", cancel: null, mode });
+        setUploadState((s) => ({ status: "error", percent: 0, error: e?.message || "문서 업로드 실패", cancel: null, mode: s.mode }));
         alert("문서 업로드에 실패했습니다.");
         return;
       }
@@ -148,10 +162,11 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                 type="file"
                 accept="image/*,application/pdf"
                 capture="environment"
+                multiple
                 onChange={onFile}
                 style={{ marginBottom: 8 }}
               />
-              {form.insuranceDoc && (
+              {((Array.isArray(form.insuranceDoc) && form.insuranceDoc.length > 0) || (form.insuranceDoc && !Array.isArray(form.insuranceDoc))) && (
                 <div style={{ width: "100%", marginTop: 6 }}>
                   <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}</div>
                   {uploadState.status === 'uploading' && (
@@ -170,7 +185,15 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               )}
             </div>
           )}
-          <FilePreview file={form.insuranceDoc} />
+          {Array.isArray(form.insuranceDoc) ? (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+              {form.insuranceDoc.map((f, idx) => (
+                <FilePreview key={f.name + idx} file={f} />
+              ))}
+            </div>
+          ) : (
+            <FilePreview file={form.insuranceDoc} />
+          )}
         </div>
 
         <div className="asset-info grid-info">

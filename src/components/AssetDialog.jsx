@@ -60,13 +60,20 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
   }, [isEdit, asset]);
 
   const onFile = (key) => (e) => {
-    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-    if (file) {
-      console.debug("[upload-ui] asset dialog file selected:", { key, name: file.name, size: file.size, type: file.type });
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      if (e.target.multiple) {
+        console.debug("[upload-ui] asset dialog files selected:", { key, count: files.length, names: files.map(f => f.name) });
+        setForm((p) => ({ ...p, [key]: files }));
+      } else {
+        const file = files[0];
+        console.debug("[upload-ui] asset dialog file selected:", { key, name: file.name, size: file.size, type: file.type });
+        setForm((p) => ({ ...p, [key]: file }));
+      }
     } else {
       console.debug("[upload-ui] asset dialog file cleared:", { key });
+      setForm((p) => ({ ...p, [key]: e.target.multiple ? [] : null }));
     }
-    setForm((p) => ({ ...p, [key]: file }));
   };
 
   const normalizedPlate = normalizeKoreanPlate(form.plate);
@@ -138,11 +145,20 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         <input
           type="file"
           accept={accept}
+          multiple
           onChange={onFile(key)}
           required={requireDocs}
         />
       </div>
-      <FilePreview file={form[key]} />
+      {Array.isArray(form[key]) ? (
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+          {form[key].map((f, idx) => (
+            <FilePreview key={f.name + idx} file={f} />
+          ))}
+        </div>
+      ) : (
+        <FilePreview file={form[key]} />
+      )}
     </div>
   );
 
