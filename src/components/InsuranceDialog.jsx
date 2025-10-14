@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import FilePreview from "./FilePreview";
+import MultiDocGallery from "./MultiDocGallery";
 
 export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false, allowEditToggle = false }) {
   const [form, setForm] = useState({
@@ -194,6 +195,21 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
           ) : (
             <FilePreview file={form.insuranceDoc} />
           )}
+
+          {/* Existing saved docs (read-only or when editing with previous history) */}
+          {(() => {
+            // Prefer insuranceDocList [{name, objectName}]
+            const list = Array.isArray(asset.insuranceDocList)
+              ? asset.insuranceDocList
+              : (Array.isArray(asset.insuranceDocGcsObjectNames)
+                  ? asset.insuranceDocGcsObjectNames.map((obj, idx) => ({ name: (asset.insuranceDocNames && asset.insuranceDocNames[idx]) || `보험서류 ${idx + 1}`, objectName: obj }))
+                  : []);
+            return list.length > 0 ? (
+              <div style={{ marginTop: 12 }}>
+                <MultiDocGallery title="등록된 보험 서류" items={list} />
+              </div>
+            ) : null;
+          })()}
         </div>
 
         <div className="asset-info grid-info">

@@ -1,6 +1,10 @@
 // API interface definitions and types for consistent API layer
 
 export const API_ENDPOINTS = {
+    // Auth
+    AUTH_SIGNUP: '/auth/signup',
+    AUTH_CHECK_USERID: '/auth/check-userid',
+
     // Assets
     ASSETS: '/assets',
     ASSETS_SUMMARY: '/assets/summary',
@@ -10,7 +14,7 @@ export const API_ENDPOINTS = {
     ASSET_DEVICE: (id) => `/assets/${encodeURIComponent(id)}/device`,
     ASSET_DIAGNOSTICS: (id) => `/assets/${encodeURIComponent(id)}/diagnostics`,
     ASSET_MEMO_HISTORY: (id) => `/assets/${encodeURIComponent(id)}/memoHistory`,
-    
+
     // Rentals
     RENTALS: '/rentals',
     RENTALS_SUMMARY: '/rentals/summary',
@@ -19,23 +23,23 @@ export const API_ENDPOINTS = {
     RENTALS_BY_VIN: (vin) => `/rentals/byVin/${encodeURIComponent(vin)}`,
     RENTAL_INDEX_BY_VIN: '/rentals/indexByVin',
     RENTAL_MEMO_HISTORY: (id) => `/rentals/${encodeURIComponent(id)}/memoHistory`,
-    
+
     // Vehicles
     VEHICLES: '/vehicles',
-    
+
     // Dashboard
     DASHBOARD: '/dashboard',
-    
+
     // Geofences
     GEOFENCES: '/geofences',
     GEOFENCE_BY_ID: (id) => `/geofences/${encodeURIComponent(id)}`,
-    
+
     // Company
     COMPANY: '/company',
-    
+
     // Problem Vehicles
     PROBLEM_VEHICLES: '/problem-vehicles',
-    
+
     // Issues
     ISSUES: '/issues',
 

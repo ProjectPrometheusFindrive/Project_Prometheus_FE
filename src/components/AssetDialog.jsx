@@ -6,6 +6,7 @@ import { getSignedDownloadUrl } from "../utils/gcsApi";
 import GCSImage from "./GCSImage";
 import FilePreview from "./FilePreview";
 import DocumentViewer from "./DocumentViewer";
+import MultiDocGallery from "./MultiDocGallery";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -21,7 +22,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     insuranceDoc: null, // 원리금 상환 계획표 (placeholder)
   });
 
-  // State for displaying documents in view mode
+  // State for displaying documents in view mode (single legacy)
   const [insuranceDocUrl, setInsuranceDocUrl] = useState("");
   const [registrationDocUrl, setRegistrationDocUrl] = useState("");
   const [loadingDocs, setLoadingDocs] = useState(false);
@@ -186,8 +187,23 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         <div className="asset-docs-section" style={{ marginBottom: 16 }}>
           {isEdit ? (
             <>
-              {docBoxView("원리금 상환 계획표", insuranceDocUrl, asset.insuranceDocName)}
-              {docBoxView("자동차 등록증", registrationDocUrl, asset.registrationDocName)}
+              {/* Multi-doc gallery (preferred) */}
+              {Array.isArray(asset.insuranceDocGcsObjectNames) && asset.insuranceDocGcsObjectNames.length > 0 ? (
+                <MultiDocGallery
+                  title="원리금 상환 계획표"
+                  items={asset.insuranceDocGcsObjectNames.map((obj, idx) => ({ name: (asset.insuranceDocNames && asset.insuranceDocNames[idx]) || `보험서류 ${idx + 1}` , objectName: obj }))}
+                />
+              ) : (
+                docBoxView("원리금 상환 계획표", insuranceDocUrl, asset.insuranceDocName)
+              )}
+              {Array.isArray(asset.registrationDocGcsObjectNames) && asset.registrationDocGcsObjectNames.length > 0 ? (
+                <MultiDocGallery
+                  title="자동차 등록증"
+                  items={asset.registrationDocGcsObjectNames.map((obj, idx) => ({ name: (asset.registrationDocNames && asset.registrationDocNames[idx]) || `등록증 ${idx + 1}`, objectName: obj }))}
+                />
+              ) : (
+                docBoxView("자동차 등록증", registrationDocUrl, asset.registrationDocName)
+              )}
             </>
           ) : (
             <>
