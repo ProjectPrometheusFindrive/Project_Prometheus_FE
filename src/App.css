@@ -1913,3 +1913,50 @@ html {
 .inconsistency-indicator.is-open .inconsistency-popover {
   display: block;
 }
+/* GCSImage loading spinner */
+.spinner {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Error message */
+.error-message {
+  color: #e74c3c;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 4px;
+  background-color: #fadbd8;
+}
+
+/* Drag & drop area */
+.drop-zone {
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  padding: 40px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+.drop-zone.drag-over {
+  border-color: #3498db;
+  background-color: #ebf5fb;
+}
+
+/* Logo preview */
+.logo-preview {
+  max-width: 200px;
+  max-height: 200px;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}

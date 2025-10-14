@@ -7,6 +7,7 @@ import CiUploadModal from "./CiUploadModal";
 import { useCompany } from "../contexts/CompanyContext";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
+import GCSImage from "./GCSImage";
 
 export default function TopHeader() {
     const navigate = useNavigate();
@@ -57,6 +58,7 @@ export default function TopHeader() {
             setIsModalOpen(false);
         } catch (err) {
             console.error("Failed to save logo:", err);
+            alert("업로드 실패: " + (err?.message || String(err)));
         } finally {
             console.groupEnd();
             setUploading(false);
@@ -66,25 +68,44 @@ export default function TopHeader() {
     return (
         <header className="top-header" role="banner">
             <div className="top-header__left">
-                <img 
-                    src={companyInfo?.logoDataUrl || defaultLogo} 
-                    alt="Company Logo" 
-                    className="top-header__logo"
-                    title={uploading ? "업로드 중..." : "로고 업로드"}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => !uploading && onUploadClick()}
-                    onKeyDown={(e) => {
-                        if (uploading) return;
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            onUploadClick();
-                        }
-                    }}
-                    onError={(e) => {
-                        e.target.src = defaultLogo;
-                    }}
-                />
+                {companyInfo?.logoPath ? (
+                    <GCSImage
+                        objectName={companyInfo.logoPath}
+                        alt="Company Logo"
+                        className="top-header__logo"
+                        title={uploading ? "업로드 중..." : "로고 업로드"}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => !uploading && onUploadClick()}
+                        onKeyDown={(e) => {
+                            if (uploading) return;
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onUploadClick();
+                            }
+                        }}
+                    />
+                ) : (
+                    <img
+                        src={companyInfo?.logoDataUrl || defaultLogo}
+                        alt="Company Logo"
+                        className="top-header__logo"
+                        title={uploading ? "업로드 중..." : "로고 업로드"}
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => !uploading && onUploadClick()}
+                        onKeyDown={(e) => {
+                            if (uploading) return;
+                            if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault();
+                                onUploadClick();
+                            }
+                        }}
+                        onError={(e) => {
+                            e.target.src = defaultLogo;
+                        }}
+                    />
+                )}
                 <div
                     className="top-header__service-name"
                     role="link"

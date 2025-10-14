@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import { CompanyProvider, useCompany } from "./contexts/CompanyContext";
@@ -15,10 +15,13 @@ import Detail from "./pages/Detail";
 import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { getSignedDownloadUrl } from "./utils/gcsApi";
 
 const DynamicFavicon = () => {
   const { companyInfo } = useCompany();
+  const [signedFaviconUrl, setSignedFaviconUrl] = useState("");
 
+  // Data URL favicon (legacy/local preview)
   useEffect(() => {
     const link = document.querySelector("link[rel='icon']");
     const ensureLink = () => {
@@ -32,7 +35,6 @@ const DynamicFavicon = () => {
     const url = companyInfo && companyInfo.logoDataUrl;
     if (favicon && url) {
       favicon.setAttribute("href", url);
-      // Update MIME type to match data URL if present
       if (url.startsWith("data:")) {
         const match = url.match(/^data:([^;]+);/);
         if (match && match[1]) {
@@ -41,11 +43,47 @@ const DynamicFavicon = () => {
           favicon.removeAttribute("type");
         }
       } else {
-        // For non-data URLs, let the browser infer type
         favicon.removeAttribute("type");
       }
     }
   }, [companyInfo?.logoDataUrl]);
+
+  // Signed URL favicon (GCS objectName)
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      const objectName = companyInfo && companyInfo.logoPath;
+      if (!objectName) {
+        setSignedFaviconUrl("");
+        return;
+      }
+      try {
+        const url = await getSignedDownloadUrl(objectName);
+        if (!cancelled) setSignedFaviconUrl(url);
+      } catch {
+        if (!cancelled) setSignedFaviconUrl("");
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [companyInfo?.logoPath]);
+
+  useEffect(() => {
+    if (!signedFaviconUrl) return;
+    const link = document.querySelector("link[rel='icon']");
+    const ensureLink = () => {
+      if (link) return link;
+      const el = document.createElement("link");
+      el.setAttribute("rel", "icon");
+      document.head.appendChild(el);
+      return el;
+    };
+    const favicon = ensureLink();
+    favicon.setAttribute("href", signedFaviconUrl);
+    favicon.removeAttribute("type");
+  }, [signedFaviconUrl]);
 
   return null;
 };
