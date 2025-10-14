@@ -15,7 +15,7 @@ import DocumentViewer from "./DocumentViewer";
  */
 export default function FilePreview({ file, className = "" }) {
   const [previewUrl, setPreviewUrl] = useState("");
-  const [previewType, setPreviewType] = useState(""); // "image", "pdf", "unsupported"
+  const [previewType, setPreviewType] = useState(""); // "image", "pdf", "video", "unsupported"
   const [showViewer, setShowViewer] = useState(false);
 
   useEffect(() => {
@@ -37,6 +37,12 @@ export default function FilePreview({ file, className = "" }) {
       reader.readAsDataURL(file);
     } else if (fileType === "application/pdf") {
       setPreviewType("pdf");
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      // Cleanup object URL on unmount
+      return () => URL.revokeObjectURL(url);
+    } else if (fileType.startsWith("video/")) {
+      setPreviewType("video");
       const url = URL.createObjectURL(file);
       setPreviewUrl(url);
       // Cleanup object URL on unmount
@@ -107,6 +113,36 @@ export default function FilePreview({ file, className = "" }) {
           onClose={() => setShowViewer(false)}
           src={previewUrl}
           type="pdf"
+          title={file.name}
+          allowDownload={false}
+        />
+      </div>
+    );
+  }
+
+  if (previewType === "video") {
+    return (
+      <div className={`file-preview file-preview--video ${className}`}>
+        <video
+          src={previewUrl}
+          className="file-preview__video"
+          controls
+          preload="metadata"
+          aria-label={file.name}
+        />
+        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 12px" }}>
+          <button type="button" className="form-button" onClick={() => setShowViewer(true)} title="창 크기에 맞게 보기">확대</button>
+        </div>
+        <div className="file-preview__info">
+          <span className="file-preview__filename">{file.name}</span>
+          <span className="file-preview__filesize">{formatFileSize(file.size)}</span>
+          <span className="file-preview__filetype">{file.type || "video"}</span>
+        </div>
+        <DocumentViewer
+          isOpen={showViewer}
+          onClose={() => setShowViewer(false)}
+          src={previewUrl}
+          type="video"
           title={file.name}
           allowDownload={false}
         />

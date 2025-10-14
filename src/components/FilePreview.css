@@ -65,6 +65,18 @@
   background-color: #fafafa;
 }
 
+/* Video Preview */
+.file-preview--video {
+  background-color: #000;
+}
+
+.file-preview__video {
+  width: 100%;
+  height: auto;
+  max-height: 400px;
+  background: #000;
+}
+
 /* File Info */
 .file-preview__info {
   display: flex;
@@ -110,6 +122,10 @@
   }
 
   .file-preview__image {
+    max-height: 300px;
+  }
+
+  .file-preview__video {
     max-height: 300px;
   }
 }

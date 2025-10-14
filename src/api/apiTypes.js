@@ -130,31 +130,42 @@ export function transformAsset(asset) {
 
 export function transformRental(rental) {
     if (!rental || typeof rental !== 'object') return rental;
-    const period = rental.rentalPeriod && typeof rental.rentalPeriod === 'object' ? rental.rentalPeriod : null;
-    return {
+    // Normalize possible snake_case keys from backend
+    const normalized = {
         ...rental,
-        rentalId: rental.rentalId ?? rental.id ?? null,
-        renterName: rental.renterName ?? '',
-        contactNumber: rental.contactNumber ?? '',
-        insuranceName: rental.insuranceName ?? '',
-        rentalAmount: rental.rentalAmount ?? null,
-        rentalType: rental.rentalType,
-        paymentMethod: rental.paymentMethod,
-        contractStatus: rental.contractStatus,
-        engineStatus: rental.engineStatus,
-        restartBlocked: Boolean(rental.restartBlocked),
-        accidentReported: Boolean(rental.accidentReported),
-        returnedAt: rental.returnedAt ? new Date(rental.returnedAt) : null,
-        reportedStolen: Boolean(rental.reportedStolen),
-        unpaidAmount: typeof rental.unpaidAmount === 'number' ? rental.unpaidAmount : (rental.unpaidAmount == null ? undefined : Number(rental.unpaidAmount)),
-        rentalDurationDays: typeof rental.rentalDurationDays === 'number' ? rental.rentalDurationDays : (rental.rentalDurationDays == null ? undefined : Number(rental.rentalDurationDays)),
-        currentLocation: rental.currentLocation,
-        rentalLocation: rental.rentalLocation,
-        returnLocation: rental.returnLocation,
-        locationUpdatedAt: rental.locationUpdatedAt ? new Date(rental.locationUpdatedAt) : null,
-        rentalPeriod: period ? { start: period.start ? new Date(period.start) : null, end: period.end ? new Date(period.end) : null } : null,
-        createdAt: rental.createdAt ? new Date(rental.createdAt) : null,
-        updatedAt: rental.updatedAt ? new Date(rental.updatedAt) : null,
+        rentalId: rental.rentalId ?? rental.rental_id ?? rental.id ?? null,
+        renterName: rental.renterName ?? rental.renter_name ?? '',
+        contactNumber: rental.contactNumber ?? rental.contact_number ?? '',
+        insuranceName: rental.insuranceName ?? rental.insurance_name ?? '',
+        rentalAmount: rental.rentalAmount ?? rental.rental_amount ?? null,
+        contractStatus: rental.contractStatus ?? rental.contract_status,
+        engineStatus: rental.engineStatus ?? rental.engine_status,
+        restartBlocked: Boolean(rental.restartBlocked ?? rental.restart_blocked),
+        accidentReported: Boolean(rental.accidentReported ?? rental.accident_reported),
+        returnedAt: rental.returnedAt ? new Date(rental.returnedAt) : (rental.returned_at ? new Date(rental.returned_at) : null),
+        reportedStolen: Boolean(rental.reportedStolen ?? rental.reported_stolen),
+        rentalDurationDays: (typeof rental.rentalDurationDays === 'number')
+            ? rental.rentalDurationDays
+            : (rental.rental_duration_days == null ? undefined : Number(rental.rental_duration_days)),
+        currentLocation: rental.currentLocation ?? rental.current_location,
+        rentalLocation: rental.rentalLocation ?? rental.rental_location,
+        returnLocation: rental.returnLocation ?? rental.return_location,
+        locationUpdatedAt: rental.locationUpdatedAt
+            ? new Date(rental.locationUpdatedAt)
+            : (rental.location_updated_at ? new Date(rental.location_updated_at) : null),
+        createdAt: rental.createdAt ? new Date(rental.createdAt) : (rental.created_at ? new Date(rental.created_at) : null),
+        updatedAt: rental.updatedAt ? new Date(rental.updatedAt) : (rental.updated_at ? new Date(rental.updated_at) : null),
+    };
+    const periodRaw = rental.rentalPeriod || rental.rental_period || null;
+    const rentalPeriod = periodRaw && typeof periodRaw === 'object'
+        ? {
+            start: periodRaw.start ? new Date(periodRaw.start) : null,
+            end: periodRaw.end ? new Date(periodRaw.end) : null,
+        }
+        : null;
+    return {
+        ...normalized,
+        rentalPeriod,
     };
 }
 
@@ -162,12 +173,40 @@ export function transformRental(rental) {
 export function toCamelRentalPayload(payload) {
     if (!payload || typeof payload !== 'object') return payload;
     const out = { ...payload };
+    // Ensure dates are in ISO string for safety
+    const normDate = (d) => {
+        if (!d) return '';
+        try {
+            return typeof d === 'string' ? d : (d instanceof Date ? d.toISOString() : String(d));
+        } catch { return String(d); }
+    };
+    // Mirror rentalPeriod into both camelCase and snake_case
     if (payload.rentalPeriod) {
         out.rentalPeriod = {
-            start: payload.rentalPeriod.start ?? '',
-            end: payload.rentalPeriod.end ?? '',
+            start: normDate(payload.rentalPeriod.start ?? ''),
+            end: normDate(payload.rentalPeriod.end ?? ''),
+        };
+        out.rental_period = {
+            start: out.rentalPeriod.start,
+            end: out.rentalPeriod.end,
         };
     }
+    // Add snake_case mirrors for backends that expect them
+    if ('rentalId' in payload) out.rental_id = payload.rentalId;
+    if ('renterName' in payload) out.renter_name = payload.renterName;
+    if ('contactNumber' in payload) out.contact_number = payload.contactNumber;
+    if ('insuranceName' in payload) out.insurance_name = payload.insuranceName;
+    if ('rentalAmount' in payload) out.rental_amount = payload.rentalAmount;
+    if ('contractStatus' in payload) out.contract_status = payload.contractStatus;
+    if ('engineStatus' in payload) out.engine_status = payload.engineStatus;
+    if ('restartBlocked' in payload) out.restart_blocked = payload.restartBlocked;
+    if ('reportedStolen' in payload) out.reported_stolen = payload.reportedStolen;
+    if ('returnConfirmed' in payload) out.return_confirmed = payload.returnConfirmed;
+    if ('accidentReported' in payload) out.accident_reported = payload.accidentReported;
+    if ('rentalLocation' in payload) out.rental_location = payload.rentalLocation;
+    if ('returnLocation' in payload) out.return_location = payload.returnLocation;
+    if ('currentLocation' in payload) out.current_location = payload.currentLocation;
+    // accidentReport stays camelCase as per OpenAPI
     return out;
 }
 

@@ -311,28 +311,43 @@ export default function RentalContracts() {
         }));
     };
 
-    const handleOpenAccidentModal = (contract) => {
+    const handleOpenAccidentModal = async (contract) => {
         if (!contract) return;
+
+        // Always hydrate from detail when accidentReported is true but summary lacks report details
+        if (contract.accidentReported && !contract.accidentReport) {
+            try {
+                const full = await fetchRentalById(contract.rentalId);
+                if (full && (full.accidentReported || contract.accidentReported) && full.accidentReport) {
+                    setAccidentTarget(full);
+                    setShowAccidentInfoModal(true);
+                    return;
+                }
+            } catch (e) {
+                // Ignore and fall back to summary behavior
+            }
+        }
 
         // 이미 사고가 등록된 경우 정보 조회 모달을 열고, 아닌 경우 등록 모달을 연다
         if (contract.accidentReported && contract.accidentReport) {
             setAccidentTarget(contract);
             setShowAccidentInfoModal(true);
-        } else {
-            const report = contract.accidentReport || {};
-            setAccidentTarget(contract);
-            setAccidentForm({
-                accidentDate: report.accidentDate || "",
-                accidentHour: report.accidentHour || "00",
-                accidentMinute: report.accidentMinute || "00",
-                accidentSecond: report.accidentSecond || "00",
-                handlerName: report.handlerName || "",
-                blackboxFile: report.blackboxFile || null,
-                blackboxFileName: report.blackboxFileName || "",
-            });
-            setFileInputKey((prev) => prev + 1);
-            setShowAccidentModal(true);
+            return;
         }
+
+        const report = contract.accidentReport || {};
+        setAccidentTarget(contract);
+        setAccidentForm({
+            accidentDate: report.accidentDate || "",
+            accidentHour: report.accidentHour || "00",
+            accidentMinute: report.accidentMinute || "00",
+            accidentSecond: report.accidentSecond || "00",
+            handlerName: report.handlerName || "",
+            blackboxFile: report.blackboxFile || null,
+            blackboxFileName: report.blackboxFileName || "",
+        });
+        setFileInputKey((prev) => prev + 1);
+        setShowAccidentModal(true);
     };
 
     const handleCloseAccidentModal = () => {

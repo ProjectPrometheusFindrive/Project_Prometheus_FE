@@ -97,11 +97,14 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                     if (!cancelled) setVideoSrc(accidentData.blackboxFileUrl);
                     return;
                 }
-                // 4) Demo sample
-                if (accidentData?.blackboxFileName === "blackbox_250922.mp4") {
-                    if (!cancelled) setVideoSrc("/src/data/blackbox_250922.mp4");
-                    return;
-                }
+                // 4) Demo sample (restricted to explicit opt-in in dev)
+                try {
+                    const enableDemo = import.meta.env?.VITE_ENABLE_DEMO_FALLBACK === "true";
+                    if (import.meta.env?.DEV && enableDemo && accidentData?.blackboxFileName === "blackbox_250922.mp4") {
+                        if (!cancelled) setVideoSrc("/src/data/blackbox_250922.mp4");
+                        return;
+                    }
+                } catch {}
                 if (!cancelled) setVideoSrc(null);
             } catch (e) {
                 if (!cancelled) setVideoSrc(null);

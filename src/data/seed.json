@@ -101,7 +101,7 @@
           "accidentDateTime": "2025-09-18T14:30:15",
           "accidentDisplayTime": "2025.09.18 14:30:15",
           "blackboxFile": null,
-          "blackboxFileName": "blackbox_250922.mp4",
+          "blackboxFileName": null,
           "recordedAt": "2025-09-18T14:45:00.000Z"
         },
         "rental_amount": 1580000,
@@ -1910,7 +1910,7 @@
           "accidentDateTime": "2025-09-20T16:45:30",
           "accidentDisplayTime": "2025.09.20 16:45:30",
           "blackboxFile": null,
-          "blackboxFileName": "accident_VH-0103_20250920.mp4",
+          "blackboxFileName": null,
           "recordedAt": "2025-09-20T17:00:00.000Z"
         },
         "contract_status": "대여중"
