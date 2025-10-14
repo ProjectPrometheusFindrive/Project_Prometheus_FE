@@ -42,4 +42,7 @@ export const {
   // Problem vehicles / issues
   fetchProblemVehicles,
   createIssueDraft,
+  // Upload helpers
+  requestUploadSign,
+  requestResumableSession,
 } = api;

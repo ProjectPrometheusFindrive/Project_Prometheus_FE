@@ -5,6 +5,8 @@ import { typedStorage } from "../utils/storage";
 import defaultLogo from "../assets/default-logo.svg";
 import CiUploadModal from "./CiUploadModal";
 import { useCompany } from "../contexts/CompanyContext";
+import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
 
 export default function TopHeader() {
     const navigate = useNavigate();
@@ -26,18 +28,37 @@ export default function TopHeader() {
     }
 
     async function handleModalSubmit(file, previewUrl) {
-        if (!file.type.startsWith("image/")) {
+        if (!file || (file.type && !ALLOWED_MIME_TYPES.includes(file.type))) {
             alert("이미지 파일을 선택해 주세요.");
             return;
         }
 
         setUploading(true);
         try {
-            updateCompanyInfo({ logoDataUrl: previewUrl });
+            const folder = `company/ci`;
+            const mode = chooseUploadMode(file.size);
+            let publicUrl = "";
+            console.groupCollapsed("[upload-ui] logo upload start");
+            console.debug("file:", { name: file?.name, size: file?.size, type: file?.type });
+            console.debug("mode:", mode, "folder:", folder);
+            if (mode === "signed-put") {
+                const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug("[upload-ui] signed-put progress:", p) });
+                const res = await promise;
+                console.debug("[upload-ui] signed-put result:", res);
+                publicUrl = res.publicUrl || "";
+            } else {
+                const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug("[upload-ui] resumable progress:", p) });
+                const res = await promise;
+                console.debug("[upload-ui] resumable result:", res);
+                publicUrl = res.publicUrl || "";
+            }
+            console.debug("[upload-ui] updating company logo url:", publicUrl || previewUrl);
+            updateCompanyInfo({ logoDataUrl: publicUrl || previewUrl, logoObjectName: undefined });
             setIsModalOpen(false);
         } catch (err) {
             console.error("Failed to save logo:", err);
         } finally {
+            console.groupEnd();
             setUploading(false);
         }
     }

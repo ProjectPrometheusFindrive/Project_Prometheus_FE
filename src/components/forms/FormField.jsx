@@ -19,7 +19,13 @@ export default function FormField({
 }) {
     const handleChange = (e) => {
         if (type === "file") {
-            onChange(e.target.files && e.target.files[0] ? e.target.files[0] : null);
+            const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+            if (file) {
+                console.debug("[upload-ui] file input selected:", { id, name: file.name, size: file.size, type: file.type });
+            } else {
+                console.debug("[upload-ui] file input cleared:", { id });
+            }
+            onChange(file);
         } else {
             onChange(e.target.value);
         }

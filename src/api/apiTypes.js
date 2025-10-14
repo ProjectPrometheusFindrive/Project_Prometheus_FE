@@ -37,7 +37,11 @@ export const API_ENDPOINTS = {
     PROBLEM_VEHICLES: '/problem-vehicles',
     
     // Issues
-    ISSUES: '/issues'
+    ISSUES: '/issues',
+
+    // Uploads (GCS direct upload helpers)
+    UPLOAD_SIGN: '/uploads/sign',
+    UPLOAD_RESUMABLE: '/uploads/resumable'
 };
 
 // Response status enum

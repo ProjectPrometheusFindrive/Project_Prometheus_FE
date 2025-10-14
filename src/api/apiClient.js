@@ -436,3 +436,21 @@ export const issuesApi = {
         });
     }
 };
+
+// Uploads API methods
+export const uploadsApi = {
+    async sign(body) {
+        // body: { fileName: string, contentType?: string, folder?: string }
+        return await apiRequest(API_ENDPOINTS.UPLOAD_SIGN, {
+            method: 'POST',
+            body: JSON.stringify(body || {})
+        });
+    },
+    async createSession(body) {
+        // body: { fileName: string, contentType?: string, folder?: string }
+        return await apiRequest(API_ENDPOINTS.UPLOAD_RESUMABLE, {
+            method: 'POST',
+            body: JSON.stringify(body || {})
+        });
+    }
+};

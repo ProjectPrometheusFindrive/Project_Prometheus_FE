@@ -845,6 +845,47 @@ interface VehicleSnapshot {
 ```
 ```
 
+### Uploads (GCS Direct Upload)
+
+POST /uploads/sign
+
+- 설명: 소형 파일 업로드용 서명된 PUT URL 발급
+- 요청 본문: `{ fileName: string, contentType?: string, folder?: string }`
+- 응답 본문: `{ uploadUrl: string, objectName: string, publicUrl?: string, contentType: string }`
+
+POST /uploads/resumable
+
+- 설명: 대용량 업로드용 Resumable 세션 URL 발급
+- 요청 본문: `{ fileName: string, contentType?: string, folder?: string }`
+- 응답 본문: `{ sessionUrl: string, objectName: string, publicUrl?: string, contentType: string }`
+
+권장 클라이언트 흐름
+
+- 문서/이미지(≤10MB):
+  1) `POST /uploads/sign`으로 `uploadUrl` 발급
+  2) `PUT uploadUrl`에 파일 전체 바디 업로드 (`Content-Type` 지정)
+  3) 성공 시 `objectName`을 도메인 엔티티에 저장 (민감 문서는 `publicUrl` 저장 지양)
+
+- 동영상/대용량(>10MB):
+  1) `POST /uploads/resumable`로 `sessionUrl` 발급
+  2) `PUT sessionUrl`로 전체 또는 청크 업로드 (`Content-Range` 사용) — 최종 `2xx` 응답이면 완료
+  3) 완료 후 `objectName` 또는 `publicUrl`을 도메인 엔티티에 저장
+
+폴더 규칙(예)
+
+- 자산 보험서류: `assets/<assetId>/insurance`
+- 렌탈 블랙박스: `rentals/<rentalId>/blackbox`
+- 이슈 첨부: `issues/<issueId>/attachments`
+
+허용 타입
+
+- 문서/이미지: `application/pdf`, `image/png`, `image/jpeg`, `image/x-icon`, `image/webp`
+- 동영상: `video/mp4`, `video/x-msvideo`, `video/quicktime`, `video/mpeg`
+
+보안
+
+- 민감 문서는 `publicUrl`을 저장하지 말고 `objectName`만 저장. 다운로드 시 백엔드의 서명 GET URL 발급 API를 호출
+
 ## Authentication
 
 데모 환경은 localStorage 기반의 단순 인증 플래그만 사용합니다(`localStorage.isLoggedIn`). 실제 API 연동 시에는 Bearer 토큰(JWT) 또는 API Key 기반 인증을 권장합니다. 필요 시 `src/api/apiClient.js`에 `Authorization` 헤더를 추가하도록 확장하세요.

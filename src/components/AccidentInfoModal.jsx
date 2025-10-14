@@ -81,6 +81,10 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
         if (accidentData.blackboxFile && accidentData.blackboxFile instanceof File) {
             return URL.createObjectURL(accidentData.blackboxFile);
         }
+        // 백엔드가 제공한 공개 URL이 있는 경우 사용
+        if (accidentData.blackboxFileUrl) {
+            return accidentData.blackboxFileUrl;
+        }
         // 파일명이 blackbox_250922.mp4인 경우 data 폴더의 파일을 사용
         if (accidentData.blackboxFileName === "blackbox_250922.mp4") {
             return "/src/data/blackbox_250922.mp4";

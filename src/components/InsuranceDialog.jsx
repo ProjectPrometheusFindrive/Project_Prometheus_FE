@@ -2,6 +2,8 @@ import React, { useMemo, useState } from "react";
 import { formatDateShort } from "../utils/date";
 
 import { useEffect } from "react";
+import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from "../constants/uploads";
+import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 
 export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false, allowEditToggle = false }) {
   const [form, setForm] = useState({
@@ -15,6 +17,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   });
 
   const [isReadOnly, setIsReadOnly] = useState(!!readOnly);
+  const [uploadState, setUploadState] = useState({ status: "idle", percent: 0, error: "", cancel: null, mode: "" });
   useEffect(() => {
     setIsReadOnly(!!readOnly);
   }, [readOnly]);
@@ -46,6 +49,11 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       setForm((p) => ({ ...p, insuranceDoc: null, insuranceDocDataUrl: "" }));
       return;
     }
+    // Pre-validate type
+    if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
+      alert("허용되지 않는 파일 형식입니다.");
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       setForm((p) => ({ ...p, insuranceDoc: file, insuranceDocDataUrl: reader.result }));
@@ -53,7 +61,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     reader.readAsDataURL(file);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!form.insuranceCompany || !form.insuranceExpiryDate) {
       alert("보험사명과 만료일을 입력해 주세요.");
       return;
@@ -73,7 +81,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     };
     const nextHistory = [...(Array.isArray(asset.insuranceHistory) ? asset.insuranceHistory : []), historyEntry];
     const insuranceInfo = [form.insuranceCompany, form.insuranceProduct].filter(Boolean).join(" ").trim();
-    onSubmit && onSubmit({
+    const patch = {
       // Top-level current info for compatibility
       insuranceInfo,
       insuranceCompany: form.insuranceCompany,
@@ -85,7 +93,40 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       insuranceDocName: form.insuranceDoc?.name || asset.insuranceDocName || "",
       // Full history array
       insuranceHistory: nextHistory,
-    });
+    };
+
+    // Upload insurance document first (prefer private mode → store object name)
+    if (form.insuranceDoc && asset?.id) {
+      const folder = `assets/${encodeURIComponent(asset.id)}/insurance`;
+      const mode = chooseUploadMode(form.insuranceDoc.size);
+      setUploadState({ status: "uploading", percent: 0, error: "", cancel: null, mode });
+      const onProgress = (p) => setUploadState((s) => ({ ...s, percent: p.percent }));
+      try {
+        if (mode === "signed-put") {
+          const { promise, cancel } = uploadViaSignedPut(form.insuranceDoc, { folder, onProgress });
+          setUploadState((s) => ({ ...s, cancel }));
+          const result = await promise;
+          // Private mode: do not expose public URL for sensitive docs
+          patch.insuranceDocGcsObjectName = result.objectName || "";
+          // For backward compatibility, keep name
+          patch.insuranceDocName = form.insuranceDoc.name;
+        } else {
+          const { promise, cancel } = uploadResumable(form.insuranceDoc, { folder, onProgress });
+          setUploadState((s) => ({ ...s, cancel }));
+          const result = await promise;
+          patch.insuranceDocGcsObjectName = result.objectName || "";
+          patch.insuranceDocName = form.insuranceDoc.name;
+        }
+        setUploadState((s) => ({ ...s, status: "success", percent: 100, cancel: null }));
+      } catch (e) {
+        console.error("Insurance doc upload failed", e);
+        setUploadState({ status: "error", percent: 0, error: e?.message || "문서 업로드 실패", cancel: null, mode });
+        alert("문서 업로드에 실패했습니다.");
+        return;
+      }
+    }
+
+    onSubmit && onSubmit(patch);
   };
 
   const infoRow = (label, input) => (
@@ -109,6 +150,23 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               <label style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
                 <input type="file" accept="image/*,application/pdf" capture="environment" onChange={onFile} />
                 <div className="asset-doc__placeholder">{form.insuranceDoc?.name || asset.insuranceDocName || "파일 선택/촬영"}</div>
+                {form.insuranceDoc && (
+                  <div style={{ width: "100%", marginTop: 6 }}>
+                    <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}</div>
+                    {uploadState.status === 'uploading' && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                          <div style={{ width: `${uploadState.percent}%`, height: '100%', background: '#4caf50' }} />
+                        </div>
+                        <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{uploadState.percent}%</span>
+                        <button type="button" className="form-button form-button--muted" onClick={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }}>취소</button>
+                      </div>
+                    )}
+                    {uploadState.status === 'error' && (
+                      <div style={{ marginTop: 6, color: '#c62828', fontSize: 12 }}>업로드 실패: {uploadState.error || '알 수 없는 오류'}</div>
+                    )}
+                  </div>
+                )}
               </label>
             )}
           </div>
@@ -180,7 +238,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
 
       <div className="asset-dialog__footer">
         {(!isReadOnly) && (
-          <button type="button" className="form-button" onClick={handleSave} style={{ marginRight: 8 }}>
+          <button type="button" className="form-button" onClick={handleSave} disabled={uploadState.status === 'uploading'} style={{ marginRight: 8 }}>
             {(asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) ? '저장' : '등록'}
           </button>
         )}

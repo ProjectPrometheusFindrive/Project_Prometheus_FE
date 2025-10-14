@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { formatCurrency } from "../utils/formatters";
 import { formatDateShort } from "../utils/date";
+import { isValidKoreanPlate, normalizeKoreanPlate } from "../utils/validators";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -16,16 +17,22 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
   const onFile = (key) => (e) => {
     const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+    if (file) {
+      console.debug("[upload-ui] asset dialog file selected:", { key, name: file.name, size: file.size, type: file.type });
+    } else {
+      console.debug("[upload-ui] asset dialog file cleared:", { key });
+    }
     setForm((p) => ({ ...p, [key]: file }));
   };
 
+  const normalizedPlate = normalizeKoreanPlate(form.plate);
+  const isPlateInvalid = !!form.plate && !isValidKoreanPlate(normalizedPlate);
+
   const handleSave = () => {
     if (!onSubmit) return;
-    if (!isEdit && requireDocs) {
-      if (!form.insuranceDoc || !form.registrationDoc) {
-        alert("원리금 상환 계획표와 자동차 등록증은 필수입니다.");
-        return;
-      }
+    // Normalize on save; UI disables invalid state
+    if (!isEdit && form.plate && normalizedPlate !== form.plate) {
+      setForm((p) => ({ ...p, plate: normalizedPlate }));
     }
     onSubmit(form);
   };
@@ -106,7 +113,22 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             )}
             {infoRow(
               "차량번호",
-              <input className="form-input" value={form.plate} onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))} placeholder="예: 28가2345" />
+              <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+                <input
+                  className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
+                  value={form.plate}
+                  onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
+                  onBlur={(e) => {
+                    const v = normalizeKoreanPlate(e.target.value);
+                    if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
+                  }}
+                  aria-invalid={isPlateInvalid ? true : undefined}
+                  placeholder="예: 28가2345"
+                />
+                {isPlateInvalid && (
+                  <span aria-live="polite" style={{ color: "#d32f2f", fontSize: 12 }}>올바르지 않은 형식</span>
+                )}
+              </div>
             )}
             {infoRow(
               "차대번호(VIN)",
@@ -141,7 +163,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
       <div className="asset-dialog__footer">
         {!isEdit && onSubmit && (
-          <button type="button" className="form-button" onClick={handleSave} style={{ marginRight: 8 }}>저장</button>
+          <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid} style={{ marginRight: 8 }}>저장</button>
         )}
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>

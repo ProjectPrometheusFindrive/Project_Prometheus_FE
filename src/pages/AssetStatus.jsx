@@ -1,5 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, fetchRentals, createRental, updateRental, createAsset, deleteAsset, fetchAssetProfile, fetchAssetInsurance, fetchAssetDevice, fetchAssetDiagnostics } from "../api";
+import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
 import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
@@ -716,6 +718,52 @@ export default function AssetStatus() {
                 systemDelDate: data.systemDelDate,
                 registrationStatus: data.registrationStatus,
             };
+            // Optional: upload new docs if user selected
+            const { insuranceDoc, registrationDoc } = data || {};
+            if (insuranceDoc instanceof File || registrationDoc instanceof File) {
+                console.groupCollapsed("[upload-ui] asset update docs start");
+                const vin = (data.vin || "").trim();
+                const folder = vin ? `assets/${vin}/docs` : `assets/docs`;
+                const uploadOne = async (file, keyLabel) => {
+                    if (!file) return null;
+                    const type = file.type || "";
+                    if (type && !ALLOWED_MIME_TYPES.includes(type)) {
+                        console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
+                        return null;
+                    }
+                    const mode = chooseUploadMode(file.size || 0);
+                    console.debug(`[upload-ui] ${keyLabel} mode:`, mode, "folder:", folder);
+                    try {
+                        if (mode === "signed-put") {
+                            const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
+                            const res = await promise;
+                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
+                            return res?.publicUrl || null;
+                        } else {
+                            const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
+                            const res = await promise;
+                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
+                            return res?.publicUrl || null;
+                        }
+                    } catch (e) {
+                        console.error(`[upload-ui] ${keyLabel} upload failed`, e);
+                        return null;
+                    }
+                };
+                const [insuranceUrl, registrationUrl] = await Promise.all([
+                    uploadOne(insuranceDoc, "insuranceDoc"),
+                    uploadOne(registrationDoc, "registrationDoc"),
+                ]);
+                if (insuranceUrl) {
+                    patch.insuranceDocName = insuranceDoc?.name;
+                    patch.insuranceDocUrl = insuranceUrl;
+                }
+                if (registrationUrl) {
+                    patch.registrationDocName = registrationDoc?.name;
+                    patch.registrationDocUrl = registrationUrl;
+                }
+                console.groupEnd();
+            }
             try {
                 const resp = await saveAsset(editingAssetId, patch);
                 // If backend returns 204 No Content, resp will be null; merge local patch instead
@@ -758,8 +806,62 @@ export default function AssetStatus() {
                 registrationDate: rest.registrationDate || today,
                 registrationStatus: rest.registrationStatus || "자산등록 완료",
             };
+            // Upload docs first (if provided) then include URLs in payload
+            if (insuranceDoc instanceof File || registrationDoc instanceof File) {
+                console.groupCollapsed("[upload-ui] asset create docs start");
+                console.debug("[upload-ui] incoming files:", {
+                    insuranceDoc: insuranceDoc ? { name: insuranceDoc.name, size: insuranceDoc.size, type: insuranceDoc.type } : null,
+                    registrationDoc: registrationDoc ? { name: registrationDoc.name, size: registrationDoc.size, type: registrationDoc.type } : null,
+                });
+                const vin = (data.vin || "").trim();
+                const folder = vin ? `assets/${vin}/docs` : `assets/docs`;
+                const uploadOne = async (file, keyLabel) => {
+                    if (!file) return null;
+                    const type = file.type || "";
+                    if (type && !ALLOWED_MIME_TYPES.includes(type)) {
+                        console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
+                        return null;
+                    }
+                    const mode = chooseUploadMode(file.size || 0);
+                    console.debug(`[upload-ui] ${keyLabel} mode:`, mode, "folder:", folder);
+                    try {
+                        if (mode === "signed-put") {
+                            const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
+                            const res = await promise;
+                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
+                            return res?.publicUrl || null;
+                        } else {
+                            const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
+                            const res = await promise;
+                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
+                            return res?.publicUrl || null;
+                        }
+                    } catch (e) {
+                        console.error(`[upload-ui] ${keyLabel} upload failed`, e);
+                        return null;
+                    }
+                };
+                const [insuranceUrl, registrationUrl] = await Promise.all([
+                    uploadOne(insuranceDoc, "insuranceDoc"),
+                    uploadOne(registrationDoc, "registrationDoc"),
+                ]);
+                if (insuranceUrl) {
+                    payload.insuranceDocName = insuranceDoc?.name;
+                    payload.insuranceDocUrl = insuranceUrl;
+                }
+                if (registrationUrl) {
+                    payload.registrationDocName = registrationDoc?.name;
+                    payload.registrationDocUrl = registrationUrl;
+                }
+                console.groupEnd();
+            }
             try {
+                console.debug("[upload-ui] creating asset with payload (doc URLs present?):", {
+                    hasInsuranceDocUrl: !!payload.insuranceDocUrl,
+                    hasRegistrationDocUrl: !!payload.registrationDocUrl,
+                });
                 const created = await createAsset(payload);
+                console.debug("[upload-ui] createAsset result:", created);
                 const normalized = withManagementStage(created || payload);
                 setRows((prev) => [normalized, ...prev]);
             } catch (e) {

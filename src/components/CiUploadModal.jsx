@@ -16,10 +16,15 @@ function CiUploadModal({ isOpen, onClose, onSubmit, title = "CI 이미지 업로
   const handleFileChange = (e) => {
     const selected = e.target.files && e.target.files[0];
     if (!selected) return;
+    console.debug("[upload-ui] file selected:", { name: selected.name, size: selected.size, type: selected.type });
     setFile(selected);
 
     const reader = new FileReader();
-    reader.onload = (ev) => setPreviewUrl(String(ev.target?.result || ""));
+    reader.onload = (ev) => {
+      const url = String(ev.target?.result || "");
+      console.debug("[upload-ui] preview url size:", url.length);
+      setPreviewUrl(url);
+    };
     reader.readAsDataURL(selected);
   };
 

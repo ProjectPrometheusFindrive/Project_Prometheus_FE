@@ -6,7 +6,8 @@ import {
     geofencesApi,
     companyApi,
     problemVehiclesApi,
-    issuesApi
+    issuesApi,
+    uploadsApi
 } from './apiClient';
 import { API_STATUS, createOperationResult } from './apiTypes';
 
@@ -262,4 +263,15 @@ export async function createIssueDraft(data) {
         return createOperationResult(true, response.data);
     }
     return createOperationResult(false, null, response.error?.message || 'Failed to create issue');
+}
+
+// Upload helpers
+export async function requestUploadSign({ fileName, contentType, folder }) {
+    const response = await uploadsApi.sign({ fileName, contentType, folder });
+    return extractData(response);
+}
+
+export async function requestResumableSession({ fileName, contentType, folder }) {
+    const response = await uploadsApi.createSession({ fileName, contentType, folder });
+    return extractData(response);
 }

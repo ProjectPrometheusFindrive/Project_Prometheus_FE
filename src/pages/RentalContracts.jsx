@@ -13,6 +13,8 @@ import MemoHistoryModal from "../components/MemoHistoryModal";
 import MemoCell from "../components/MemoCell";
 import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
+import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from "../constants/uploads";
+import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { parseCurrency } from "../utils/formatters";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
@@ -132,6 +134,8 @@ export default function RentalContracts() {
     const [accidentForm, setAccidentForm] = useState(() => ({ ...ACCIDENT_FORM_DEFAULT }));
     const [fileInputKey, setFileInputKey] = useState(0);
     const [toast, setToast] = useState(null);
+    // Upload state for accident blackbox
+    const [uploadState, setUploadState] = useState({ status: "idle", percent: 0, error: "", cancel: null, mode: "" });
 
     // Initial load via API (prefer summary)
     useEffect(() => {
@@ -334,6 +338,7 @@ export default function RentalContracts() {
         setAccidentTarget(null);
         setAccidentForm({ ...ACCIDENT_FORM_DEFAULT });
         setFileInputKey((prev) => prev + 1);
+        setUploadState({ status: "idle", percent: 0, error: "", cancel: null, mode: "" });
     };
 
     const handleCloseAccidentInfoModal = () => {
@@ -370,6 +375,35 @@ export default function RentalContracts() {
             recordedAt: now.toISOString(),
         };
         try {
+            // If video selected, upload to GCS first
+            if (blackboxFile) {
+                // Validate MIME and choose upload mode
+                const typeOk = !blackboxFile.type || ALLOWED_MIME_TYPES.includes(blackboxFile.type);
+                if (!typeOk) {
+                    alert("허용되지 않는 파일 형식입니다.");
+                    return;
+                }
+                const folder = `rentals/${encodeURIComponent(accidentTarget.rentalId)}/blackbox`;
+                const mode = chooseUploadMode(blackboxFile.size);
+                setUploadState({ status: "uploading", percent: 0, error: "", cancel: null, mode });
+                let controller = new AbortController();
+                const onProgress = (p) => setUploadState((s) => ({ ...s, percent: p.percent }));
+                if (mode === "signed-put") {
+                    const { promise, cancel } = uploadViaSignedPut(blackboxFile, { folder, onProgress, signal: controller.signal });
+                    setUploadState((s) => ({ ...s, cancel }));
+                    const result = await promise;
+                    setUploadState({ status: "success", percent: 100, error: "", cancel: null, mode });
+                    updatedReport.blackboxFileUrl = result.publicUrl || "";
+                    updatedReport.blackboxGcsObjectName = result.objectName || "";
+                } else {
+                    const { promise, cancel } = uploadResumable(blackboxFile, { folder, onProgress, signal: controller.signal });
+                    setUploadState((s) => ({ ...s, cancel }));
+                    const result = await promise;
+                    setUploadState({ status: "success", percent: 100, error: "", cancel: null, mode });
+                    updatedReport.blackboxFileUrl = result.publicUrl || "";
+                    updatedReport.blackboxGcsObjectName = result.objectName || "";
+                }
+            }
             await updateRental(accidentTarget.rentalId, {
                 accidentReported: true,
                 accidentReport: updatedReport,
@@ -399,6 +433,12 @@ export default function RentalContracts() {
             handleCloseAccidentModal();
         } catch (e) {
             console.error("Failed to submit accident info", e);
+            const isAbort = String(e && e.message || "").toLowerCase().includes("abort");
+            if (isAbort) {
+                setUploadState((s) => ({ ...s, status: "idle" }));
+                return;
+            }
+            setUploadState((s) => ({ ...s, status: "error", error: e?.message || "업로드/저장 실패" }));
             alert("사고 등록 저장 실패");
         }
     };
@@ -1039,6 +1079,39 @@ export default function RentalContracts() {
                                         }}
                                     />
                                     {accidentForm.blackboxFileName && <span style={{ fontSize: "0.8rem", color: "#555" }}>선택된 파일: {accidentForm.blackboxFileName}</span>}
+                                    {accidentForm.blackboxFile && (
+                                        <div style={{ marginTop: 8 }}>
+                                            <div style={{ fontSize: "0.8rem", color: "#666", marginBottom: 6 }}>
+                                                업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}
+                                            </div>
+                                            {uploadState.status === 'uploading' && (
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                    <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 10, overflow: 'hidden' }}>
+                                                        <div style={{ width: `${uploadState.percent}%`, height: '100%', background: '#4caf50' }} />
+                                                    </div>
+                                                    <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{uploadState.percent}%</span>
+                                                    <button type="button" className="form-button form-button--muted" onClick={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }}>
+                                                        취소
+                                                    </button>
+                                                </div>
+                                            )}
+                                            {uploadState.status === 'error' && (
+                                                <div style={{ marginTop: 6, color: '#c62828', fontSize: 12 }}>
+                                                    업로드 실패: {uploadState.error || '알 수 없는 오류'}
+                                                    <div style={{ marginTop: 6 }}>
+                                                        <button type="button" className="form-button" onClick={(e) => {
+                                                            e.preventDefault();
+                                                            // Trigger submit again to retry upload
+                                                            const formEl = document.getElementById('accident-registration-form');
+                                                            if (formEl) formEl.requestSubmit();
+                                                        }}>
+                                                            재시도
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>사고 발생 시각</label>
@@ -1163,7 +1236,7 @@ export default function RentalContracts() {
                             </div>
                         </div>
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-                            <button type="submit" className="form-button">
+                            <button type="submit" className="form-button" disabled={uploadState.status === 'uploading'}>
                                 저장
                             </button>
                             <button type="button" className="form-button form-button--muted" onClick={handleCloseAccidentModal}>

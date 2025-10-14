@@ -5,6 +5,7 @@ import FormField from "./FormField";
 import FormActions from "./FormActions";
 import { STATUS_OPTIONS } from "../../constants/forms";
 import { formatCurrency } from "../../utils/formatters";
+import { normalizeKoreanPlate, isValidKoreanPlate } from "../../utils/validators";
 
 export default function AssetForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true, requireDocs = true }) {
     const initialFormValues = {
@@ -100,9 +101,21 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 label="차량번호"
                 value={form.plate}
                 onChange={(value) => update("plate", value)}
+                onBlur={(e) => {
+                    const v = normalizeKoreanPlate(e.target.value);
+                    if (v !== form.plate) update("plate", v);
+                }}
                 placeholder="예: 28가2345"
+                className={form.plate && !isValidKoreanPlate(normalizeKoreanPlate(form.plate)) ? "is-invalid" : ""}
+                aria-invalid={form.plate && !isValidKoreanPlate(normalizeKoreanPlate(form.plate)) ? true : undefined}
                 disabled={readOnly}
-            />
+            >
+                {!readOnly && form.plate && !isValidKoreanPlate(normalizeKoreanPlate(form.plate)) && (
+                    <div className="form-field-extra" aria-live="polite" style={{ color: "#d32f2f", fontSize: "12px", textAlign: "right" }}>
+                        올바르지 않은 형식
+                    </div>
+                )}
+            </FormField>
 
             <FormField
                 id="vin"
@@ -166,7 +179,12 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
 
             {!readOnly && showSubmit && (
                 <FormActions>
-                    <button type="submit" className="form-button">
+                    <button
+                        type="submit"
+                        className="form-button"
+                        disabled={form.plate && !isValidKoreanPlate(normalizeKoreanPlate(form.plate))}
+                        title={form.plate && !isValidKoreanPlate(normalizeKoreanPlate(form.plate)) ? "차량번호 형식이 올바르지 않습니다" : undefined}
+                    >
                         저장
                     </button>
                 </FormActions>

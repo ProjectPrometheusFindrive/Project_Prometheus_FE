@@ -1570,6 +1570,9 @@ body {
     border-radius: 8px;
     font-size: 1rem;
 }
+.form-input.is-invalid {
+    border-color: #d32f2f;
+}
 .form-row {
     display: flex;
     gap: 0.6rem;
