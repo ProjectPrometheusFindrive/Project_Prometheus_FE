@@ -15,7 +15,7 @@ import Detail from "./pages/Detail";
 import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
-import { getSignedDownloadUrl } from "./utils/gcsApi";
+import { getSignedDownloadUrl, deriveObjectName } from "./utils/gcsApi";
 
 const DynamicFavicon = () => {
   const { companyInfo } = useCompany();
@@ -52,10 +52,14 @@ const DynamicFavicon = () => {
   useEffect(() => {
     let cancelled = false;
     const run = async () => {
-      const objectName = companyInfo && companyInfo.logoPath;
+      let objectName = companyInfo && companyInfo.logoPath;
       if (!objectName) {
         setSignedFaviconUrl("");
         return;
+      }
+      if (typeof objectName === "string" && /^(https?:)?\/\//i.test(objectName)) {
+        const derived = deriveObjectName(objectName);
+        if (derived) objectName = derived;
       }
       try {
         const url = await getSignedDownloadUrl(objectName);
