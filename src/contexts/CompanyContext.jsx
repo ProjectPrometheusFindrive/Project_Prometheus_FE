@@ -1,6 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import defaultLogo from "../assets/default-logo.svg";
 import { fetchCompanyInfo, saveCompanyInfo } from "../api";
+import { deriveObjectName } from "../utils/gcsApi";
 
 const CompanyContext = createContext(null);
 
@@ -9,6 +10,8 @@ export const CompanyProvider = ({ children }) => {
     name: "Project Prometheus",
     // Keep empty so index.html's default favicon remains until a custom logo exists
     logoDataUrl: "",
+    // GCS object name (preferred)
+    logoPath: "",
   });
 
   useEffect(() => {
@@ -17,16 +20,25 @@ export const CompanyProvider = ({ children }) => {
       try {
         const info = await fetchCompanyInfo();
         if (!mounted) return;
-        const next = {
-          ...(info || {}),
-          // Empty string means "use default favicon from index.html"; UI components will fall back to defaultLogo
-          logoDataUrl: (info && info.logoDataUrl) ? info.logoDataUrl : "",
-        };
+        const next = { ...(info || {}) };
+        // Prefer logoPath (GCS objectName). If absent, try to derive from legacy URLs.
+        const legacyUrl = info && typeof info.logoDataUrl === "string" ? info.logoDataUrl : "";
+        const incomingLogoPath = info && typeof info.logoPath === "string" ? info.logoPath : "";
+        if (!incomingLogoPath && legacyUrl) {
+          const derived = deriveObjectName(legacyUrl);
+          if (derived) {
+            next.logoPath = derived;
+          }
+        }
+        // Keep logoDataUrl only if it's a data URL (local/preview). Otherwise empty.
+        next.logoDataUrl = legacyUrl && legacyUrl.startsWith("data:") ? legacyUrl : "";
+        // Ensure fields exist
+        if (!next.logoPath) next.logoPath = incomingLogoPath || "";
         setCompanyInfo(next);
       } catch (e) {
         // Fallback: keep as-is so default favicon remains
         if (mounted) {
-          setCompanyInfo((prev) => ({ ...prev, logoDataUrl: prev.logoDataUrl || "" }));
+          setCompanyInfo((prev) => ({ ...prev, logoDataUrl: prev.logoDataUrl || "", logoPath: prev.logoPath || "" }));
         }
       }
     })();

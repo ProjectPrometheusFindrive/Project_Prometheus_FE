@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
+import CompanyLogoSection from "../components/CompanyLogoSection";
 import {
     fetchCompanyInfo as loadCompanyInfo,
     saveCompanyInfo,
@@ -333,6 +334,9 @@ export default function Settings() {
                         alignItems: "stretch",
                     }}
                 >
+                    {/* 회사 로고 섹션 */}
+                    <CompanyLogoSection />
+
                     {/* 회사 정보 섹션 */}
                     <div>
                         <div className="card">

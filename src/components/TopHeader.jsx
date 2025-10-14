@@ -38,7 +38,7 @@ export default function TopHeader() {
         try {
             const folder = `company/ci`;
             const mode = chooseUploadMode(file.size);
-            let publicUrl = "";
+            let objectName = "";
             console.groupCollapsed("[upload-ui] logo upload start");
             console.debug("file:", { name: file?.name, size: file?.size, type: file?.type });
             console.debug("mode:", mode, "folder:", folder);
@@ -46,15 +46,16 @@ export default function TopHeader() {
                 const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug("[upload-ui] signed-put progress:", p) });
                 const res = await promise;
                 console.debug("[upload-ui] signed-put result:", res);
-                publicUrl = res.publicUrl || "";
+                objectName = res.objectName || "";
             } else {
                 const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug("[upload-ui] resumable progress:", p) });
                 const res = await promise;
                 console.debug("[upload-ui] resumable result:", res);
-                publicUrl = res.publicUrl || "";
+                objectName = res.objectName || "";
             }
-            console.debug("[upload-ui] updating company logo url:", publicUrl || previewUrl);
-            updateCompanyInfo({ logoDataUrl: publicUrl || previewUrl, logoObjectName: undefined });
+            console.debug("[upload-ui] updating company logo objectName:", objectName || "(none)");
+            // Persist preferred field: logoPath (objectName). Clear legacy data URL.
+            updateCompanyInfo({ logoPath: objectName, logoDataUrl: "" });
             setIsModalOpen(false);
         } catch (err) {
             console.error("Failed to save logo:", err);
