@@ -3,7 +3,7 @@ import useFormState from "../../hooks/useFormState";
 import FormGrid from "./FormGrid";
 import FormField from "./FormField";
 import FormActions from "./FormActions";
-import { STATUS_OPTIONS } from "../../constants/forms";
+import { STATUS_OPTIONS, FUEL_TYPE_OPTIONS, YEAR_OPTIONS } from "../../constants/forms";
 import { formatCurrency } from "../../utils/formatters";
 import { normalizeKoreanPlate, isValidKoreanPlate } from "../../utils/validators";
 
@@ -13,6 +13,8 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
         make: initial.make || "",
         model: initial.model || "",
         vin: initial.vin || "",
+        year: initial.year != null && initial.year !== "" ? String(initial.year) : "",
+        fuelType: initial.fuelType || "",
         vehicleValue: initial.vehicleValue || "",
         purchaseDate: initial.purchaseDate || "",
         systemRegDate: initial.systemRegDate || "",
@@ -93,6 +95,26 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 value={form.model}
                 onChange={(value) => update("model", value)}
                 placeholder="예: 쏘나타"
+                disabled={readOnly}
+            />
+
+            <FormField
+                id="year"
+                label="연식"
+                type="select"
+                value={form.year}
+                onChange={(value) => update("year", value)}
+                options={YEAR_OPTIONS}
+                disabled={readOnly}
+            />
+
+            <FormField
+                id="fuelType"
+                label="연료 타입"
+                type="select"
+                value={form.fuelType}
+                onChange={(value) => update("fuelType", value)}
+                options={FUEL_TYPE_OPTIONS}
                 disabled={readOnly}
             />
 
