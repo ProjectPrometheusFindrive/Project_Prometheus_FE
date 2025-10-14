@@ -11,8 +11,6 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
     const videoRef = useRef(null);
     const [videoSrc, setVideoSrc] = useState(null);
 
-    if (!accidentData) return null;
-
     const handlePlayPause = () => {
         if (!videoRef.current) return;
 
@@ -114,6 +112,8 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
             cancelled = true;
         };
     }, [accidentData?.blackboxFile, accidentData?.blackboxGcsObjectName, accidentData?.blackboxFileUrl, accidentData?.blackboxFileName]);
+
+    if (!accidentData) return null;
 
     return (
         <Modal
