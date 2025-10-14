@@ -4,6 +4,7 @@ import { formatDateShort } from "../utils/date";
 import { isValidKoreanPlate, normalizeKoreanPlate } from "../utils/validators";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
 import GCSImage from "./GCSImage";
+import FilePreview from "./FilePreview";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -113,12 +114,15 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
   const docBoxEdit = (title, key, accept = "image/*,application/pdf") => (
     <div className="asset-doc">
       <div className="asset-doc__title">{title}</div>
-      <div className="asset-doc__box" aria-label={`${title} 업로드 영역`}>
-        <label style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-          <input type="file" accept={accept} onChange={onFile(key)} required={requireDocs} />
-          <div className="asset-doc__placeholder">{form[key]?.name || "파일 선택"}</div>
-        </label>
+      <div style={{ marginBottom: 12 }}>
+        <input
+          type="file"
+          accept={accept}
+          onChange={onFile(key)}
+          required={requireDocs}
+        />
       </div>
+      <FilePreview file={form[key]} />
     </div>
   );
 

@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatPhone11 } from "../utils/formatters";
+import FilePreview from "../components/FilePreview";
 
 
 export default function SignUp() {
@@ -167,7 +168,10 @@ export default function SignUp() {
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-biz" style={{ width: "120px", marginBottom: 0 }}>사업자등록증</label>
-            <input id="su-biz" name="bizCert" type="file" accept="application/pdf,image/*" capture="environment" className="login-input" onChange={onFileChange} required style={{ flex: 1, minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <input id="su-biz" name="bizCert" type="file" accept="application/pdf,image/*" capture="environment" className="login-input" onChange={onFileChange} required style={{ width: "100%", fontSize: "14px", padding: "8px 12px", marginBottom: "8px" }} />
+              <FilePreview file={bizCert} />
+            </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>

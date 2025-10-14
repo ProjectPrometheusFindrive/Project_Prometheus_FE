@@ -3,6 +3,7 @@ import useFormState from "../../hooks/useFormState";
 import FormGrid from "./FormGrid";
 import FormField from "./FormField";
 import FormActions from "./FormActions";
+import FilePreview from "../FilePreview";
 import { STATUS_OPTIONS, FUEL_TYPE_OPTIONS, YEAR_OPTIONS } from "../../constants/forms";
 import { formatCurrency } from "../../utils/formatters";
 import { normalizeKoreanPlate, isValidKoreanPlate } from "../../utils/validators";
@@ -63,7 +64,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 required={requireDocs}
                 disabled={readOnly}
             >
-                {form.insuranceDoc && <div className="file-info">{form.insuranceDoc.name}</div>}
+                <FilePreview file={form.insuranceDoc} />
             </FormField>
 
             <FormField
@@ -76,7 +77,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 required={requireDocs}
                 disabled={readOnly}
             >
-                {form.registrationDoc && <div className="file-info">{form.registrationDoc.name}</div>}
+                <FilePreview file={form.registrationDoc} />
             </FormField>
 
             {/* 차량 기본 정보 */}

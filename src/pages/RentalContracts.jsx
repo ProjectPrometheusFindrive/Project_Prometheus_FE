@@ -16,6 +16,7 @@ import { computeContractStatus, toDate } from "../utils/contracts";
 import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { parseCurrency } from "../utils/formatters";
+import FilePreview from "../components/FilePreview";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -1076,16 +1077,16 @@ export default function RentalContracts() {
                                             padding: "6px",
                                             border: "1px solid #ddd",
                                             borderRadius: "6px",
+                                            marginBottom: "12px",
                                         }}
                                     />
-                                    {accidentForm.blackboxFileName && <span style={{ fontSize: "0.8rem", color: "#555" }}>선택된 파일: {accidentForm.blackboxFileName}</span>}
                                     {accidentForm.blackboxFile && (
-                                        <div style={{ marginTop: 8 }}>
+                                        <div style={{ marginBottom: 12 }}>
                                             <div style={{ fontSize: "0.8rem", color: "#666", marginBottom: 6 }}>
                                                 업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}
                                             </div>
                                             {uploadState.status === 'uploading' && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                                                     <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 10, overflow: 'hidden' }}>
                                                         <div style={{ width: `${uploadState.percent}%`, height: '100%', background: '#4caf50' }} />
                                                     </div>
@@ -1096,7 +1097,7 @@ export default function RentalContracts() {
                                                 </div>
                                             )}
                                             {uploadState.status === 'error' && (
-                                                <div style={{ marginTop: 6, color: '#c62828', fontSize: 12 }}>
+                                                <div style={{ marginBottom: 12, color: '#c62828', fontSize: 12 }}>
                                                     업로드 실패: {uploadState.error || '알 수 없는 오류'}
                                                     <div style={{ marginTop: 6 }}>
                                                         <button type="button" className="form-button" onClick={(e) => {
@@ -1112,6 +1113,7 @@ export default function RentalContracts() {
                                             )}
                                         </div>
                                     )}
+                                    <FilePreview file={accidentForm.blackboxFile} />
                                 </div>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>사고 발생 시각</label>

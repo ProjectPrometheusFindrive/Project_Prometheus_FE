@@ -4,6 +4,7 @@ import { formatDateShort } from "../utils/date";
 import { useEffect } from "react";
 import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import FilePreview from "./FilePreview";
 
 export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false, allowEditToggle = false }) {
   const [form, setForm] = useState({
@@ -141,35 +142,35 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       <div className="asset-dialog__body">
         <div className="asset-doc" style={{ marginBottom: 12 }}>
           <div className="asset-doc__title">보험증권 등록</div>
-          <div className="asset-doc__box" aria-label="보험증권 파일 업로드">
-            {isReadOnly ? (
-              <div className="asset-doc__placeholder">
-                {asset.insuranceDocName || (asset.insuranceDocDataUrl ? "등록된 파일" : "등록된 파일 없음")}
-              </div>
-            ) : (
-              <label style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-                <input type="file" accept="image/*,application/pdf" capture="environment" onChange={onFile} />
-                <div className="asset-doc__placeholder">{form.insuranceDoc?.name || asset.insuranceDocName || "파일 선택/촬영"}</div>
-                {form.insuranceDoc && (
-                  <div style={{ width: "100%", marginTop: 6 }}>
-                    <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}</div>
-                    {uploadState.status === 'uploading' && (
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
-                          <div style={{ width: `${uploadState.percent}%`, height: '100%', background: '#4caf50' }} />
-                        </div>
-                        <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{uploadState.percent}%</span>
-                        <button type="button" className="form-button form-button--muted" onClick={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }}>취소</button>
+          {!isReadOnly && (
+            <div style={{ marginBottom: 12 }}>
+              <input
+                type="file"
+                accept="image/*,application/pdf"
+                capture="environment"
+                onChange={onFile}
+                style={{ marginBottom: 8 }}
+              />
+              {form.insuranceDoc && (
+                <div style={{ width: "100%", marginTop: 6 }}>
+                  <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}</div>
+                  {uploadState.status === 'uploading' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                        <div style={{ width: `${uploadState.percent}%`, height: '100%', background: '#4caf50' }} />
                       </div>
-                    )}
-                    {uploadState.status === 'error' && (
-                      <div style={{ marginTop: 6, color: '#c62828', fontSize: 12 }}>업로드 실패: {uploadState.error || '알 수 없는 오류'}</div>
-                    )}
-                  </div>
-                )}
-              </label>
-            )}
-          </div>
+                      <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{uploadState.percent}%</span>
+                      <button type="button" className="form-button form-button--muted" onClick={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }}>취소</button>
+                    </div>
+                  )}
+                  {uploadState.status === 'error' && (
+                    <div style={{ marginTop: 6, color: '#c62828', fontSize: 12 }}>업로드 실패: {uploadState.error || '알 수 없는 오류'}</div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+          <FilePreview file={form.insuranceDoc} />
         </div>
 
         <div className="asset-info grid-info">
