@@ -27,3 +27,26 @@ export const SEVERITY_OPTIONS = [
     { value: "medium", label: "보통" },
     { value: "high", label: "높음" }
 ];
+
+// Fuel type options for assets
+export const FUEL_TYPE_OPTIONS = [
+    { value: "", label: "선택" },
+    { value: "가솔린", label: "가솔린" },
+    { value: "디젤", label: "디젤" },
+    { value: "전기", label: "전기" },
+    { value: "하이브리드", label: "하이브리드" },
+    { value: "LPG", label: "LPG" },
+    { value: "수소", label: "수소" },
+    { value: "기타", label: "기타" }
+];
+
+// Year options (descending from current year)
+const CURRENT_YEAR = new Date().getFullYear();
+const YEAR_START = 1990;
+export const YEAR_OPTIONS = [
+    { value: "", label: "선택" },
+    ...Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
+        const y = CURRENT_YEAR - i;
+        return { value: String(y), label: String(y) };
+    })
+];
