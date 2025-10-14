@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { getSignedDownloadUrl } from "../utils/gcsApi";
+import { getSignedDownloadUrl, deriveObjectName } from "../utils/gcsApi";
 
 function GCSImage({ objectName, alt = "", ...props }) {
   const [signedUrl, setSignedUrl] = useState(null);
@@ -20,16 +20,21 @@ function GCSImage({ objectName, alt = "", ...props }) {
           return;
         }
 
-        // Backward compatibility: if full URL is provided, use as-is (may 403 if private)
+        // If full GCS URL is provided, derive objectName to sign; otherwise allow full URL as-is
+        let candidate = objectName;
         if (typeof objectName === "string" && /^(https?:)?\/\//i.test(objectName)) {
-          if (!cancelled) {
-            setSignedUrl(objectName);
-            setLoading(false);
+          const derived = deriveObjectName(objectName);
+          if (derived) candidate = derived;
+          else {
+            if (!cancelled) {
+              setSignedUrl(objectName);
+              setLoading(false);
+            }
+            return;
           }
-          return;
         }
 
-        const url = await getSignedDownloadUrl(objectName);
+        const url = await getSignedDownloadUrl(candidate);
         if (!cancelled) {
           setSignedUrl(url);
           setLoading(false);
@@ -55,4 +60,3 @@ function GCSImage({ objectName, alt = "", ...props }) {
 }
 
 export default GCSImage;
-

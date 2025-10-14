@@ -65,6 +65,12 @@ export async function getSignedDownloadUrl(objectName, ttlSeconds = 3600) {
     return objectName;
   }
 
+  // If a full GCS URL is passed, try to derive the object name
+  if (typeof objectName === "string" && /(storage\.(googleapis|cloud)\.com)|^gs:\/\//i.test(objectName)) {
+    const derived = deriveObjectName(objectName);
+    if (derived) objectName = derived;
+  }
+
   const base = getBaseUrl();
   const url = `${base}/uploads/download-url`;
 
@@ -92,3 +98,32 @@ async function safeReadText(res) {
   }
 }
 
+// Try to derive objectName from common GCS URL shapes
+export function deriveObjectName(input) {
+  if (!input || typeof input !== "string") return "";
+  try {
+    // gs://bucket/object
+    if (input.startsWith("gs://")) {
+      const rest = input.slice(5); // skip gs://
+      const idx = rest.indexOf("/");
+      return idx >= 0 ? decodeURIComponent(rest.slice(idx + 1)) : "";
+    }
+    const u = new URL(input);
+    const host = u.hostname || "";
+    const pathname = u.pathname || "/";
+    // https://storage.googleapis.com/bucket/object
+    if (host === "storage.googleapis.com" || host === "storage.cloud.google.com") {
+      const parts = pathname.replace(/^\/+/, "").split("/");
+      if (parts.length >= 2) {
+        return decodeURIComponent(parts.slice(1).join("/"));
+      }
+      return "";
+    }
+    // https://bucket.storage.googleapis.com/object
+    if (/\.storage\.googleapis\.com$/i.test(host)) {
+      const p = pathname.replace(/^\/+/, "");
+      return decodeURIComponent(p);
+    }
+  } catch {}
+  return "";
+}

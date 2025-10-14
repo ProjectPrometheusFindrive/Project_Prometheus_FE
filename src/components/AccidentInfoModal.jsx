@@ -1,6 +1,7 @@
-import React, { useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import Modal from "./Modal";
 import { FaPlay, FaPause, FaStop, FaVolumeUp, FaVolumeDown, FaExpand, FaClock, FaUser, FaExclamationTriangle } from "react-icons/fa";
+import { getSignedDownloadUrl } from "../utils/gcsApi";
 
 const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title = "사고 정보 조회" }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -8,6 +9,7 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const videoRef = useRef(null);
+    const [videoSrc, setVideoSrc] = useState(null);
 
     if (!accidentData) return null;
 
@@ -76,23 +78,42 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
         }
     };
 
-    const getVideoSrc = () => {
-        // 실제 파일이 있는 경우 해당 파일을 사용
-        if (accidentData.blackboxFile && accidentData.blackboxFile instanceof File) {
-            return URL.createObjectURL(accidentData.blackboxFile);
-        }
-        // 백엔드가 제공한 공개 URL이 있는 경우 사용
-        if (accidentData.blackboxFileUrl) {
-            return accidentData.blackboxFileUrl;
-        }
-        // 파일명이 blackbox_250922.mp4인 경우 data 폴더의 파일을 사용
-        if (accidentData.blackboxFileName === "blackbox_250922.mp4") {
-            return "/src/data/blackbox_250922.mp4";
-        }
-        return null;
-    };
-
-    const videoSrc = getVideoSrc();
+    useEffect(() => {
+        let cancelled = false;
+        const run = async () => {
+            try {
+                // 1) Local File object preview
+                if (accidentData?.blackboxFile instanceof File) {
+                    const url = URL.createObjectURL(accidentData.blackboxFile);
+                    if (!cancelled) setVideoSrc(url);
+                    return;
+                }
+                // 2) Prefer private object with signed URL
+                if (accidentData?.blackboxGcsObjectName) {
+                    const url = await getSignedDownloadUrl(accidentData.blackboxGcsObjectName);
+                    if (!cancelled) setVideoSrc(url);
+                    return;
+                }
+                // 3) Fallback to legacy public URL (may 403 if bucket is private)
+                if (accidentData?.blackboxFileUrl) {
+                    if (!cancelled) setVideoSrc(accidentData.blackboxFileUrl);
+                    return;
+                }
+                // 4) Demo sample
+                if (accidentData?.blackboxFileName === "blackbox_250922.mp4") {
+                    if (!cancelled) setVideoSrc("/src/data/blackbox_250922.mp4");
+                    return;
+                }
+                if (!cancelled) setVideoSrc(null);
+            } catch (e) {
+                if (!cancelled) setVideoSrc(null);
+            }
+        };
+        run();
+        return () => {
+            cancelled = true;
+        };
+    }, [accidentData?.blackboxFile, accidentData?.blackboxGcsObjectName, accidentData?.blackboxFileUrl, accidentData?.blackboxFileName]);
 
     return (
         <Modal
