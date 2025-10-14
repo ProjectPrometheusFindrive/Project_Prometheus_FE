@@ -711,6 +711,8 @@ export default function AssetStatus() {
                 vehicleType: composedVehicleType,
                 make: data.make,
                 model: data.model,
+                year: data.year ? Number(data.year) : data.year,
+                fuelType: data.fuelType,
                 vin: data.vin,
                 vehicleValue: data.vehicleValue,
                 purchaseDate: data.purchaseDate,
@@ -738,29 +740,29 @@ export default function AssetStatus() {
                             const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
                             const res = await promise;
                             console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.publicUrl || null;
+                            return res?.objectName || null;
                         } else {
                             const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
                             const res = await promise;
                             console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.publicUrl || null;
+                            return res?.objectName || null;
                         }
                     } catch (e) {
                         console.error(`[upload-ui] ${keyLabel} upload failed`, e);
                         return null;
                     }
                 };
-                const [insuranceUrl, registrationUrl] = await Promise.all([
+                const [insuranceObjectName, registrationObjectName] = await Promise.all([
                     uploadOne(insuranceDoc, "insuranceDoc"),
                     uploadOne(registrationDoc, "registrationDoc"),
                 ]);
-                if (insuranceUrl) {
+                if (insuranceObjectName) {
                     patch.insuranceDocName = insuranceDoc?.name;
-                    patch.insuranceDocUrl = insuranceUrl;
+                    patch.insuranceDocGcsObjectName = insuranceObjectName;
                 }
-                if (registrationUrl) {
+                if (registrationObjectName) {
                     patch.registrationDocName = registrationDoc?.name;
-                    patch.registrationDocUrl = registrationUrl;
+                    patch.registrationDocGcsObjectName = registrationObjectName;
                 }
                 console.groupEnd();
             }
@@ -781,6 +783,8 @@ export default function AssetStatus() {
                             vehicleType: composedVehicleType || a.vehicleType,
                             make: data.make || a.make,
                             model: data.model || a.model,
+                            year: (data.year ? Number(data.year) : data.year) ?? a.year,
+                            fuelType: data.fuelType ?? a.fuelType,
                             vin: data.vin || a.vin,
                             vehicleValue: data.vehicleValue || a.vehicleValue,
                             purchaseDate: data.purchaseDate || a.purchaseDate,
@@ -802,6 +806,8 @@ export default function AssetStatus() {
             const { registrationDoc, insuranceDoc, ...rest } = data || {};
             const payload = {
                 ...rest,
+                year: rest.year ? Number(rest.year) : rest.year,
+                fuelType: rest.fuelType,
                 vehicleType: composedVehicleType || rest.vehicleType || "",
                 registrationDate: rest.registrationDate || today,
                 registrationStatus: rest.registrationStatus || "자산등록 완료",
@@ -829,36 +835,36 @@ export default function AssetStatus() {
                             const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
                             const res = await promise;
                             console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.publicUrl || null;
+                            return res?.objectName || null;
                         } else {
                             const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
                             const res = await promise;
                             console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.publicUrl || null;
+                            return res?.objectName || null;
                         }
                     } catch (e) {
                         console.error(`[upload-ui] ${keyLabel} upload failed`, e);
                         return null;
                     }
                 };
-                const [insuranceUrl, registrationUrl] = await Promise.all([
+                const [insuranceObjectName, registrationObjectName] = await Promise.all([
                     uploadOne(insuranceDoc, "insuranceDoc"),
                     uploadOne(registrationDoc, "registrationDoc"),
                 ]);
-                if (insuranceUrl) {
+                if (insuranceObjectName) {
                     payload.insuranceDocName = insuranceDoc?.name;
-                    payload.insuranceDocUrl = insuranceUrl;
+                    payload.insuranceDocGcsObjectName = insuranceObjectName;
                 }
-                if (registrationUrl) {
+                if (registrationObjectName) {
                     payload.registrationDocName = registrationDoc?.name;
-                    payload.registrationDocUrl = registrationUrl;
+                    payload.registrationDocGcsObjectName = registrationObjectName;
                 }
                 console.groupEnd();
             }
             try {
-                console.debug("[upload-ui] creating asset with payload (doc URLs present?):", {
-                    hasInsuranceDocUrl: !!payload.insuranceDocUrl,
-                    hasRegistrationDocUrl: !!payload.registrationDocUrl,
+                console.debug("[upload-ui] creating asset with payload (doc objectNames present?):", {
+                    hasInsuranceDocObjectName: !!payload.insuranceDocGcsObjectName,
+                    hasRegistrationDocObjectName: !!payload.registrationDocGcsObjectName,
                 });
                 const created = await createAsset(payload);
                 console.debug("[upload-ui] createAsset result:", created);

@@ -103,7 +103,11 @@ export default function Detail() {
                         onSubmit={async (form) => {
                             try {
                                 const { registrationDoc, insuranceDoc, ...rest } = form || {};
-                                await saveAsset(data.id, rest);
+                                const patch = {
+                                    ...rest,
+                                    year: rest.year ? Number(rest.year) : rest.year,
+                                };
+                                await saveAsset(data.id, patch);
                             } catch (e) {
                                 console.error("Failed saving asset via API", e);
                                 alert("자산 저장에 실패했습니다.");
