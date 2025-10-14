@@ -437,7 +437,7 @@ export const issuesApi = {
     }
 };
 
-// Uploads API methods
+// Uploads API methods (signing + resumable session)
 export const uploadsApi = {
     async sign(body) {
         // body: { fileName: string, contentType?: string, folder?: string }
