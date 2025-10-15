@@ -1,5 +1,7 @@
 // GCS upload/download helpers using backend-signed URLs
 
+import { typedStorage } from "./storage";
+
 const getBaseUrl = () => {
   const base = import.meta.env.VITE_API_BASE_URL || "";
   return base.replace(/\/$/, "");
@@ -17,9 +19,12 @@ export async function uploadFileToGCS(file, folder = "") {
   const base = getBaseUrl();
   const signUrl = `${base}/uploads/sign`;
 
+  const token = typedStorage.auth.getToken();
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
+
   const signResponse = await fetch(signUrl, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders },
     body: JSON.stringify({
       fileName: file.name,
       contentType: file.type || "application/octet-stream",
@@ -74,9 +79,11 @@ export async function getSignedDownloadUrl(objectName, ttlSeconds = 3600) {
   const base = getBaseUrl();
   const url = `${base}/uploads/download-url`;
 
+  const token = typedStorage.auth.getToken();
+  const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...authHeaders },
     body: JSON.stringify({ objectName, ttlSeconds }),
   });
 

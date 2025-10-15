@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { HashRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import { CompanyProvider, useCompany } from "./contexts/CompanyContext";
+import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import TermsAgreement from "./pages/TermsAgreement";
@@ -16,6 +17,7 @@ import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { getSignedDownloadUrl, deriveObjectName } from "./utils/gcsApi";
+import GlobalToast from "./components/GlobalToast";
 
 const DynamicFavicon = () => {
   const { companyInfo } = useCompany();
@@ -95,8 +97,10 @@ const DynamicFavicon = () => {
 function App() {
   return (
     <ErrorBoundary>
-      <CompanyProvider>
-        <Router>
+      <AuthProvider>
+        <CompanyProvider>
+          <Router>
+            <GlobalToast />
           <DynamicFavicon />
           <Routes>
             <Route path="/" element={<Login />} />
@@ -135,8 +139,9 @@ function App() {
             {/* Fallback for unknown routes */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-        </Router>
-      </CompanyProvider>
+          </Router>
+        </CompanyProvider>
+      </AuthProvider>
     </ErrorBoundary>
   );
 }

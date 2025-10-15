@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { typedStorage } from "../utils/storage";
+import { useAuth } from "../contexts/AuthContext";
+import { login } from "../api";
 
 export default function Login() {
   const navigate = useNavigate();
+  const auth = useAuth();
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   function goToLanding() {
     navigate("/dashboard", { replace: true });
@@ -18,10 +23,26 @@ export default function Login() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault();
-    typedStorage.auth.setLoggedIn(true);
-    goToLanding();
+    setError("");
+    setLoading(true);
+
+    try {
+      // Call login API
+      const response = await login({ userId: id, password });
+
+      // Persist and update auth context
+      auth.setAuthenticated(response.token, response.user);
+
+      // Navigate to dashboard
+      goToLanding();
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.message || "로그인에 실패했습니다. 아이디와 비밀번호를 확인해주세요.");
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -53,9 +74,11 @@ export default function Login() {
             required
           />
 
-          <button type="submit" className="login-button">Login</button>
+          <button type="submit" className="login-button" disabled={loading}>
+            {loading ? "로그인 중..." : "Login"}
+          </button>
         </form>
-        <p className="login-help">Any input logs in for now.</p>
+        {error && <p className="login-help" style={{ color: "#b71c1c" }}>{error}</p>}
         <div className="login-help" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link to="/terms">회원가입</Link>
           <span style={{ color: "#bbb" }}>|</span>

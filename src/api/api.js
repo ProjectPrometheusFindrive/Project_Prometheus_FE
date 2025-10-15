@@ -278,6 +278,11 @@ export async function requestResumableSession({ fileName, contentType, folder })
 }
 
 // Auth
+export async function login(credentials) {
+    const response = await authApi.login(credentials);
+    return extractData(response);
+}
+
 export async function signup(userData) {
     const response = await authApi.signup(userData);
     return extractData(response);
@@ -285,5 +290,10 @@ export async function signup(userData) {
 
 export async function checkUserId(userId) {
     const response = await authApi.checkUserId(userId);
+    return extractData(response);
+}
+
+export async function getCurrentUser() {
+    const response = await authApi.getCurrentUser();
     return extractData(response);
 }

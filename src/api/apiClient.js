@@ -1,9 +1,9 @@
 // Unified API client with consistent error handling and response formatting
 
-import { 
-    API_ENDPOINTS, 
-    handleApiError, 
-    createApiResponse, 
+import {
+    API_ENDPOINTS,
+    handleApiError,
+    createApiResponse,
     API_STATUS,
     validateId,
     validateVin,
@@ -11,6 +11,30 @@ import {
     transformRental,
     toCamelRentalPayload
 } from './apiTypes';
+import { typedStorage } from '../utils/storage';
+import { emitToast } from '../utils/toast';
+
+let unauthorizedGuard = false;
+function handleUnauthorized(message) {
+    if (unauthorizedGuard) return;
+    unauthorizedGuard = true;
+    try {
+        typedStorage.auth.logout();
+    } catch {}
+    try {
+        emitToast(message || '인증이 만료되었거나 무효화되었습니다. 다시 로그인해 주세요.', 'error', 4000);
+    } catch {}
+    try {
+        // Using HashRouter; send to login route
+        if (typeof window !== 'undefined') {
+            const dest = '#/';
+            if (window.location.hash !== dest) {
+                window.location.hash = dest;
+            }
+        }
+    } catch {}
+    setTimeout(() => { unauthorizedGuard = false; }, 1500);
+}
 
 // Base URL and configuration
 const getBaseUrl = () => {
@@ -30,8 +54,14 @@ async function apiRequest(endpoint, options = {}) {
         // Merge options with safe headers (avoid being overwritten by spreading order)
         const method = (restOptions.method || 'GET').toUpperCase();
         const baseHeaders = (restOptions && restOptions.headers) ? restOptions.headers : {};
+
+        // Add authentication token if available
+        const token = typedStorage.auth.getToken();
+        const authHeaders = token ? { 'Authorization': `Bearer ${token}` } : {};
+
         const headers = {
             ...(method !== 'GET' ? { 'Content-Type': 'application/json' } : {}),
+            ...authHeaders,
             ...baseHeaders,
         };
 
@@ -93,6 +123,10 @@ async function apiRequest(endpoint, options = {}) {
             err.statusText = response.statusText;
             err.url = url;
             err.data = payload;
+            if (status === 401) {
+                const msg = (payload && (payload.error?.message || payload.message)) || '인증이 만료되었거나 무효화되었습니다.';
+                handleUnauthorized(msg);
+            }
             throw err;
         }
 
@@ -102,6 +136,10 @@ async function apiRequest(endpoint, options = {}) {
         if (error && (error.name === 'AbortError' || error.message?.toLowerCase().includes('aborted'))) {
             error.status = error.status || 0;
             error.statusText = error.statusText || 'Request aborted';
+        }
+        if (error && error.status === 401) {
+            const msg = (error.data && (error.data.error?.message || error.data.message)) || '인증이 만료되었거나 무효화되었습니다.';
+            handleUnauthorized(msg);
         }
         return handleApiError(error, endpoint);
     }
@@ -457,6 +495,14 @@ export const uploadsApi = {
 
 // Auth API methods
 export const authApi = {
+    async login(credentials) {
+        // credentials: { userId, password }
+        return await apiRequest(API_ENDPOINTS.AUTH_LOGIN, {
+            method: 'POST',
+            body: JSON.stringify(credentials)
+        });
+    },
+
     async signup(userData) {
         // userData: { userId, password, name, phone, email, position, company, bizCertUrl }
         return await apiRequest(API_ENDPOINTS.AUTH_SIGNUP, {
@@ -469,5 +515,10 @@ export const authApi = {
         // Check if userId (email) is available
         const params = new URLSearchParams({ userId });
         return await apiRequest(`${API_ENDPOINTS.AUTH_CHECK_USERID}?${params.toString()}`);
+    },
+
+    async getCurrentUser() {
+        // Get current authenticated user info
+        return await apiRequest(API_ENDPOINTS.AUTH_ME);
     }
 };

@@ -47,6 +47,8 @@ export const {
   requestResumableSession,
 
   // Auth
+  login,
   signup,
   checkUserId,
+  getCurrentUser,
 } = api;

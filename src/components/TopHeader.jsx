@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
+import { useAuth } from "../contexts/AuthContext";
 import defaultLogo from "../assets/default-logo.svg";
 import CiUploadModal from "./CiUploadModal";
 import { useCompany } from "../contexts/CompanyContext";
@@ -11,12 +12,17 @@ import GCSImage from "./GCSImage";
 
 export default function TopHeader() {
     const navigate = useNavigate();
+    const auth = useAuth();
     const { companyInfo, updateCompanyInfo } = useCompany();
     const [uploading, setUploading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
+    // Get user info from storage
+    const userInfo = typedStorage.auth.getUserInfo();
+    const userName = userInfo?.name || "관리자";
+
     function handleLogout() {
-        typedStorage.auth.logout();
+        auth.logout();
         navigate("/", { replace: true });
     }
 
@@ -125,7 +131,7 @@ export default function TopHeader() {
             </div>
 
             <div className="top-header__right">
-                <span className="top-header__user-id">관리자</span>
+                <span className="top-header__user-id">{userName}</span>
                 <button
                     type="button"
                     className="top-header__logout-btn"

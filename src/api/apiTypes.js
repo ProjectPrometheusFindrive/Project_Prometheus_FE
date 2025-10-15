@@ -2,8 +2,10 @@
 
 export const API_ENDPOINTS = {
     // Auth
+    AUTH_LOGIN: '/auth/login',
     AUTH_SIGNUP: '/auth/signup',
     AUTH_CHECK_USERID: '/auth/check-userid',
+    AUTH_ME: '/auth/me',
 
     // Assets
     ASSETS: '/assets',
@@ -60,6 +62,7 @@ export const API_ERRORS = {
     NETWORK_ERROR: 'NETWORK_ERROR',
     NOT_FOUND: 'NOT_FOUND',
     UNAUTHORIZED: 'UNAUTHORIZED',
+    CONFLICT: 'CONFLICT',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     SERVER_ERROR: 'SERVER_ERROR'
 };
@@ -96,6 +99,13 @@ export function handleApiError(error, endpoint = 'unknown') {
         return createApiResponse(null, API_STATUS.ERROR, {
             type: API_ERRORS.UNAUTHORIZED,
             message: 'Authentication required'
+        });
+    }
+    
+    if (error.status === 409) {
+        return createApiResponse(null, API_STATUS.ERROR, {
+            type: API_ERRORS.CONFLICT,
+            message: '이미 존재하는 아이디입니다.'
         });
     }
     

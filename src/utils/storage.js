@@ -4,6 +4,8 @@
 export const STORAGE_KEYS = {
   // Authentication
   IS_LOGGED_IN: 'isLoggedIn',
+  AUTH_TOKEN: 'authToken',
+  USER_INFO: 'userInfo',
   REGISTERED_USERS: 'registeredUsers',
   
   // Asset Management
@@ -51,6 +53,13 @@ export const storageUtils = {
       console.warn(`Failed to get localStorage key "${key}":`, error);
       return defaultValue;
     }
+  },
+  
+  // Soft flags
+  flags: {
+    getNeedsCompanyDocs: () => storageUtils.get('needsCompanyDocs') === 'true',
+    setNeedsCompanyDocs: (v = true) => storageUtils.set('needsCompanyDocs', String(!!v)),
+    clearNeedsCompanyDocs: () => storageUtils.remove('needsCompanyDocs'),
   },
 
   /**
@@ -203,7 +212,20 @@ export const typedStorage = {
   auth: {
     isLoggedIn: () => storageUtils.get(STORAGE_KEYS.IS_LOGGED_IN) === 'true',
     setLoggedIn: (status) => storageUtils.set(STORAGE_KEYS.IS_LOGGED_IN, String(status)),
-    logout: () => storageUtils.remove(STORAGE_KEYS.IS_LOGGED_IN)
+
+    getToken: () => storageUtils.get(STORAGE_KEYS.AUTH_TOKEN),
+    setToken: (token) => storageUtils.set(STORAGE_KEYS.AUTH_TOKEN, token),
+    removeToken: () => storageUtils.remove(STORAGE_KEYS.AUTH_TOKEN),
+
+    getUserInfo: () => storageUtils.get(STORAGE_KEYS.USER_INFO),
+    setUserInfo: (userInfo) => storageUtils.set(STORAGE_KEYS.USER_INFO, userInfo),
+    removeUserInfo: () => storageUtils.remove(STORAGE_KEYS.USER_INFO),
+
+    logout: () => {
+      storageUtils.remove(STORAGE_KEYS.IS_LOGGED_IN);
+      storageUtils.remove(STORAGE_KEYS.AUTH_TOKEN);
+      storageUtils.remove(STORAGE_KEYS.USER_INFO);
+    }
   },
 
   // Draft helpers

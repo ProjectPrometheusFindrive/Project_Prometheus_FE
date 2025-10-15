@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { formatPhone11 } from "../utils/formatters";
 import FilePreview from "../components/FilePreview";
 import { signup, requestUploadSign } from "../api";
+import { typedStorage } from "../utils/storage";
+import { emitToast } from "../utils/toast";
 
 
 export default function SignUp() {
@@ -98,10 +100,7 @@ export default function SignUp() {
       setMessage("직위를 선택해주세요.");
       return;
     }
-    if (!bizCert) {
-      setMessage("사업자등록증 업로드가 필요합니다.");
-      return;
-    }
+    // 사업자등록증은 로그인 후에도 업로드 가능하므로 여기서는 선택 사항으로 처리
     if (!form.company.trim()) {
       setMessage("소속회사를 입력해주세요.");
       return;
@@ -110,27 +109,30 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      // 1. Upload business certificate file to GCS
-      const uploadSignData = await requestUploadSign({
-        fileName: bizCert.name,
-        contentType: bizCert.type,
-        folder: "business-certificates"
-      });
-
-      // Upload file using signed URL
-      const uploadResponse = await fetch(uploadSignData.signedUrl, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': bizCert.type
-        },
-        body: bizCert
-      });
-
-      if (!uploadResponse.ok) {
-        throw new Error("파일 업로드에 실패했습니다.");
+      let bizCertUrl = "";
+      if (bizCert) {
+        try {
+          // Try uploading certificate (may require auth in new backend policy)
+          const uploadSignData = await requestUploadSign({
+            fileName: bizCert.name,
+            contentType: bizCert.type,
+            folder: "business-certificates"
+          });
+          const uploadResponse = await fetch(uploadSignData.signedUrl, {
+            method: 'PUT',
+            headers: { 'Content-Type': bizCert.type },
+            body: bizCert
+          });
+          if (!uploadResponse.ok) throw new Error("파일 업로드에 실패했습니다.");
+          bizCertUrl = uploadSignData.publicUrl || uploadSignData.fileUrl || "";
+        } catch (e) {
+          // Graceful fallback: proceed without file
+          emitToast("서류 업로드는 로그인 후 설정 화면에서 완료해 주세요.", "info", 4000);
+          bizCertUrl = "";
+        }
       }
 
-      // 2. Call signup API with uploaded file URL
+      // 2. Call signup API with optional uploaded file URL
       const userData = {
         userId: form.userId,
         password: form.password,
@@ -139,10 +141,12 @@ export default function SignUp() {
         email: form.email,
         position: form.position,
         company: form.company,
-        bizCertUrl: uploadSignData.publicUrl || uploadSignData.fileUrl
+        ...(bizCertUrl ? { bizCertUrl } : {})
       };
 
       await signup(userData);
+      // Flag for post-login banner to prompt document/logo upload
+      try { typedStorage.flags.setNeedsCompanyDocs(true); } catch {}
 
       // Success
       setMessage("success");
