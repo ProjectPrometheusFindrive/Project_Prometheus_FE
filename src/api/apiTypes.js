@@ -3,7 +3,9 @@
 export const API_ENDPOINTS = {
     // Auth
     AUTH_LOGIN: '/auth/login',
-    AUTH_SIGNUP: '/auth/signup',
+    // Preferred path (align BE): use /auth/register; keep legacy alias for fallback
+    AUTH_SIGNUP: '/auth/register',
+    AUTH_SIGNUP_LEGACY: '/auth/signup',
     AUTH_CHECK_USERID: '/auth/check-userid',
     AUTH_ME: '/auth/me',
 

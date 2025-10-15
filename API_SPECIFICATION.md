@@ -897,6 +897,24 @@ POST /uploads/download-url
 
 데모 환경은 localStorage 기반의 단순 인증 플래그만 사용합니다(`localStorage.isLoggedIn`). 실제 API 연동 시에는 Bearer 토큰(JWT) 또는 API Key 기반 인증을 권장합니다. 필요 시 `src/api/apiClient.js`에 `Authorization` 헤더를 추가하도록 확장하세요.
 
+엔드포인트
+
+- POST /auth/login — 로그인
+  - 요청: `{ userId, password }`
+  - 응답: `{ token: string, user: object }` (표준 래퍼 또는 Plain JSON)
+
+- POST /auth/register — 회원가입(권장 경로)
+  - 요청: `{ userId, password, name, phone, email, position, company, bizCertUrl? }`
+  - 응답: 가입 결과(성공 시 사용자/토큰 또는 상태)
+  - 비고: 구(舊) 경로 `/auth/signup`은 한시적(레거시)으로 허용됩니다. 프론트엔드는 `/auth/register` 호출 후 404(Not Found)일 경우 `/auth/signup`으로 자동 폴백합니다.
+
+- GET /auth/check-userid?userId=... — 아이디(이메일) 중복 확인
+  - 응답: 사용 가능 여부(Boolean) 또는 `{ available: boolean }`
+
+- GET /auth/me — 현재 로그인 사용자 정보 조회
+  - 요청 헤더: `Authorization: Bearer <token>`
+  - 응답: 사용자 정보 객체
+
 ## Error Handling
 
 프론트엔드 레이어에서 공통 처리 기준:

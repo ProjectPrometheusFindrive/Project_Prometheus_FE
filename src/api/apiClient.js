@@ -9,7 +9,8 @@ import {
     validateVin,
     transformAsset,
     transformRental,
-    toCamelRentalPayload
+    toCamelRentalPayload,
+    API_ERRORS
 } from './apiTypes';
 import { typedStorage } from '../utils/storage';
 import { emitToast } from '../utils/toast';
@@ -505,10 +506,19 @@ export const authApi = {
 
     async signup(userData) {
         // userData: { userId, password, name, phone, email, position, company, bizCertUrl }
-        return await apiRequest(API_ENDPOINTS.AUTH_SIGNUP, {
+        // Primary: /auth/register (preferred)
+        let resp = await apiRequest(API_ENDPOINTS.AUTH_SIGNUP, {
             method: 'POST',
             body: JSON.stringify(userData)
         });
+        // Fallback for legacy BE path: /auth/signup
+        if (resp && resp.status === API_STATUS.ERROR && resp.error && resp.error.type === API_ERRORS.NOT_FOUND) {
+            resp = await apiRequest(API_ENDPOINTS.AUTH_SIGNUP_LEGACY, {
+                method: 'POST',
+                body: JSON.stringify(userData)
+            });
+        }
+        return resp;
     },
 
     async checkUserId(userId) {
