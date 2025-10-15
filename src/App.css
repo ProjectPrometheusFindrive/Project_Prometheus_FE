@@ -592,11 +592,6 @@
     font-size: 0.8rem;
 }
 
-/* === Diagnostic severity badges === */
-.diagnostic-severity {
-    /* Inherit size/weight from .badge for consistency */
-}
-
 .diagnostic-severity--high {
     background: #fee2e2;
     color: #991b1b;
