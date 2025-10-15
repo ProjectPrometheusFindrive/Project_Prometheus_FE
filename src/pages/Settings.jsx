@@ -13,6 +13,8 @@ import {
     deleteGeofence,
 } from "../api";
 import { CountBadge, GeofenceBadge } from "../components/StatusBadge";
+import DocumentViewer from "../components/DocumentViewer";
+import { getSignedDownloadUrl } from "../utils/gcsApi";
 
 export default function Settings() {
     const auth = useAuth();
@@ -328,6 +330,9 @@ export default function Settings() {
     const [bizStatus, setBizStatus] = useState("idle"); // idle | uploading | success | error
     const [bizError, setBizError] = useState("");
     const [bizProgress, setBizProgress] = useState(0);
+    const [bizPreviewUrl, setBizPreviewUrl] = useState("");
+    const [bizPreviewKind, setBizPreviewKind] = useState(""); // image | pdf | unknown
+    const [bizViewerOpen, setBizViewerOpen] = useState(false);
     const onBizFileChange = (e) => {
         const f = e.target.files && e.target.files[0] ? e.target.files[0] : null;
         setBizFile(f);
@@ -379,19 +384,43 @@ export default function Settings() {
         }
     };
 
+    // Derive and load preview for existing uploaded business certificate
+    useEffect(() => {
+        let cancelled = false;
+        (async () => {
+            try {
+                const objName = viewData?.bizCertDocGcsObjectName
+                    || (Array.isArray(viewData?.bizCertDocGcsObjectNames) && viewData.bizCertDocGcsObjectNames[0])
+                    || "";
+                if (!objName) {
+                    if (!cancelled) {
+                        setBizPreviewUrl("");
+                        setBizPreviewKind("");
+                    }
+                    return;
+                }
+                const url = await getSignedDownloadUrl(objName);
+                if (cancelled) return;
+                const name = (viewData?.bizCertDocName || String(objName)).toLowerCase();
+                const kind = name.endsWith(".pdf") ? "pdf" : (/(png|jpg|jpeg|webp|gif|bmp|svg)$/i.test(name) ? "image" : "unknown");
+                setBizPreviewUrl(url);
+                setBizPreviewKind(kind);
+            } catch (e) {
+                if (!cancelled) {
+                    setBizPreviewUrl("");
+                    setBizPreviewKind("");
+                }
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [viewData?.bizCertDocGcsObjectName, viewData?.bizCertDocGcsObjectNames, viewData?.bizCertDocName]);
+
     return (
         <div className="page">
             <h1>회사정보설정</h1>
             <div className="page-scroll">
-                {/* 세로 배치 컨테이너 (반응형 컬럼 제거) */}
-                <div
-                    style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 16,
-                        alignItems: "stretch",
-                    }}
-                >
+                {/* 로고 + 사업자등록증: 넓은 화면 가로 배치, 좁은 화면 세로 배치 */}
+                <div className="company-docs-split">
                     {/* 회사 로고 섹션 */}
                     <CompanyLogoSection />
 
@@ -427,11 +456,56 @@ export default function Settings() {
                                     <div className="success-message" style={{ marginTop: 6, color: "#177245" }}>업로드가 완료되었습니다.</div>
                                 )}
                             </form>
+
+                            {/* 업로드된 파일 미리보기 */}
+                            {bizPreviewUrl && (
+                                <div style={{ marginTop: 10 }}>
+                                    {bizPreviewKind === "image" && (
+                                        <div>
+                                            <img
+                                                src={bizPreviewUrl}
+                                                alt={viewData?.bizCertDocName || "사업자등록증"}
+                                                style={{ maxWidth: "100%", maxHeight: 260, objectFit: "contain", borderRadius: 6, boxShadow: "0 1px 6px rgba(0,0,0,0.08)" }}
+                                                onClick={() => setBizViewerOpen(true)}
+                                            />
+                                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+                                                <button type="button" className="form-button" onClick={() => setBizViewerOpen(true)}>확대</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {bizPreviewKind === "pdf" && (
+                                        <div>
+                                            <iframe
+                                                src={bizPreviewUrl}
+                                                title={viewData?.bizCertDocName || "사업자등록증"}
+                                                style={{ width: "100%", height: 260, border: "none", background: "#fafafa", borderRadius: 6 }}
+                                            />
+                                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
+                                                <button type="button" className="form-button" onClick={() => setBizViewerOpen(true)}>확대</button>
+                                            </div>
+                                        </div>
+                                    )}
+                                    {bizPreviewKind === "unknown" && (
+                                        <div style={{ color: "#777", fontSize: 13 }}>미리보기를 지원하지 않는 형식입니다.</div>
+                                    )}
+                                    <DocumentViewer
+                                        isOpen={bizViewerOpen}
+                                        onClose={() => setBizViewerOpen(false)}
+                                        src={bizPreviewUrl}
+                                        type={bizPreviewKind}
+                                        title={viewData?.bizCertDocName || "사업자등록증"}
+                                        allowDownload={true}
+                                        downloadName={viewData?.bizCertDocName || "business-certificate"}
+                                    />
+                                </div>
+                            )}
                         </div>
                     </div>
 
-                    {/* 회사 정보 섹션 */}
-                    <div>
+                </div>
+
+                {/* 회사 정보 섹션 */}
+                <div>
                         <div className="card">
                             <div className="header-row" style={{ marginBottom: 10 }}>
                                 <div>
@@ -451,10 +525,10 @@ export default function Settings() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                </div>
 
-                    {/* 지오펜스 설정 섹션 */}
-                    <div>
+                {/* 지오펜스 설정 섹션 */}
+                <div>
                         <div className="card">
                             <div className="header-row" style={{ marginBottom: 10 }}>
                                 <div>
@@ -569,7 +643,6 @@ export default function Settings() {
                                 })()}
                             </div>
                         </div>
-                    </div>
                 </div>
             </div>
         </div>

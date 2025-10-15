@@ -1965,3 +1965,17 @@ html {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
+
+/* Responsive split layout for logo + business certificate */
+.company-docs-split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+@media (min-width: 960px) {
+  .company-docs-split {
+    grid-template-columns: 1fr 1fr;
+    align-items: start;
+  }
+}
