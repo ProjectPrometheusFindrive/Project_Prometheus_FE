@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatPhone11 } from "../utils/formatters";
 import { signup } from "../api";
@@ -12,8 +12,6 @@ export default function SignUp() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
-  const emailAssistStateRef = useRef({ userId: { insertedAt: false }, email: { insertedAt: false } });
-  const prevEmailRef = useRef({ userId: "", email: "" });
 
 
   function validateEmail(email) {
@@ -88,42 +86,7 @@ export default function SignUp() {
     updateField(name, value);
   }
 
-  // Email input assistance: auto '@' after initial local-part, and '.' after '@'
-  function handleEmailChange(name) {
-    return (e) => {
-      let v = e.target.value || "";
-      const state = emailAssistStateRef.current[name] || { insertedAt: false };
-      emailAssistStateRef.current[name] = state;
-      const prev = prevEmailRef.current[name] || "";
-
-      // Reset inserted state if '@' removed
-      if (v.indexOf("@") === -1) {
-        state.insertedAt = false;
-      }
-
-      // 1) Auto-insert '@' after a short local-part (>=3, starts with letter) when '@' absent
-      if (v && v.indexOf("@") === -1) {
-        const isLikelyLocal = /^[A-Za-z][A-Za-z0-9._-]{2,}$/.test(v);
-        if (isLikelyLocal && !state.insertedAt) {
-          v = v + "@";
-          state.insertedAt = true;
-        }
-      }
-
-      // 2) When '@' first appears (either typed or inserted), ensure a '.' follows it once
-      const prevAt = prev.indexOf("@");
-      const nowAt = v.indexOf("@");
-      if (nowAt !== -1 && prevAt === -1) {
-        const after = v.slice(nowAt + 1);
-        if (!after.includes(".")) {
-          v = v.slice(0, nowAt + 1) + "." + after;
-        }
-      }
-
-      prevEmailRef.current[name] = v;
-      updateField(name, v);
-    };
-  }
+  // (Reverted) No auto-insert for email fields; use plain onChange
 
   function handlePhoneChange(e) {
     const value = e.target.value;
@@ -247,7 +210,7 @@ export default function SignUp() {
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-id" style={{ width: "120px", marginBottom: 0 }}>아이디</label>
             <div className="input-with-hint" style={{ flex: 1 }}>
-              <input id="su-id" name="userId" type="email" className="login-input" value={form.userId} onChange={handleEmailChange("userId")} placeholder="이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <input id="su-id" name="userId" type="email" className="login-input" value={form.userId} onChange={onChange} placeholder="이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
               <div className="login-help input-hint" style={{ color: fieldHints.userId.color }}>{fieldHints.userId.text}</div>
             </div>
           </div>
@@ -287,7 +250,7 @@ export default function SignUp() {
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-email" style={{ width: "120px", marginBottom: 0 }}>개인이메일</label>
             <div className="input-with-hint" style={{ flex: 1 }}>
-              <input id="su-email" name="email" type="email" className="login-input" value={form.email} onChange={handleEmailChange("email")} placeholder="개인이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <input id="su-email" name="email" type="email" className="login-input" value={form.email} onChange={onChange} placeholder="개인이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
               <div className="login-help input-hint" style={{ color: fieldHints.email.color }}>{fieldHints.email.text}</div>
             </div>
           </div>
