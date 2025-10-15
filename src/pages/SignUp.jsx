@@ -204,7 +204,7 @@ export default function SignUp() {
 
   return (
     <div className="login-container">
-      <div className="login-card" style={{ maxHeight: "90vh", overflowY: "auto", padding: "20px", maxWidth: "100%", boxSizing: "border-box" }}>
+      <div className="login-card" style={{ maxWidth: "600px", maxHeight: "90vh", overflowY: "auto" }}>
         <h1 className="login-title">회원가입</h1>
         <form onSubmit={handleSubmit} className="login-form">
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
