@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import CompanyLogoSection from "../components/CompanyLogoSection";
+import { useAuth } from "../contexts/AuthContext";
 import {
     fetchCompanyInfo as loadCompanyInfo,
     saveCompanyInfo,
@@ -14,6 +15,7 @@ import {
 import { CountBadge, GeofenceBadge } from "../components/StatusBadge";
 
 export default function Settings() {
+    const auth = useAuth();
     const [viewData, setViewData] = useState({ ...defaultCompanyInfo });
     const [editData, setEditData] = useState({ ...defaultCompanyInfo });
     const [editing, setEditing] = useState(false);
@@ -321,6 +323,62 @@ export default function Settings() {
         color: "#c62828",
     };
 
+    // --- Business certificate upload (optional) ---
+    const [bizFile, setBizFile] = useState(null);
+    const [bizStatus, setBizStatus] = useState("idle"); // idle | uploading | success | error
+    const [bizError, setBizError] = useState("");
+    const [bizProgress, setBizProgress] = useState(0);
+    const onBizFileChange = (e) => {
+        const f = e.target.files && e.target.files[0] ? e.target.files[0] : null;
+        setBizFile(f);
+    };
+    const handleBizUpload = async (e) => {
+        e.preventDefault();
+        setBizError("");
+        if (!bizFile) {
+            setBizError("파일을 선택해 주세요.");
+            return;
+        }
+        const type = bizFile.type || "";
+        if (type && !("application/pdf,image/png,image/jpeg,image/webp,image/x-icon".split(",").includes(type))) {
+            setBizError("허용되지 않는 파일 형식입니다. (PDF/이미지)");
+            return;
+        }
+        const companyId = auth?.user?.company || viewData?.company || "";
+        if (!companyId) {
+            setBizError("회사 식별 정보를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
+            return;
+        }
+        try {
+            setBizStatus("uploading");
+            setBizProgress(0);
+            const { chooseUploadMode } = await import("../constants/uploads");
+            const { uploadViaSignedPut, uploadResumable } = await import("../utils/uploads");
+            const folder = `business-certificates/${encodeURIComponent(companyId)}`;
+            const onProgress = (p) => setBizProgress(p?.percent || 0);
+            const mode = chooseUploadMode(bizFile.size || 0);
+            let result;
+            if (mode === "signed-put") {
+                const { promise } = uploadViaSignedPut(bizFile, { folder, onProgress });
+                result = await promise;
+            } else {
+                const { promise } = uploadResumable(bizFile, { folder, onProgress });
+                result = await promise;
+            }
+            const objectName = result?.objectName || "";
+            if (!objectName) throw new Error("업로드 결과에 objectName이 없습니다.");
+            // Persist via company API (updateCompanyInfo triggers PUT)
+            setViewData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
+            setEditData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
+            try { await saveCompanyInfo({ ...viewData, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }); } catch {}
+            setBizStatus("success");
+        } catch (err) {
+            console.error("[settings] biz cert upload error", err);
+            setBizError(err?.message || "업로드 중 오류가 발생했습니다.");
+            setBizStatus("error");
+        }
+    };
+
     return (
         <div className="page">
             <h1>회사정보설정</h1>
@@ -336,6 +394,41 @@ export default function Settings() {
                 >
                     {/* 회사 로고 섹션 */}
                     <CompanyLogoSection />
+
+                    {/* 회사 서류(사업자등록증) 섹션 */}
+                    <div className="card">
+                        <div className="header-row" style={{ marginBottom: 10 }}>
+                            <div>
+                                <h2>사업자등록증</h2>
+                            </div>
+                        </div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                            <div style={{ color: "#555" }}>
+                                현재 상태: {viewData?.bizCertDocName ? (
+                                    <strong>{viewData.bizCertDocName}</strong>
+                                ) : (
+                                    <span className="empty">미등록</span>
+                                )}
+                            </div>
+                            <form onSubmit={handleBizUpload}>
+                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                    <input type="file" accept="application/pdf,image/*" onChange={onBizFileChange} className="form-input" />
+                                    <button className="form-button" type="submit" disabled={bizStatus === "uploading"}>
+                                        {bizStatus === "uploading" ? "업로드 중..." : "업로드/변경"}
+                                    </button>
+                                </div>
+                                {bizStatus === "uploading" && (
+                                    <div style={{ color: "#177245", fontSize: 13, marginTop: 6 }}>진행률: {bizProgress}%</div>
+                                )}
+                                {bizError && (
+                                    <div className="error-message" style={{ marginTop: 6 }}>{bizError}</div>
+                                )}
+                                {bizStatus === "success" && (
+                                    <div className="success-message" style={{ marginTop: 6, color: "#177245" }}>업로드가 완료되었습니다.</div>
+                                )}
+                            </form>
+                        </div>
+                    </div>
 
                     {/* 회사 정보 섹션 */}
                     <div>

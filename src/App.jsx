@@ -16,6 +16,7 @@ import Detail from "./pages/Detail";
 import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
+import OnboardingDocs from "./pages/OnboardingDocs";
 import { getSignedDownloadUrl, deriveObjectName } from "./utils/gcsApi";
 import GlobalToast from "./components/GlobalToast";
 
@@ -109,6 +110,11 @@ function App() {
             <Route path="/find-id" element={<FindId />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
+              <Route path="/onboarding/docs" element={
+                <ErrorBoundary>
+                  <OnboardingDocs />
+                </ErrorBoundary>
+              } />
               <Route path="/dashboard" element={
                 <ErrorBoundary fallback={<div className="error-boundary"><div className="error-boundary-content"><h2>대시보드 로딩 중 오류가 발생했습니다</h2><button onClick={() => window.location.reload()} className="form-button">새로고침</button></div></div>}>
                   <Dashboard />

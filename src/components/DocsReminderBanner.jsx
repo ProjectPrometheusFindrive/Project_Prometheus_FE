@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
@@ -11,14 +11,32 @@ export default function DocsReminderBanner() {
   const location = useLocation();
   const [show, setShow] = useState(false);
 
+  const needDocsFromServer = useMemo(() => {
+    if (!auth.isAuthenticated) return false;
+    if (companyInfo && Object.prototype.hasOwnProperty.call(companyInfo, "hasBizCertDoc")) {
+      return companyInfo.hasBizCertDoc === false;
+    }
+    return false;
+  }, [auth.isAuthenticated, companyInfo]);
+
   useEffect(() => {
     if (!auth.isAuthenticated) {
       setShow(false);
       return;
     }
+    // Hide on onboarding page itself
+    if ((location.pathname || "") === "/onboarding/docs") {
+      setShow(false);
+      return;
+    }
+    // Prefer server truth; fallback to local flag for soft reminders
+    if (needDocsFromServer) {
+      setShow(true);
+      return;
+    }
     const flag = typedStorage.flags.getNeedsCompanyDocs();
     setShow(!!flag);
-  }, [auth.isAuthenticated]);
+  }, [auth.isAuthenticated, location.pathname, needDocsFromServer]);
 
   if (!show) return null;
 
@@ -43,7 +61,8 @@ export default function DocsReminderBanner() {
           onClick={() => {
             typedStorage.flags.clearNeedsCompanyDocs();
             setShow(false);
-            if (location.pathname !== "/settings") navigate("/settings");
+            const dest = "/onboarding/docs";
+            if (location.pathname !== dest) navigate(dest);
           }}
           style={{ backgroundColor: "#177245" }}
         >
@@ -64,4 +83,3 @@ export default function DocsReminderBanner() {
     </div>
   );
 }
-

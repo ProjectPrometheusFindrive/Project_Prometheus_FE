@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatPhone11 } from "../utils/formatters";
-import FilePreview from "../components/FilePreview";
-import { signup, requestUploadSign } from "../api";
+import { signup } from "../api";
 import { typedStorage } from "../utils/storage";
-import { emitToast } from "../utils/toast";
 
 
 export default function SignUp() {
@@ -19,7 +17,6 @@ export default function SignUp() {
     position: "",
     company: "",
   });
-  const [bizCert, setBizCert] = useState(null); // File object (not persisted)
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -48,11 +45,6 @@ export default function SignUp() {
     }
     const formatted = formatPhone11(value);
     setForm((p) => ({ ...p, phone: formatted }));
-  }
-
-  function onFileChange(e) {
-    const file = e.target.files && e.target.files[0] ? e.target.files[0] : null;
-    setBizCert(file);
   }
 
   async function handleSubmit(e) {
@@ -109,30 +101,7 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      let bizCertUrl = "";
-      if (bizCert) {
-        try {
-          // Try uploading certificate (may require auth in new backend policy)
-          const uploadSignData = await requestUploadSign({
-            fileName: bizCert.name,
-            contentType: bizCert.type,
-            folder: "business-certificates"
-          });
-          const uploadResponse = await fetch(uploadSignData.signedUrl, {
-            method: 'PUT',
-            headers: { 'Content-Type': bizCert.type },
-            body: bizCert
-          });
-          if (!uploadResponse.ok) throw new Error("파일 업로드에 실패했습니다.");
-          bizCertUrl = uploadSignData.publicUrl || uploadSignData.fileUrl || "";
-        } catch (e) {
-          // Graceful fallback: proceed without file
-          emitToast("서류 업로드는 로그인 후 설정 화면에서 완료해 주세요.", "info", 4000);
-          bizCertUrl = "";
-        }
-      }
-
-      // 2. Call signup API with optional uploaded file URL
+      // 1. Call signup API (서류 업로드는 로그인 후 온보딩에서 진행)
       const userData = {
         userId: form.userId,
         password: form.password,
@@ -140,8 +109,7 @@ export default function SignUp() {
         phone: form.phone,
         email: form.email,
         position: form.position,
-        company: form.company,
-        ...(bizCertUrl ? { bizCertUrl } : {})
+        company: form.company
       };
 
       await signup(userData);
@@ -196,17 +164,6 @@ export default function SignUp() {
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-pos" style={{ width: "120px", marginBottom: 0 }}>직위</label>
             <input id="su-pos" name="position" type="text" className="login-input" value={form.position} onChange={onChange} placeholder="직위를 입력하세요" required style={{ flex: 1, minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-          </div>
-
-          <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
-            <label className="login-label" htmlFor="su-biz" style={{ width: "120px", marginBottom: 0 }}>사업자등록증</label>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <input id="su-biz" name="bizCert" type="file" accept="application/pdf,image/*" capture="environment" className="login-input" onChange={onFileChange} style={{ width: "100%", fontSize: "14px", padding: "8px 12px", marginBottom: "8px" }} />
-              <div className="login-help" style={{ color: "#6b7280", fontSize: "12px", marginTop: "4px" }}>
-                선택 사항입니다. 로그인 후 설정 화면에서 업로드할 수 있습니다.
-              </div>
-              <FilePreview file={bizCert} />
-            </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
