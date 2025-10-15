@@ -1553,28 +1553,29 @@ body {
     font-size: 0.9rem;
 }
 
-/* Input + inline hint layout (responsive) */
+/* Input + inline hint layout (responsive, aligned widths) */
 .input-with-hint {
-    display: flex;
+    /* Two columns: input grows, hint fixed width for alignment */
+    --hint-col-width: 240px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) var(--hint-col-width);
     align-items: center;
-    gap: 8px;
+    column-gap: 8px;
 }
 .input-with-hint .login-input {
-    flex: 1 1 auto;
+    width: 100%;
     min-width: 0;
 }
 .input-with-hint .input-hint {
     margin: 0; /* override .login-help default margin */
-    white-space: nowrap;
+    white-space: normal; /* allow wrapping within fixed column */
 }
 @media (max-width: 600px) {
     .input-with-hint {
-        flex-direction: column;
-        align-items: stretch;
-        gap: 4px;
+        grid-template-columns: 1fr; /* stack below */
+        row-gap: 4px;
     }
     .input-with-hint .input-hint {
-        white-space: normal;
         margin-top: 4px;
     }
 }
