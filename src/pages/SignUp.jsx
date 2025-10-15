@@ -201,7 +201,10 @@ export default function SignUp() {
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-biz" style={{ width: "120px", marginBottom: 0 }}>사업자등록증</label>
             <div style={{ flex: 1, minWidth: 0 }}>
-              <input id="su-biz" name="bizCert" type="file" accept="application/pdf,image/*" capture="environment" className="login-input" onChange={onFileChange} required style={{ width: "100%", fontSize: "14px", padding: "8px 12px", marginBottom: "8px" }} />
+              <input id="su-biz" name="bizCert" type="file" accept="application/pdf,image/*" capture="environment" className="login-input" onChange={onFileChange} style={{ width: "100%", fontSize: "14px", padding: "8px 12px", marginBottom: "8px" }} />
+              <div className="login-help" style={{ color: "#6b7280", fontSize: "12px", marginTop: "4px" }}>
+                선택 사항입니다. 로그인 후 설정 화면에서 업로드할 수 있습니다.
+              </div>
               <FilePreview file={bizCert} />
             </div>
           </div>
@@ -253,6 +256,9 @@ export default function SignUp() {
               width: "90%"
             }}>
               <h2 style={{ marginBottom: "20px", color: "#177245" }}>가입이 완료되었습니다.</h2>
+              <p style={{ margin: 0, color: "#333", fontSize: "14px" }}>
+                로그인 후 설정 화면에서 사업자등록증과 로고를 업로드해 주세요.
+              </p>
               <button
                 onClick={() => navigate("/")}
                 className="login-button"
