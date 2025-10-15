@@ -15,7 +15,19 @@ import { API_STATUS, createOperationResult } from './apiTypes';
 // Helper to extract data from standardized response
 function extractData(response) {
     if (response.status === API_STATUS.SUCCESS) {
-        return response.data;
+        const payload = response.data;
+        // If backend wraps with { status, data, error }, unwrap here
+        if (payload && typeof payload === 'object' && 'status' in payload) {
+            const innerStatus = String(payload.status).toLowerCase();
+            if (innerStatus === 'success') {
+                return payload.data;
+            }
+            // Treat non-success as error even if HTTP 200
+            const msg = payload.error?.message || payload.message || 'API request failed';
+            throw new Error(msg);
+        }
+        // Plain payload
+        return payload;
     }
     throw new Error(response.error?.message || 'API request failed');
 }

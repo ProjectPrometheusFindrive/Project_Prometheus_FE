@@ -117,6 +117,23 @@ async function apiRequest(endpoint, options = {}) {
             payload = await parseText();
         }
 
+        // Handle backend-wrapped logical errors (HTTP 200 with { status: 'error' })
+        if (contentType.includes('application/json') && payload && typeof payload === 'object' && 'status' in payload) {
+            const innerStatus = String(payload.status || '').toLowerCase();
+            if (innerStatus && innerStatus !== 'success') {
+                const err = new Error(payload?.error?.message || payload?.message || `HTTP ${status}: ${response.statusText}`);
+                err.status = payload?.error?.type === 'AUTH_ERROR' ? 401 : (status || 400);
+                err.statusText = response.statusText;
+                err.url = url;
+                err.data = payload;
+                if (err.status === 401) {
+                    const msg = payload?.error?.message || payload?.message || '인증이 만료되었거나 무효화되었습니다.';
+                    handleUnauthorized(msg);
+                }
+                throw err;
+            }
+        }
+
         if (!response.ok) {
             const err = new Error(`HTTP ${status}: ${response.statusText}`);
             // Preserve status details for upper-layer error handling

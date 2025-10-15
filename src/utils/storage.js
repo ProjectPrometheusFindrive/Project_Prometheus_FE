@@ -228,6 +228,13 @@ export const typedStorage = {
     }
   },
 
+  // Soft flags (mirrors storageUtils.flags)
+  flags: {
+    getNeedsCompanyDocs: () => storageUtils.get('needsCompanyDocs') === 'true',
+    setNeedsCompanyDocs: (v = true) => storageUtils.set('needsCompanyDocs', String(!!v)),
+    clearNeedsCompanyDocs: () => storageUtils.remove('needsCompanyDocs'),
+  },
+
   // Draft helpers
   drafts: {
     getAssets: () => storageUtils.get(STORAGE_KEYS.ASSET_DRAFTS, []),
