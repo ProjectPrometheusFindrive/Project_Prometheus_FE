@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { formatPhone11 } from "../utils/formatters";
 import { signup } from "../api";
@@ -12,6 +12,8 @@ export default function SignUp() {
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [showCriteria, setShowCriteria] = useState(false);
+  const emailAssistStateRef = useRef({ userId: { insertedAt: false }, email: { insertedAt: false } });
+  const prevEmailRef = useRef({ userId: "", email: "" });
 
 
   function validateEmail(email) {
@@ -86,6 +88,43 @@ export default function SignUp() {
     updateField(name, value);
   }
 
+  // Email input assistance: auto '@' after initial local-part, and '.' after '@'
+  function handleEmailChange(name) {
+    return (e) => {
+      let v = e.target.value || "";
+      const state = emailAssistStateRef.current[name] || { insertedAt: false };
+      emailAssistStateRef.current[name] = state;
+      const prev = prevEmailRef.current[name] || "";
+
+      // Reset inserted state if '@' removed
+      if (v.indexOf("@") === -1) {
+        state.insertedAt = false;
+      }
+
+      // 1) Auto-insert '@' after a short local-part (>=3, starts with letter) when '@' absent
+      if (v && v.indexOf("@") === -1) {
+        const isLikelyLocal = /^[A-Za-z][A-Za-z0-9._-]{2,}$/.test(v);
+        if (isLikelyLocal && !state.insertedAt) {
+          v = v + "@";
+          state.insertedAt = true;
+        }
+      }
+
+      // 2) When '@' first appears (either typed or inserted), ensure a '.' follows it once
+      const prevAt = prev.indexOf("@");
+      const nowAt = v.indexOf("@");
+      if (nowAt !== -1 && prevAt === -1) {
+        const after = v.slice(nowAt + 1);
+        if (!after.includes(".")) {
+          v = v.slice(0, nowAt + 1) + "." + after;
+        }
+      }
+
+      prevEmailRef.current[name] = v;
+      updateField(name, v);
+    };
+  }
+
   function handlePhoneChange(e) {
     const value = e.target.value;
     // Prevent deletion of "010-" prefix
@@ -136,8 +175,8 @@ export default function SignUp() {
   // Lightweight, real-time helper text per field
   const fieldHints = useMemo(() => ({
     userId: validateEmail(form.userId)
-      ? { text: "좋아요! 이메일 형식이 맞아요.", color: "#177245" }
-      : { text: "이메일 주소를 입력해 주세요 (예: name@domain.com)", color: touched.userId ? (errors.userId ? "#b71c1c" : "#999") : "#999" },
+      ? { text: "이메일 형식이 맞아요.", color: "#177245" }
+      : { text: "이메일 주소를 입력해 주세요.", color: touched.userId ? (errors.userId ? "#b71c1c" : "#999") : "#999" },
     password: validatePassword(form.password)
       ? { text: "안전한 비밀번호예요.", color: "#177245" }
       : { text: "8자 이상, 영문과 숫자를 함께 써 주세요.", color: touched.password ? (errors.password ? "#b71c1c" : "#999") : "#999" },
@@ -148,10 +187,10 @@ export default function SignUp() {
       ? { text: "이름 확인됐어요.", color: "#177245" }
       : { text: "이름을 입력해 주세요.", color: touched.name ? (errors.name ? "#b71c1c" : "#999") : "#999" },
     phone: validatePhone(form.phone)
-      ? { text: "좋아요! 전화번호 형식이 맞아요.", color: "#177245" }
-      : { text: "010-0000-0000 형식으로 입력해 주세요.", color: touched.phone ? (errors.phone ? "#b71c1c" : "#999") : "#999" },
+      ? { text: "전화번호 형식이 맞아요.", color: "#177245" }
+      : { text: "형식으로 입력해 주세요.", color: touched.phone ? (errors.phone ? "#b71c1c" : "#999") : "#999" },
     email: validateEmail(form.email)
-      ? { text: "좋아요! 이메일 형식이 맞아요.", color: "#177245" }
+      ? { text: "이메일 형식이 맞아요.", color: "#177245" }
       : { text: "개인이메일을 입력해 주세요.", color: touched.email ? (errors.email ? "#b71c1c" : "#999") : "#999" },
     position: form.position
       ? { text: "확인했어요.", color: "#177245" }
@@ -208,7 +247,7 @@ export default function SignUp() {
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-id" style={{ width: "120px", marginBottom: 0 }}>아이디</label>
             <div className="input-with-hint" style={{ flex: 1 }}>
-              <input id="su-id" name="userId" type="email" className="login-input" value={form.userId} onChange={onChange} placeholder="이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <input id="su-id" name="userId" type="email" className="login-input" value={form.userId} onChange={handleEmailChange("userId")} placeholder="이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
               <div className="login-help input-hint" style={{ color: fieldHints.userId.color }}>{fieldHints.userId.text}</div>
             </div>
           </div>
@@ -248,7 +287,7 @@ export default function SignUp() {
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-email" style={{ width: "120px", marginBottom: 0 }}>개인이메일</label>
             <div className="input-with-hint" style={{ flex: 1 }}>
-              <input id="su-email" name="email" type="email" className="login-input" value={form.email} onChange={onChange} placeholder="개인이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <input id="su-email" name="email" type="email" className="login-input" value={form.email} onChange={handleEmailChange("email")} placeholder="개인이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
               <div className="login-help input-hint" style={{ color: fieldHints.email.color }}>{fieldHints.email.text}</div>
             </div>
           </div>
