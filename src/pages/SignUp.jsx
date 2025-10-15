@@ -207,65 +207,65 @@ export default function SignUp() {
         <form onSubmit={handleSubmit} className="login-form">
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-id" style={{ width: "120px", marginBottom: 0 }}>아이디</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-id" name="userId" type="email" className="login-input" value={form.userId} onChange={onChange} placeholder="이메일 주소" required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.userId.color }}>{fieldHints.userId.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-id" name="userId" type="email" className="login-input" value={form.userId} onChange={onChange} placeholder="이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.userId.color }}>{fieldHints.userId.text}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-pw" style={{ width: "120px", marginBottom: 0 }}>비밀번호</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-pw" name="password" type="password" className="login-input" value={form.password} onChange={onChange} placeholder="비밀번호" required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.password.color }}>{fieldHints.password.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-pw" name="password" type="password" className="login-input" value={form.password} onChange={onChange} placeholder="비밀번호" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.password.color }}>{fieldHints.password.text}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-pw2" style={{ width: "120px", marginBottom: 0 }}>비밀번호 확인</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-pw2" name="confirm" type="password" className="login-input" value={form.confirm} onChange={onChange} placeholder="비밀번호 확인" required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.confirm.color }}>{fieldHints.confirm.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-pw2" name="confirm" type="password" className="login-input" value={form.confirm} onChange={onChange} placeholder="비밀번호 확인" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.confirm.color }}>{fieldHints.confirm.text}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-name" style={{ width: "120px", marginBottom: 0 }}>이름</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-name" name="name" type="text" className="login-input" value={form.name} onChange={onChange} placeholder="이름" required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.name.color }}>{fieldHints.name.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-name" name="name" type="text" className="login-input" value={form.name} onChange={onChange} placeholder="이름" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.name.color }}>{fieldHints.name.text}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-phone" style={{ width: "120px", marginBottom: 0 }}>전화번호</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-phone" name="phone" type="tel" className="login-input" value={form.phone} onChange={handlePhoneChange} placeholder="000-0000-0000" inputMode="numeric" maxLength={13} required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.phone.color }}>{fieldHints.phone.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-phone" name="phone" type="tel" className="login-input" value={form.phone} onChange={handlePhoneChange} placeholder="000-0000-0000" inputMode="numeric" maxLength={13} required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.phone.color }}>{fieldHints.phone.text}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-email" style={{ width: "120px", marginBottom: 0 }}>개인이메일</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-email" name="email" type="email" className="login-input" value={form.email} onChange={onChange} placeholder="개인이메일 주소" required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.email.color }}>{fieldHints.email.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-email" name="email" type="email" className="login-input" value={form.email} onChange={onChange} placeholder="개인이메일 주소" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.email.color }}>{fieldHints.email.text}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-pos" style={{ width: "120px", marginBottom: 0 }}>직위</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-pos" name="position" type="text" className="login-input" value={form.position} onChange={onChange} placeholder="직위를 입력하세요" required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.position.color }}>{fieldHints.position.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-pos" name="position" type="text" className="login-input" value={form.position} onChange={onChange} placeholder="직위를 입력하세요" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.position.color }}>{fieldHints.position.text}</div>
             </div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-company" style={{ width: "120px", marginBottom: 0 }}>회사명</label>
-            <div style={{ flex: 1 }}>
-              <input id="su-company" name="company" type="text" className="login-input" value={form.company} onChange={onChange} placeholder="회사명" required style={{ width: "100%", minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
-              <div className="login-help" style={{ marginTop: 4, color: fieldHints.company.color }}>{fieldHints.company.text}</div>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input id="su-company" name="company" type="text" className="login-input" value={form.company} onChange={onChange} placeholder="회사명" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div className="login-help input-hint" style={{ color: fieldHints.company.color }}>{fieldHints.company.text}</div>
             </div>
           </div>
 

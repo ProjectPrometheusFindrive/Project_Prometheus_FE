@@ -1553,6 +1553,32 @@ body {
     font-size: 0.9rem;
 }
 
+/* Input + inline hint layout (responsive) */
+.input-with-hint {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.input-with-hint .login-input {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+.input-with-hint .input-hint {
+    margin: 0; /* override .login-help default margin */
+    white-space: nowrap;
+}
+@media (max-width: 600px) {
+    .input-with-hint {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 4px;
+    }
+    .input-with-hint .input-hint {
+        white-space: normal;
+        margin-top: 4px;
+    }
+}
+
 /* Generic form styles */
 .form-grid {
     display: grid;
