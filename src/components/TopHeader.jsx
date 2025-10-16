@@ -7,7 +7,7 @@ import defaultLogo from "../assets/default-logo.svg";
 import CiUploadModal from "./CiUploadModal";
 import { useCompany } from "../contexts/CompanyContext";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
-import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
+import { chooseUploadMode } from "../constants/uploads";
 import GCSImage from "./GCSImage";
 
 export default function TopHeader() {
@@ -36,14 +36,15 @@ export default function TopHeader() {
     }
 
     async function handleModalSubmit(file, previewUrl) {
-        if (!file || (file.type && !ALLOWED_MIME_TYPES.includes(file.type))) {
+        if (!file || (file.type && !String(file.type).startsWith("image/"))) {
             alert("이미지 파일을 선택해 주세요.");
             return;
         }
 
         setUploading(true);
         try {
-            const folder = `company/ci`;
+            // CI uploads must follow folder pattern: company/ci/docs
+            const folder = `company/ci/docs`;
             const mode = chooseUploadMode(file.size);
             let objectName = "";
             console.groupCollapsed("[upload-ui] logo upload start");

@@ -1,6 +1,32 @@
 import { requestUploadSign, requestResumableSession } from "../api";
 import { DEFAULT_RESUMABLE_CHUNK_SIZE } from "../constants/uploads";
 
+// Ensure contentType complies with folder-specific rules
+function sanitizeUploadContentType(file, folder) {
+  const type = (file && file.type) ? String(file.type) : "";
+  const name = (file && file.name) ? String(file.name) : "";
+  const idx = name.lastIndexOf(".");
+  const ext = idx >= 0 ? name.slice(idx + 1).toLowerCase() : "";
+
+  const isCompanyDocs = typeof folder === "string" && /^company\/[A-Za-z0-9_-]+\/docs$/.test(folder);
+  const isBizCert = typeof folder === "string" && /^business-certificates\/[A-Za-z0-9_-]+$/.test(folder);
+
+  if (isCompanyDocs || isBizCert) {
+    if (type.startsWith("image/")) return type;
+    if (type === "application/pdf") return type;
+    if (ext === "pdf") return "application/pdf";
+    if (["png", "jpg", "jpeg", "webp", "gif", "bmp", "ico"].includes(ext)) {
+      if (ext === "jpg") return "image/jpeg";
+      return `image/${ext}`;
+    }
+    // Fallback within allowed categories; prefer image/png as a safe default
+    return "image/png";
+  }
+
+  // Other folders: keep original or generic default
+  return type || "application/octet-stream";
+}
+
 // Small file upload via signed PUT URL with progress and cancel support
 export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
   let xhr = null;
@@ -8,7 +34,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
 
   const promise = (async () => {
     const fileName = file?.name || "upload.bin";
-    const contentType = file?.type || "application/octet-stream";
+    const contentType = sanitizeUploadContentType(file, folder);
 
     console.groupCollapsed("[upload] signed-put start");
     console.debug("file:", { name: fileName, size: file?.size, type: contentType });
@@ -98,7 +124,7 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
 
   const doUpload = async () => {
     const fileName = file?.name || "upload.bin";
-    const contentType = file?.type || "application/octet-stream";
+    const contentType = sanitizeUploadContentType(file, folder);
 
     if (!session) {
       console.groupCollapsed("[upload] resumable start");

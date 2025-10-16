@@ -10,7 +10,7 @@ const getBaseUrl = () => {
 /**
  * 파일을 GCS에 업로드하고 objectName을 반환
  * @param {File|Blob} file
- * @param {string} folder - 예: 'company/ci'
+ * @param {string} folder - 예: 'company/ci/docs'
  * @returns {Promise<string>} objectName
  */
 export async function uploadFileToGCS(file, folder = "") {
@@ -22,12 +22,33 @@ export async function uploadFileToGCS(file, folder = "") {
   const token = typedStorage.auth.getToken();
   const authHeaders = token ? { Authorization: `Bearer ${token}` } : {};
 
+  // Sanitize contentType for folder-specific rules (company docs and biz-certs allow only pdf or image/*)
+  const sanitizeContentType = (f, folderPath) => {
+    const t = f?.type ? String(f.type) : "";
+    const n = f?.name ? String(f.name) : "";
+    const dot = n.lastIndexOf(".");
+    const ext = dot >= 0 ? n.slice(dot + 1).toLowerCase() : "";
+    const isCompanyDocs = typeof folderPath === "string" && /^company\/[A-Za-z0-9_-]+\/docs$/.test(folderPath);
+    const isBizCert = typeof folderPath === "string" && /^business-certificates\/[A-Za-z0-9_-]+$/.test(folderPath);
+    if (isCompanyDocs || isBizCert) {
+      if (t.startsWith("image/")) return t;
+      if (t === "application/pdf") return t;
+      if (ext === "pdf") return "application/pdf";
+      if (["png", "jpg", "jpeg", "webp", "gif", "bmp", "ico"].includes(ext)) {
+        if (ext === "jpg") return "image/jpeg";
+        return `image/${ext}`;
+      }
+      return "image/png";
+    }
+    return t || "application/octet-stream";
+  };
+
   const signResponse = await fetch(signUrl, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...authHeaders },
     body: JSON.stringify({
       fileName: file.name,
-      contentType: file.type || "application/octet-stream",
+      contentType: sanitizeContentType(file, folder),
       folder: folder || "",
     }),
   });
@@ -44,7 +65,7 @@ export async function uploadFileToGCS(file, folder = "") {
 
   const uploadResponse = await fetch(uploadUrl, {
     method: "PUT",
-    headers: { "Content-Type": file.type || "application/octet-stream" },
+    headers: { "Content-Type": sanitizeContentType(file, folder) },
     body: file,
   });
 

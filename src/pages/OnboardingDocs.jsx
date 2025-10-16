@@ -44,7 +44,7 @@ export default function OnboardingDocs() {
       setError("파일을 선택해 주세요.");
       return;
     }
-    if (file.type && !ALLOWED_MIME_TYPES.includes(file.type)) {
+    if (file.type && !(file.type === "application/pdf" || String(file.type).startsWith("image/"))) {
       setError("허용되지 않는 파일 형식입니다. (PDF/이미지)");
       return;
     }
@@ -135,4 +135,3 @@ export default function OnboardingDocs() {
     </div>
   );
 }
-

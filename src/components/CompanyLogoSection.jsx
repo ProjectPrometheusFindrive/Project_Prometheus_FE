@@ -18,9 +18,11 @@ function CompanyLogoSection() {
     auth?.user?.company || companyInfo?.company || companyInfo?.name || ""
   ), [auth?.user?.company, companyInfo?.company, companyInfo?.name]);
 
-  const folder = useMemo(() => (
-    companyId ? `company/${encodeURIComponent(companyId)}/docs` : ""
-  ), [companyId]);
+  const folder = useMemo(() => {
+    // Use logged-in companyId for general company docs; fallback to "ci" for super_admin without companyId
+    const id = (companyId && String(companyId).trim()) ? companyId : "ci";
+    return `company/${encodeURIComponent(id)}/docs`;
+  }, [companyId]);
 
   return (
     <div className="card" style={{ marginBottom: 16 }}>
