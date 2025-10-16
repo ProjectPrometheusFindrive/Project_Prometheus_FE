@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
+import { forgotPassword } from "../api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -22,7 +22,7 @@ export default function ForgotPassword() {
     setLoading(true);
 
     try {
-      await axios.post("/api/auth/forgot-password", {
+      await forgotPassword({
         email,
         bizRegNo
       });
@@ -31,7 +31,7 @@ export default function ForgotPassword() {
       setEmail("");
       setBizRegNo("");
     } catch (err) {
-      setError(err.response?.data?.message || "비밀번호 찾기에 실패했습니다. 입력 정보를 확인해주세요.");
+      setError(err.message || "비밀번호 찾기에 실패했습니다. 입력 정보를 확인해주세요.");
     } finally {
       setLoading(false);
     }

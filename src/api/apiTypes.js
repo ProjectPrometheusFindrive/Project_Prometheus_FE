@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
     AUTH_SIGNUP_LEGACY: '/auth/signup',
     AUTH_CHECK_USERID: '/auth/check-userid',
     AUTH_ME: '/auth/me',
+    AUTH_FORGOT_PASSWORD: '/auth/forgot-password',
 
     // Assets
     ASSETS: '/assets',

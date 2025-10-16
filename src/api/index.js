@@ -51,4 +51,5 @@ export const {
   signup,
   checkUserId,
   getCurrentUser,
+  forgotPassword,
 } = api;

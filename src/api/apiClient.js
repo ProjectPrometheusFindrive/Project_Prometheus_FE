@@ -586,6 +586,14 @@ export const authApi = {
     async getCurrentUser() {
         // Get current authenticated user info
         return await apiRequest(API_ENDPOINTS.AUTH_ME);
+    },
+
+    async forgotPassword(data) {
+        // data: { email, bizRegNo }
+        return await apiRequest(API_ENDPOINTS.AUTH_FORGOT_PASSWORD, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
     }
 };
 

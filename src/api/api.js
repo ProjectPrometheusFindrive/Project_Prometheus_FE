@@ -311,6 +311,11 @@ export async function getCurrentUser() {
     return extractData(response);
 }
 
+export async function forgotPassword(data) {
+    const response = await authApi.forgotPassword(data);
+    return extractData(response);
+}
+
 // Members (approval & role management)
 /**
  * Fetch all members (approved users)
