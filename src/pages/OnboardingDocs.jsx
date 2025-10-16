@@ -74,10 +74,11 @@ export default function OnboardingDocs() {
       const objectName = result?.objectName || "";
       if (!objectName) throw new Error("업로드 결과에 objectName이 없습니다.");
 
-      // Persist to company profile
+      // Persist to company profile and flip server-flag locally to unblock routing
       updateCompanyInfo({
         bizCertDocGcsObjectName: objectName,
         bizCertDocName: file.name || "document.pdf",
+        hasBizCertDoc: true,
       });
 
       try { typedStorage.flags.clearNeedsCompanyDocs(); } catch {}
