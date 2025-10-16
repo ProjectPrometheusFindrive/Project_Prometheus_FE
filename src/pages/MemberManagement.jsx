@@ -29,6 +29,7 @@ function MemberManagement() {
     // Permission check: Only admin or super_admin can access
     const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
     const isSuperAdmin = user && user.role === ROLES.SUPER_ADMIN;
+    const isAdmin = user && user.role === ROLES.ADMIN;
 
     useEffect(() => {
         if (activeTab === 'all') {
@@ -49,7 +50,14 @@ function MemberManagement() {
             setLoading(true);
             setError(null);
             const data = await fetchAllMembers();
-            setAllMembers(Array.isArray(data) ? data : []);
+            let list = Array.isArray(data) ? data : [];
+            // If viewer is admin (not super_admin), show only same-company admin/member
+            if (isAdmin && user && user.companyId) {
+                list = list.filter((m) => (
+                    m && m.companyId === user.companyId && (m.role === ROLES.ADMIN || m.role === ROLES.MEMBER)
+                ));
+            }
+            setAllMembers(list);
         } catch (err) {
             console.error('Failed to fetch all members:', err);
             setError(err.message || '회원 목록을 불러오는데 실패했습니다.');
@@ -206,7 +214,7 @@ function MemberManagement() {
             <div className="member-management-page">
                 <div className="page-header">
                     <h1>회원 관리</h1>
-                    <p className="page-subtitle">전체 회원을 조회하고 역할을 변경하거나, 가입 대기중인 회원을 승인/거절할 수 있습니다.</p>
+                    <p className="page-subtitle">{(isAdmin ? '멤버' : '전체 회원')}를 조회하고 역할을 변경하거나, 가입 대기중인 회원을 승인/거절할 수 있습니다.</p>
                 </div>
 
                 {error && (
@@ -221,7 +229,7 @@ function MemberManagement() {
                         className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
                         onClick={() => setActiveTab('all')}
                     >
-                        전체 회원
+                        {isAdmin ? '멤버' : '전체 회원'}
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
@@ -235,7 +243,7 @@ function MemberManagement() {
                 {activeTab === 'all' && (
                     <div className="content-section">
                         <div className="section-header">
-                            <h2>전체 회원</h2>
+                            <h2>{isAdmin ? '멤버' : '전체 회원'}</h2>
                             <button
                                 className="btn-secondary"
                                 onClick={loadAllMembers}
