@@ -49,7 +49,7 @@ export default function OnboardingDocs() {
       return;
     }
 
-    const companyId = auth?.user?.company || companyInfo?.company || companyInfo?.name;
+    const companyId = auth?.user?.companyId
     if (!companyId) {
       setError("회사 식별 정보를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
       return;
