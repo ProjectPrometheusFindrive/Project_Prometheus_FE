@@ -1,14 +1,14 @@
-import React, { useContext } from "react";
+import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiHome, FiFileText, FiInfo, FiUsers } from "react-icons/fi";
 import { FaCar } from "react-icons/fa";
 import { typedStorage } from "../utils/storage";
-import { AuthContext } from "../contexts/AuthContext";
+import { useAuth } from "../contexts/AuthContext";
 import { ROLES, isRoleAtLeast } from "../constants/auth";
 
 export default function NavigationBar() {
     const navigate = useNavigate();
-    const { user } = useContext(AuthContext);
+    const { user } = useAuth();
 
     // Show Members link only for admin and super_admin
     const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
