@@ -8,7 +8,8 @@ import {
     problemVehiclesApi,
     issuesApi,
     uploadsApi,
-    authApi
+    authApi,
+    membersApi
 } from './apiClient';
 import { API_STATUS, createOperationResult } from './apiTypes';
 
@@ -308,4 +309,46 @@ export async function checkUserId(userId) {
 export async function getCurrentUser() {
     const response = await authApi.getCurrentUser();
     return extractData(response);
+}
+
+// Members (approval & role management)
+/**
+ * Fetch list of pending members awaiting approval
+ * @returns {Promise<Array>} Array of pending user objects
+ */
+export async function fetchPendingMembers() {
+    const response = await membersApi.fetchPending();
+    return extractData(response);
+}
+
+/**
+ * Approve a pending member
+ * @param {string} userId - User ID (email) to approve
+ * @returns {Promise<boolean>} True if successful
+ */
+export async function approveMember(userId) {
+    const response = await membersApi.approve(userId);
+    return response.status === API_STATUS.SUCCESS;
+}
+
+/**
+ * Reject a pending member
+ * @param {string} userId - User ID (email) to reject
+ * @param {string} [reason] - Optional rejection reason
+ * @returns {Promise<boolean>} True if successful
+ */
+export async function rejectMember(userId, reason = null) {
+    const response = await membersApi.reject(userId, reason);
+    return response.status === API_STATUS.SUCCESS;
+}
+
+/**
+ * Change a member's role
+ * @param {string} userId - User ID (email) of the target member
+ * @param {string} role - New role (admin | member | super_admin)
+ * @returns {Promise<boolean>} True if successful
+ */
+export async function changeMemberRole(userId, role) {
+    const response = await membersApi.changeRole(userId, role);
+    return response.status === API_STATUS.SUCCESS;
 }

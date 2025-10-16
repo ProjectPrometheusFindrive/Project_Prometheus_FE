@@ -47,6 +47,12 @@ export const API_ENDPOINTS = {
     // Issues
     ISSUES: '/issues',
 
+    // Members (approval & role management)
+    MEMBERS_PENDING: '/members/pending',
+    MEMBERS_APPROVE: '/members/approve',
+    MEMBERS_REJECT: '/members/reject',
+    MEMBER_ROLE: (userId) => `/members/${encodeURIComponent(userId)}/role`,
+
     // Uploads (GCS direct upload helpers)
     UPLOAD_SIGN: '/uploads/sign',
     UPLOAD_RESUMABLE: '/uploads/resumable'
@@ -67,7 +73,9 @@ export const API_ERRORS = {
     UNAUTHORIZED: 'UNAUTHORIZED',
     CONFLICT: 'CONFLICT',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
-    SERVER_ERROR: 'SERVER_ERROR'
+    SERVER_ERROR: 'SERVER_ERROR',
+    APPROVAL_PENDING: 'APPROVAL_PENDING',
+    APPROVAL_REJECTED: 'APPROVAL_REJECTED'
 };
 
 // Standard API response wrapper

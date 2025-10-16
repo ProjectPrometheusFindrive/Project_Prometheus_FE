@@ -127,32 +127,59 @@ async function apiRequest(endpoint, options = {}) {
         if (contentType.includes('application/json') && payload && typeof payload === 'object' && 'status' in payload) {
             const innerStatus = String(payload.status || '').toLowerCase();
             if (innerStatus && innerStatus !== 'success') {
+                const errorType = payload?.error?.type;
                 const err = new Error(payload?.error?.message || payload?.message || `HTTP ${status}: ${response.statusText}`);
                 err.status = payload?.error?.type === 'AUTH_ERROR' ? 401 : (status || 400);
                 err.statusText = response.statusText;
                 err.url = url;
                 err.data = payload;
+                err.errorType = errorType;
+
                 if (err.status === 401) {
                     const msg = payload?.error?.message || payload?.message || '인증이 만료되었거나 무효화되었습니다.';
                     handleUnauthorized(msg);
+                } else if (errorType === API_ERRORS.APPROVAL_PENDING || errorType === API_ERRORS.APPROVAL_REJECTED) {
+                    // Don't auto-handle these - let the caller (Login page) handle them
+                    // Just toast the message for user awareness
+                    const msg = payload?.error?.message || payload?.message;
+                    if (msg) {
+                        try {
+                            emitToast(msg, errorType === API_ERRORS.APPROVAL_PENDING ? 'warning' : 'error', 4000);
+                        } catch {}
+                    }
                 }
                 throw err;
             }
         }
 
         if (!response.ok) {
+            const errorType = payload?.error?.type;
             const err = new Error(`HTTP ${status}: ${response.statusText}`);
             // Preserve status details for upper-layer error handling
             err.status = status;
             err.statusText = response.statusText;
             err.url = url;
             err.data = payload;
+            err.errorType = errorType;
+
             if (status === 401) {
                 const msg = (payload && (payload.error?.message || payload.message)) || '인증이 만료되었거나 무효화되었습니다.';
                 handleUnauthorized(msg);
             } else if (status === 403) {
-                const msg = (payload && (payload.error?.message || payload.message)) || '접근 권한이 없습니다.';
-                handleForbidden(msg);
+                // Check if this is an approval-related 403
+                if (errorType === API_ERRORS.APPROVAL_PENDING || errorType === API_ERRORS.APPROVAL_REJECTED) {
+                    // Don't auto-handle these - let the caller (Login page) handle them
+                    const msg = (payload && (payload.error?.message || payload.message));
+                    if (msg) {
+                        try {
+                            emitToast(msg, errorType === API_ERRORS.APPROVAL_PENDING ? 'warning' : 'error', 4000);
+                        } catch {}
+                    }
+                } else {
+                    // Regular forbidden error
+                    const msg = (payload && (payload.error?.message || payload.message)) || '접근 권한이 없습니다.';
+                    handleForbidden(msg);
+                }
             }
             throw err;
         }
@@ -559,5 +586,87 @@ export const authApi = {
     async getCurrentUser() {
         // Get current authenticated user info
         return await apiRequest(API_ENDPOINTS.AUTH_ME);
+    }
+};
+
+// Members API methods (approval & role management)
+export const membersApi = {
+    /**
+     * Fetch list of pending members awaiting approval
+     * @returns {Promise<Object>} Response with array of pending users
+     */
+    async fetchPending() {
+        return await apiRequest(API_ENDPOINTS.MEMBERS_PENDING);
+    },
+
+    /**
+     * Approve a pending member
+     * @param {string} userId - User ID (email) to approve
+     * @returns {Promise<Object>} Response with success status
+     */
+    async approve(userId) {
+        if (!userId || typeof userId !== 'string') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: API_ERRORS.VALIDATION_ERROR,
+                message: 'userId is required'
+            });
+        }
+
+        return await apiRequest(API_ENDPOINTS.MEMBERS_APPROVE, {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+        });
+    },
+
+    /**
+     * Reject a pending member
+     * @param {string} userId - User ID (email) to reject
+     * @param {string} [reason] - Optional rejection reason
+     * @returns {Promise<Object>} Response with success status
+     */
+    async reject(userId, reason = null) {
+        if (!userId || typeof userId !== 'string') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: API_ERRORS.VALIDATION_ERROR,
+                message: 'userId is required'
+            });
+        }
+
+        const payload = { userId };
+        if (reason) {
+            payload.reason = reason;
+        }
+
+        return await apiRequest(API_ENDPOINTS.MEMBERS_REJECT, {
+            method: 'POST',
+            body: JSON.stringify(payload)
+        });
+    },
+
+    /**
+     * Change a member's role
+     * @param {string} userId - User ID (email) of the target member
+     * @param {string} role - New role (admin | member | super_admin)
+     * @returns {Promise<Object>} Response with success status
+     */
+    async changeRole(userId, role) {
+        if (!userId || typeof userId !== 'string') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: API_ERRORS.VALIDATION_ERROR,
+                message: 'userId is required'
+            });
+        }
+
+        if (!role || !['admin', 'member', 'super_admin'].includes(role)) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: API_ERRORS.VALIDATION_ERROR,
+                message: 'Invalid role. Must be: admin, member, or super_admin'
+            });
+        }
+
+        return await apiRequest(API_ENDPOINTS.MEMBER_ROLE(userId), {
+            method: 'PATCH',
+            body: JSON.stringify({ role })
+        });
     }
 };

@@ -33,6 +33,10 @@ tags:
     description: 회사 기본 정보 및 지오펜스 저장
   - name: Issues
     description: 문제 차량 신고
+  - name: Members
+    description: 회원 관리 (가입 승인/거절, 역할 변경)
+  - name: Auth
+    description: 인증 및 사용자 정보
 paths:
   /assets:
     get:
@@ -595,7 +599,326 @@ paths:
           $ref: '#/components/responses/Error'
         default:
           $ref: '#/components/responses/Error'
-  
+
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: 신규 사용자 등록
+      operationId: registerUser
+      description: |
+        신규 사용자를 등록합니다. 기본 membershipStatus는 pending이며, 관리자 승인 후 로그인 가능합니다.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserRegistrationInput'
+      responses:
+        "201":
+          description: 등록 성공
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/StandardResponse'
+                      - type: object
+                        properties:
+                          data:
+                            $ref: '#/components/schemas/UserRegistrationResponse'
+                  - $ref: '#/components/schemas/UserRegistrationResponse'
+        "400":
+          description: 필수값 누락
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "409":
+          description: userId 중복
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: 사용자 로그인
+      operationId: loginUser
+      description: |
+        사용자 로그인. membershipStatus가 pending 또는 rejected인 경우 403 에러 반환.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginInput'
+      responses:
+        "200":
+          description: 로그인 성공
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/StandardResponse'
+                      - type: object
+                        properties:
+                          data:
+                            $ref: '#/components/schemas/LoginResponse'
+                  - $ref: '#/components/schemas/LoginResponse'
+        "401":
+          description: 인증 실패
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: 승인 대기 또는 거절됨
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/StandardResponse'
+                      - type: object
+                        properties:
+                          error:
+                            type: object
+                            properties:
+                              type:
+                                type: string
+                                enum: [APPROVAL_PENDING, APPROVAL_REJECTED]
+                              message:
+                                type: string
+                  - type: object
+                    properties:
+                      status:
+                        enum: [error]
+                      error:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            enum: [APPROVAL_PENDING, APPROVAL_REJECTED]
+                          message:
+                            type: string
+        default:
+          $ref: '#/components/responses/Error'
+
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: 현재 사용자 정보 조회
+      operationId: getCurrentUser
+      responses:
+        "200":
+          description: 사용자 정보
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/StandardResponse'
+                      - type: object
+                        properties:
+                          data:
+                            $ref: '#/components/schemas/User'
+                  - $ref: '#/components/schemas/User'
+        "401":
+          $ref: '#/components/responses/Error'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /members/pending:
+    get:
+      tags: [Members]
+      summary: 승인 대기중인 회원 목록 조회
+      operationId: listPendingMembers
+      description: |
+        super_admin: 전체 대기 회원 조회
+        admin: 자신의 회사(companyId) 대기 회원만 조회
+      responses:
+        "200":
+          description: 대기 회원 목록
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/StandardResponse'
+                      - type: object
+                        properties:
+                          data:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/User'
+                  - type: array
+                    items:
+                      $ref: '#/components/schemas/User'
+        "403":
+          description: 권한 없음 (member 역할)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /members/approve:
+    post:
+      tags: [Members]
+      summary: 회원 가입 승인
+      operationId: approveMember
+      description: |
+        super_admin: 제한 없음
+        admin: 같은 회사 사용자만 승인 가능
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberActionInput'
+      responses:
+        "200":
+          description: 승인 성공
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      status:
+                        enum: [success]
+        "400":
+          description: userId 누락
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: 타사 사용자 승인 불가
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: 존재하지 않는 사용자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /members/reject:
+    post:
+      tags: [Members]
+      summary: 회원 가입 거절
+      operationId: rejectMember
+      description: |
+        super_admin: 제한 없음
+        admin: 같은 회사 사용자만 거절 가능
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MemberRejectInput'
+      responses:
+        "200":
+          description: 거절 성공
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      status:
+                        enum: [success]
+        "400":
+          description: userId 누락
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: 타사 사용자 거절 불가
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: 존재하지 않는 사용자
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
+  /members/{userId}/role:
+    parameters:
+      - name: userId
+        in: path
+        required: true
+        schema:
+          type: string
+        description: 대상 사용자 ID (이메일)
+    patch:
+      tags: [Members]
+      summary: 사용자 역할 변경
+      operationId: changeMemberRole
+      description: |
+        super_admin: 모두 변경 가능 (super_admin 부여 가능)
+        admin: 같은 회사 사용자만 변경 가능, super_admin 부여 불가
+
+        역할 변경 시 대상 사용자의 tokenSalt가 회전되어 재로그인 필요
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleChangeInput'
+      responses:
+        "200":
+          description: 역할 변경 성공
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: '#/components/schemas/StandardResponse'
+                  - type: object
+                    properties:
+                      status:
+                        enum: [success]
+        "400":
+          description: 허용되지 않는 role
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "403":
+          description: 권한 부족 또는 타사 대상
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        "404":
+          description: 대상 사용자 없음
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        default:
+          $ref: '#/components/responses/Error'
+
   components:
     parameters:
       AssetIdParam:
@@ -1606,4 +1929,170 @@ paths:
           format: date-time
         status:
           type: string
+          nullable: true
+
+    User:
+      type: object
+      required: [userId, name, email, companyId, role, membershipStatus]
+      properties:
+        userId:
+          type: string
+          format: email
+          description: 사용자 ID (이메일)
+        name:
+          type: string
+          description: 사용자 이름
+        email:
+          type: string
+          format: email
+          description: 이메일
+        phone:
+          type: string
+          nullable: true
+          description: 전화번호
+        position:
+          type: string
+          nullable: true
+          description: 직책
+        companyId:
+          type: string
+          description: 소속 회사 ID
+        company:
+          type: string
+          nullable: true
+          description: 회사명
+        role:
+          type: string
+          enum: [super_admin, admin, member]
+          description: 사용자 역할
+        membershipStatus:
+          type: string
+          enum: [pending, approved, rejected]
+          description: 가입 승인 상태
+        createdAt:
+          type: string
+          format: date-time
+          nullable: true
+        updatedAt:
+          type: string
+          format: date-time
+          nullable: true
+
+    UserRegistrationInput:
+      type: object
+      required: [userId, password, name, companyId]
+      properties:
+        userId:
+          type: string
+          format: email
+          description: 사용자 ID (이메일)
+        password:
+          type: string
+          format: password
+          description: 비밀번호
+        name:
+          type: string
+          description: 사용자 이름
+        email:
+          type: string
+          format: email
+          description: 이메일 (userId와 동일할 수 있음)
+        phone:
+          type: string
+          description: 전화번호
+        position:
+          type: string
+          description: 직책
+        companyId:
+          type: string
+          description: 소속 회사 ID
+
+    UserRegistrationResponse:
+      type: object
+      required: [userId, name, createdAt]
+      properties:
+        userId:
+          type: string
+          format: email
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    LoginInput:
+      type: object
+      required: [userId, password]
+      properties:
+        userId:
+          type: string
+          format: email
+        password:
+          type: string
+          format: password
+
+    LoginResponse:
+      type: object
+      required: [token, data]
+      properties:
+        token:
+          type: string
+          description: JWT 토큰
+        data:
+          $ref: '#/components/schemas/User'
+
+    MemberActionInput:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: email
+          description: 대상 사용자 ID
+
+    MemberRejectInput:
+      type: object
+      required: [userId]
+      properties:
+        userId:
+          type: string
+          format: email
+          description: 대상 사용자 ID
+        reason:
+          type: string
+          nullable: true
+          description: 거절 사유 (선택)
+
+    RoleChangeInput:
+      type: object
+      required: [role]
+      properties:
+        role:
+          type: string
+          enum: [admin, member, super_admin]
+          description: 변경할 역할
+
+    ErrorResponse:
+      type: object
+      required: [status, error]
+      properties:
+        status:
+          type: string
+          enum: [error]
+        error:
+          type: object
+          required: [type, message]
+          properties:
+            type:
+              type: string
+              enum: [VALIDATION_ERROR, UNAUTHORIZED, FORBIDDEN, NOT_FOUND, SERVER_ERROR, APPROVAL_PENDING, APPROVAL_REJECTED]
+            message:
+              type: string
+        timestamp:
+          type: string
+          format: date-time
           nullable: true
