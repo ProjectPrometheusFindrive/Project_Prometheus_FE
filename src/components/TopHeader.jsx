@@ -20,7 +20,8 @@ export default function TopHeader() {
     // Get user info from storage
     const userInfo = typedStorage.auth.getUserInfo();
     const userName = userInfo?.name || "관리자";
-    const companyName = (companyInfo && companyInfo.name) || userInfo?.company || "";
+    // Display company name strictly from company profile for consistency
+    const companyName = (companyInfo && companyInfo.name) || "";
 
     function handleLogout() {
         auth.logout();
