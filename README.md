@@ -132,6 +132,18 @@ src/
 - 엔드포인트 경로는 `API_SPECIFICATION.md`의 Real API 섹션을 따르며, 기본 베이스는 `VITE_API_BASE_URL`입니다.
  - Rentals 필드 케이스: 프론트/백엔드 모두 camelCase를 사용합니다.
 
+### 회원가입/등록 정책 업데이트
+
+- 엔드포인트: `POST /auth/register`(기본). 레거시 `/auth/signup`은 폴백으로만 사용됩니다.
+- 요청 필드: `{ userId, password, name, phone, email, position, company, bizRegNo }`
+  - `bizRegNo`(사업자등록번호): 하이픈 입력 허용. 서버가 숫자만 추출하여 10자리·체크디지트 검증.
+  - 회사 식별: 신규 가입부터 `companyId = bizRegNo` 정책 적용(표시명은 `company`).
+- 에러 메시지(예):
+  - 자리수 오류: `사업자등록번호는 10자리 숫자여야 합니다.`
+  - 체크디지트 오류: `유효하지 않은 사업자등록번호입니다.`
+
+자세한 내용은 `API_SPECIFICATION.md`의 Authentication 섹션을 참고하세요.
+
 ## 지도/지오펜스
 
 - Kakao Maps SDK를 컴포넌트에서 동적으로 로드합니다(네트워크 필요).

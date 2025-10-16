@@ -53,6 +53,7 @@ export default function SignUp() {
     email: "",
     position: "",
     company: "",
+    bizRegNo: "",
   }, {
     validateOnChange: true,
     validate: (values) => {
@@ -77,6 +78,11 @@ export default function SignUp() {
 
       if (!v.position) out.position = "직위를 입력해주세요.";
       if (!String(v.company || "").trim()) out.company = "소속회사를 입력해주세요.";
+
+      // 사업자등록번호(bizRegNo): 하이픈 허용, 숫자 10자리 필요
+      const digits = String(v.bizRegNo || "").replace(/\D/g, "");
+      if (!digits) out.bizRegNo = "사업자등록번호를 입력해주세요.";
+      else if (digits.length !== 10) out.bizRegNo = "숫자 10자리로 입력해주세요.";
       return out;
     }
   });
@@ -97,6 +103,19 @@ export default function SignUp() {
     }
     const formatted = formatPhone11(value);
     updateField("phone", formatted);
+  }
+
+  // Format business registration number as 3-2-5 (e.g., 123-45-67890)
+  function formatBizRegNo(value) {
+    const digits = String(value || "").replace(/\D/g, "").slice(0, 10);
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 5) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+    return `${digits.slice(0, 3)}-${digits.slice(3, 5)}-${digits.slice(5)}`;
+  }
+
+  function handleBizRegNoChange(e) {
+    const formatted = formatBizRegNo(e.target.value);
+    updateField("bizRegNo", formatted);
   }
 
   async function handleSubmit(e) {
@@ -121,7 +140,9 @@ export default function SignUp() {
         phone: form.phone,
         email: form.email,
         position: form.position,
-        company: form.company
+        company: form.company,
+        // BE accepts hyphens; normalize to digits is optional. Send as-is (server normalizes).
+        bizRegNo: form.bizRegNo,
       };
 
       await signup(userData);
@@ -161,6 +182,11 @@ export default function SignUp() {
     company: (form.company || "").trim().length > 0
       ? { text: "확인했어요.", color: "#177245" }
       : { text: "회사명을 입력해 주세요.", color: touched.company ? (errors.company ? "#b71c1c" : "#999") : "#999" },
+    bizRegNo: (() => {
+      const digits = String(form.bizRegNo || "").replace(/\D/g, "");
+      if (digits.length === 10) return { text: "10자리 확인됐어요.", color: "#177245" };
+      return { text: "하이픈 가능, 숫자 10자리로 입력", color: touched.bizRegNo ? (errors.bizRegNo ? "#b71c1c" : "#999") : "#999" };
+    })(),
   }), [form, touched, errors]);
 
   // Build detailed criteria list per field for the modal
@@ -197,6 +223,10 @@ export default function SignUp() {
       ],
       company: [
         { label: "회사명 입력", ok: (form.company || "").trim().length > 0 },
+      ],
+      bizRegNo: [
+        { label: "사업자등록번호 입력", ok: !!form.bizRegNo },
+        { label: "숫자 10자리(하이픈 허용)", ok: String(form.bizRegNo || "").replace(/\D/g, "").length === 10 },
       ],
     };
     return checks;
@@ -268,6 +298,26 @@ export default function SignUp() {
             <div className="input-with-hint" style={{ flex: 1 }}>
               <input id="su-company" name="company" type="text" className="login-input" value={form.company} onChange={onChange} placeholder="회사명" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
               <div className="login-help input-hint" style={{ color: fieldHints.company.color }}>{fieldHints.company.text}</div>
+            </div>
+          </div>
+
+          <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+            <label className="login-label" htmlFor="su-biz" style={{ width: "120px", marginBottom: 0 }}>사업자등록번호</label>
+            <div className="input-with-hint" style={{ flex: 1 }}>
+              <input
+                id="su-biz"
+                name="bizRegNo"
+                type="text"
+                className="login-input"
+                value={form.bizRegNo}
+                onChange={handleBizRegNoChange}
+                placeholder="123-45-67890"
+                inputMode="numeric"
+                maxLength={12}
+                required
+                style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }}
+              />
+              <div className="login-help input-hint" style={{ color: fieldHints.bizRegNo.color }}>{fieldHints.bizRegNo.text}</div>
             </div>
           </div>
 
@@ -354,6 +404,13 @@ export default function SignUp() {
               <div style={{ color: "#555" }}>회사명</div>
               <div>
                 {criteria.company.map((c, i) => (
+                  <div key={i} className="login-help" style={{ marginTop: 4, color: c.ok ? "#177245" : "#b71c1c" }}>• {c.label}</div>
+                ))}
+              </div>
+
+              <div style={{ color: "#555" }}>사업자등록번호</div>
+              <div>
+                {criteria.bizRegNo.map((c, i) => (
                   <div key={i} className="login-help" style={{ marginTop: 4, color: c.ok ? "#177245" : "#b71c1c" }}>• {c.label}</div>
                 ))}
               </div>

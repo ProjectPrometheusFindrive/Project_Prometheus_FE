@@ -904,8 +904,13 @@ POST /uploads/download-url
   - 응답: `{ token: string, user: object }` (표준 래퍼 또는 Plain JSON)
 
 - POST /auth/register — 회원가입(권장 경로)
-  - 요청: `{ userId, password, name, phone, email, position, company, bizCertUrl? }`
+  - 요청: `{ userId, password, name, phone, email, position, company, bizRegNo, bizCertUrl? }`
+    - `bizRegNo`: 사업자등록번호. 하이픈 입력 허용(서버에서 숫자만 추출), 숫자 10자리·체크디지트 검증.
+    - 회사 식별 정책: `companyId = bizRegNo`로 설정(신규 가입부터 적용). 표시명은 `company` 사용.
   - 응답: 가입 결과(성공 시 사용자/토큰 또는 상태)
+  - 에러(예):
+    - 10자리 미만/초과 → `"사업자등록번호는 10자리 숫자여야 합니다."`
+    - 체크디지트 불일치 → `"유효하지 않은 사업자등록번호입니다."`
   - 비고: 구(舊) 경로 `/auth/signup`은 한시적(레거시)으로 허용됩니다. 프론트엔드는 `/auth/register` 호출 후 404(Not Found)일 경우 `/auth/signup`으로 자동 폴백합니다.
 
 - GET /auth/check-userid?userId=... — 아이디(이메일) 중복 확인
