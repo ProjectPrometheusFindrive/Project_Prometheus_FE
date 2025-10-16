@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES, isRoleAtLeast } from '../constants/auth';
-import { fetchPendingMembers, approveMember, rejectMember, changeMemberRole } from '../api/api';
+import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, changeMemberRole } from '../api/api';
 import { emitToast } from '../utils/toast';
 import ErrorBoundary from '../components/ErrorBoundary';
 import './MemberManagement.css';
@@ -10,13 +10,15 @@ import './MemberManagement.css';
  * MemberManagement page - Admin/Super Admin only
  *
  * Features:
- * - List pending members awaiting approval
- * - Approve/Reject members with confirmation
- * - Change member roles (with permission checks)
+ * - List all members and pending members (tabbed view)
+ * - Approve/Reject pending members with confirmation
+ * - Change member roles (admin <-> member for super_admin)
  * - Reload list after actions
  */
 function MemberManagement() {
     const { user } = useAuth();
+    const [activeTab, setActiveTab] = useState('all'); // 'all' or 'pending'
+    const [allMembers, setAllMembers] = useState([]);
     const [pendingMembers, setPendingMembers] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
@@ -29,8 +31,33 @@ function MemberManagement() {
     const isSuperAdmin = user && user.role === ROLES.SUPER_ADMIN;
 
     useEffect(() => {
-        loadPendingMembers();
-    }, []);
+        if (activeTab === 'all') {
+            loadAllMembers();
+        } else {
+            loadPendingMembers();
+        }
+    }, [activeTab]);
+
+    async function loadAllMembers() {
+        if (!canManageMembers) {
+            setError('접근 권한이 없습니다.');
+            setLoading(false);
+            return;
+        }
+
+        try {
+            setLoading(true);
+            setError(null);
+            const data = await fetchAllMembers();
+            setAllMembers(Array.isArray(data) ? data : []);
+        } catch (err) {
+            console.error('Failed to fetch all members:', err);
+            setError(err.message || '회원 목록을 불러오는데 실패했습니다.');
+            emitToast('회원 목록을 불러오는데 실패했습니다.', 'error');
+        } finally {
+            setLoading(false);
+        }
+    }
 
     async function loadPendingMembers() {
         if (!canManageMembers) {
@@ -116,15 +143,15 @@ function MemberManagement() {
             return;
         }
 
-        // Permission check for super_admin assignment
-        if (newRole === ROLES.SUPER_ADMIN && !isSuperAdmin) {
-            emitToast('super_admin 권한은 super_admin만 부여할 수 있습니다.', 'error');
+        // Only super_admin can change roles in all members tab
+        if (!isSuperAdmin) {
+            emitToast('역할 변경은 super_admin만 가능합니다.', 'error');
             return;
         }
 
-        // Check if user is trying to change someone from a different company (admin only)
-        if (!isSuperAdmin && selectedMember.companyId !== user.companyId) {
-            emitToast('다른 회사 사용자의 권한을 변경할 수 없습니다.', 'error');
+        // Check if role is same
+        if (newRole === selectedMember.role) {
+            emitToast('현재 역할과 동일합니다.', 'warning');
             return;
         }
 
@@ -138,8 +165,12 @@ function MemberManagement() {
             if (success) {
                 emitToast('역할이 변경되었습니다. 대상 사용자는 재로그인이 필요합니다.', 'success', 5000);
                 closeRoleChangeModal();
-                // Optionally reload list if you want to show updated data
-                // await loadPendingMembers();
+                // Reload list to show updated data
+                if (activeTab === 'all') {
+                    await loadAllMembers();
+                } else {
+                    await loadPendingMembers();
+                }
             } else {
                 emitToast('역할 변경에 실패했습니다.', 'error');
             }
@@ -175,7 +206,7 @@ function MemberManagement() {
             <div className="member-management-page">
                 <div className="page-header">
                     <h1>회원 관리</h1>
-                    <p className="page-subtitle">가입 대기중인 회원을 승인하거나 거절할 수 있습니다.</p>
+                    <p className="page-subtitle">전체 회원을 조회하고 역할을 변경하거나, 가입 대기중인 회원을 승인/거절할 수 있습니다.</p>
                 </div>
 
                 {error && (
@@ -184,93 +215,198 @@ function MemberManagement() {
                     </div>
                 )}
 
-                <div className="content-section">
-                    <div className="section-header">
-                        <h2>승인 대기 회원</h2>
-                        <button
-                            className="btn-secondary"
-                            onClick={loadPendingMembers}
-                            disabled={loading}
-                        >
-                            {loading ? '로딩 중...' : '새로고침'}
-                        </button>
-                    </div>
-
-                    {loading ? (
-                        <div className="loading-state">
-                            <div className="spinner"></div>
-                            <p>로딩 중...</p>
-                        </div>
-                    ) : pendingMembers.length === 0 ? (
-                        <div className="empty-state">
-                            <p>승인 대기중인 회원이 없습니다.</p>
-                        </div>
-                    ) : (
-                        <div className="members-table-container">
-                            <table className="members-table">
-                                <thead>
-                                    <tr>
-                                        <th>사용자 ID</th>
-                                        <th>이름</th>
-                                        <th>이메일</th>
-                                        <th>회사</th>
-                                        <th>직책</th>
-                                        <th>전화번호</th>
-                                        <th>가입일</th>
-                                        <th>작업</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {pendingMembers.map((member) => {
-                                        const disabled = actionLoading === member.userId || !canManageMember(member);
-                                        const isOtherCompany = !isSuperAdmin && member.companyId !== user.companyId;
-
-                                        return (
-                                            <tr key={member.userId} className={disabled ? 'disabled-row' : ''}>
-                                                <td>{member.userId}</td>
-                                                <td>{member.name || '-'}</td>
-                                                <td>{member.email || member.userId}</td>
-                                                <td>
-                                                    {member.company || member.companyId || '-'}
-                                                    {isOtherCompany && <span className="badge badge-warning">타사</span>}
-                                                </td>
-                                                <td>{member.position || '-'}</td>
-                                                <td>{member.phone || '-'}</td>
-                                                <td>
-                                                    {member.createdAt
-                                                        ? new Date(member.createdAt).toLocaleDateString('ko-KR')
-                                                        : '-'}
-                                                </td>
-                                                <td className="action-cell">
-                                                    {!canManageMember(member) ? (
-                                                        <span className="text-muted">권한 없음</span>
-                                                    ) : (
-                                                        <div className="action-buttons">
-                                                            <button
-                                                                className="btn-approve"
-                                                                onClick={() => handleApprove(member.userId)}
-                                                                disabled={disabled}
-                                                            >
-                                                                {actionLoading === member.userId ? '처리 중...' : '승인'}
-                                                            </button>
-                                                            <button
-                                                                className="btn-reject"
-                                                                onClick={() => handleReject(member.userId)}
-                                                                disabled={disabled}
-                                                            >
-                                                                거절
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    )}
+                {/* Tab Navigation */}
+                <div className="tab-navigation">
+                    <button
+                        className={`tab-button ${activeTab === 'all' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('all')}
+                    >
+                        전체 회원
+                    </button>
+                    <button
+                        className={`tab-button ${activeTab === 'pending' ? 'active' : ''}`}
+                        onClick={() => setActiveTab('pending')}
+                    >
+                        승인 대기
+                    </button>
                 </div>
+
+                {/* All Members Tab */}
+                {activeTab === 'all' && (
+                    <div className="content-section">
+                        <div className="section-header">
+                            <h2>전체 회원</h2>
+                            <button
+                                className="btn-secondary"
+                                onClick={loadAllMembers}
+                                disabled={loading}
+                            >
+                                {loading ? '로딩 중...' : '새로고침'}
+                            </button>
+                        </div>
+
+                        {loading ? (
+                            <div className="loading-state">
+                                <div className="spinner"></div>
+                                <p>로딩 중...</p>
+                            </div>
+                        ) : allMembers.length === 0 ? (
+                            <div className="empty-state">
+                                <p>회원이 없습니다.</p>
+                            </div>
+                        ) : (
+                            <div className="members-table-container">
+                                <table className="members-table">
+                                    <thead>
+                                        <tr>
+                                            <th>사용자 ID</th>
+                                            <th>이름</th>
+                                            <th>이메일</th>
+                                            <th>회사</th>
+                                            <th>직책</th>
+                                            <th>전화번호</th>
+                                            <th>역할</th>
+                                            <th>가입일</th>
+                                            {isSuperAdmin && <th>작업</th>}
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {allMembers.map((member) => {
+                                            const disabled = actionLoading === member.userId;
+
+                                            return (
+                                                <tr key={member.userId} className={disabled ? 'disabled-row' : ''}>
+                                                    <td>{member.userId}</td>
+                                                    <td>{member.name || '-'}</td>
+                                                    <td>{member.email || member.userId}</td>
+                                                    <td>{member.company || member.companyId || '-'}</td>
+                                                    <td>{member.position || '-'}</td>
+                                                    <td>{member.phone || '-'}</td>
+                                                    <td>
+                                                        <span className={`role-badge role-${member.role}`}>
+                                                            {member.role || 'member'}
+                                                        </span>
+                                                    </td>
+                                                    <td>
+                                                        {member.createdAt
+                                                            ? new Date(member.createdAt).toLocaleDateString('ko-KR')
+                                                            : '-'}
+                                                    </td>
+                                                    {isSuperAdmin && (
+                                                        <td className="action-cell">
+                                                            {member.role === ROLES.SUPER_ADMIN ? (
+                                                                <span className="text-muted">변경 불가</span>
+                                                            ) : (
+                                                                <button
+                                                                    className="btn-role-change"
+                                                                    onClick={() => openRoleChangeModal(member)}
+                                                                    disabled={disabled}
+                                                                >
+                                                                    역할 변경
+                                                                </button>
+                                                            )}
+                                                        </td>
+                                                    )}
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Pending Members Tab */}
+                {activeTab === 'pending' && (
+                    <div className="content-section">
+                        <div className="section-header">
+                            <h2>승인 대기 회원</h2>
+                            <button
+                                className="btn-secondary"
+                                onClick={loadPendingMembers}
+                                disabled={loading}
+                            >
+                                {loading ? '로딩 중...' : '새로고침'}
+                            </button>
+                        </div>
+
+                        {loading ? (
+                            <div className="loading-state">
+                                <div className="spinner"></div>
+                                <p>로딩 중...</p>
+                            </div>
+                        ) : pendingMembers.length === 0 ? (
+                            <div className="empty-state">
+                                <p>승인 대기중인 회원이 없습니다.</p>
+                            </div>
+                        ) : (
+                            <div className="members-table-container">
+                                <table className="members-table">
+                                    <thead>
+                                        <tr>
+                                            <th>사용자 ID</th>
+                                            <th>이름</th>
+                                            <th>이메일</th>
+                                            <th>회사</th>
+                                            <th>직책</th>
+                                            <th>전화번호</th>
+                                            <th>가입일</th>
+                                            <th>작업</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {pendingMembers.map((member) => {
+                                            const disabled = actionLoading === member.userId || !canManageMember(member);
+                                            const isOtherCompany = !isSuperAdmin && member.companyId !== user.companyId;
+
+                                            return (
+                                                <tr key={member.userId} className={disabled ? 'disabled-row' : ''}>
+                                                    <td>{member.userId}</td>
+                                                    <td>{member.name || '-'}</td>
+                                                    <td>{member.email || member.userId}</td>
+                                                    <td>
+                                                        {member.company || member.companyId || '-'}
+                                                        {isOtherCompany && <span className="badge badge-warning">타사</span>}
+                                                    </td>
+                                                    <td>{member.position || '-'}</td>
+                                                    <td>{member.phone || '-'}</td>
+                                                    <td>
+                                                        {member.createdAt
+                                                            ? new Date(member.createdAt).toLocaleDateString('ko-KR')
+                                                            : '-'}
+                                                    </td>
+                                                    <td className="action-cell">
+                                                        {!canManageMember(member) ? (
+                                                            <span className="text-muted">권한 없음</span>
+                                                        ) : (
+                                                            <div className="action-buttons">
+                                                                <button
+                                                                    className="btn-approve"
+                                                                    onClick={() => handleApprove(member.userId)}
+                                                                    disabled={disabled}
+                                                                >
+                                                                    {actionLoading === member.userId ? '처리 중...' : '승인'}
+                                                                </button>
+                                                                <button
+                                                                    className="btn-reject"
+                                                                    onClick={() => handleReject(member.userId)}
+                                                                    disabled={disabled}
+                                                                >
+                                                                    거절
+                                                                </button>
+                                                            </div>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        )}
+                    </div>
+                )}
 
                 {/* Role Change Modal */}
                 {selectedMember && (
@@ -311,7 +447,7 @@ function MemberManagement() {
                                     />
                                 </div>
                                 <div className="form-group">
-                                    <label htmlFor="newRole">새로운 역할</label>
+                                    <label htmlFor="newRole">새로운 역할 (admin ↔ member만 변경 가능)</label>
                                     <select
                                         id="newRole"
                                         value={newRole}
@@ -320,9 +456,6 @@ function MemberManagement() {
                                     >
                                         <option value={ROLES.MEMBER}>member</option>
                                         <option value={ROLES.ADMIN}>admin</option>
-                                        {isSuperAdmin && (
-                                            <option value={ROLES.SUPER_ADMIN}>super_admin</option>
-                                        )}
                                     </select>
                                 </div>
                                 <div className="info-box">

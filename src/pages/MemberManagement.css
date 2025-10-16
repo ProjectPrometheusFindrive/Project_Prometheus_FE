@@ -40,6 +40,37 @@
     font-size: 1.1rem;
 }
 
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.tab-button {
+    padding: 0.75rem 1.5rem;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #666;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-bottom: -2px;
+}
+
+.tab-button:hover {
+    color: #333;
+    background-color: #f8f9fa;
+}
+
+.tab-button.active {
+    color: #007bff;
+    border-bottom-color: #007bff;
+}
+
 .content-section {
     background: #fff;
     border-radius: 8px;
@@ -159,11 +190,37 @@
     color: #856404;
 }
 
+/* Role Badge styles */
+.role-badge {
+    display: inline-block;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 4px;
+    text-transform: capitalize;
+}
+
+.role-badge.role-super_admin {
+    background-color: #dc3545;
+    color: #fff;
+}
+
+.role-badge.role-admin {
+    background-color: #007bff;
+    color: #fff;
+}
+
+.role-badge.role-member {
+    background-color: #6c757d;
+    color: #fff;
+}
+
 /* Button styles */
 .btn-secondary,
 .btn-primary,
 .btn-approve,
-.btn-reject {
+.btn-reject,
+.btn-role-change {
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 4px;
@@ -211,10 +268,21 @@
     background-color: #c82333;
 }
 
+.btn-role-change {
+    background-color: #17a2b8;
+    color: #fff;
+    padding: 0.4rem 0.8rem;
+}
+
+.btn-role-change:hover:not(:disabled) {
+    background-color: #138496;
+}
+
 .btn-secondary:disabled,
 .btn-primary:disabled,
 .btn-approve:disabled,
-.btn-reject:disabled {
+.btn-reject:disabled,
+.btn-role-change:disabled {
     opacity: 0.6;
     cursor: not-allowed;
 }

@@ -313,6 +313,15 @@ export async function getCurrentUser() {
 
 // Members (approval & role management)
 /**
+ * Fetch all members (approved users)
+ * @returns {Promise<Array>} Array of all user objects
+ */
+export async function fetchAllMembers() {
+    const response = await membersApi.fetchAll();
+    return extractData(response);
+}
+
+/**
  * Fetch list of pending members awaiting approval
  * @returns {Promise<Array>} Array of pending user objects
  */

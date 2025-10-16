@@ -592,6 +592,14 @@ export const authApi = {
 // Members API methods (approval & role management)
 export const membersApi = {
     /**
+     * Fetch all members (approved users)
+     * @returns {Promise<Object>} Response with array of all users
+     */
+    async fetchAll() {
+        return await apiRequest(API_ENDPOINTS.MEMBERS);
+    },
+
+    /**
      * Fetch list of pending members awaiting approval
      * @returns {Promise<Object>} Response with array of pending users
      */

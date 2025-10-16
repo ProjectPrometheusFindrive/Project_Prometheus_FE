@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
     ISSUES: '/issues',
 
     // Members (approval & role management)
+    MEMBERS: '/members',
     MEMBERS_PENDING: '/members/pending',
     MEMBERS_APPROVE: '/members/approve',
     MEMBERS_REJECT: '/members/reject',
