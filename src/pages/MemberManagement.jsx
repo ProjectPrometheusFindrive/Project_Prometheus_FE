@@ -268,14 +268,14 @@ function MemberManagement() {
                                     <thead>
                                         <tr>
                                             <th>사용자 ID</th>
-                                            <th>이름</th>
-                                            <th>이메일</th>
+                                            <th>사업자등록번호</th>
                                             <th>회사</th>
                                             <th>직책</th>
+                                            <th>이름</th>
                                             <th>전화번호</th>
                                             <th>역할</th>
                                             <th>가입일</th>
-                                            {isSuperAdmin && <th>작업</th>}
+                                            {isSuperAdmin && <th>역할 변경</th>}
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -285,10 +285,10 @@ function MemberManagement() {
                                             return (
                                                 <tr key={member.userId} className={disabled ? 'disabled-row' : ''}>
                                                     <td>{member.userId}</td>
-                                                    <td>{member.name || '-'}</td>
-                                                    <td>{member.email || member.userId}</td>
+                                                    <td>{member.bizRegNo || '-'}</td>
                                                     <td>{member.company || member.companyId || '-'}</td>
                                                     <td>{member.position || '-'}</td>
+                                                    <td>{member.name || '-'}</td>
                                                     <td>{member.phone || '-'}</td>
                                                     <td>
                                                         <span className={`role-badge role-${member.role}`}>
@@ -354,13 +354,13 @@ function MemberManagement() {
                                     <thead>
                                         <tr>
                                             <th>사용자 ID</th>
-                                            <th>이름</th>
-                                            <th>이메일</th>
+                                            <th>사업자등록번호</th>
                                             <th>회사</th>
                                             <th>직책</th>
+                                            <th>이름</th>
                                             <th>전화번호</th>
                                             <th>가입일</th>
-                                            <th>작업</th>
+                                            <th>승인 여부</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -371,13 +371,13 @@ function MemberManagement() {
                                             return (
                                                 <tr key={member.userId} className={disabled ? 'disabled-row' : ''}>
                                                     <td>{member.userId}</td>
-                                                    <td>{member.name || '-'}</td>
-                                                    <td>{member.email || member.userId}</td>
+                                                    <td>{member.bizRegNo || '-'}</td>
                                                     <td>
                                                         {member.company || member.companyId || '-'}
                                                         {isOtherCompany && <span className="badge badge-warning">타사</span>}
                                                     </td>
                                                     <td>{member.position || '-'}</td>
+                                                    <td>{member.name || '-'}</td>
                                                     <td>{member.phone || '-'}</td>
                                                     <td>
                                                         {member.createdAt
