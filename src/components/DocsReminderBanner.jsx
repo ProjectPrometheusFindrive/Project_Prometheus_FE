@@ -6,21 +6,30 @@ import { typedStorage } from "../utils/storage";
 
 export default function DocsReminderBanner() {
   const auth = useAuth();
-  const { companyInfo } = useCompany();
+  const { companyInfo, loading } = useCompany();
   const navigate = useNavigate();
   const location = useLocation();
   const [show, setShow] = useState(false);
 
+  const serverHasFlag = useMemo(() => {
+    return !!(companyInfo && Object.prototype.hasOwnProperty.call(companyInfo, "hasBizCertDoc"));
+  }, [companyInfo]);
+
   const needDocsFromServer = useMemo(() => {
     if (!auth.isAuthenticated) return false;
-    if (companyInfo && Object.prototype.hasOwnProperty.call(companyInfo, "hasBizCertDoc")) {
+    if (serverHasFlag) {
       return companyInfo.hasBizCertDoc === false;
     }
     return false;
-  }, [auth.isAuthenticated, companyInfo]);
+  }, [auth.isAuthenticated, serverHasFlag, companyInfo]);
 
   useEffect(() => {
     if (!auth.isAuthenticated) {
+      setShow(false);
+      return;
+    }
+    // While company info is loading, don't show to avoid flicker
+    if (loading) {
       setShow(false);
       return;
     }
@@ -29,14 +38,14 @@ export default function DocsReminderBanner() {
       setShow(false);
       return;
     }
-    // Prefer server truth; fallback to local flag for soft reminders
-    if (needDocsFromServer) {
-      setShow(true);
+    // Prefer server truth; only fallback to local flag when server hasn't provided definitive value
+    if (serverHasFlag) {
+      setShow(needDocsFromServer);
       return;
     }
     const flag = typedStorage.flags.getNeedsCompanyDocs();
     setShow(!!flag);
-  }, [auth.isAuthenticated, location.pathname, needDocsFromServer]);
+  }, [auth.isAuthenticated, loading, location.pathname, needDocsFromServer, serverHasFlag]);
 
   if (!show) return null;
 
