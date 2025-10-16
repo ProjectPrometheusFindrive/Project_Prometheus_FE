@@ -58,10 +58,11 @@ export default function Login() {
     <div className="login-container">
       <div className="login-card">
         <h1 className="login-title">Login</h1>
-        <form onSubmit={handleSubmit} className="login-form">
+        <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
           <label className="login-label" htmlFor="login-id">ID</label>
           <input
             id="login-id"
+            name="username"
             type="text"
             className="login-input"
             value={id}
@@ -74,6 +75,7 @@ export default function Login() {
           <label className="login-label" htmlFor="login-pw">Password</label>
           <input
             id="login-pw"
+            name="password"
             type="password"
             className="login-input"
             value={password}
