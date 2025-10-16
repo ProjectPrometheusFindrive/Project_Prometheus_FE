@@ -63,6 +63,7 @@ export const API_STATUS = {
 export const API_ERRORS = {
     NETWORK_ERROR: 'NETWORK_ERROR',
     NOT_FOUND: 'NOT_FOUND',
+    FORBIDDEN: 'FORBIDDEN',
     UNAUTHORIZED: 'UNAUTHORIZED',
     CONFLICT: 'CONFLICT',
     VALIDATION_ERROR: 'VALIDATION_ERROR',
@@ -94,6 +95,13 @@ export function handleApiError(error, endpoint = 'unknown') {
         return createApiResponse(null, API_STATUS.ERROR, {
             type: API_ERRORS.NOT_FOUND,
             message: 'Resource not found'
+        });
+    }
+
+    if (error.status === 403) {
+        return createApiResponse(null, API_STATUS.ERROR, {
+            type: API_ERRORS.FORBIDDEN,
+            message: 'Forbidden'
         });
     }
     

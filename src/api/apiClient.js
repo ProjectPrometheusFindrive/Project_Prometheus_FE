@@ -37,6 +37,12 @@ function handleUnauthorized(message) {
     setTimeout(() => { unauthorizedGuard = false; }, 1500);
 }
 
+function handleForbidden(message) {
+    try {
+        emitToast(message || '접근 권한이 없습니다.', 'warning', 3500);
+    } catch {}
+}
+
 // Base URL and configuration
 const getBaseUrl = () => {
     const base = import.meta.env.VITE_API_BASE_URL || '';
@@ -144,6 +150,9 @@ async function apiRequest(endpoint, options = {}) {
             if (status === 401) {
                 const msg = (payload && (payload.error?.message || payload.message)) || '인증이 만료되었거나 무효화되었습니다.';
                 handleUnauthorized(msg);
+            } else if (status === 403) {
+                const msg = (payload && (payload.error?.message || payload.message)) || '접근 권한이 없습니다.';
+                handleForbidden(msg);
             }
             throw err;
         }
@@ -158,6 +167,9 @@ async function apiRequest(endpoint, options = {}) {
         if (error && error.status === 401) {
             const msg = (error.data && (error.data.error?.message || error.data.message)) || '인증이 만료되었거나 무효화되었습니다.';
             handleUnauthorized(msg);
+        } else if (error && error.status === 403) {
+            const msg = (error.data && (error.data.error?.message || error.data.message)) || '접근 권한이 없습니다.';
+            handleForbidden(msg);
         }
         return handleApiError(error, endpoint);
     }
