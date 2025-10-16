@@ -19,6 +19,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import OnboardingDocs from "./pages/OnboardingDocs";
 import { getSignedDownloadUrl, deriveObjectName } from "./utils/gcsApi";
 import GlobalToast from "./components/GlobalToast";
+import ForcePasswordChange from "./components/ForcePasswordChange";
 
 const DynamicFavicon = () => {
   const { companyInfo } = useCompany();
@@ -102,6 +103,7 @@ function App() {
         <CompanyProvider>
           <Router>
             <GlobalToast />
+          <ForcePasswordChange />
           <DynamicFavicon />
           <Routes>
             <Route path="/" element={<Login />} />

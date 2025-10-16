@@ -3,6 +3,7 @@
 export const API_ENDPOINTS = {
     // Auth
     AUTH_LOGIN: '/auth/login',
+    AUTH_CHANGE_PASSWORD: '/auth/change-password',
     // Preferred path (align BE): use /auth/register; keep legacy alias for fallback
     AUTH_SIGNUP: '/auth/register',
     AUTH_SIGNUP_LEGACY: '/auth/signup',
@@ -109,16 +110,32 @@ export function handleApiError(error, endpoint = 'unknown') {
     }
 
     if (error.status === 403) {
+        // Preserve backend error type if present
+        const errType = error?.errorType;
+        let message = 'Forbidden';
+        if (errType === 'APPROVAL_REJECTED') {
+            message = '가입이 거절되었습니다. 관리자에게 문의하세요.';
+        } else if (error.message) {
+            message = error.message;
+        }
         return createApiResponse(null, API_STATUS.ERROR, {
-            type: API_ERRORS.FORBIDDEN,
-            message: 'Forbidden'
+            type: errType || API_ERRORS.FORBIDDEN,
+            message
         });
     }
     
     if (error.status === 401) {
+        // Preserve backend error type if present
+        const errType = error?.errorType;
+        let message = 'Authentication required';
+        if (errType === 'AUTH_ERROR') {
+            message = '아이디 또는 비밀번호가 올바르지 않습니다.';
+        } else if (error.message) {
+            message = error.message;
+        }
         return createApiResponse(null, API_STATUS.ERROR, {
-            type: API_ERRORS.UNAUTHORIZED,
-            message: 'Authentication required'
+            type: errType || API_ERRORS.UNAUTHORIZED,
+            message
         });
     }
     

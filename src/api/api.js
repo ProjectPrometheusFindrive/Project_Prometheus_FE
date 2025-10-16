@@ -312,8 +312,27 @@ export async function getCurrentUser() {
 }
 
 export async function forgotPassword(data) {
+    // Returns true on success; throws with mapped message on error
     const response = await authApi.forgotPassword(data);
-    return extractData(response);
+    if (response.status === API_STATUS.SUCCESS) {
+        return true;
+    }
+    const type = response?.error?.type;
+    if (type === 'NOT_FOUND') {
+        throw new Error('해당 이메일의 사용자를 찾을 수 없습니다.');
+    }
+    throw new Error(response?.error?.message || '잠시 후 다시 시도해 주세요.');
+}
+
+export async function changePassword(data) {
+    // data: { currentPassword, newPassword }
+    const response = await authApi.changePassword(data);
+    if (response.status === API_STATUS.SUCCESS) {
+        return true;
+    }
+    // Surface backend-provided error message if available
+    const msg = response?.error?.message || '비밀번호 변경에 실패했습니다.';
+    throw new Error(msg);
 }
 
 // Members (approval & role management)

@@ -164,7 +164,10 @@ async function apiRequest(endpoint, options = {}) {
 
             if (status === 401) {
                 const msg = (payload && (payload.error?.message || payload.message)) || '인증이 만료되었거나 무효화되었습니다.';
-                handleUnauthorized(msg);
+                // Avoid global unauthorized handling for login endpoint
+                if (endpoint !== API_ENDPOINTS.AUTH_LOGIN) {
+                    handleUnauthorized(msg);
+                }
             } else if (status === 403) {
                 // Check if this is an approval-related 403
                 if (errorType === API_ERRORS.APPROVAL_PENDING || errorType === API_ERRORS.APPROVAL_REJECTED) {
@@ -193,7 +196,10 @@ async function apiRequest(endpoint, options = {}) {
         }
         if (error && error.status === 401) {
             const msg = (error.data && (error.data.error?.message || error.data.message)) || '인증이 만료되었거나 무효화되었습니다.';
-            handleUnauthorized(msg);
+            // Avoid global unauthorized handling for login endpoint
+            if (endpoint !== API_ENDPOINTS.AUTH_LOGIN) {
+                handleUnauthorized(msg);
+            }
         } else if (error && error.status === 403) {
             const msg = (error.data && (error.data.error?.message || error.data.message)) || '접근 권한이 없습니다.';
             handleForbidden(msg);
@@ -589,8 +595,16 @@ export const authApi = {
     },
 
     async forgotPassword(data) {
-        // data: { email, bizRegNo }
+        // data: { userId }
         return await apiRequest(API_ENDPOINTS.AUTH_FORGOT_PASSWORD, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+
+    async changePassword(data) {
+        // data: { currentPassword, newPassword }
+        return await apiRequest(API_ENDPOINTS.AUTH_CHANGE_PASSWORD, {
             method: 'POST',
             body: JSON.stringify(data)
         });

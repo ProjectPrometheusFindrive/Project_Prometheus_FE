@@ -4,7 +4,6 @@ import { forgotPassword } from "../api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
-  const [bizRegNo, setBizRegNo] = useState("");
   const [msg, setMsg] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -14,24 +13,20 @@ export default function ForgotPassword() {
     setMsg("");
     setError("");
 
-    if (!email || !bizRegNo) {
-      setError("이메일과 사업자등록번호를 모두 입력해주세요.");
+    if (!email) {
+      setError("이메일을 입력해주세요.");
       return;
     }
 
     setLoading(true);
 
     try {
-      await forgotPassword({
-        email,
-        bizRegNo
-      });
+      await forgotPassword({ userId: email });
 
-      setMsg("비밀번호 재설정 링크를 이메일로 전송했습니다.");
+      setMsg("임시 비밀번호를 이메일로 발송했습니다. 로그인 후 즉시 변경하세요.");
       setEmail("");
-      setBizRegNo("");
     } catch (err) {
-      setError(err.message || "비밀번호 찾기에 실패했습니다. 입력 정보를 확인해주세요.");
+      setError(err.message || "잠시 후 다시 시도해 주세요.");
     } finally {
       setLoading(false);
     }
@@ -53,17 +48,6 @@ export default function ForgotPassword() {
             required
           />
 
-          <label className="login-label" htmlFor="fp-bizRegNo">사업자등록번호</label>
-          <input
-            id="fp-bizRegNo"
-            type="text"
-            className="login-input"
-            value={bizRegNo}
-            onChange={(e)=>setBizRegNo(e.target.value)}
-            placeholder="000-00-00000"
-            required
-          />
-
           <button type="submit" className="login-button" disabled={loading}>
             {loading ? "처리 중..." : "재설정 링크 보내기"}
           </button>
@@ -77,4 +61,3 @@ export default function ForgotPassword() {
     </div>
   );
 }
-

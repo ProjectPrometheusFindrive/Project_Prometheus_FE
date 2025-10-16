@@ -25,6 +25,7 @@ function MemberManagement() {
     const [actionLoading, setActionLoading] = useState(null); // userId being acted upon
     const [selectedMember, setSelectedMember] = useState(null); // For role change modal
     const [newRole, setNewRole] = useState('');
+    const [highlightUserId, setHighlightUserId] = useState('');
 
     // Permission check: Only admin or super_admin can access
     const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
@@ -38,6 +39,28 @@ function MemberManagement() {
             loadPendingMembers();
         }
     }, [activeTab]);
+
+    // Listen for global refresh signal and consume focus intent stored by dashboard
+    useEffect(() => {
+        function onRefresh() {
+            if (activeTab === 'pending') {
+                loadPendingMembers();
+            }
+        }
+        window.addEventListener('app:refresh-pending-members', onRefresh);
+        // One-time check for focus intent
+        try {
+            const raw = localStorage.getItem('approveUserFocus');
+            const parsed = raw ? JSON.parse(raw) : null;
+            if (parsed && parsed.userId) {
+                setActiveTab('pending');
+                setHighlightUserId(parsed.userId);
+                localStorage.removeItem('approveUserFocus');
+            }
+        } catch {}
+        return () => window.removeEventListener('app:refresh-pending-members', onRefresh);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     async function loadAllMembers() {
         if (!canManageMembers) {
@@ -78,7 +101,18 @@ function MemberManagement() {
             setLoading(true);
             setError(null);
             const data = await fetchPendingMembers();
-            setPendingMembers(Array.isArray(data) ? data : []);
+            const list = Array.isArray(data) ? data : [];
+            setPendingMembers(list);
+            // Attempt to focus the highlighted user's approve button
+            if (highlightUserId) {
+                setTimeout(() => {
+                    const id = `approve-btn-${encodeURIComponent(highlightUserId)}`;
+                    const el = document.getElementById(id);
+                    if (el && typeof el.focus === 'function') {
+                        try { el.focus(); } catch {}
+                    }
+                }, 0);
+            }
         } catch (err) {
             console.error('Failed to fetch pending members:', err);
             setError(err.message || '대기 회원 목록을 불러오는데 실패했습니다.');
@@ -283,7 +317,7 @@ function MemberManagement() {
                                             const disabled = actionLoading === member.userId;
 
                                             return (
-                                                <tr key={member.userId} className={disabled ? 'disabled-row' : ''}>
+                                                <tr key={member.userId} className={`${disabled ? 'disabled-row' : ''} ${highlightUserId === member.userId ? 'highlight-row' : ''}`}>
                                                     <td>{member.userId}</td>
                                                     <td>{member.bizRegNo || '-'}</td>
                                                     <td>{member.company || member.companyId || '-'}</td>
@@ -391,6 +425,7 @@ function MemberManagement() {
                                                             <div className="action-buttons">
                                                                 <button
                                                                     className="btn-approve"
+                                                                    id={`approve-btn-${encodeURIComponent(member.userId)}`}
                                                                     onClick={() => handleApprove(member.userId)}
                                                                     disabled={disabled}
                                                                 >

@@ -162,6 +162,19 @@
     pointer-events: none;
 }
 
+/* Highlight a specific pending user row (from dashboard approve_user link) */
+.members-table tbody tr.highlight-row {
+    outline: 2px solid #2563eb;
+    outline-offset: -2px;
+    animation: rowPulse 1.4s ease-in-out 2;
+}
+
+@keyframes rowPulse {
+    0% { background-color: rgba(37,99,235,0.10); }
+    50% { background-color: rgba(37,99,235,0.22); }
+    100% { background-color: rgba(37,99,235,0.10); }
+}
+
 .action-cell {
     min-width: 180px;
 }

@@ -31,7 +31,10 @@ export const STORAGE_KEYS = {
   ENGINE_STATUS_MAP: 'engineStatusMap',
   
   // User Preferences
-  DEFAULT_LANDING: 'defaultLanding'
+  DEFAULT_LANDING: 'defaultLanding',
+
+  // Admin signals
+  APPROVE_USER_FOCUS: 'approveUserFocus'
 };
 
 /**
