@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from "
 import { getCurrentUser } from "../api";
 import { typedStorage } from "../utils/storage";
 import { emitToast } from "../utils/toast";
+import { getJwtPayload } from "../utils/jwt";
 
 const AuthContext = createContext(null);
 
@@ -22,9 +23,17 @@ export function AuthProvider({ children }) {
     (async () => {
       try {
         const u = await getCurrentUser();
+        // Merge JWT claims (companyId/role/company) as fallback if missing in response
+        const claims = getJwtPayload(token) || {};
+        const merged = {
+          ...(u || {}),
+          companyId: (u && u.companyId) || claims.companyId,
+          role: (u && u.role) || claims.role,
+          company: (u && u.company) || claims.company,
+        };
         if (cancelled) return;
-        setUser(u || null);
-        typedStorage.auth.setUserInfo(u || {});
+        setUser(merged || null);
+        typedStorage.auth.setUserInfo(merged || {});
         typedStorage.auth.setLoggedIn(true);
         setStatus("authenticated");
       } catch (e) {
@@ -46,9 +55,16 @@ export function AuthProvider({ children }) {
     setAuthenticated: (token, u) => {
       try {
         if (token) typedStorage.auth.setToken(token);
-        if (u) typedStorage.auth.setUserInfo(u);
+        const claims = token ? (getJwtPayload(token) || {}) : {};
+        const merged = {
+          ...(u || {}),
+          companyId: (u && u.companyId) || claims.companyId,
+          role: (u && u.role) || claims.role,
+          company: (u && u.company) || claims.company,
+        };
+        if (merged) typedStorage.auth.setUserInfo(merged);
         typedStorage.auth.setLoggedIn(true);
-        setUser(u || null);
+        setUser(merged || null);
         setStatus("authenticated");
       } catch {}
     },
@@ -74,4 +90,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used within an AuthProvider");
   return ctx;
 }
-

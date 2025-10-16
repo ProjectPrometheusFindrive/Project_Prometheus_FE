@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { typedStorage } from "../utils/storage";
 import { useAuth } from "../contexts/AuthContext";
 import { login } from "../api";
+import { getJwtPayload } from "../utils/jwt";
 
 export default function Login() {
   const navigate = useNavigate();
@@ -32,8 +33,16 @@ export default function Login() {
       // Call login API
       const response = await login({ userId: id, password });
 
+      // Merge JWT claims for companyId/role/company fallback
+      const claims = getJwtPayload(response?.token) || {};
+      const mergedUser = {
+        ...(response?.user || {}),
+        companyId: response?.user?.companyId || claims.companyId,
+        role: response?.user?.role || claims.role,
+        company: response?.user?.company || claims.company,
+      };
       // Persist and update auth context
-      auth.setAuthenticated(response.token, response.user);
+      auth.setAuthenticated(response.token, mergedUser);
 
       // Navigate to dashboard
       goToLanding();
