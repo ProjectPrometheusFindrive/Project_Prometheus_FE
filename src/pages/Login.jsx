@@ -91,8 +91,6 @@ export default function Login() {
         <div className="login-help" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
           <Link to="/terms">회원가입</Link>
           <span style={{ color: "#bbb" }}>|</span>
-          <Link to="/find-id">아이디 찾기</Link>
-          <span style={{ color: "#bbb" }}>|</span>
           <Link to="/forgot-password">비밀번호 찾기</Link>
         </div>
       </div>

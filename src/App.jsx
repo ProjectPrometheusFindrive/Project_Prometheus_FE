@@ -6,7 +6,6 @@ import { AuthProvider } from "./contexts/AuthContext";
 import Login from "./pages/Login";
 import SignUp from "./pages/SignUp";
 import TermsAgreement from "./pages/TermsAgreement";
-import FindId from "./pages/FindId";
 import ForgotPassword from "./pages/ForgotPassword";
 import Settings from "./pages/Settings";
 import AssetStatus from "./pages/AssetStatus";
@@ -108,7 +107,6 @@ function App() {
             <Route path="/" element={<Login />} />
             <Route path="/terms" element={<TermsAgreement />} />
             <Route path="/signup" element={<SignUp />} />
-            <Route path="/find-id" element={<FindId />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route element={<RequireAuth><AppLayout /></RequireAuth>}>
               <Route path="/onboarding/docs" element={

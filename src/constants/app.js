@@ -101,7 +101,6 @@ export const ROUTES = {
   // Auth routes
   LOGIN: '/',
   SIGNUP: '/signup',
-  FIND_ID: '/find-id',
   FORGOT_PASSWORD: '/forgot-password'
 };
 

@@ -77,7 +77,7 @@ VITE_KAKAO_MAP_API_KEY=your_kakao_key
 
 ## 라우팅
 
-- 공개: `/`, `/signup`, `/find-id`, `/forgot-password`
+- 공개: `/`, `/terms`, `/signup`, `/forgot-password`
 - 보호(로그인 필요):
   - `/dashboard`, `/assets`, `/settings`
   - `/rentals` 는 `/rentals/table`로 리다이렉트
@@ -98,7 +98,7 @@ src/
   pages/
     Dashboard.jsx, AssetStatus.jsx, RentalContracts.jsx,
     ProblemVehicles.jsx, Detail.jsx,
-    Login.jsx, SignUp.jsx, FindId.jsx, ForgotPassword.jsx, Settings.jsx
+    Login.jsx, SignUp.jsx, ForgotPassword.jsx, Settings.jsx, TermsAgreement.jsx
   server/              # (deprecated) 과거 Fake API용 코드
   data/
     db.js, seed.json, geofences.json, company-info.json, assets.js, rentals.js, company.js
