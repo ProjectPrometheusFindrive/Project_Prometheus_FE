@@ -3,7 +3,8 @@ import { useNavigate } from "react-router-dom";
 import { FiLogOut } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
 import { useAuth } from "../contexts/AuthContext";
-import defaultLogo from "../assets/default-logo.svg";
+// Default logo served from public root
+const defaultLogo = "/PPFD.png";
 import CiUploadModal from "./CiUploadModal";
 import { useCompany } from "../contexts/CompanyContext";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
@@ -13,7 +14,7 @@ import GCSImage from "./GCSImage";
 export default function TopHeader() {
     const navigate = useNavigate();
     const auth = useAuth();
-    const { companyInfo, updateCompanyInfo } = useCompany();
+    const { companyInfo, updateCompanyInfo, loading } = useCompany();
     const [uploading, setUploading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -21,7 +22,7 @@ export default function TopHeader() {
     const userInfo = typedStorage.auth.getUserInfo();
     const userName = userInfo?.name || "관리자";
     // Display company name strictly from company profile for consistency
-    const companyName = (companyInfo && companyInfo.name) || "";
+    const companyName = loading ? "" : ((companyInfo && companyInfo.name) || "");
 
     function handleLogout() {
         auth.logout();
@@ -130,7 +131,13 @@ export default function TopHeader() {
                         }
                     }}
                 >
-                    Findrive{companyName ? ` · ${companyName}` : ""}
+                    <span className="top-header__service-name--findrive">Findrive</span>
+                    {companyName && (
+                        <>
+                            <span className="top-header__service-name--separator"> · </span>
+                            <span className="top-header__service-name--company">{companyName}</span>
+                        </>
+                    )}
                 </div>
             </div>
 

@@ -685,6 +685,24 @@ body {
     cursor: pointer;
 }
 
+.top-header__service-name--findrive {
+    font-weight: 700;
+    font-size: 25px;
+    color: #1a73e8;
+}
+
+.top-header__service-name--separator {
+    font-weight: 400;
+    font-size: 25px;
+    color: #666;
+}
+
+.top-header__service-name--company {
+    font-weight: 600;
+    font-size: 25px;
+    color: #333;
+}
+
 .top-header__right {
     display: flex;
     align-items: center;
