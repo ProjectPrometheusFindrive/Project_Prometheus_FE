@@ -1,5 +1,4 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
-import defaultLogo from "../assets/default-logo.svg";
 import { fetchCompanyInfo, saveCompanyInfo } from "../api";
 import { deriveObjectName } from "../utils/gcsApi";
 
@@ -7,12 +6,13 @@ const CompanyContext = createContext(null);
 
 export const CompanyProvider = ({ children }) => {
   const [companyInfo, setCompanyInfo] = useState({
-    name: "Project Prometheus",
+    name: "",
     // Keep empty so index.html's default favicon remains until a custom logo exists
     logoDataUrl: "",
     // GCS object name (preferred)
     logoPath: "",
   });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let mounted = true;
@@ -39,6 +39,10 @@ export const CompanyProvider = ({ children }) => {
         // Fallback: keep as-is so default favicon remains
         if (mounted) {
           setCompanyInfo((prev) => ({ ...prev, logoDataUrl: prev.logoDataUrl || "", logoPath: prev.logoPath || "" }));
+        }
+      } finally {
+        if (mounted) {
+          setLoading(false);
         }
       }
     })();
@@ -83,7 +87,7 @@ export const CompanyProvider = ({ children }) => {
   };
 
   return (
-    <CompanyContext.Provider value={{ companyInfo, updateCompanyInfo }}>
+    <CompanyContext.Provider value={{ companyInfo, updateCompanyInfo, loading }}>
       {children}
     </CompanyContext.Provider>
   );
