@@ -127,6 +127,8 @@
 /* Table styles */
 .members-table-container {
     overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
 }
 
 .members-table {
