@@ -47,23 +47,39 @@ export const CompanyProvider = ({ children }) => {
     };
   }, []);
 
-  const updateCompanyInfo = (partial) => {
+  const updateCompanyInfo = async (partial) => {
     // Accept partial updates and persist optimistically
     if (!partial || typeof partial !== "object") return;
-    setCompanyInfo((prev) => {
-      const next = { ...prev, ...partial };
-      // IMPORTANT: send only the changed fields to backend to avoid
-      // re-sending unrelated stale values (e.g., bizCertDocGcsObjectName)
-      (async () => {
-        try {
-          await saveCompanyInfo(partial);
-        } catch (e) {
-          // Non-fatal: keep UI state, log error
-          console.error("Failed to persist company info:", e);
+    // Optimistic update for immediate UI feedback
+    setCompanyInfo((prev) => ({ ...prev, ...partial }));
+
+    // IMPORTANT: send only the changed fields to backend to avoid
+    // re-sending unrelated stale values (e.g., bizCertDocGcsObjectName)
+    try {
+      await saveCompanyInfo(partial);
+      // Refetch to sync with server state after successful save
+      const freshInfo = await fetchCompanyInfo();
+      if (freshInfo) {
+        const next = { ...freshInfo };
+        // Prefer logoPath (GCS objectName). If absent, try to derive from legacy URLs.
+        const legacyUrl = freshInfo && typeof freshInfo.logoDataUrl === "string" ? freshInfo.logoDataUrl : "";
+        const incomingLogoPath = freshInfo && typeof freshInfo.logoPath === "string" ? freshInfo.logoPath : "";
+        if (!incomingLogoPath && legacyUrl) {
+          const derived = deriveObjectName(legacyUrl);
+          if (derived) {
+            next.logoPath = derived;
+          }
         }
-      })();
-      return next;
-    });
+        // Keep logoDataUrl only if it's a data URL (local/preview). Otherwise empty.
+        next.logoDataUrl = legacyUrl && legacyUrl.startsWith("data:") ? legacyUrl : "";
+        // Ensure fields exist
+        if (!next.logoPath) next.logoPath = incomingLogoPath || "";
+        setCompanyInfo(next);
+      }
+    } catch (e) {
+      // Non-fatal: keep optimistic UI state, log error
+      console.error("Failed to persist company info:", e);
+    }
   };
 
   return (
