@@ -14,14 +14,16 @@ function CompanyLogoSection() {
     updateCompanyInfo({ logoPath: objectName, logoDataUrl: "" });
   };
 
+  // Use canonical companyId; avoid falling back to display name for folder rules
   const companyId = useMemo(() => (
-    auth?.user?.company || companyInfo?.company || companyInfo?.name || ""
-  ), [auth?.user?.company, companyInfo?.company, companyInfo?.name]);
+    auth?.user?.companyId || companyInfo?.companyId || ""
+  ), [auth?.user?.companyId, companyInfo?.companyId]);
 
   const folder = useMemo(() => {
-    // Use logged-in companyId for general company docs; fallback to "ci" for super_admin without companyId
+    // Use logged-in companyId for general company docs; fallback to "ci" when absent
     const id = (companyId && String(companyId).trim()) ? companyId : "ci";
-    return `company/${encodeURIComponent(id)}/docs`;
+    // Do not URL-encode; BE validates allowed characters and expects raw companyId
+    return `company/${id}/docs`;
   }, [companyId]);
 
   return (

@@ -43,8 +43,9 @@ export default function TopHeader() {
 
         setUploading(true);
         try {
-            // CI uploads must follow folder pattern: company/ci/docs
-            const folder = `company/ci/docs`;
+            // Use canonical companyId for uploads: company/{companyId}/docs
+            const companyId = auth?.user?.companyId || companyInfo?.companyId || "ci";
+            const folder = `company/${companyId}/docs`;
             const mode = chooseUploadMode(file.size);
             let objectName = "";
             console.groupCollapsed("[upload-ui] logo upload start");
