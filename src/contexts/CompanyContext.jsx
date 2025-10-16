@@ -49,11 +49,14 @@ export const CompanyProvider = ({ children }) => {
 
   const updateCompanyInfo = (partial) => {
     // Accept partial updates and persist optimistically
+    if (!partial || typeof partial !== "object") return;
     setCompanyInfo((prev) => {
-      const next = { ...prev, ...(partial || {}) };
+      const next = { ...prev, ...partial };
+      // IMPORTANT: send only the changed fields to backend to avoid
+      // re-sending unrelated stale values (e.g., bizCertDocGcsObjectName)
       (async () => {
         try {
-          await saveCompanyInfo(next);
+          await saveCompanyInfo(partial);
         } catch (e) {
           // Non-fatal: keep UI state, log error
           console.error("Failed to persist company info:", e);

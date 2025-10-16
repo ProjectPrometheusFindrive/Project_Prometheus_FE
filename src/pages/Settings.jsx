@@ -375,7 +375,8 @@ export default function Settings() {
             // Persist via company API (updateCompanyInfo triggers PUT)
             setViewData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
             setEditData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
-            try { await saveCompanyInfo({ ...viewData, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }); } catch {}
+            // Save only changed fields to avoid backend validation on unrelated stale values
+            try { await saveCompanyInfo({ bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }); } catch {}
             setBizStatus("success");
         } catch (err) {
             console.error("[settings] biz cert upload error", err);
