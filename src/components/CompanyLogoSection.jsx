@@ -3,7 +3,8 @@ import { useCompany } from "../contexts/CompanyContext";
 import { useAuth } from "../contexts/AuthContext";
 import GCSImage from "./GCSImage";
 import DragDropUpload from "./DragDropUpload";
-import defaultLogo from "../assets/default-logo.svg";
+// Default logo served from public root
+const defaultLogoUrl = "/PPFD.png";
 
 function CompanyLogoSection() {
   const { companyInfo, updateCompanyInfo } = useCompany();
@@ -40,7 +41,7 @@ function CompanyLogoSection() {
           ) : companyInfo?.logoDataUrl ? (
             <img src={companyInfo.logoDataUrl} alt="Company Logo" className="logo-preview" />
           ) : (
-            <img src={defaultLogo} alt="Default Logo" className="logo-preview" />
+            <img src={defaultLogoUrl} alt="Default Logo" className="logo-preview" />
           )}
         </div>
         <div style={{ minWidth: 280, flex: 1 }}>
