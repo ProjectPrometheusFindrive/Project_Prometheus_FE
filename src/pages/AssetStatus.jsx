@@ -23,6 +23,8 @@ import { FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationT
 import MemoHistoryModal from "../components/MemoHistoryModal";
 import MemoCell from "../components/MemoCell";
 import useMemoEditor from "../hooks/useMemoEditor";
+import useInsuranceModal from "../hooks/useInsuranceModal";
+import useManagementStage from "../hooks/useManagementStage";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -140,56 +142,18 @@ export default function AssetStatus() {
                   ],
               };
     });
-    // Insurance modal state
-    const [showInsuranceModal, setShowInsuranceModal] = useState(false);
-    const [insuranceAsset, setInsuranceAsset] = useState(null);
-    const [insuranceReadOnly, setInsuranceReadOnly] = useState(false);
-    const [rentalsByVin, setRentalsByVin] = useState({});
-    const [openInconsistencyId, setOpenInconsistencyId] = useState(null);
-    const [toast, setToast] = useState(null);
-    const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
-    const [memoHistoryTarget, setMemoHistoryTarget] = useState(null);
-    const openInsuranceModal = (asset) => {
-        setInsuranceReadOnly(false);
-        setInsuranceAsset(asset);
-        setShowInsuranceModal(true);
-        if (asset?.id) {
-            (async () => {
-                try {
-                    const detail = await fetchAssetInsurance(asset.id);
-                    if (detail) setInsuranceAsset((prev) => ({ ...(prev || {}), ...detail }));
-                } catch (e) {
-                    console.error("Failed to load insurance detail", e);
-                }
-            })();
-        }
-    };
-    const openInsuranceModalReadOnly = (asset) => {
-        setInsuranceReadOnly(true);
-        setInsuranceAsset(asset);
-        setShowInsuranceModal(true);
-        if (asset?.id) {
-            (async () => {
-                try {
-                    const detail = await fetchAssetInsurance(asset.id);
-                    if (detail) setInsuranceAsset((prev) => ({ ...(prev || {}), ...detail }));
-                } catch (e) {
-                    console.error("Failed to load insurance detail", e);
-                }
-            })();
-        }
-    };
-    const closeInsuranceModal = () => {
-        setInsuranceAsset(null);
-        setShowInsuranceModal(false);
-        setInsuranceReadOnly(false);
-    };
-    const handleInsuranceSubmit = async (patch) => {
-        const id = insuranceAsset?.id;
-        if (!id) return;
-        try {
-            const resp = await saveAsset(id, patch || {});
-            // Merge back into table row (preserve unknown fields)
+    // Insurance modal state via hook
+    const {
+        showInsuranceModal,
+        insuranceAsset,
+        insuranceReadOnly,
+        openInsuranceModal,
+        openInsuranceModalReadOnly,
+        closeInsuranceModal,
+        handleInsuranceSubmit,
+        setInsuranceAsset,
+    } = useInsuranceModal({
+        onSaved: (id, patch, resp) => {
             setRows((prev) =>
                 prev.map((a) => {
                     if (a.id !== id) return a;
@@ -197,115 +161,27 @@ export default function AssetStatus() {
                     return withManagementStage(merged);
                 })
             );
-            closeInsuranceModal();
-        } catch (e) {
-            console.error("Failed to save insurance", e);
-            alert("보험 정보 저장에 실패했습니다.");
         }
-    };
+    });
+    const [rentalsByVin, setRentalsByVin] = useState({});
+    const [openInconsistencyId, setOpenInconsistencyId] = useState(null);
+    const [toast, setToast] = useState(null);
+    const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
+    const [memoHistoryTarget, setMemoHistoryTarget] = useState(null);
+    // insurance handlers moved to hook
 
     // inline panel removed
 
-    const handleManagementStageChange = async (asset, nextStage) => {
-        if (!asset?.id || !nextStage || !MANAGEMENT_STAGE_SET.has(nextStage)) return;
-        const assetId = asset.id;
-        const previousStage = getManagementStage(asset);
-        if (previousStage === nextStage) return;
-
-        // Guardrails to keep consistency with contract state
-        try {
-            const now = new Date();
-            const rentals = await fetchRentals();
-            const list = Array.isArray(rentals) ? rentals : [];
-            const openForVin = list.filter((r) => String(r.vin) === String(asset.vin)).filter((r) => {
-                const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
-                return !(returnedAt && now >= returnedAt) && r?.contractStatus !== "완료";
-            });
-
-            const startOf = (r) => (r?.rentalPeriod?.start ? new Date(r.rentalPeriod.start) : null);
-            const endOf = (r) => (r?.rentalPeriod?.end ? new Date(r.rentalPeriod.end) : null);
-            const isActive = (r) => {
-                const s = startOf(r);
-                const e = endOf(r);
-                return s && e ? now >= s && now <= e : false;
-            };
-            const isOverdue = (r) => {
-                const e = endOf(r);
-                const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
-                return !returnedAt && e ? now > e : false;
-            };
-            const isReserved = (r) => {
-                const s = startOf(r);
-                const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
-                return !returnedAt && s ? now < s : false;
-            };
-
-            // Case 1: switching to 대여가능 while rentals still open -> prompt return
-            if (nextStage === "대여가능") {
-                if (openForVin.length > 0) {
-                    const ok = window.confirm("해당 차량에 진행 중인 계약(대여/예약/연체/도난)이 있습니다. 반납 처리(returnedAt 설정) 후 대여가능으로 변경하시겠습니까?");
-                    if (!ok) return; // Abort stage change
-                    const ts = new Date().toISOString();
-                    try {
-                        await Promise.all(openForVin.map((r) => updateRental(r.rentalId, { returnedAt: ts }).catch(() => null)));
-                    } catch {}
-                }
-            }
-
-            // Case 2: switching to 대여중/예약중 without open rentals
-            if ((nextStage === "대여중" || nextStage === "예약중")) {
-                const hasOpen = openForVin.some((r) => isActive(r) || isOverdue(r) || isReserved(r) || r?.reportedStolen);
-                if (!hasOpen) {
-                    if (previousStage === "대여가능") {
-                        // Show confirmation first; only open modal on confirm
-                        const ok = window.confirm("현재 유효한 계약이 없습니다. 신규로 대여 계약을 입력하시겠습니까?");
-                        if (!ok) return; // keep previous stage as-is
-                    }
-                    // open rental create modal, then set stage on submit
-                    setPendingStageAssetId(assetId);
-                    setPendingNextStage(nextStage);
-                    setRentalFormInitial({ vin: asset.vin || "", plate: asset.plate || "", vehicleType: asset.vehicleType || "" });
-                    setShowRentalModal(true);
-                    return; // Postpone stage change until rental is created
-                }
-            }
-        } catch (e) {
-            // If rentals fetch fails, proceed with stage change as before
-            console.warn("Stage-guard rentals check failed", e);
-        }
-
-        // 대여중 → 대여가능 변경 시 반납 처리 확인
-        if (previousStage === "대여중" && nextStage === "대여가능") {
-            const ok = window.confirm("대여가능으로 변경하면 해당 차량의 모든 활성 계약이 반납 처리됩니다. 계속하시겠습니까?");
-            if (!ok) return;
-        }
-
-        setRows((prev) => prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: nextStage }) : row)));
-        setStageSaving((prev) => ({ ...prev, [assetId]: true }));
-
-        try {
-            const response = await saveAsset(assetId, { managementStage: nextStage });
-
-            setRows((prev) =>
-                prev.map((row) => {
-                    if (row.id !== assetId) return row;
-                    const updatedStage = response?.managementStage && MANAGEMENT_STAGE_SET.has(response.managementStage) ? response.managementStage : nextStage;
-                    const merged = { ...row, ...(response || {}), managementStage: updatedStage };
-                    return withManagementStage(merged);
-                })
-            );
-        } catch (error) {
-            console.error("Failed to update management stage", error);
-            alert("관리단계를 저장하지 못했습니다. 다시 시도해주세요.");
-            setRows((prev) => prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: previousStage }) : row)));
-        } finally {
-            setStageSaving((prev) => {
-                const next = { ...prev };
-                delete next[assetId];
-                return next;
-            });
-        }
-    };
+    const { handleManagementStageChange } = useManagementStage({
+        setRows,
+        setStageSaving,
+        withManagementStage,
+        getManagementStage,
+        setShowRentalModal,
+        setPendingStageAssetId,
+        setPendingNextStage,
+        setRentalFormInitial,
+    });
 
     const handleRentalCreateSubmit = async (data) => {
         // Create rental via API, then upload any provided docs (multi-file)
@@ -437,6 +313,8 @@ export default function AssetStatus() {
         setPendingStageAssetId(null);
         setPendingNextStage(null);
     };
+
+    // rental create submit handled by hook version; wire context when calling
 
     const deviceInitial = useMemo(() => {
         if (!activeAsset) return {};

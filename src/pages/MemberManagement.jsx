@@ -6,6 +6,7 @@ import { emitToast } from '../utils/toast';
 import ErrorBoundary from '../components/ErrorBoundary';
 import Table from "../components/Table";
 import './MemberManagement.css';
+import RoleChangeModal from "../components/RoleChangeModal";
 
 /**
  * MemberManagement page - Admin/Super Admin only
@@ -432,76 +433,14 @@ function MemberManagement() {
 
                 {/* Role Change Modal */}
                 {selectedMember && (
-                    <div className="modal-overlay" onClick={closeRoleChangeModal}>
-                        <div className="modal-content" onClick={(e) => e.stopPropagation()}>
-                            <div className="modal-header">
-                                <h3>역할 변경</h3>
-                                <button className="close-btn" onClick={closeRoleChangeModal}>
-                                    &times;
-                                </button>
-                            </div>
-                            <div className="modal-body">
-                                <div className="form-group">
-                                    <label>사용자 ID</label>
-                                    <input
-                                        type="text"
-                                        value={selectedMember.userId}
-                                        disabled
-                                        className="input-disabled"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>이름</label>
-                                    <input
-                                        type="text"
-                                        value={selectedMember.name}
-                                        disabled
-                                        className="input-disabled"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label>현재 역할</label>
-                                    <input
-                                        type="text"
-                                        value={selectedMember.role}
-                                        disabled
-                                        className="input-disabled"
-                                    />
-                                </div>
-                                <div className="form-group">
-                                    <label htmlFor="newRole">새로운 역할 (admin ↔ member만 변경 가능)</label>
-                                    <select
-                                        id="newRole"
-                                        value={newRole}
-                                        onChange={(e) => setNewRole(e.target.value)}
-                                        className="select-input"
-                                    >
-                                        <option value={ROLES.MEMBER}>member</option>
-                                        <option value={ROLES.ADMIN}>admin</option>
-                                    </select>
-                                </div>
-                                <div className="info-box">
-                                    <strong>주의:</strong> 역할 변경 시 대상 사용자의 토큰이 무효화되어 재로그인이 필요합니다.
-                                </div>
-                            </div>
-                            <div className="modal-footer">
-                                <button
-                                    className="btn-secondary"
-                                    onClick={closeRoleChangeModal}
-                                    disabled={actionLoading === selectedMember.userId}
-                                >
-                                    취소
-                                </button>
-                                <button
-                                    className="btn-primary"
-                                    onClick={handleRoleChange}
-                                    disabled={actionLoading === selectedMember.userId || newRole === selectedMember.role}
-                                >
-                                    {actionLoading === selectedMember.userId ? '처리 중...' : '변경'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                  <RoleChangeModal
+                    member={selectedMember}
+                    newRole={newRole}
+                    setNewRole={setNewRole}
+                    onClose={closeRoleChangeModal}
+                    onConfirm={handleRoleChange}
+                    loading={actionLoading === selectedMember.userId}
+                  />
                 )}
                 </div>
             </div>

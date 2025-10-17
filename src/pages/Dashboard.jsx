@@ -1,83 +1,24 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { emitToast } from "../utils/toast";
-import { storageUtils, STORAGE_KEYS } from "../utils/storage";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import Gauge from "../components/Gauge";
 import { fetchAssets, fetchRentals } from "../api";
 import { computeContractStatus } from "../utils/contracts";
 import { getManagementStage } from "../utils/managementStage";
+import useApprovalQueryEffects from "../hooks/useApprovalQueryEffects";
+import StatusDonut from "../components/charts/StatusDonut";
 
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
-// 도넛 차트 중심에 표시할 총계 컴포넌트
-const CenterTotal = ({ data, x, y, unit = "대" }) => {
-    const total = data.reduce((sum, item) => sum + (item.value || 0), 0);
-    return (
-        <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="recharts-text recharts-label">
-            <tspan x={x} dy="-0.5em" fontSize="32" fontWeight="700" fill="#333">
-                {total}
-            </tspan>
-        </text>
-    );
-};
+// Donut chart moved to components/charts/StatusDonut
 
 export default function Dashboard() {
-    const location = useLocation();
-    const navigate = useNavigate();
-    const RAD = Math.PI / 180;
-    const renderDonutLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, value, payload }) => {
-        const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-        const x = cx + radius * Math.cos(-midAngle * RAD);
-        const y = cy + radius * Math.sin(-midAngle * RAD);
-        const display = payload && payload.rawValue != null ? payload.rawValue : value;
-        return (
-            <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600} style={{ pointerEvents: "none" }}>
-                {display}
-            </text>
-        );
-    };
+    // Routing handled in approval hook
+    // Label rendering handled inside StatusDonut
 
     const [vehicleStatus, setVehicleStatus] = useState([]); // 자산 관리상태 분포
     const [bizStatusLabeled, setBizStatusLabeled] = useState([]); // 계약 상태 분포
 
-    useEffect(() => {
-        // Handle approval redirect query params
-        const params = new URLSearchParams(location.search || "");
-        const approval = params.get("approval");
-        const code = params.get("code");
-        const userId = params.get("userId");
-        const approveUser = params.get("approve_user");
-
-        if (approveUser) {
-            // Persist intent so MemberManagement can focus the user later
-            storageUtils.set(STORAGE_KEYS.APPROVE_USER_FOCUS, { userId: approveUser, ts: Date.now() });
-            emitToast(`대기 회원 ${approveUser}을(를) 강조 표시합니다.`, "info", 3000);
-        }
-
-        if (approval) {
-            if (approval === "success" && userId) {
-                emitToast("승인이 완료되었습니다.", "success", 3500);
-                // Ask member page to refresh pending list
-                try { window.dispatchEvent(new CustomEvent("app:refresh-pending-members")); } catch {}
-            } else if (approval === "error") {
-                const map = {
-                    missing_token: "승인 토큰이 없습니다.",
-                    invalid_token: "승인 토큰이 유효하지 않습니다.",
-                    token_payload: "승인 토큰 정보가 올바르지 않습니다.",
-                    user_not_found: "해당 사용자를 찾을 수 없습니다.",
-                    mismatch: "요청 정보가 일치하지 않습니다.",
-                    already_processed: "이미 처리된 승인 요청입니다.",
-                    server_error: "승인 처리 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-                };
-                const msg = map[code] || "승인 처리 중 오류가 발생했습니다.";
-                emitToast(msg, "error", 4000);
-            }
-            // Clean up query to prevent repeated toasts
-            navigate({ pathname: location.pathname }, { replace: true });
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
+    // Handle approval query params and cross-page signals
+    useApprovalQueryEffects();
 
     useEffect(() => {
         let mounted = true;
@@ -135,58 +76,14 @@ export default function Dashboard() {
                     <section className="card chart-card">
                         <h2 className="section-title">자산 현황</h2>
                         <div className="chart-wrap">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart margin={{ top: 10, right: 8, bottom: 28, left: 8 }}>
-                                    <Pie
-                                        data={vehicleStatus}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius="40%"
-                                        outerRadius="78%"
-                                        paddingAngle={2}
-                                        label={renderDonutLabel}
-                                        labelLine={false}
-                                    >
-                                        {vehicleStatus.map((_, i) => (
-                                            <Cell key={`cell-v-${i}`} fill={COLORS[i % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <CenterTotal data={vehicleStatus} x="50%" y="50%" unit="대" />
-                                    <Tooltip />
-                                    <Legend verticalAlign="bottom" height={24} />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <StatusDonut data={vehicleStatus} colors={COLORS} innerRadius="40%" outerRadius="78%" unit="대" colorOffset={0} />
                         </div>
                     </section>
 
                     <section className="card chart-card">
                         <h2 className="section-title">계약 현황</h2>
                         <div className="chart-wrap">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart margin={{ top: 10, right: 8, bottom: 28, left: 8 }}>
-                                    <Pie
-                                        data={bizStatusLabeled}
-                                        dataKey="value"
-                                        nameKey="name"
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius="48%"
-                                        outerRadius="78%"
-                                        paddingAngle={2}
-                                        label={renderDonutLabel}
-                                        labelLine={false}
-                                    >
-                                        {bizStatusLabeled.map((_, i) => (
-                                            <Cell key={`cell-b-${i}`} fill={COLORS[(i + 1) % COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <CenterTotal data={bizStatusLabeled} x="50%" y="50%" unit="건" />
-                                    <Tooltip />
-                                    <Legend verticalAlign="bottom" height={24} />
-                                </PieChart>
-                            </ResponsiveContainer>
+                            <StatusDonut data={bizStatusLabeled} colors={COLORS} innerRadius="48%" outerRadius="78%" unit="건" colorOffset={1} />
                         </div>
                     </section>
                 </div>
