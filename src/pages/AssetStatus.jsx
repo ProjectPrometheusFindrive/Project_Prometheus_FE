@@ -13,6 +13,8 @@ import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 import Table from "../components/Table";
+import { useAuth } from "../contexts/AuthContext";
+import { ROLES } from "../constants/auth";
 import useTableSelection from "../hooks/useTableSelection";
 // Local storage fallbacks removed; use API persistence instead
 import { ASSET } from "../constants";
@@ -96,6 +98,8 @@ const MANAGEMENT_STAGE_BADGE_CLASS = {
 };
 
 export default function AssetStatus() {
+    const auth = useAuth();
+    const isSuperAdmin = auth?.user?.role === ROLES.SUPER_ADMIN;
     const [q, setQ] = useState("");
     const [status, setStatus] = useState("all");
     const [rows, setRows] = useState([]);
@@ -955,6 +959,20 @@ export default function AssetStatus() {
         switch (column.key) {
             case "select":
                 return null; // Table 컴포넌트에서 자동 처리
+            case "company": {
+                const name = row.company || row.companyName || row.company_id || row.companyId || "-";
+                const biz = row.bizRegNo || row.businessNumber || row.bizNo || row.biz_reg_no || "";
+                return (
+                    <div style={{ textAlign: "left" }}>
+                        <div style={{ fontWeight: 600 }}>{name}</div>
+                        {biz ? (
+                            <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
+                        ) : (
+                            <div style={{ fontSize: "0.8rem", color: "#bbb" }}>( - )</div>
+                        )}
+                    </div>
+                );
+            }
             case "plate":
                 return (
                     <button type="button" onClick={() => openAssetEdit(row)} className="simple-button" title="자산 등록/편집">
@@ -1172,7 +1190,21 @@ export default function AssetStatus() {
     };
 
     // 동적 컬럼 생성
-    const dynamicColumns = visibleColumns
+    // Build columns for Table; inject company before plate for super-admin
+    const columnsForRender = useMemo(() => {
+        if (!isSuperAdmin) return [...visibleColumns];
+        const base = [...visibleColumns];
+        const hasCompany = base.some((c) => c.key === "company");
+        if (!hasCompany) {
+            const plateIdx = base.findIndex((c) => c.key === "plate");
+            const colDef = { key: "company", label: "회사" };
+            if (plateIdx >= 0) base.splice(plateIdx, 0, colDef);
+            else base.unshift(colDef);
+        }
+        return base;
+    }, [visibleColumns, isSuperAdmin]);
+
+    const dynamicColumns = columnsForRender
         .filter((col) => col.key !== "select") // select는 Table 컴포넌트에서 자동 처리
         .map((column) =>
             column.key === "deviceStatus"
@@ -1199,7 +1231,7 @@ export default function AssetStatus() {
                 : {
                       key: column.key,
                       label: column.label,
-                      style: { textAlign: column.key === "memo" ? "left" : "center" },
+                      style: { textAlign: column.key === "memo" || column.key === "company" ? "left" : "center" },
                       render: (row) => renderCellContent(column, row),
                   }
         );

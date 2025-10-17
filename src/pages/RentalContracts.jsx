@@ -18,6 +18,8 @@ import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { parseCurrency } from "../utils/formatters";
 import FilePreview from "../components/FilePreview";
+import { useAuth } from "../contexts/AuthContext";
+import { ROLES } from "../constants/auth";
 
 // 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
 const formatVehicleType = (vehicleType) => {
@@ -101,6 +103,8 @@ const mergeColumnsWithDefaults = (savedColumns = []) => {
 };
 
 export default function RentalContracts() {
+    const auth = useAuth();
+    const isSuperAdmin = auth?.user?.role === ROLES.SUPER_ADMIN;
     const [items, setItems] = useState([]);
     const [showCreate, setShowCreate] = useState(false);
     const [showDetail, setShowDetail] = useState(false);
@@ -578,6 +582,22 @@ export default function RentalContracts() {
 
     const visibleColumns = columnSettings.columns.filter((col) => col.visible);
 
+    // Derive columns for rendering; inject company column for super-admin just after 'select'
+    const columnsForRender = useMemo(() => {
+        const base = [...visibleColumns];
+        if (isSuperAdmin) {
+            const hasCompany = base.some((c) => c.key === "company");
+            if (!hasCompany) {
+                const insertIndex = Math.max(0, base.findIndex((c) => c.key === "plate"));
+                // Insert before 'plate'; if not found, insert at start or after select when present
+                const colDef = { key: "company", label: "회사", visible: true, required: false, width: 200, sortable: false };
+                if (insertIndex >= 0) base.splice(insertIndex, 0, colDef);
+                else base.unshift(colDef);
+            }
+        }
+        return base;
+    }, [visibleColumns, isSuperAdmin]);
+
     // Sorting state for contracts table
     const [sortKey, setSortKey] = useState(null); // column.key
     const [sortDir, setSortDir] = useState(null); // 'asc' | 'desc' | null
@@ -725,6 +745,20 @@ export default function RentalContracts() {
         switch (column.key) {
             case "select":
                 return <input type="checkbox" aria-label={`Select: ${row.plate || row.rentalId}`} checked={selected.has(row.rentalId)} onChange={() => toggleSelect(row.rentalId)} />;
+            case "company": {
+                const name = row.company || row.companyName || row.company_id || row.companyId || "-";
+                const biz = row.bizRegNo || row.businessNumber || row.bizNo || row.biz_reg_no || "";
+                return (
+                    <div style={{ textAlign: "left" }}>
+                        <div style={{ fontWeight: 600 }}>{name}</div>
+                        {biz ? (
+                            <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
+                        ) : (
+                            <div style={{ fontSize: "0.8rem", color: "#bbb" }}>( - )</div>
+                        )}
+                    </div>
+                );
+            }
             case "plate":
                 return (
                     <button type="button" className="simple-button" onClick={() => handlePlateClick(row)} title="계약 상세 정보 보기">
@@ -914,7 +948,7 @@ export default function RentalContracts() {
                     <table className="asset-table rentals-table asset-table--sticky">
                         <thead>
                             <tr>
-                                {visibleColumns.map((column) => {
+                                {columnsForRender.map((column) => {
                                     const isSortable = column.key !== "select" && column.sortable !== false;
                                     const isActive = isSortable && sortKey === column.key && !!sortDir;
                                     const ariaSort = isActive ? (sortDir === "asc" ? "ascending" : "descending") : "none";
@@ -923,7 +957,7 @@ export default function RentalContracts() {
                                             key={column.key}
                                             style={{
                                                 width: column.width,
-                                                textAlign: column.key === "memo" ? "left" : "center",
+                                                textAlign: column.key === "memo" || column.key === "company" ? "left" : "center",
                                             }}
                                             aria-sort={ariaSort}
                                             className={isSortable ? "th-sortable" : undefined}
@@ -955,11 +989,11 @@ export default function RentalContracts() {
                         <tbody>
                             {sortedRows.map((r, index) => (
                                 <tr key={r.rentalId || `rental-${index}`}>
-                                    {visibleColumns.map((column) => (
+                                    {columnsForRender.map((column) => (
                                         <td
                                             key={column.key}
                                             style={{
-                                                textAlign: column.key === "memo" ? "left" : "center",
+                                                textAlign: column.key === "memo" || column.key === "company" ? "left" : "center",
                                                 maxWidth: column.key === "memo" ? "150px" : undefined,
                                             }}
                                         >
