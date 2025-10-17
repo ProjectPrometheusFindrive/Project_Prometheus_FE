@@ -53,4 +53,11 @@ export const {
   getCurrentUser,
   forgotPassword,
   changePassword,
+  
+  // Members (approval & role management)
+  fetchAllMembers,
+  fetchPendingMembers,
+  approveMember,
+  rejectMember,
+  changeMemberRole,
 } = api;
