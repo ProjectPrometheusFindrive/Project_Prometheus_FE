@@ -963,7 +963,7 @@ export default function AssetStatus() {
                 const name = row.company || row.companyName || row.company_id || row.companyId || "-";
                 const biz = row.bizRegNo || row.businessNumber || row.bizNo || row.biz_reg_no || "";
                 return (
-                    <div style={{ textAlign: "left" }}>
+                    <div>
                         <div style={{ fontWeight: 600 }}>{name}</div>
                         {biz ? (
                             <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
@@ -1228,10 +1228,18 @@ export default function AssetStatus() {
                           );
                       },
                   }
+                : column.key === "company"
+                ? {
+                      key: column.key,
+                      label: column.label,
+                      style: { textAlign: "center" },
+                      sortAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
+                      render: (row) => renderCellContent(column, row),
+                  }
                 : {
                       key: column.key,
                       label: column.label,
-                      style: { textAlign: column.key === "memo" || column.key === "company" ? "left" : "center" },
+                      style: { textAlign: column.key === "memo" ? "left" : "center" },
                       render: (row) => renderCellContent(column, row),
                   }
         );

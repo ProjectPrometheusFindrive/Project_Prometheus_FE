@@ -590,7 +590,7 @@ export default function RentalContracts() {
             if (!hasCompany) {
                 const insertIndex = Math.max(0, base.findIndex((c) => c.key === "plate"));
                 // Insert before 'plate'; if not found, insert at start or after select when present
-                const colDef = { key: "company", label: "회사", visible: true, required: false, width: 200, sortable: false };
+                const colDef = { key: "company", label: "회사", visible: true, required: false, width: 200, sortable: true };
                 if (insertIndex >= 0) base.splice(insertIndex, 0, colDef);
                 else base.unshift(colDef);
             }
@@ -649,6 +649,10 @@ export default function RentalContracts() {
 
     const getSortValue = (row, key) => {
         switch (key) {
+            case "company": {
+                const name = row?.companyName || row?.company || row?.companyId || "";
+                return name;
+            }
             case "plate":
             case "vehicleType":
             case "renterName":
@@ -749,7 +753,7 @@ export default function RentalContracts() {
                 const name = row.company || row.companyName || row.company_id || row.companyId || "-";
                 const biz = row.bizRegNo || row.businessNumber || row.bizNo || row.biz_reg_no || "";
                 return (
-                    <div style={{ textAlign: "left" }}>
+                    <div>
                         <div style={{ fontWeight: 600 }}>{name}</div>
                         {biz ? (
                             <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
@@ -957,7 +961,7 @@ export default function RentalContracts() {
                                             key={column.key}
                                             style={{
                                                 width: column.width,
-                                                textAlign: column.key === "memo" || column.key === "company" ? "left" : "center",
+                                                textAlign: column.key === "memo" ? "left" : "center",
                                             }}
                                             aria-sort={ariaSort}
                                             className={isSortable ? "th-sortable" : undefined}
@@ -993,7 +997,7 @@ export default function RentalContracts() {
                                         <td
                                             key={column.key}
                                             style={{
-                                                textAlign: column.key === "memo" || column.key === "company" ? "left" : "center",
+                                                textAlign: column.key === "memo" ? "left" : "center",
                                                 maxWidth: column.key === "memo" ? "150px" : undefined,
                                             }}
                                         >
