@@ -1,10 +1,12 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { fetchCompanyInfo, saveCompanyInfo } from "../api";
 import { deriveObjectName } from "../utils/gcsApi";
+import { useAuth } from "./AuthContext";
 
 const CompanyContext = createContext(null);
 
 export const CompanyProvider = ({ children }) => {
+  const auth = useAuth();
   const [companyInfo, setCompanyInfo] = useState({
     name: "",
     // Keep empty so index.html's default favicon remains until a custom logo exists
@@ -16,6 +18,14 @@ export const CompanyProvider = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
+    // Only fetch when authenticated; otherwise reset to defaults and stop loading
+    if (!auth?.isAuthenticated) {
+      if (mounted) {
+        setCompanyInfo((prev) => ({ ...prev, name: "", logoDataUrl: "", logoPath: "" }));
+        setLoading(false);
+      }
+      return () => { mounted = false; };
+    }
     (async () => {
       try {
         const info = await fetchCompanyInfo();
@@ -49,7 +59,7 @@ export const CompanyProvider = ({ children }) => {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [auth?.isAuthenticated]);
 
   const updateCompanyInfo = async (partial) => {
     // Accept partial updates and persist optimistically
