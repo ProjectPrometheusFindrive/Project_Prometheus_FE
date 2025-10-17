@@ -1,24 +1,14 @@
 .member-management-page {
-    padding: 2rem;
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.page-header {
-    margin-bottom: 2rem;
-}
-
-.page-header h1 {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-    color: #1a1a1a;
+    /* Match global .page spacing */
+    padding: 1rem;
+    max-width: none;
+    margin: 0;
 }
 
 .page-subtitle {
-    font-size: 1rem;
+    font-size: 0.95rem;
     color: #666;
-    margin: 0;
+    margin: 0 0 0.75rem;
 }
 
 .error-banner {
@@ -44,8 +34,7 @@
 .tab-navigation {
     display: flex;
     gap: 0.5rem;
-    margin-bottom: 1.5rem;
-    border-bottom: 2px solid #e9ecef;
+    margin-bottom: 12px; /* align with .asset-toolbar spacing */
 }
 
 .tab-button {
@@ -72,19 +61,18 @@
 }
 
 .content-section {
-    background: #fff;
-    border-radius: 8px;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
+    background: transparent;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 0;
 }
 
 .section-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid #f0f0f0;
+    gap: 8px;
+    margin-bottom: 12px; /* align with toolbar spacing */
 }
 
 .section-header h2 {
@@ -131,15 +119,28 @@
     max-height: 600px;
 }
 
+/* Center-align table headers and cells for member management tables */
+.member-management-page .asset-table th,
+.member-management-page .asset-table td {
+    text-align: center;
+}
+
+/* Center action buttons inside cells */
+.member-management-page .action-buttons {
+    justify-content: center;
+}
+
 .members-table {
     width: 100%;
     border-collapse: collapse;
-    font-size: 0.95rem;
+    /* Slightly smaller text for denser rows */
+    font-size: 0.9rem;
 }
 
 .members-table thead th {
     background-color: #f8f9fa;
-    padding: 0.75rem 1rem;
+    /* Reduce header height */
+    padding: 0.5rem 0.75rem;
     text-align: left;
     font-weight: 600;
     color: #333;
@@ -148,22 +149,28 @@
 }
 
 .members-table tbody td {
-    padding: 0.75rem 1rem;
+    /* Denser cells and single-line content */
+    padding: 0.4rem 0.75rem;
     border-bottom: 1px solid #e9ecef;
     vertical-align: middle;
+    white-space: nowrap;
+    line-height: 1.2;
 }
 
-.members-table tbody tr:hover {
+.members-table tbody tr:hover,
+.asset-table tbody tr:hover {
     background-color: #f8f9fa;
 }
 
-.members-table tbody tr.disabled-row {
+.members-table tbody tr.disabled-row,
+.asset-table tbody tr.disabled-row {
     opacity: 0.6;
     pointer-events: none;
 }
 
 /* Highlight a specific pending user row (from dashboard approve_user link) */
-.members-table tbody tr.highlight-row {
+.members-table tbody tr.highlight-row,
+.asset-table tbody tr.highlight-row {
     outline: 2px solid #2563eb;
     outline-offset: -2px;
     animation: rowPulse 1.4s ease-in-out 2;

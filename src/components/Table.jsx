@@ -11,6 +11,7 @@ export default function Table({
     stickyHeader = false,
     stickyOffset = 0,
     initialSort,
+    rowClassName,
     ...props
 }) {
     const { selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected } = selection || {};
@@ -167,7 +168,11 @@ export default function Table({
                 </thead>
                 <tbody>
                     {sortedData.map((row, index) => (
-                        <tr key={row.id || index} onClick={onRowClick ? () => onRowClick(row) : undefined}>
+                        <tr
+                            key={row.id || index}
+                            onClick={onRowClick ? () => onRowClick(row) : undefined}
+                            className={typeof rowClassName === "function" ? rowClassName(row, index) : undefined}
+                        >
                             {hasSelection && (
                                 <td style={{ textAlign: "center" }}>
                                     <input
