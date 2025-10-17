@@ -970,6 +970,9 @@ export default function RentalContracts() {
                             ))}
                         </tbody>
                     </table>
+                    {sortedRows.length === 0 && (
+                        <div className="empty">조건에 맞는 계약이 없습니다.</div>
+                    )}
                 </div>
             </div>
 

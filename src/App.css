@@ -124,6 +124,7 @@
 }
 .table-wrap {
     overflow-x: auto;
+    position: relative; /* allow absolute-positioned empty-state centering */
 }
 
 .asset-table {
@@ -610,6 +611,17 @@
 .empty {
     color: #666;
     padding: 1rem 0;
+}
+/* Center empty-state messages within table containers */
+.table-wrap .empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 1rem;
+    pointer-events: none; /* don't block header interactions */
 }
 
 /* Rentals: view toggle and map */
