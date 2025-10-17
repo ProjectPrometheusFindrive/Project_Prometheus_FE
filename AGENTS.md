@@ -3,7 +3,7 @@
 ## Project Structure & Module Organization
 - `src/` app code: `App.jsx`, `main.jsx`, `App.css`.
 - Key folders: `components/` (UI, forms), `pages/` (route views), `api/` (`apiClient`, `api.js`, `index.js` real-only), `utils/`, `constants/`, `data/` (seed.json, geofences, company), `assets/` (SVGs).
-- Routing uses `HashRouter` for static hosting. `index.html` loads map libraries via CDN. See `API_SPECIFICATION.md` for API details.
+- Routing uses `HashRouter` for static hosting. Kakao Maps SDK is loaded dynamically in components (not via CDN tags in `index.html`). For API details, refer to `src/api/apiTypes.js` and `src/api/apiClient.js`.
 
 ## Build, Test, and Development Commands
 - `npm run dev` / `npm start`: Start Vite dev server on `5173`.
@@ -30,8 +30,8 @@
 ## Security & Configuration Tips
 - Environment: use `VITE_`-prefixed vars. Do not commit secrets; prefer `.env.local` for local keys.
 - Real API base configured via `VITE_API_BASE_URL` (see `src/api/index.js`).
-- If adjusting `index.html`, preserve CDN references needed by maps. Hash-based routing eases static hosting.
+- If adjusting `index.html`, keep the app root and module script. Map SDKs are loaded dynamically. Hash-based routing eases static hosting.
 
 ## Agent-Specific Instructions
-- Follow these conventions for any edits. Touch only relevant files. When altering API or routes, update `API_SPECIFICATION.md` and README.
+- Follow these conventions for any edits. Touch only relevant files. When altering API or routes, update README and ensure `src/api/apiTypes.js` reflects the latest endpoints.
 - Verify locally with `npm run dev` when changes affect data flows or maps.

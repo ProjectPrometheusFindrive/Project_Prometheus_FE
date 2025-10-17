@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES, isRoleAtLeast } from '../constants/auth';
-import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, changeMemberRole } from '../api/api';
+import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, changeMemberRole } from '../api';
 import { emitToast } from '../utils/toast';
 import ErrorBoundary from '../components/ErrorBoundary';
 import './MemberManagement.css';
