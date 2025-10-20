@@ -330,6 +330,46 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                   </div>
                 ) : null;
               })()}
+
+              {/* Allow OCR upload also in edit mode */}
+              {!isReadOnly && (
+                <div style={{ marginTop: 12 }}>
+                  <div style={{ fontWeight: 600, marginBottom: 6 }}>보험증권 OCR 업로드</div>
+                  <input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    capture="environment"
+                    multiple
+                    onChange={onFile}
+                    style={{ marginBottom: 8 }}
+                  />
+                  {Array.isArray(form.insuranceDoc) ? (
+                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8, marginBottom: 8 }}>
+                      {form.insuranceDoc.map((f, idx) => (
+                        <FilePreview key={f.name + idx} file={f} />
+                      ))}
+                    </div>
+                  ) : (form.insuranceDoc ? <div style={{ marginBottom: 8 }}><FilePreview file={form.insuranceDoc} /></div> : null)}
+                  {(busy.status === "uploading" || busy.status === "ocr") && (
+                    <div style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
+                      <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>{busy.message}</div>
+                      <div aria-label="처리 진행률" style={{ background: "#eee", borderRadius: 4, height: 8, overflow: "hidden" }}>
+                        <div style={{ width: `${busy.percent}%`, height: "100%", background: "#4caf50" }} />
+                      </div>
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 8 }}>
+                    <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={!form.insuranceDoc || busy.status !== 'idle'}>
+                      업로드 및 OCR
+                    </button>
+                    {form.insuranceDoc && (
+                      <button type="button" className="form-button form-button--muted" onClick={() => setForm((p) => ({ ...p, insuranceDoc: null }))}>
+                        선택 해제
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="asset-info grid-info">
