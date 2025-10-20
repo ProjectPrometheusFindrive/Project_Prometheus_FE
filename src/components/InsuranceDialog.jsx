@@ -90,6 +90,20 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     const fields = (doc && Array.isArray(doc.fields)) ? doc.fields : [];
     const source = doc && doc.source;
     fields.forEach((f) => push(f.name, f.value, f.confidence, source));
+
+    // Alias mapping: accept short field names from OCR
+    const alias = {
+      company: 'insuranceCompany',
+      product: 'insuranceProduct',
+      startDate: 'insuranceStartDate',
+      expiryDate: 'insuranceExpiryDate',
+      specialTerms: 'insuranceSpecialTerms',
+    };
+    Object.entries(alias).forEach(([shortKey, longKey]) => {
+      if (map[shortKey]) {
+        map[longKey] = (map[longKey] || []).concat(map[shortKey]);
+      }
+    });
     return map;
   }, [ocrSuggest]);
 
@@ -130,6 +144,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       if (uploaded[0]?.objectName) {
         try {
           const resp = await ocrExtract({ docType: "insuranceDoc", objectName: uploaded[0].objectName, sourceName: uploaded[0].name, saveOutput: true });
+          try { console.debug('[InsuranceDialog] OCR response', resp); } catch {}
           if (resp && resp.ocrSuggestions && resp.ocrSuggestions.insuranceDoc) {
             const suggestion = resp.ocrSuggestions.insuranceDoc;
             setOcrSuggest({ insuranceDoc: suggestion });
@@ -138,16 +153,28 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
             const updates = {};
             fields.forEach(({ name, value }) => {
               const v = String(value ?? "");
-              if (name === "insuranceCompany" && !form.insuranceCompany) updates.insuranceCompany = v;
-              if (name === "insuranceProduct" && !form.insuranceProduct) updates.insuranceProduct = v;
-              if (name === "insuranceStartDate" && !form.insuranceStartDate) updates.insuranceStartDate = v;
-              if (name === "insuranceExpiryDate" && !form.insuranceExpiryDate) updates.insuranceExpiryDate = v;
-              if (name === "insuranceSpecialTerms" && !form.specialTerms) updates.specialTerms = v;
+              const norm = (n) => {
+                if (n === 'company') return 'insuranceCompany';
+                if (n === 'product') return 'insuranceProduct';
+                if (n === 'startDate') return 'insuranceStartDate';
+                if (n === 'expiryDate') return 'insuranceExpiryDate';
+                if (n === 'specialTerms') return 'insuranceSpecialTerms';
+                return n;
+              };
+              const key = norm(name);
+              if (key === "insuranceCompany" && !form.insuranceCompany) updates.insuranceCompany = v;
+              if (key === "insuranceProduct" && !form.insuranceProduct) updates.insuranceProduct = v;
+              if (key === "insuranceStartDate" && !form.insuranceStartDate) updates.insuranceStartDate = v;
+              if (key === "insuranceExpiryDate" && !form.insuranceExpiryDate) updates.insuranceExpiryDate = v;
+              if ((key === "insuranceSpecialTerms" || key === "specialTerms") && !form.specialTerms) updates.specialTerms = v;
             });
             if (Object.keys(updates).length > 0) setForm((p) => ({ ...p, ...updates }));
+          } else {
+            try { console.warn('[InsuranceDialog] No insuranceDoc suggestions in OCR response'); } catch {}
           }
         } catch (e) {
           // ignore; proceed to details step
+          try { console.warn('[InsuranceDialog] OCR request failed', e); } catch {}
         }
       }
     } finally {
