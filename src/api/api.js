@@ -22,7 +22,8 @@ function extractData(response) {
         if (payload && typeof payload === 'object' && 'status' in payload) {
             const innerStatus = String(payload.status).toLowerCase();
             if (innerStatus === 'success') {
-                return payload.data;
+                // Some endpoints return top-level fields with a status flag (no data field)
+                return (Object.prototype.hasOwnProperty.call(payload, 'data') ? payload.data : payload);
             }
             // Treat non-success as error even if HTTP 200
             const msg = payload.error?.message || payload.message || 'API request failed';
