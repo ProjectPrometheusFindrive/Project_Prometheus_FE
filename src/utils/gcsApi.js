@@ -77,8 +77,12 @@ export async function uploadFileToGCS(file, folder = "") {
   return objectName;
 }
 
+// Cache for signed download URLs to avoid redundant requests
+const downloadUrlCache = new Map();
+const CACHE_TTL_MS = 50 * 60 * 1000; // 50 minutes (signed URLs valid for 1 hour)
+
 /**
- * objectName을 Signed Download URL로 변환
+ * objectName을 Signed Download URL로 변환 (캐싱 지원)
  * @param {string} objectName
  * @param {number} ttlSeconds
  * @returns {Promise<string>} downloadUrl
@@ -95,6 +99,13 @@ export async function getSignedDownloadUrl(objectName, ttlSeconds = 3600) {
   if (typeof objectName === "string" && /(storage\.(googleapis|cloud)\.com)|^gs:\/\//i.test(objectName)) {
     const derived = deriveObjectName(objectName);
     if (derived) objectName = derived;
+  }
+
+  // Check cache first
+  const cacheKey = `${objectName}:${ttlSeconds}`;
+  const cached = downloadUrlCache.get(cacheKey);
+  if (cached && Date.now() < cached.expiresAt) {
+    return cached.url;
   }
 
   const base = getBaseUrl();
@@ -115,6 +126,13 @@ export async function getSignedDownloadUrl(objectName, ttlSeconds = 3600) {
 
   const { downloadUrl } = await response.json();
   if (!downloadUrl) throw new Error("Malformed download-url response");
+
+  // Cache the result
+  downloadUrlCache.set(cacheKey, {
+    url: downloadUrl,
+    expiresAt: Date.now() + CACHE_TTL_MS
+  });
+
   return downloadUrl;
 }
 

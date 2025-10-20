@@ -16,6 +16,7 @@ import Table from "../components/Table";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
 import useTableSelection from "../hooks/useTableSelection";
+import GCSImage from "../components/GCSImage";
 // Local storage fallbacks removed; use API persistence instead
 import { ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
@@ -962,14 +963,27 @@ export default function AssetStatus() {
             case "company": {
                 const name = row.company || row.companyName || row.company_id || row.companyId || "-";
                 const biz = row.bizRegNo || row.businessNumber || row.bizNo || row.biz_reg_no || "";
+                // Check multiple possible field names for logo path
+                const logoPath = row.companyLogoPath || row.company_logo_path || row.logoPath || row.logo_path ||
+                                (row.companyInfo && (row.companyInfo.logoPath || row.companyInfo.logo_path)) || "";
+
                 return (
-                    <div>
-                        <div style={{ fontWeight: 600 }}>{name}</div>
-                        {biz ? (
-                            <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
-                        ) : (
-                            <div style={{ fontSize: "0.8rem", color: "#bbb" }}>( - )</div>
+                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
+                        {logoPath && (
+                            <GCSImage
+                                objectName={logoPath}
+                                alt={`${name} CI`}
+                                style={{ width: "32px", height: "32px", objectFit: "contain", flexShrink: 0 }}
+                            />
                         )}
+                        <div style={{ textAlign: "center" }}>
+                            <div style={{ fontWeight: 600 }}>{name}</div>
+                            {biz ? (
+                                <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
+                            ) : (
+                                <div style={{ fontSize: "0.8rem", color: "#bbb" }}>( - )</div>
+                            )}
+                        </div>
                     </div>
                 );
             }
