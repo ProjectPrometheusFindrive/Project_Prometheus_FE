@@ -721,10 +721,65 @@ body {
     gap: 16px;
 }
 
+.top-header__user {
+    display: grid;
+    grid-template-columns: max-content 16px max-content;
+    align-items: center;
+}
+
 .top-header__user-id {
     font-size: 14px;
     color: #666;
     font-weight: 500;
+    text-align: right;
+}
+
+/* User role label next to username */
+.top-header__user-separator {
+    color: #999;
+    text-align: center;
+    display: inline-block;
+}
+
+.top-header__user-role {
+    margin-left: 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: #666; /* default (member: same as username) */
+    text-align: left;
+}
+
+.top-header__user-role.role-admin {
+    color: #e57373; /* light red for admin */
+}
+
+/* Flashy effect for super-admin */
+.top-header__user-role.role-super_admin {
+    color: #ff5252;
+    font-weight: 700;
+    text-shadow: 0 0 6px rgba(255, 82, 82, 0.5), 0 0 12px rgba(255, 213, 79, 0.25);
+}
+
+@keyframes super-admin-flash {
+    0% {
+        color: #ff5252;
+        text-shadow: 0 0 6px rgba(255, 82, 82, 0.5), 0 0 12px rgba(255, 213, 79, 0.25);
+    }
+    50% {
+        color: #ffd54f;
+        text-shadow: 0 0 8px rgba(255, 213, 79, 0.6), 0 0 16px rgba(255, 82, 82, 0.3);
+    }
+    100% {
+        color: #ff5252;
+        text-shadow: 0 0 6px rgba(255, 82, 82, 0.5), 0 0 12px rgba(255, 213, 79, 0.25);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .top-header__user-role.role-super_admin {
+        animation: none;
+        text-shadow: none;
+    }
 }
 
 .top-header__logout-btn {
@@ -982,6 +1037,9 @@ body {
 
     .top-header__user-id {
         font-size: 13px;
+    }
+    .top-header__user-role {
+        font-size: 12px;
     }
 
     .top-header__logout-btn {

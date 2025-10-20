@@ -20,7 +20,10 @@ export default function TopHeader() {
 
     // Get user info from storage
     const userInfo = typedStorage.auth.getUserInfo();
-    const userName = userInfo?.name || "관리자";
+    const userName = (auth?.user?.name) || userInfo?.name || "관리자";
+    const userRoleRaw = (auth?.user?.role) || userInfo?.role || "member";
+    const userRole = String(userRoleRaw || "member");
+    const roleLabel = userRole.replace("_", "-");
     // Display company name strictly from company profile for consistency
     const companyName = loading ? "" : ((companyInfo && companyInfo.name) || "");
 
@@ -142,7 +145,17 @@ export default function TopHeader() {
             </div>
 
             <div className="top-header__right">
-                <span className="top-header__user-id">{userName}</span>
+                <div className="top-header__user" aria-label={`사용자 ${userName}, 역할 ${roleLabel}`}>
+                    <span className="top-header__user-id">{userName}</span>
+                    <span className="top-header__user-separator" aria-hidden>·</span>
+                    <span
+                        className={`top-header__user-role role-${userRole}`}
+                        title={`역할: ${roleLabel}`}
+                        aria-label={`현재 사용자 역할: ${roleLabel}`}
+                    >
+                        {roleLabel}
+                    </span>
+                </div>
                 <button
                     type="button"
                     className="top-header__logout-btn"
