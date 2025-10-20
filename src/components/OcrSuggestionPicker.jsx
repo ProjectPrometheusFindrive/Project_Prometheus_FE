@@ -6,7 +6,7 @@ function formatPct(confidence) {
   return `${Math.round(pct)}%`;
 }
 
-export default function OcrSuggestionPicker({ items = [], onApply, style = {} }) {
+export default function OcrSuggestionPicker({ items = [], onApply, style = {}, showLabel = true, maxWidth = 220 }) {
   const list = Array.isArray(items) ? items.filter((it) => it && typeof it.value !== "undefined") : [];
   const [index, setIndex] = useState(0);
   const initialIndex = useMemo(() => {
@@ -34,12 +34,12 @@ export default function OcrSuggestionPicker({ items = [], onApply, style = {} })
 
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "center", ...style }}>
-      <span style={{ fontSize: 12, color: "#666" }}>제안</span>
+      {showLabel ? <span style={{ fontSize: 12, color: "#666" }}>제안</span> : null}
       <select
         className="form-input"
         value={String(index)}
         onChange={(e) => setIndex(Number(e.target.value))}
-        style={{ maxWidth: 220 }}
+        style={{ maxWidth }}
       >
         {list.map((it, i) => (
           <option key={`${String(it.value)}-${i}`} value={String(i)}>
@@ -53,4 +53,3 @@ export default function OcrSuggestionPicker({ items = [], onApply, style = {} })
     </div>
   );
 }
-

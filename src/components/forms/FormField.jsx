@@ -15,6 +15,7 @@ export default function FormField({
     capture, // for camera capture
     multiple = false, // allow multi-file selection
     className = "",
+    inlineChildren = false,
     children,
     ...props
 }) {
@@ -106,12 +107,28 @@ export default function FormField({
         }
     };
 
+    const inputEl = renderInput();
+
+    if (inlineChildren && children) {
+        return (
+            <>
+                <label className="form-label" htmlFor={id}>
+                    {label}
+                </label>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
+                    <div style={{ flex: 1, minWidth: 0 }}>{inputEl}</div>
+                    <div className="form-field-inline-extra" style={{ flexShrink: 0 }}>{children}</div>
+                </div>
+            </>
+        );
+    }
+
     return (
         <>
             <label className="form-label" htmlFor={id}>
                 {label}
             </label>
-            {renderInput()}
+            {inputEl}
             {children && <div className="form-field-extra">{children}</div>}
         </>
     );

@@ -340,11 +340,19 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         {docBoxEdit("원리금 상환 계획표", "insuranceDoc")}
         {docBoxEdit("자동차 등록증", "registrationDoc")}
       </div>
-      {busy.status !== "idle" && (
-        <div style={{ marginBottom: 12, color: "#555", fontSize: 13 }}>
-          {busy.message} {busy.percent ? `${busy.percent}%` : ""}
-        </div>
-      )}
+      <div style={{ minHeight: 26, marginTop: 4 }}>
+        {busy.status === "uploading" && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+              <div style={{ width: `${busy.percent}%`, height: '100%', background: '#4caf50' }} />
+            </div>
+            <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{busy.percent}%</span>
+          </div>
+        )}
+        {busy.status === "ocr" && (
+          <div style={{ fontSize: 12, color: '#555' }}>OCR 처리 중...</div>
+        )}
+      </div>
       <div className="asset-dialog__footer">
         <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"} style={{ marginRight: 8 }}>
           업로드 및 OCR
@@ -362,22 +370,22 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       <div className="asset-info grid-info">
         {infoRow(
           "제조사",
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <input className="form-input" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
-            <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
+            <input className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+            <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "차종",
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
-            <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
+            <input className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+            <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "연식",
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <select className="form-input" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
+            <select className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
               {(() => {
                 const CURRENT_YEAR = new Date().getFullYear();
                 const YEAR_START = 1990;
@@ -392,7 +400,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
                 ));
               })()}
             </select>
-            <OcrSuggestionPicker items={(fieldSuggestions.year || []).map((it) => ({ ...it, value: String(it.value) }))} onApply={applySuggestion("year")} />
+            <OcrSuggestionPicker items={(fieldSuggestions.year || []).map((it) => ({ ...it, value: String(it.value) }))} onApply={applySuggestion("year")} showLabel={false} maxWidth={140} />
           </div>
         )}
         {infoRow(
@@ -420,14 +428,14 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             {isPlateInvalid && (
               <span aria-live="polite" style={{ color: "#d32f2f", fontSize: 12 }}>올바르지 않은 형식</span>
             )}
-            <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} />
+            <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "차대번호(VIN)",
-          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-            <input className="form-input" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
-            <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} />
+          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
+            <input className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+            <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
           </div>
         )}
         {infoRow(

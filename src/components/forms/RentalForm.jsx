@@ -347,11 +347,19 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     </FormField>
                 </div>
             </div>
-            {busy.status !== 'idle' && (
-                <div style={{ marginBottom: 12, color: '#555', fontSize: 13 }}>
-                    {busy.message} {busy.percent ? `${busy.percent}%` : ''}
-                </div>
-            )}
+            <div style={{ minHeight: 26, marginTop: 4 }}>
+                {busy.status === 'uploading' && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                            <div style={{ width: `${busy.percent}%`, height: '100%', background: '#4caf50' }} />
+                        </div>
+                        <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{busy.percent}%</span>
+                    </div>
+                )}
+                {busy.status === 'ocr' && (
+                    <div style={{ fontSize: 12, color: '#555' }}>OCR 처리 중...</div>
+                )}
+            </div>
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
                 <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== 'idle'}>
                     업로드 및 OCR
@@ -465,8 +473,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         placeholder="예: 홍길동"
                         required
                         disabled={readOnly}
-                    >
-                        <OcrSuggestionPicker items={fieldSuggestions.renterName || []} onApply={(v) => update("renterName", String(v || ""))} />
+                    inlineChildren>
+                        <OcrSuggestionPicker items={fieldSuggestions.renterName || []} onApply={(v) => update("renterName", String(v || ""))} showLabel={false} maxWidth={200} />
                     </FormField>
                 </div>
                 <div className="form-col">
@@ -480,8 +488,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         inputMode="numeric"
                         maxLength={13}
                         disabled={readOnly}
-                    >
-                        <OcrSuggestionPicker items={fieldSuggestions.contactNumber || []} onApply={(v) => update("contactNumber", formatPhone11(String(v || "")))} />
+                    inlineChildren>
+                        <OcrSuggestionPicker items={fieldSuggestions.contactNumber || []} onApply={(v) => update("contactNumber", formatPhone11(String(v || "")))} showLabel={false} maxWidth={200} />
                     </FormField>
                 </div>
             </div>
@@ -493,8 +501,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 onChange={(value) => update("address", value)}
                 placeholder="예: 서울 종로구 ..."
                 disabled={readOnly}
-            >
-                <OcrSuggestionPicker items={fieldSuggestions.address || []} onApply={(v) => update("address", String(v || ""))} />
+            inlineChildren>
+                <OcrSuggestionPicker items={fieldSuggestions.address || []} onApply={(v) => update("address", String(v || ""))} showLabel={false} maxWidth={280} />
             </FormField>
 
             <div className="form-row">
@@ -507,8 +515,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         onChange={(value) => update("start", value)}
                         required
                         disabled={readOnly}
-                    >
-                        <OcrSuggestionPicker items={fieldSuggestions.start || []} onApply={(v) => update("start", String(v || ""))} />
+                    inlineChildren>
+                        <OcrSuggestionPicker items={fieldSuggestions.start || []} onApply={(v) => update("start", String(v || ""))} showLabel={false} maxWidth={180} />
                     </FormField>
                 </div>
                 <div className="form-col">
@@ -520,8 +528,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         onChange={(value) => update("end", value)}
                         required
                         disabled={readOnly}
-                    >
-                        <OcrSuggestionPicker items={fieldSuggestions.end || []} onApply={(v) => update("end", String(v || ""))} />
+                    inlineChildren>
+                        <OcrSuggestionPicker items={fieldSuggestions.end || []} onApply={(v) => update("end", String(v || ""))} showLabel={false} maxWidth={180} />
                     </FormField>
                 </div>
             </div>
@@ -569,8 +577,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                             { value: "카드 결제", label: "카드 결제" },
                         ]}
                         disabled={readOnly}
-                    >
-                        <OcrSuggestionPicker items={fieldSuggestions.paymentMethod || []} onApply={(v) => update("paymentMethod", String(v || ""))} />
+                    inlineChildren>
+                        <OcrSuggestionPicker items={fieldSuggestions.paymentMethod || []} onApply={(v) => update("paymentMethod", String(v || ""))} showLabel={false} maxWidth={200} />
                     </FormField>
                 </div>
             </div>
@@ -588,8 +596,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         inputMode="numeric"
                         maxLength={20}
                         disabled={readOnly}
-                    >
-                        <OcrSuggestionPicker items={fieldSuggestions.rentalAmount || fieldSuggestions.monthlyPayment || []} onApply={(v) => update("rentalAmount", formatCurrency(String(v || "")))} />
+                    inlineChildren>
+                        <OcrSuggestionPicker items={fieldSuggestions.rentalAmount || fieldSuggestions.monthlyPayment || []} onApply={(v) => update("rentalAmount", formatCurrency(String(v || "")))} showLabel={false} maxWidth={180} />
                     </FormField>
                 </div>
                 <div className="form-col">
@@ -603,8 +611,8 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         inputMode="numeric"
                         maxLength={20}
                         disabled={readOnly}
-                    >
-                        <OcrSuggestionPicker items={fieldSuggestions.deposit || []} onApply={(v) => update("deposit", formatCurrency(String(v || "")))} />
+                    inlineChildren>
+                        <OcrSuggestionPicker items={fieldSuggestions.deposit || []} onApply={(v) => update("deposit", formatCurrency(String(v || "")))} showLabel={false} maxWidth={180} />
                     </FormField>
                 </div>
             </div>
