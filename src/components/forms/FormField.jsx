@@ -115,9 +115,9 @@ export default function FormField({
                 <label className="form-label" htmlFor={id}>
                     {label}
                 </label>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
-                    <div style={{ flex: 1, minWidth: 0 }}>{inputEl}</div>
-                    <div className="form-field-inline-extra" style={{ flexShrink: 0 }}>{children}</div>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                    <div style={{ flex: "1 1 200px", minWidth: 0 }}>{inputEl}</div>
+                    <div className="form-field-inline-extra" style={{ flex: "0 1 auto", minWidth: 0 }}>{children}</div>
                 </div>
             </>
         );

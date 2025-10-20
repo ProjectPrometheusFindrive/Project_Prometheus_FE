@@ -33,13 +33,13 @@ export default function OcrSuggestionPicker({ items = [], onApply, style = {}, s
   };
 
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", ...style }}>
+    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", minWidth: 0, ...style }}>
       {showLabel ? <span style={{ fontSize: 12, color: "#666" }}>제안</span> : null}
       <select
         className="form-input"
         value={String(index)}
         onChange={(e) => setIndex(Number(e.target.value))}
-        style={{ maxWidth }}
+        style={{ maxWidth, minWidth: 120, flex: "1 1 auto" }}
       >
         {list.map((it, i) => (
           <option key={`${String(it.value)}-${i}`} value={String(i)}>
@@ -47,7 +47,7 @@ export default function OcrSuggestionPicker({ items = [], onApply, style = {}, s
           </option>
         ))}
       </select>
-      <button type="button" className="form-button form-button--muted" onClick={apply}>
+      <button type="button" className="form-button form-button--muted" onClick={apply} style={{ flex: "0 0 auto", marginTop: 0 }}>
         적용
       </button>
     </div>
