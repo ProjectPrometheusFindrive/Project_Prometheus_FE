@@ -11,6 +11,8 @@ import { chooseUploadMode } from "../../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../../utils/uploads";
 import { ocrExtract } from "../../api";
 import { randomId } from "../../utils/id";
+import { useAuth } from "../../contexts/AuthContext";
+import { useCompany } from "../../contexts/CompanyContext";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
     const DEBUG = true;
@@ -39,6 +41,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
     const [ocrSuggest, setOcrSuggest] = useState({});
     const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0 });
     const [step, setStep] = useState((readOnly || hasInitial) ? "details" : "upload");
+    const auth = useAuth();
+    const { companyInfo } = useCompany();
+    const companyId = (auth?.user?.companyId || companyInfo?.companyId || "ci");
+    const ocrFolderBase = `company/${companyId}/docs`;
 
     const onSubmitWrapped = async (values) => {
         if (typeof onSubmit === 'function') {
@@ -195,23 +201,25 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
     }, []);
 
     const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
-    const uploadOne = async (file, folder) => {
-        const mode = chooseUploadMode(file.size || 0);
+    const uploadOne = async (file, label) => {
+        const newName = `ocr-rental-${tmpIdRef.current}-${label}-${file.name}`;
+        const wrapped = new File([file], newName, { type: file.type });
+        const mode = chooseUploadMode(wrapped.size || 0);
         if (mode === 'signed-put') {
-            const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
+            const { promise } = uploadViaSignedPut(wrapped, { folder: ocrFolderBase, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
             const res = await promise;
-            return { name: file.name, objectName: res.objectName || '' };
+            return { name: newName, objectName: res.objectName || '' };
         } else {
-            const { promise } = uploadResumable(file, { folder, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
+            const { promise } = uploadResumable(wrapped, { folder: ocrFolderBase, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
             const res = await promise;
-            return { name: file.name, objectName: res.objectName || '' };
+            return { name: newName, objectName: res.objectName || '' };
         }
     };
 
     const handleUploadAndOcr = async () => {
         const contracts = toArray(form.contractFile);
         const licenses = toArray(form.driverLicenseFile);
-        const tmpFolder = `uploads/tmp/${tmpIdRef.current}/rentals`;
+        // Upload into allowed prefix
         if (contracts.length === 0 && licenses.length === 0) {
             // allow proceed but encourage upload
             setStep('details');
@@ -221,11 +229,11 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
         try {
             const uploaded = { contract: [], license: [] };
             for (const f of contracts) {
-                const item = await uploadOne(f, `${tmpFolder}/contracts`);
+                const item = await uploadOne(f, `contracts`);
                 if (item.objectName) uploaded.contract.push(item);
             }
             for (const f of licenses) {
-                const item = await uploadOne(f, `${tmpFolder}/licenses`);
+                const item = await uploadOne(f, `licenses`);
                 if (item.objectName) uploaded.license.push(item);
             }
             setPreUploaded(uploaded);
