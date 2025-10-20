@@ -13,6 +13,7 @@ import { ocrExtract } from "../../api";
 import { randomId } from "../../utils/id";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCompany } from "../../contexts/CompanyContext";
+import OcrSuggestionPicker from "../OcrSuggestionPicker";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
     const DEBUG = true;
@@ -45,6 +46,29 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
     const { companyInfo } = useCompany();
     const companyId = (auth?.user?.companyId || companyInfo?.companyId || "ci");
     const ocrFolderBase = `company/${companyId}/docs`;
+
+    // Suggestion map by field name
+    const fieldSuggestions = useMemo(() => {
+        const map = {};
+        const push = (name, value, confidence, source) => {
+            if (!name) return;
+            if (!map[name]) map[name] = [];
+            map[name].push({ value, confidence, source });
+        };
+        const addDoc = (docKey) => {
+            const doc = ocrSuggest && ocrSuggest[docKey];
+            const fields = (doc && Array.isArray(doc.fields)) ? doc.fields : [];
+            const source = doc && doc.source;
+            fields.forEach((f) => push(f.name, f.value, f.confidence, source));
+        };
+        addDoc('contract');
+        addDoc('driverLicense');
+        // Normalize some driverLicense keys to rental fields
+        if (map.name) {
+            map.renterName = (map.renterName || []).concat(map.name);
+        }
+        return map;
+    }, [ocrSuggest]);
 
     const onSubmitWrapped = async (values) => {
         if (typeof onSubmit === 'function') {
@@ -441,7 +465,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         placeholder="예: 홍길동"
                         required
                         disabled={readOnly}
-                    />
+                    >
+                        <OcrSuggestionPicker items={fieldSuggestions.renterName || []} onApply={(v) => update("renterName", String(v || ""))} />
+                    </FormField>
                 </div>
                 <div className="form-col">
                     <FormField
@@ -454,7 +480,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         inputMode="numeric"
                         maxLength={13}
                         disabled={readOnly}
-                    />
+                    >
+                        <OcrSuggestionPicker items={fieldSuggestions.contactNumber || []} onApply={(v) => update("contactNumber", formatPhone11(String(v || "")))} />
+                    </FormField>
                 </div>
             </div>
 
@@ -465,7 +493,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 onChange={(value) => update("address", value)}
                 placeholder="예: 서울 종로구 ..."
                 disabled={readOnly}
-            />
+            >
+                <OcrSuggestionPicker items={fieldSuggestions.address || []} onApply={(v) => update("address", String(v || ""))} />
+            </FormField>
 
             <div className="form-row">
                 <div className="form-col">
@@ -477,7 +507,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         onChange={(value) => update("start", value)}
                         required
                         disabled={readOnly}
-                    />
+                    >
+                        <OcrSuggestionPicker items={fieldSuggestions.start || []} onApply={(v) => update("start", String(v || ""))} />
+                    </FormField>
                 </div>
                 <div className="form-col">
                     <FormField
@@ -488,7 +520,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         onChange={(value) => update("end", value)}
                         required
                         disabled={readOnly}
-                    />
+                    >
+                        <OcrSuggestionPicker items={fieldSuggestions.end || []} onApply={(v) => update("end", String(v || ""))} />
+                    </FormField>
                 </div>
             </div>
 
@@ -535,7 +569,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                             { value: "카드 결제", label: "카드 결제" },
                         ]}
                         disabled={readOnly}
-                    />
+                    >
+                        <OcrSuggestionPicker items={fieldSuggestions.paymentMethod || []} onApply={(v) => update("paymentMethod", String(v || ""))} />
+                    </FormField>
                 </div>
             </div>
 
@@ -552,7 +588,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         inputMode="numeric"
                         maxLength={20}
                         disabled={readOnly}
-                    />
+                    >
+                        <OcrSuggestionPicker items={fieldSuggestions.rentalAmount || fieldSuggestions.monthlyPayment || []} onApply={(v) => update("rentalAmount", formatCurrency(String(v || "")))} />
+                    </FormField>
                 </div>
                 <div className="form-col">
                     <FormField
@@ -565,7 +603,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         inputMode="numeric"
                         maxLength={20}
                         disabled={readOnly}
-                    />
+                    >
+                        <OcrSuggestionPicker items={fieldSuggestions.deposit || []} onApply={(v) => update("deposit", formatCurrency(String(v || "")))} />
+                    </FormField>
                 </div>
             </div>
 

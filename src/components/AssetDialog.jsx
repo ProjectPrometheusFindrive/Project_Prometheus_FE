@@ -13,6 +13,7 @@ import { ocrExtract } from "../api";
 import { randomId } from "../utils/id";
 import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
+import OcrSuggestionPicker from "./OcrSuggestionPicker";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -200,6 +201,35 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     );
   };
 
+  // OCR suggestions mapped by field name
+  const fieldSuggestions = useMemo(() => {
+    const map = {};
+    const push = (name, value, confidence, source) => {
+      if (!name) return;
+      if (!map[name]) map[name] = [];
+      map[name].push({ value, confidence, source });
+    };
+    const addDoc = (docKey) => {
+      const doc = ocrSuggest && ocrSuggest[docKey];
+      const fields = (doc && Array.isArray(doc.fields)) ? doc.fields : [];
+      const source = doc && doc.source;
+      fields.forEach((f) => push(f.name, f.value, f.confidence, source));
+    };
+    addDoc("registrationDoc");
+    return map;
+  }, [ocrSuggest]);
+
+  const applySuggestion = (key) => (val) => {
+    const v = (val == null) ? "" : String(val);
+    setForm((p) => {
+      const next = { ...p, [key]: v };
+      if (!next.vehicleType && next.model && next.year) {
+        next.vehicleType = `${next.model} ${next.year}년형`;
+      }
+      return next;
+    });
+  };
+
   // Step 1: upload & OCR helpers (create mode only)
   const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
   const uploadOne = async (file, label) => {
@@ -332,29 +362,38 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       <div className="asset-info grid-info">
         {infoRow(
           "제조사",
-          <input className="form-input" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <input className="form-input" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+            <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} />
+          </div>
         )}
         {infoRow(
           "차종",
-          <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+            <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} />
+          </div>
         )}
         {infoRow(
           "연식",
-          <select className="form-input" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
-            {(() => {
-              const CURRENT_YEAR = new Date().getFullYear();
-              const YEAR_START = 1990;
-              const options = [{ value: "", label: "선택" }].concat(
-                Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
-                  const y = CURRENT_YEAR - i;
-                  return { value: String(y), label: String(y) };
-                })
-              );
-              return options.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.label}</option>
-              ));
-            })()}
-          </select>
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <select className="form-input" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+              {(() => {
+                const CURRENT_YEAR = new Date().getFullYear();
+                const YEAR_START = 1990;
+                const options = [{ value: "", label: "선택" }].concat(
+                  Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
+                    const y = CURRENT_YEAR - i;
+                    return { value: String(y), label: String(y) };
+                  })
+                );
+                return options.map((opt) => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ));
+              })()}
+            </select>
+            <OcrSuggestionPicker items={(fieldSuggestions.year || []).map((it) => ({ ...it, value: String(it.value) }))} onApply={applySuggestion("year")} />
+          </div>
         )}
         {infoRow(
           "연료 타입",
@@ -366,7 +405,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
         {infoRow(
           "차량번호",
-          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", flexWrap: "wrap" }}>
             <input
               className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
               value={form.plate}
@@ -381,11 +420,15 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             {isPlateInvalid && (
               <span aria-live="polite" style={{ color: "#d32f2f", fontSize: 12 }}>올바르지 않은 형식</span>
             )}
+            <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} />
           </div>
         )}
         {infoRow(
           "차대번호(VIN)",
-          <input className="form-input" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <input className="form-input" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+            <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} />
+          </div>
         )}
         {infoRow(
           "차량가액",
