@@ -9,6 +9,7 @@ import {
     issuesApi,
     uploadsApi,
     authApi,
+    ocrApi,
     membersApi
 } from './apiClient';
 import { API_STATUS, createOperationResult } from './apiTypes';
@@ -287,6 +288,12 @@ export async function requestUploadSign({ fileName, contentType, folder }) {
 
 export async function requestResumableSession({ fileName, contentType, folder }) {
     const response = await uploadsApi.createSession({ fileName, contentType, folder });
+    return extractData(response);
+}
+
+// OCR
+export async function ocrExtract(requestBody) {
+    const response = await ocrApi.extract(requestBody);
     return extractData(response);
 }
 

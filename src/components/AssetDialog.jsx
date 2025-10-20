@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { formatCurrency } from "../utils/formatters";
 import { formatDateShort } from "../utils/date";
 import { isValidKoreanPlate, normalizeKoreanPlate } from "../utils/validators";
@@ -7,9 +7,18 @@ import GCSImage from "./GCSImage";
 import FilePreview from "./FilePreview";
 import DocumentViewer from "./DocumentViewer";
 import MultiDocGallery from "./MultiDocGallery";
+import { chooseUploadMode } from "../constants/uploads";
+import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { ocrExtract } from "../api";
+import { randomId } from "../utils/id";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
+  const [step, setStep] = useState(isEdit ? "details" : "upload");
+  const tmpIdRef = useRef(randomId("asset"));
+  const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0 });
+  const [preUploaded, setPreUploaded] = useState({ registration: [], insurance: [] });
+  const [ocrSuggest, setOcrSuggest] = useState({});
   const [form, setForm] = useState({
     make: asset.make || "",
     model: asset.model || "",
@@ -86,7 +95,11 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     if (!isEdit && form.plate && normalizedPlate !== form.plate) {
       setForm((p) => ({ ...p, plate: normalizedPlate }));
     }
-    onSubmit(form);
+    onSubmit({
+      ...form,
+      preUploaded,
+      ocrSuggestions: ocrSuggest,
+    });
   };
 
   const [viewer, setViewer] = useState({ open: false, src: "", type: "", title: "" });
@@ -181,12 +194,219 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     );
   };
 
+  // Step 1: upload & OCR helpers (create mode only)
+  const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
+  const uploadOne = async (file, folder) => {
+    const mode = chooseUploadMode(file.size || 0);
+    if (mode === "signed-put") {
+      const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
+      const res = await promise;
+      return { name: file.name, objectName: res.objectName || "" };
+    } else {
+      const { promise } = uploadResumable(file, { folder, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
+      const res = await promise;
+      return { name: file.name, objectName: res.objectName || "" };
+    }
+  };
+
+  const handleUploadAndOcr = async () => {
+    const regFiles = toArray(form.registrationDoc);
+    const planFiles = toArray(form.insuranceDoc); // 원리금 상환 계획표
+    if (requireDocs && regFiles.length === 0 && planFiles.length === 0) {
+      alert("업로드할 파일을 선택해 주세요.");
+      return;
+    }
+    const tmpFolder = `uploads/tmp/${tmpIdRef.current}/assets`;
+    setBusy({ status: "uploading", message: "업로드 중...", percent: 0 });
+    try {
+      const uploaded = { registration: [], insurance: [] };
+      if (regFiles.length > 0) {
+        for (const f of regFiles) {
+          const item = await uploadOne(f, `${tmpFolder}/registrationDoc`);
+          if (item.objectName) uploaded.registration.push(item);
+        }
+      }
+      if (planFiles.length > 0) {
+        for (const f of planFiles) {
+          const item = await uploadOne(f, `${tmpFolder}/amortizationSchedule`);
+          if (item.objectName) uploaded.insurance.push(item);
+        }
+      }
+      setPreUploaded(uploaded);
+
+      setBusy({ status: "ocr", message: "OCR 처리 중...", percent: 0 });
+      const suggestions = {};
+      // registrationDoc OCR → prefill
+      if (uploaded.registration[0]?.objectName) {
+        try {
+          const resp = await ocrExtract({
+            docType: "registrationDoc",
+            objectName: uploaded.registration[0].objectName,
+            sourceName: uploaded.registration[0].name,
+            saveOutput: true,
+          });
+          if (resp && resp.ocrSuggestions && resp.ocrSuggestions.registrationDoc) {
+            suggestions.registrationDoc = resp.ocrSuggestions.registrationDoc;
+            // map fields into form conservatively (only empty fields)
+            const fields = suggestions.registrationDoc.fields || [];
+            const next = { ...form };
+            const map = { plate: "plate", vin: "vin", registrationDate: "registrationDate", make: "make", model: "model", year: "year" };
+            fields.forEach(({ name, value }) => {
+              const key = map[name];
+              if (key && (next[key] == null || next[key] === "")) {
+                next[key] = String(value || "");
+              }
+            });
+            // Compose vehicleType if possible
+            if (!next.vehicleType && next.model && next.year) {
+              next.vehicleType = `${next.model} ${next.year}년형`;
+            }
+            setForm(next);
+          }
+        } catch (e) {
+          console.warn("registrationDoc OCR failed", e);
+        }
+      }
+
+      // amortizationSchedule OCR (optional, store suggestions only)
+      if (uploaded.insurance[0]?.objectName) {
+        try {
+          const resp = await ocrExtract({
+            docType: "amortizationSchedule",
+            objectName: uploaded.insurance[0].objectName,
+            sourceName: uploaded.insurance[0].name,
+            saveOutput: true,
+          });
+          if (resp && resp.ocrSuggestions && resp.ocrSuggestions.amortizationSchedule) {
+            suggestions.amortizationSchedule = resp.ocrSuggestions.amortizationSchedule;
+          }
+        } catch (e) {
+          console.warn("amortizationSchedule OCR failed", e);
+        }
+      }
+
+      setOcrSuggest(suggestions);
+      setBusy({ status: "idle", message: "", percent: 0 });
+      setStep("details");
+    } catch (e) {
+      console.error("upload/OCR error", e);
+      setBusy({ status: "idle", message: "", percent: 0 });
+      // allow proceeding without OCR
+      alert("업로드 또는 OCR 처리 중 오류가 발생했습니다. 수동으로 진행해 주세요.");
+      setStep("details");
+    }
+  };
+
+  const UploadStep = () => (
+    <>
+      <div className="asset-docs-section" style={{ marginBottom: 16 }}>
+        {docBoxEdit("원리금 상환 계획표", "insuranceDoc")}
+        {docBoxEdit("자동차 등록증", "registrationDoc")}
+      </div>
+      {busy.status !== "idle" && (
+        <div style={{ marginBottom: 12, color: "#555", fontSize: 13 }}>
+          {busy.message} {busy.percent ? `${busy.percent}%` : ""}
+        </div>
+      )}
+      <div className="asset-dialog__footer">
+        <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"} style={{ marginRight: 8 }}>
+          업로드 및 OCR
+        </button>
+        <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} disabled={busy.status !== "idle"} style={{ marginRight: 8 }}>
+          OCR 없이 진행
+        </button>
+        <button type="button" className="form-button" onClick={onClose}>닫기</button>
+      </div>
+    </>
+  );
+
+  const DetailsStep = () => (
+    <>
+      <div className="asset-info grid-info">
+        {infoRow(
+          "제조사",
+          <input className="form-input" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+        )}
+        {infoRow(
+          "차종",
+          <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+        )}
+        {infoRow(
+          "연식",
+          <select className="form-input" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+            {(() => {
+              const CURRENT_YEAR = new Date().getFullYear();
+              const YEAR_START = 1990;
+              const options = [{ value: "", label: "선택" }].concat(
+                Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
+                  const y = CURRENT_YEAR - i;
+                  return { value: String(y), label: String(y) };
+                })
+              );
+              return options.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.label}</option>
+              ));
+            })()}
+          </select>
+        )}
+        {infoRow(
+          "연료 타입",
+          <select className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
+            {["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"].map((v) => (
+              <option key={v} value={v}>{v || "선택"}</option>
+            ))}
+          </select>
+        )}
+        {infoRow(
+          "차량번호",
+          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
+            <input
+              className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
+              value={form.plate}
+              onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
+              onBlur={(e) => {
+                const v = normalizeKoreanPlate(e.target.value);
+                if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
+              }}
+              aria-invalid={isPlateInvalid ? true : undefined}
+              placeholder="예: 28가2345"
+            />
+            {isPlateInvalid && (
+              <span aria-live="polite" style={{ color: "#d32f2f", fontSize: 12 }}>올바르지 않은 형식</span>
+            )}
+          </div>
+        )}
+        {infoRow(
+          "차대번호(VIN)",
+          <input className="form-input" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+        )}
+        {infoRow(
+          "차량가액",
+          <input
+            className="form-input"
+            type="text"
+            value={form.vehicleValue}
+            onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
+            inputMode="numeric"
+            maxLength={20}
+            placeholder="예: 25,000,000"
+          />
+        )}
+      </div>
+      <div className="asset-dialog__footer">
+        <button type="button" className="form-button form-button--muted" onClick={() => setStep("upload")} style={{ marginRight: 8 }}>이전</button>
+        <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid} style={{ marginRight: 8 }}>저장</button>
+        <button type="button" className="form-button" onClick={onClose}>닫기</button>
+      </div>
+    </>
+  );
+
   return (
     <div className="asset-dialog">
       <div className="asset-dialog__body">
-        <div className="asset-docs-section" style={{ marginBottom: 16 }}>
-          {isEdit ? (
-            <>
+        {isEdit ? (
+          <>
+            <div className="asset-docs-section" style={{ marginBottom: 16 }}>
               {/* Multi-doc gallery (preferred) */}
               {Array.isArray(asset.insuranceDocGcsObjectNames) && asset.insuranceDocGcsObjectNames.length > 0 ? (
                 <MultiDocGallery
@@ -204,16 +424,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
               ) : (
                 docBoxView("자동차 등록증", registrationDocUrl, asset.registrationDocName)
               )}
-            </>
-          ) : (
-            <>
-              {docBoxEdit("원리금 상환 계획표", "insuranceDoc")}
-              {docBoxEdit("자동차 등록증", "registrationDoc")}
-            </>
-          )}
-        </div>
-
-        {isEdit ? (
+            </div>
           <div className="asset-info grid-info">
             {infoRow("제조사", asset.make || "")}
             {infoRow("차종", asset.model || "")}
@@ -223,79 +434,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             {infoRow("차대번호(VIN)", asset.vin || "")}
             {infoRow("차량가액", asset.vehicleValue || "")}
           </div>
-        ) : (
-          <div className="asset-info grid-info">
-            {infoRow(
-              "제조사",
-              <input className="form-input" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
-            )}
-            {infoRow(
-              "차종",
-              <input className="form-input" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
-            )}
-            {infoRow(
-              "연식",
-              <select className="form-input" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
-                {(() => {
-                  const CURRENT_YEAR = new Date().getFullYear();
-                  const YEAR_START = 1990;
-                  const options = [{ value: "", label: "선택" }].concat(
-                    Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
-                      const y = CURRENT_YEAR - i;
-                      return { value: String(y), label: String(y) };
-                    })
-                  );
-                  return options.map((opt) => (
-                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                  ));
-                })()}
-              </select>
-            )}
-            {infoRow(
-              "연료 타입",
-              <select className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
-                {["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"].map((v) => (
-                  <option key={v} value={v}>{v || "선택"}</option>
-                ))}
-              </select>
-            )}
-            {infoRow(
-              "차량번호",
-              <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%" }}>
-                <input
-                  className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
-                  value={form.plate}
-                  onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
-                  onBlur={(e) => {
-                    const v = normalizeKoreanPlate(e.target.value);
-                    if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
-                  }}
-                  aria-invalid={isPlateInvalid ? true : undefined}
-                  placeholder="예: 28가2345"
-                />
-                {isPlateInvalid && (
-                  <span aria-live="polite" style={{ color: "#d32f2f", fontSize: 12 }}>올바르지 않은 형식</span>
-                )}
-              </div>
-            )}
-            {infoRow(
-              "차대번호(VIN)",
-              <input className="form-input" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
-            )}
-            {infoRow(
-              "차량가액",
-              <input
-                className="form-input"
-                type="text"
-                value={form.vehicleValue}
-                onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
-                inputMode="numeric"
-                maxLength={20}
-                placeholder="예: 25,000,000"
-              />
-            )}
-          </div>
-        )}
+          </>
+        ) : (step === "upload" ? <UploadStep /> : <DetailsStep />)}
 
         {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
           <div style={{ marginTop: 16 }}>
@@ -309,12 +449,11 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
       </div>
 
-      <div className="asset-dialog__footer">
-        {!isEdit && onSubmit && (
-          <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid} style={{ marginRight: 8 }}>저장</button>
-        )}
-        <button type="button" className="form-button" onClick={onClose}>닫기</button>
-      </div>
+      {isEdit && (
+        <div className="asset-dialog__footer">
+          <button type="button" className="form-button" onClick={onClose}>닫기</button>
+        </div>
+      )}
       <DocumentViewer
         isOpen={viewer.open}
         onClose={() => setViewer((v) => ({ ...v, open: false }))}

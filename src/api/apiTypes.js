@@ -58,7 +58,10 @@ export const API_ENDPOINTS = {
 
     // Uploads (GCS direct upload helpers)
     UPLOAD_SIGN: '/uploads/sign',
-    UPLOAD_RESUMABLE: '/uploads/resumable'
+    UPLOAD_RESUMABLE: '/uploads/resumable',
+
+    // OCR
+    OCR_EXTRACT: '/ocr/extract'
 };
 
 // Response status enum

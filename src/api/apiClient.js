@@ -556,6 +556,26 @@ export const uploadsApi = {
     }
 };
 
+// OCR API methods
+export const ocrApi = {
+    /**
+     * Extract OCR suggestions for a given document type
+     * body: {
+     *   docType: 'registrationDoc'|'insuranceDoc'|'contract'|'amortizationSchedule'|'driverLicense',
+     *   objectName?: string,
+     *   text?: string,
+     *   sourceName?: string,
+     *   saveOutput?: boolean
+     * }
+     */
+    async extract(body) {
+        return await apiRequest(API_ENDPOINTS.OCR_EXTRACT, {
+            method: 'POST',
+            body: JSON.stringify(body || {})
+        });
+    }
+};
+
 // Auth API methods
 export const authApi = {
     async login(credentials) {

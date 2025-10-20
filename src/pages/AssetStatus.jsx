@@ -190,7 +190,7 @@ export default function AssetStatus() {
 
     const handleRentalCreateSubmit = async (data) => {
         // Create rental via API, then upload any provided docs (multi-file)
-        const { contractFile, driverLicenseFile, ...rest } = data || {};
+        const { contractFile, driverLicenseFile, preUploaded, ocrSuggestions, ...rest } = data || {};
         const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
         const contractFiles = toArray(contractFile);
         const licenseFiles = toArray(driverLicenseFile);
@@ -209,8 +209,26 @@ export default function AssetStatus() {
             return;
         }
 
-        // Upload documents after creation
-        if (created && (contractFiles.length > 0 || licenseFiles.length > 0)) {
+        // Attach pre-uploaded docs if present; otherwise upload after creation
+        const preC = preUploaded && Array.isArray(preUploaded.contract) ? preUploaded.contract : [];
+        const preL = preUploaded && Array.isArray(preUploaded.license) ? preUploaded.license : [];
+        if (created && (preC.length > 0 || preL.length > 0)) {
+            const patch = {};
+            if (preC.length > 0) {
+                patch.contractDocNames = preC.map((it) => it.name);
+                patch.contractDocGcsObjectNames = preC.map((it) => it.objectName);
+                patch.contractDocName = patch.contractDocNames[0];
+                patch.contractDocGcsObjectName = patch.contractDocGcsObjectNames[0];
+            }
+            if (preL.length > 0) {
+                patch.licenseDocNames = preL.map((it) => it.name);
+                patch.licenseDocGcsObjectNames = preL.map((it) => it.objectName);
+                patch.licenseDocName = patch.licenseDocNames[0];
+                patch.licenseDocGcsObjectName = patch.licenseDocGcsObjectNames[0];
+            }
+            try { await updateRental(created.rentalId, patch); } catch (e) { console.warn("Failed to patch rental with preUploaded docs", e); }
+            created = { ...created, ...patch };
+        } else if (created && (contractFiles.length > 0 || licenseFiles.length > 0)) {
             console.groupCollapsed("[upload-ui] rental create docs (from Asset) start");
             try {
                 const rentalId = created.rentalId || rest.rentalId;
@@ -777,7 +795,7 @@ export default function AssetStatus() {
                 return;
             }
             const today = new Date().toISOString().slice(0, 10);
-            const { registrationDoc, insuranceDoc, ...rest } = data || {};
+            const { registrationDoc, insuranceDoc, preUploaded, ocrSuggestions, ...rest } = data || {};
             const payload = {
                 ...rest,
                 year: rest.year ? Number(rest.year) : rest.year,
@@ -786,8 +804,28 @@ export default function AssetStatus() {
                 registrationDate: rest.registrationDate || today,
                 registrationStatus: rest.registrationStatus || "자산등록 완료",
             };
-            // Upload docs first (if provided) then include objectNames in payload (single or multiple)
-            {
+            // Prefer preUploaded docs from Step 1 (objectNames) if present; otherwise upload files now
+            if (preUploaded && (Array.isArray(preUploaded.insurance) || Array.isArray(preUploaded.registration))) {
+                const ins = Array.isArray(preUploaded.insurance) ? preUploaded.insurance : [];
+                const reg = Array.isArray(preUploaded.registration) ? preUploaded.registration : [];
+                if (ins.length > 0) {
+                    payload.insuranceDocNames = ins.map((it) => it.name);
+                    payload.insuranceDocGcsObjectNames = ins.map((it) => it.objectName);
+                    payload.insuranceDocName = payload.insuranceDocNames[0];
+                    payload.insuranceDocGcsObjectName = payload.insuranceDocGcsObjectNames[0];
+                }
+                if (reg.length > 0) {
+                    payload.registrationDocNames = reg.map((it) => it.name);
+                    payload.registrationDocGcsObjectNames = reg.map((it) => it.objectName);
+                    payload.registrationDocName = payload.registrationDocNames[0];
+                    payload.registrationDocGcsObjectName = payload.registrationDocGcsObjectNames[0];
+                }
+                // Optionally include OCR suggestions into payload if BE accepts; otherwise, keep FE-only
+                if (ocrSuggestions && typeof ocrSuggestions === 'object') {
+                    payload.ocrSuggestions = ocrSuggestions;
+                }
+            } else {
+                // Upload docs first (if provided) then include objectNames in payload (single or multiple)
                 const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
                 const insuranceFiles = toArray(insuranceDoc);
                 const registrationFiles = toArray(registrationDoc);

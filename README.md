@@ -22,6 +22,13 @@ npm run preview  # 빌드 미리보기
 - `.env.local`에 필요한 `VITE_` 접두 변수만 정의하세요.
   - 예: `VITE_API_BASE_URL`, `VITE_KAKAO_MAP_API_KEY`
 
+## OCR 연동(요약)
+- 업로드한 파일로부터 필드 제안을 받기 위해 백엔드 OCR 엔드포인트를 호출합니다.
+- 엔드포인트: `POST /ocr/extract` (`VITE_API_BASE_URL` 기준)
+  - 요청: `{ docType, objectName? | text?, sourceName?, saveOutput? }`
+  - 응답: `{ status, docType, ocrSuggestions: { <docType>: { fields:[{name,value,confidence}], source } }, savedObjectName? }`
+- 자산 등록(등록증)·계약 등록(계약서/면허)에서 업로드 후 OCR → 폼 자동 채움 → 사용자 확인 저장의 2단계 흐름을 지원합니다.
+
 ## 폴더 구조(요약)
 ```
 src/
@@ -30,4 +37,3 @@ src/
 
 ## 라이선스
 본 저장소의 코드는 서비스 운영 목적에 한해 사용됩니다.
-

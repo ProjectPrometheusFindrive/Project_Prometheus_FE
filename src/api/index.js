@@ -42,6 +42,7 @@ export const {
   // Problem vehicles / issues
   fetchProblemVehicles,
   createIssueDraft,
+  ocrExtract,
   // Upload helpers
   requestUploadSign,
   requestResumableSession,

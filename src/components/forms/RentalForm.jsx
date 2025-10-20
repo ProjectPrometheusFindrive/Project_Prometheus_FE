@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import useFormState from "../../hooks/useFormState";
 import FormGrid from "./FormGrid";
 import FormField from "./FormField";
@@ -7,6 +7,10 @@ import { fetchAssets } from "../../api";
 import { getManagementStage } from "../../utils/managementStage";
 import StatusBadge from "../StatusBadge";
 import { formatPhone11, formatCurrency } from "../../utils/formatters";
+import { chooseUploadMode } from "../../constants/uploads";
+import { uploadViaSignedPut, uploadResumable } from "../../utils/uploads";
+import { ocrExtract } from "../../api";
+import { randomId } from "../../utils/id";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
     const DEBUG = true;
@@ -30,7 +34,19 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
     }), [initial]);
 
     const hasInitial = !!(initial && Object.keys(initial).length > 0);
-    const { form, update, updateFields, handleSubmit } = useFormState(initialFormValues, { onSubmit, syncOnInitialChange: hasInitial });
+    const tmpIdRef = useRef(randomId("rental"));
+    const [preUploaded, setPreUploaded] = useState({ contract: [], license: [] });
+    const [ocrSuggest, setOcrSuggest] = useState({});
+    const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0 });
+    const [step, setStep] = useState((readOnly || hasInitial) ? "details" : "upload");
+
+    const onSubmitWrapped = async (values) => {
+        if (typeof onSubmit === 'function') {
+            await onSubmit({ ...values, preUploaded, ocrSuggestions: ocrSuggest });
+        }
+    };
+
+    const { form, update, updateFields, handleSubmit } = useFormState(initialFormValues, { onSubmit: onSubmitWrapped, syncOnInitialChange: hasInitial });
 
     // Assets for vehicle dropdown
     const [assets, setAssets] = useState([]);
@@ -178,9 +194,87 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    return (
-        <FormGrid id={formId} onSubmit={handleSubmit}>
-            {/* 계약서/면허 업로드 - 최상단 */}
+    const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
+    const uploadOne = async (file, folder) => {
+        const mode = chooseUploadMode(file.size || 0);
+        if (mode === 'signed-put') {
+            const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
+            const res = await promise;
+            return { name: file.name, objectName: res.objectName || '' };
+        } else {
+            const { promise } = uploadResumable(file, { folder, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
+            const res = await promise;
+            return { name: file.name, objectName: res.objectName || '' };
+        }
+    };
+
+    const handleUploadAndOcr = async () => {
+        const contracts = toArray(form.contractFile);
+        const licenses = toArray(form.driverLicenseFile);
+        const tmpFolder = `uploads/tmp/${tmpIdRef.current}/rentals`;
+        if (contracts.length === 0 && licenses.length === 0) {
+            // allow proceed but encourage upload
+            setStep('details');
+            return;
+        }
+        setBusy({ status: 'uploading', message: '업로드 중...', percent: 0 });
+        try {
+            const uploaded = { contract: [], license: [] };
+            for (const f of contracts) {
+                const item = await uploadOne(f, `${tmpFolder}/contracts`);
+                if (item.objectName) uploaded.contract.push(item);
+            }
+            for (const f of licenses) {
+                const item = await uploadOne(f, `${tmpFolder}/licenses`);
+                if (item.objectName) uploaded.license.push(item);
+            }
+            setPreUploaded(uploaded);
+
+            setBusy({ status: 'ocr', message: 'OCR 처리 중...', percent: 0 });
+            const suggestions = {};
+            if (uploaded.contract[0]?.objectName) {
+                try {
+                    const resp = await ocrExtract({ docType: 'contract', objectName: uploaded.contract[0].objectName, sourceName: uploaded.contract[0].name, saveOutput: true });
+                    if (resp && resp.ocrSuggestions && resp.ocrSuggestions.contract) {
+                        suggestions.contract = resp.ocrSuggestions.contract;
+                        // map into rental form (conservative)
+                        const fields = suggestions.contract.fields || [];
+                        const updates = {};
+                        const num = (s) => s;
+                        fields.forEach(({ name, value }) => {
+                            const v = String(value ?? '');
+                            if (name === 'renterName' && !form.renterName) updates.renterName = v;
+                            if (name === 'contactNumber' && !form.contactNumber) updates.contactNumber = v;
+                            if (name === 'address' && !form.address) updates.address = v;
+                            if (name === 'start' && !form.start) updates.start = v;
+                            if (name === 'end' && !form.end) updates.end = v;
+                            if (name === 'rentalAmount' && !form.rentalAmount) updates.rentalAmount = formatCurrency(v);
+                            if (name === 'monthlyPayment' && !form.rentalAmount) updates.rentalAmount = formatCurrency(v);
+                            if (name === 'deposit' && !form.deposit) updates.deposit = formatCurrency(v);
+                            if (name === 'paymentMethod' && !form.paymentMethod) updates.paymentMethod = v;
+                            if (name === 'rentalType' && !form.rentalType) updates.rentalType = v;
+                        });
+                        if (Object.keys(updates).length > 0) updateFields(updates);
+                    }
+                } catch (e) { /* noop */ }
+            }
+            if (uploaded.license[0]?.objectName) {
+                try {
+                    const resp = await ocrExtract({ docType: 'driverLicense', objectName: uploaded.license[0].objectName, sourceName: uploaded.license[0].name, saveOutput: true });
+                    if (resp && resp.ocrSuggestions && resp.ocrSuggestions.driverLicense) {
+                        suggestions.driverLicense = resp.ocrSuggestions.driverLicense;
+                    }
+                } catch (e) { /* noop */ }
+            }
+            setOcrSuggest(suggestions);
+        } finally {
+            setBusy({ status: 'idle', message: '', percent: 0 });
+            setStep('details');
+        }
+    };
+
+    const UploadStep = () => (
+        <>
             <div className="form-row">
                 <div className="form-col">
                     <FormField
@@ -221,6 +315,30 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     </FormField>
                 </div>
             </div>
+            {busy.status !== 'idle' && (
+                <div style={{ marginBottom: 12, color: '#555', fontSize: 13 }}>
+                    {busy.message} {busy.percent ? `${busy.percent}%` : ''}
+                </div>
+            )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+                <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== 'idle'}>
+                    업로드 및 OCR
+                </button>
+                <button type="button" className="form-button form-button--muted" onClick={() => setStep('details')} disabled={busy.status !== 'idle'}>
+                    OCR 없이 진행
+                </button>
+            </div>
+        </>
+    );
+
+    return (
+        <FormGrid id={formId} onSubmit={handleSubmit}>
+            {!readOnly && (step === 'upload') && (
+                <UploadStep />
+            )}
+            {/* 세부 항목 (Step 2) */}
+            {readOnly || step === 'details' ? (
+            <>
             {/* 차량번호를 최상단 드롭다운으로 변경 */}
             <FormField
                 id="plate"
@@ -459,11 +577,20 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
 
             {!readOnly && showSubmit && (
                 <FormActions>
-                    <button type="submit" className="form-button">
-                        저장
-                    </button>
+                    {!readOnly && step === 'details' && (
+                        <>
+                            <button type="button" className="form-button form-button--muted" onClick={() => setStep('upload')} style={{ marginRight: 8 }}>
+                                이전
+                            </button>
+                            <button type="submit" className="form-button">
+                                저장
+                            </button>
+                        </>
+                    )}
                 </FormActions>
             )}
+            </>
+            ) : null}
         </FormGrid>
     );
 }
