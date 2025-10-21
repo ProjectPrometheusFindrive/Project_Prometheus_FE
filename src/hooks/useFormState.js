@@ -5,6 +5,10 @@ const deepEqual = (a, b) => {
   if (Object.is(a, b)) return true;
   if (typeof a !== typeof b) return false;
   if (a == null || b == null) return false;
+  // Handle special cases (File/Blob/Date)
+  if (typeof File !== "undefined" && (a instanceof File || b instanceof File)) { return a === b; }
+  if (typeof Blob !== "undefined" && (a instanceof Blob || b instanceof Blob)) { return a === b; }
+  if (a instanceof Date && b instanceof Date) { return a.getTime() === b.getTime(); }
   if (Array.isArray(a) && Array.isArray(b)) {
     if (a.length !== b.length) return false;
     for (let i = 0; i < a.length; i++) {
@@ -126,7 +130,7 @@ const useFormState = (initialValues = {}, options = {}) => {
 
   // Check if form has been modified
   const isDirty = useCallback(() => {
-    return JSON.stringify(form) !== JSON.stringify(initialValues);
+    return !deepEqual(form, initialValues);
   }, [form, initialValues]);
 
   // Check if form is valid (no errors)
@@ -193,8 +197,8 @@ const useFormState = (initialValues = {}, options = {}) => {
     handleFieldBlur,
     
     // Form status
-    isDirty: isDirty(),
-    isValid: isValid(),
+    isDirty,
+    isValid,
     
     // Utility methods
     setForm, // Direct access to setter if needed
