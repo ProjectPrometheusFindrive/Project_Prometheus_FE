@@ -87,6 +87,7 @@ export default function FilePreview({ file, className = "" }) {
           type="image"
           title={file.name}
           allowDownload={false}
+          file={file}
         />
       </div>
     );
@@ -114,6 +115,7 @@ export default function FilePreview({ file, className = "" }) {
           type="pdf"
           title={file.name}
           allowDownload={false}
+          file={file}
         />
       </div>
     );
@@ -144,6 +146,7 @@ export default function FilePreview({ file, className = "" }) {
           type="video"
           title={file.name}
           allowDownload={false}
+          file={file}
         />
       </div>
     );
