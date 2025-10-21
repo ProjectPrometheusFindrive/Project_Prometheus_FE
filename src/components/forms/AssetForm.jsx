@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import useFormState from "../../hooks/useFormState";
 import FormGrid from "./FormGrid";
 import FormField from "./FormField";
@@ -9,7 +9,7 @@ import { formatCurrency } from "../../utils/formatters";
 import { normalizeKoreanPlate, isValidKoreanPlate } from "../../utils/validators";
 
 export default function AssetForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true, requireDocs = true }) {
-    const initialFormValues = {
+    const initialFormValues = useMemo(() => ({
         plate: initial.plate || "",
         make: initial.make || "",
         model: initial.model || "",
@@ -25,7 +25,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
         registrationStatus: initial.registrationStatus || STATUS_OPTIONS[0].value,
         registrationDoc: initial.registrationDoc || null,
         insuranceDoc: initial.insuranceDoc || null,
-    };
+    }), [initial]);
 
     const { form, update, handleSubmit, setForm, updateFields } = useFormState(initialFormValues, { onSubmit });
 
