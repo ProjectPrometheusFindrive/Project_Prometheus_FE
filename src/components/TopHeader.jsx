@@ -81,7 +81,7 @@ export default function TopHeader() {
     }
 
     return (
-        <header className="top-header" role="banner">
+        <header className="top-header bg-white shadow-sm" role="banner">
             <div className="top-header__left">
                 {companyInfo?.logoPath ? (
                     <GCSImage

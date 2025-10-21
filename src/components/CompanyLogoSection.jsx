@@ -28,13 +28,13 @@ function CompanyLogoSection() {
   }, [companyId]);
 
   return (
-    <div className="card" style={{ marginBottom: 16 }}>
-      <div className="header-row" style={{ marginBottom: 10 }}>
+    <div className="card mb-4">
+      <div className="header-row mb-2">
         <div>
           <h2>회사 로고</h2>
         </div>
       </div>
-      <div style={{ display: "flex", gap: 16, alignItems: "center", flexWrap: "wrap" }}>
+      <div className="flex gap-4 items-center flex-wrap">
         <div>
           {companyInfo?.logoPath ? (
             <GCSImage objectName={companyInfo.logoPath} alt="Company Logo" className="logo-preview" />
@@ -44,7 +44,7 @@ function CompanyLogoSection() {
             <img src={defaultLogoUrl} alt="Default Logo" className="logo-preview" />
           )}
         </div>
-        <div style={{ minWidth: 280, flex: 1 }}>
+        <div className="min-w-[280px] flex-1">
           {folder ? (
             <DragDropUpload
               folder={folder}
@@ -53,7 +53,7 @@ function CompanyLogoSection() {
               onError={(e) => console.error(e)}
             />
           ) : (
-            <div style={{ color: "#888", fontSize: 13 }}>
+            <div className="text-[13px] text-gray-500">
               회사 식별 정보를 불러오는 중입니다. 잠시 후 다시 시도해 주세요.
             </div>
           )}

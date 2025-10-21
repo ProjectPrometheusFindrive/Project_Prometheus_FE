@@ -127,77 +127,59 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
             ariaLabel="사고 정보 조회"
             size="large"
         >
-            <div style={{ padding: "20px", maxHeight: "80vh", overflow: "auto" }}>
+            <div className="p-5 max-h-[80vh] overflow-auto">
                 {/* 상단 경고 배너 */}
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                        padding: "16px",
-                        backgroundColor: "#fff3e0",
-                        border: "1px solid #ff9800",
-                        borderRadius: "8px",
-                        marginBottom: "24px",
-                    }}
-                >
+                <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-500 rounded-lg mb-6">
                     <FaExclamationTriangle size={24} color="#ff9800" />
                     <div>
-                        <div style={{ fontWeight: "600", color: "#e65100", fontSize: "1.1rem" }}>
+                        <div className="font-semibold text-[1.1rem] text-[#e65100]">
                             사고 접수됨
                         </div>
-                        <div style={{ fontSize: "0.9rem", color: "#f57c00", marginTop: "4px" }}>
+                        <div className="text-[0.9rem] mt-1 text-[#f57c00]">
                             {accidentData.accidentDisplayTime} 발생 사고
                         </div>
                     </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "24px", marginBottom: "24px" }}>
+                <div className="grid [grid-template-columns:1fr_1fr] gap-6 mb-6">
                     {/* 사고 정보 */}
-                    <div
-                        style={{
-                            padding: "20px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "8px",
-                            border: "1px solid #dee2e6",
-                        }}
-                    >
-                        <h3 style={{ margin: "0 0 16px 0", fontSize: "1.1rem", color: "#333", display: "flex", alignItems: "center", gap: "8px" }}>
+                    <div className="p-5 bg-gray-50 rounded-lg border border-[#dee2e6]">
+                        <h3 className="m-0 mb-4 text-[1.1rem] text-gray-800 flex items-center gap-2">
                             <FaClock size={16} color="#ff9800" />
                             사고 발생 정보
                         </h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <div className="flex flex-col gap-3">
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>발생 일시:</strong>
-                                <div style={{ fontSize: "1rem", fontWeight: "600", color: "#333", marginTop: "4px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">발생 일시:</strong>
+                                <div className="text-[1rem] font-semibold text-gray-800 mt-1">
                                     {accidentData.accidentDisplayTime || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>접수 일시:</strong>
-                                <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">접수 일시:</strong>
+                                <div className="text-[0.95rem] text-gray-800 mt-1">
                                     {accidentData.recordedAt ? new Date(accidentData.recordedAt).toLocaleString("ko-KR") : "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>처리 담당자:</strong>
-                                <div style={{ fontSize: "1rem", fontWeight: "600", color: "#333", marginTop: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">처리 담당자:</strong>
+                                <div className="text-[1rem] font-semibold text-gray-800 mt-1 flex items-center gap-1.5">
                                     <FaUser size={14} color="#666" />
                                     {accidentData.handlerName || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>블랙박스 영상:</strong>
-                                <div style={{ fontSize: "0.95rem", marginTop: "4px", display: "flex", alignItems: "center", gap: "6px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">블랙박스 영상:</strong>
+                                <div className="text-[0.95rem] mt-1 flex items-center gap-1.5">
                                     {accidentData.blackboxFileName ? (
                                         <>
-                                            <span style={{ color: "#28a745", fontWeight: "500" }}>✓</span>
-                                            <span style={{ color: "#333" }}>{accidentData.blackboxFileName}</span>
+                                            <span className="text-emerald-600 font-medium">✓</span>
+                                            <span className="text-gray-800">{accidentData.blackboxFileName}</span>
                                         </>
                                     ) : (
                                         <>
-                                            <span style={{ color: "#dc3545", fontWeight: "500" }}>✗</span>
-                                            <span style={{ color: "#666" }}>영상 파일 없음</span>
+                                            <span className="text-red-600 font-medium">✗</span>
+                                            <span className="text-gray-600">영상 파일 없음</span>
                                         </>
                                     )}
                                 </div>
@@ -206,45 +188,38 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                     </div>
 
                     {/* 차량 정보 */}
-                    <div
-                        style={{
-                            padding: "20px",
-                            backgroundColor: "#f8f9fa",
-                            borderRadius: "8px",
-                            border: "1px solid #dee2e6",
-                        }}
-                    >
-                        <h3 style={{ margin: "0 0 16px 0", fontSize: "1.1rem", color: "#333" }}>
+                    <div className="p-5 bg-gray-50 rounded-lg border border-[#dee2e6]">
+                        <h3 className="m-0 mb-4 text-[1.1rem] text-gray-800">
                             차량 및 대여 정보
                         </h3>
-                        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+                        <div className="flex flex-col gap-3">
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>차량번호:</strong>
-                                <div style={{ fontSize: "1rem", fontWeight: "600", color: "#333", marginTop: "4px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">차량번호:</strong>
+                                <div className="text-[1rem] font-semibold text-gray-800 mt-1">
                                     {vehicleData?.plate || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>차종:</strong>
-                                <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">차종:</strong>
+                                <div className="text-[0.95rem] text-gray-800 mt-1">
                                     {vehicleData?.vehicleType || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>대여자:</strong>
-                                <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">대여자:</strong>
+                                <div className="text-[0.95rem] text-gray-800 mt-1">
                                     {vehicleData?.renterName || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>연락처:</strong>
-                                <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">연락처:</strong>
+                                <div className="text-[0.95rem] text-gray-800 mt-1">
                                     {vehicleData?.contactNumber || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong style={{ color: "#666", fontSize: "0.9rem" }}>대여 기간:</strong>
-                                <div style={{ fontSize: "0.95rem", color: "#333", marginTop: "4px" }}>
+                                <strong className="text-[0.9rem] text-gray-600">대여 기간:</strong>
+                                <div className="text-[0.95rem] text-gray-800 mt-1">
                                     {vehicleData?.rentalPeriod?.start && vehicleData?.rentalPeriod?.end
                                         ? `${new Date(vehicleData.rentalPeriod.start).toLocaleDateString()} ~ ${new Date(vehicleData.rentalPeriod.end).toLocaleDateString()}`
                                         : "-"
@@ -257,36 +232,15 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
 
                 {/* 블랙박스 영상 재생 */}
                 {videoSrc && (
-                    <div
-                        style={{
-                            backgroundColor: "#000",
-                            borderRadius: "8px",
-                            overflow: "hidden",
-                            marginBottom: "16px",
-                        }}
-                    >
-                        <div
-                            style={{
-                                padding: "12px 16px",
-                                backgroundColor: "#1a1a1a",
-                                color: "white",
-                                fontSize: "1rem",
-                                fontWeight: "600",
-                                borderBottom: "1px solid #333",
-                            }}
-                        >
+                    <div className="bg-black rounded-lg overflow-hidden mb-4">
+                        <div className="py-3 px-4 bg-zinc-900 text-white text-[1rem] font-semibold border-b border-[#333]">
                             🎥 블랙박스 영상 - {accidentData.blackboxFileName}
                         </div>
 
-                        <div style={{ position: "relative" }}>
+                        <div className="relative">
                             <video
                                 ref={videoRef}
-                                style={{
-                                    width: "100%",
-                                    height: "60vh",
-                                    objectFit: "contain",
-                                    backgroundColor: "#000",
-                                }}
+                                className="w-full h-[60vh] object-contain bg-black"
                                 onTimeUpdate={handleTimeUpdate}
                                 onLoadedMetadata={handleLoadedMetadata}
                                 onPlay={() => setIsPlaying(true)}
@@ -299,59 +253,20 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                         </div>
 
                         {/* 비디오 컨트롤 */}
-                        <div
-                            style={{
-                                padding: "12px 16px",
-                                backgroundColor: "#1a1a1a",
-                                color: "white",
-                                display: "flex",
-                                alignItems: "center",
-                                gap: "12px",
-                            }}
-                        >
+                        <div className="py-3 px-4 bg-zinc-900 text-white flex items-center gap-3">
                             {/* 재생/일시정지 버튼 */}
-                            <button
-                                onClick={handlePlayPause}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "white",
-                                    cursor: "pointer",
-                                    padding: "8px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                                onMouseOver={(e) => e.target.style.backgroundColor = "#333"}
-                                onMouseOut={(e) => e.target.style.backgroundColor = "transparent"}
-                            >
+                            <button onClick={handlePlayPause} className="p-2 rounded hover:bg-zinc-800" type="button">
                                 {isPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
                             </button>
 
                             {/* 정지 버튼 */}
-                            <button
-                                onClick={handleStop}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "white",
-                                    cursor: "pointer",
-                                    padding: "8px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                                onMouseOver={(e) => e.target.style.backgroundColor = "#333"}
-                                onMouseOut={(e) => e.target.style.backgroundColor = "transparent"}
-                            >
+                            <button onClick={handleStop} className="p-2 rounded hover:bg-zinc-800" type="button">
                                 <FaStop size={16} />
                             </button>
 
                             {/* 진행바 */}
-                            <div style={{ flex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
-                                <span style={{ fontSize: "0.85rem", minWidth: "40px" }}>
+                            <div className="flex-1 flex items-center gap-2">
+                                <span className="text-[0.85rem] min-w-10">
                                     {formatTime(currentTime)}
                                 </span>
                                 <input
@@ -360,21 +275,15 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                                     max="100"
                                     value={duration ? (currentTime / duration) * 100 : 0}
                                     onChange={handleSeek}
-                                    style={{
-                                        flex: 1,
-                                        height: "4px",
-                                        background: "#333",
-                                        outline: "none",
-                                        cursor: "pointer",
-                                    }}
+                                    className="flex-1 h-1 bg-zinc-800 cursor-pointer"
                                 />
-                                <span style={{ fontSize: "0.85rem", minWidth: "40px" }}>
+                                <span className="text-[0.85rem] min-w-10">
                                     {formatTime(duration)}
                                 </span>
                             </div>
 
                             {/* 볼륨 컨트롤 */}
-                            <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <div className="flex items-center gap-1.5">
                                 <FaVolumeDown size={14} />
                                 <input
                                     type="range"
@@ -383,34 +292,13 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                                     step="0.1"
                                     value={volume}
                                     onChange={handleVolumeChange}
-                                    style={{
-                                        width: "80px",
-                                        height: "4px",
-                                        background: "#333",
-                                        outline: "none",
-                                        cursor: "pointer",
-                                    }}
+                                    className="w-20 h-1 bg-zinc-800 cursor-pointer"
                                 />
                                 <FaVolumeUp size={14} />
                             </div>
 
                             {/* 전체화면 버튼 */}
-                            <button
-                                onClick={handleFullscreen}
-                                style={{
-                                    background: "none",
-                                    border: "none",
-                                    color: "white",
-                                    cursor: "pointer",
-                                    padding: "8px",
-                                    borderRadius: "4px",
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                }}
-                                onMouseOver={(e) => e.target.style.backgroundColor = "#333"}
-                                onMouseOut={(e) => e.target.style.backgroundColor = "transparent"}
-                            >
+                            <button onClick={handleFullscreen} className="p-2 rounded hover:bg-zinc-800" type="button">
                                 <FaExpand size={14} />
                             </button>
                         </div>
@@ -419,23 +307,14 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
 
                 {/* 영상이 있지만 파일을 찾을 수 없을 때 */}
                 {!videoSrc && accidentData.blackboxFileName && (
-                    <div
-                        style={{
-                            padding: "20px",
-                            backgroundColor: "#fff3e0",
-                            border: "2px dashed #ff9800",
-                            borderRadius: "8px",
-                            textAlign: "center",
-                            marginBottom: "16px",
-                        }}
-                    >
-                        <div style={{ fontSize: "1rem", color: "#e65100", marginBottom: "8px", fontWeight: "600" }}>
+                    <div className="p-5 bg-amber-50 border-2 border-dashed border-[#ff9800] rounded-lg text-center mb-4">
+                        <div className="text-[1rem] mb-2 font-semibold text-[#e65100]">
                             📹 블랙박스 영상 파일 누락
                         </div>
-                        <div style={{ fontSize: "0.9rem", color: "#f57c00" }}>
+                        <div className="text-[0.9rem] text-[#f57c00]">
                             등록된 파일: {accidentData.blackboxFileName}
                         </div>
-                        <div style={{ fontSize: "0.85rem", color: "#ff9800", marginTop: "8px" }}>
+                        <div className="text-[0.85rem] mt-2 text-[#ff9800]">
                             영상 파일을 찾을 수 없거나 지원하지 않는 형식입니다.
                         </div>
                     </div>
@@ -443,21 +322,12 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
 
                 {/* 영상이 아예 없을 때 */}
                 {!videoSrc && !accidentData.blackboxFileName && (
-                    <div
-                        style={{
-                            padding: "24px",
-                            backgroundColor: "#f8f9fa",
-                            border: "2px dashed #dee2e6",
-                            borderRadius: "8px",
-                            textAlign: "center",
-                            marginBottom: "16px",
-                        }}
-                    >
-                        <div style={{ fontSize: "3rem", marginBottom: "12px" }}>📋</div>
-                        <div style={{ fontSize: "1.1rem", color: "#495057", marginBottom: "8px", fontWeight: "600" }}>
+                    <div className="p-6 bg-gray-50 border-2 border-dashed rounded-lg text-center mb-4">
+                        <div className="text-3xl mb-3">📋</div>
+                        <div className="text-[1.1rem] text-gray-700 mb-2 font-semibold">
                             사고 정보만 등록됨
                         </div>
-                        <div style={{ fontSize: "0.9rem", color: "#6c757d", lineHeight: "1.5" }}>
+                        <div className="text-[0.9rem] text-gray-600 leading-relaxed">
                             블랙박스 영상은 등록되지 않았습니다.<br />
                             사고 발생 시각과 담당자 정보를 확인하세요.
                         </div>
@@ -465,22 +335,8 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                 )}
 
                 {/* 하단 액션 버튼 */}
-                <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px", paddingTop: "16px", borderTop: "1px solid #dee2e6" }}>
-                    <button
-                        onClick={onClose}
-                        style={{
-                            padding: "10px 20px",
-                            backgroundColor: "#6c757d",
-                            color: "white",
-                            border: "none",
-                            borderRadius: "6px",
-                            cursor: "pointer",
-                            fontSize: "0.9rem",
-                            fontWeight: "500",
-                        }}
-                        onMouseOver={(e) => e.target.style.backgroundColor = "#5a6268"}
-                        onMouseOut={(e) => e.target.style.backgroundColor = "#6c757d"}
-                    >
+                <div className="flex justify-end gap-2 pt-4 border-t border-[#dee2e6]">
+                    <button onClick={onClose} className="py-2.5 px-5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-[0.9rem] font-medium" type="button">
                         닫기
                     </button>
                 </div>

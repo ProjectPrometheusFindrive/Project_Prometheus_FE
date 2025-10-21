@@ -321,7 +321,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         disabled={readOnly}
                     >
                         {Array.isArray(form.contractFile) ? (
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                            <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
                                 {form.contractFile.map((f, idx) => (
                                     <FilePreview key={f.name + idx} file={f} />
                                 ))}
@@ -343,7 +343,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         disabled={readOnly}
                     >
                         {Array.isArray(form.driverLicenseFile) ? (
-                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                            <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
                                 {form.driverLicenseFile.map((f, idx) => (
                                     <FilePreview key={f.name + idx} file={f} />
                                 ))}
@@ -354,20 +354,20 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     </FormField>
                 </div>
             </div>
-            <div style={{ minHeight: 26, marginTop: 4 }}>
+            <div className="min-h-[26px] mt-1">
                 {busy.status === 'uploading' && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                        <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+                    <div className="flex items-center gap-2">
+                        <div aria-label="업로드 진행률" className="flex-1 bg-gray-200 rounded h-2 overflow-hidden">
                             <div style={{ width: `${busy.percent}%`, height: '100%', background: '#4caf50' }} />
                         </div>
-                        <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{busy.percent}%</span>
+                        <span className="text-[12px] text-gray-800 min-w-10 text-right">{busy.percent}%</span>
                     </div>
                 )}
                 {busy.status === 'ocr' && (
-                    <div style={{ fontSize: 12, color: '#555' }}>OCR 처리 중...</div>
+                    <div className="text-[12px] text-gray-600">OCR 처리 중...</div>
                 )}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8, marginTop: 8 }}>
+            <div className="flex justify-end gap-2 mt-2">
                 <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== 'idle'}>
                     업로드 및 OCR
                 </button>
@@ -415,17 +415,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 required
             >
                 {selectedAsset ? (
-                    <div
-                        style={{
-                            marginTop: 6,
-                            display: "flex",
-                            alignItems: "center",
-                            gap: 8,
-                            flexWrap: "wrap",
-                            color: "#555",
-                            fontSize: "12px",
-                        }}
-                    >
+                    <div className="mt-1.5 flex items-center gap-2 flex-wrap text-gray-600 text-[12px]">
                         <StatusBadge type={stageToBadgeType(selectedAsset.managementStage)}>
                             {selectedAsset.managementStage}
                         </StatusBadge>
@@ -642,7 +632,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 <FormActions>
                     {!readOnly && step === 'details' && (
                         <>
-                            <button type="button" className="form-button form-button--muted" onClick={() => setStep('upload')} style={{ marginRight: 8 }}>
+                            <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep('upload')}>
                                 이전
                             </button>
                             <button type="submit" className="form-button">

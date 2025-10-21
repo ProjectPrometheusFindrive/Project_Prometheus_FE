@@ -45,7 +45,7 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
   return (
     <div className="asset-dialog">
       <div className="asset-dialog__body">
-        <div className="asset-doc" style={{ marginBottom: 16 }}>
+        <div className="asset-doc mb-4">
           <div className="asset-doc__title">단말 장착 사진</div>
           <div className="asset-doc__box" aria-label="단말 장착 사진 업로드">
             {readOnly ? (
@@ -56,7 +56,7 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
                 }
               </div>
             ) : (
-              <label style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
+              <label className="flex flex-col items-center gap-1.5">
                 <input
                   id="photos"
                   type="file"
@@ -76,7 +76,7 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
             )}
           </div>
           {!readOnly && Array.isArray(form.photos) && form.photos.length > 0 && (
-            <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+            <div className="mt-2 grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
               {form.photos.map((f, idx) => (
                 <FilePreview key={f.name + idx} file={f} />
               ))}

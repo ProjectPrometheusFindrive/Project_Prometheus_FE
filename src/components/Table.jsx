@@ -129,7 +129,7 @@ export default function Table({
                 <thead>
                     <tr>
                         {hasSelection && (
-                            <th style={{ width: DIMENSIONS.ICON_SIZE_LG, textAlign: "center" }}>
+                            <th style={{ width: DIMENSIONS.ICON_SIZE_LG }} className="text-center">
                                 <input
                                     type="checkbox"
                                     aria-label="현재 목록 전체 선택"
@@ -143,7 +143,7 @@ export default function Table({
                             const isActive = sortKey === col.key && !!sortDir;
                             const ariaSort = isActive ? (sortDir === "asc" ? "ascending" : "descending") : "none";
                             return (
-                                <th key={col.key} style={col.style} aria-sort={ariaSort} className={sortable ? "th-sortable" : undefined}>
+                                <th key={col.key} style={col.style} aria-sort={ariaSort} className={[sortable ? "th-sortable" : undefined, (col.style && col.style.textAlign === 'right') ? 'text-right' : (col.style && col.style.textAlign === 'center') ? 'text-center' : undefined].filter(Boolean).join(' ')}>
                                     <span className="th-label">{col.label}</span>
                                     {sortable && (
                                         <button
@@ -174,7 +174,7 @@ export default function Table({
                             className={typeof rowClassName === "function" ? rowClassName(row, index) : undefined}
                         >
                             {hasSelection && (
-                                <td style={{ textAlign: "center" }}>
+                                <td className="text-center">
                                     <input
                                         type="checkbox"
                                         aria-label={`선택: ${row.plate || row.id}`}
@@ -184,7 +184,7 @@ export default function Table({
                                 </td>
                             )}
                             {columns.map((col) => (
-                                <td key={col.key} style={col.style}>
+                                <td key={col.key} style={col.style} className={(col.style && col.style.textAlign === 'right') ? 'text-right' : (col.style && col.style.textAlign === 'center') ? 'text-center' : undefined}>
                                     {col.render ? col.render(row, index) : row[col.key]}
                                 </td>
                             ))}

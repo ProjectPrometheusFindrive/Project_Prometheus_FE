@@ -381,9 +381,9 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
 
     return (
         <div>
-            {!isKakaoReady && <div style={{ marginBottom: "8px", fontSize: "12px", color: "#999" }}>카카오 지도를 로딩 중입니다...</div>}
+            {!isKakaoReady && <div className="mb-2 text-[12px] text-gray-500">카카오 지도를 로딩 중입니다...</div>}
             {!readOnly && isKakaoReady}
-            <div ref={mapContainer} style={{ width: "100%", height: `${height}px`, border: "1px solid #ddd", borderRadius: 8 }} />
+            <div ref={mapContainer} style={{ width: "100%", height: `${height}px` }} className="border border-gray-300 rounded-lg" />
         </div>
     );
 }

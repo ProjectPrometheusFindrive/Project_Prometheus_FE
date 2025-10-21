@@ -44,7 +44,7 @@ export default function GeofenceGlobalForm({ initial = {}, initialName = "", rea
             />
 
             {!readOnly && showSubmit && (
-                <div className="form-actions" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                <div className="form-actions flex items-center gap-2">
                     <input
                         className="form-input"
                         placeholder="Polygon name"
@@ -53,7 +53,7 @@ export default function GeofenceGlobalForm({ initial = {}, initialName = "", rea
                             setName(e.target.value);
                             if (onNameChange) onNameChange(e.target.value);
                         }}
-                        style={{ flex: 1 }}
+                        className="flex-1"
                     />
                     <button type="submit" className="form-button">
                         Save

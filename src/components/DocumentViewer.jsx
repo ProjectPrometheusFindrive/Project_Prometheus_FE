@@ -27,8 +27,8 @@ export default function DocumentViewer({
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={title} size="large" showFooter={false} ariaLabel={title} className="document-viewer-modal">
-      <div className="document-viewer" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-        <div className="document-viewer__actions" style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+    <div className="document-viewer flex flex-col gap-2">
+      <div className="document-viewer__actions flex justify-end gap-2">
           {src && (
             <>
               <a href={src} target="_blank" rel="noopener noreferrer" className="form-button" title="새 창에서 열기">새 창</a>
@@ -38,30 +38,30 @@ export default function DocumentViewer({
             </>
           )}
         </div>
-        <div className="document-viewer__content" style={{ display: "flex", justifyContent: "center" }}>
+      <div className="document-viewer__content flex justify-center">
           {kind === "image" && (
             <img
               src={src}
               alt={title}
-              style={{ maxWidth: "90vw", maxHeight: "80vh", objectFit: "contain" }}
+              className="max-w-[90vw] max-h-[80vh] object-contain"
             />
           )}
           {kind === "pdf" && (
             <iframe
               src={src}
               title={title}
-              style={{ width: "90vw", height: "80vh", border: "none", background: "#fafafa" }}
+              className="w-[90vw] h-[80vh] bg-[#fafafa] border-0"
             />
           )}
           {kind === "video" && (
             <video
               src={src}
               controls
-              style={{ maxWidth: "90vw", maxHeight: "80vh", background: "black" }}
+              className="max-w-[90vw] max-h-[80vh] bg-black"
             />
           )}
           {kind === "unknown" && (
-            <div style={{ padding: 16, color: "#555" }}>미리보기를 지원하지 않는 형식입니다.</div>
+      <div className="p-4 text-gray-600">미리보기를 지원하지 않는 형식입니다.</div>
           )}
         </div>
       </div>

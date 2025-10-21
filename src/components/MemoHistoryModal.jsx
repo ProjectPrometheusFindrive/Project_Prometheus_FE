@@ -46,25 +46,25 @@ export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={headerTitle} showFooter={false}>
-      <div style={{ maxHeight: 360, overflowY: "auto", paddingTop: 4 }}>
+      <div className="max-h-90 overflow-y-auto pt-1">
         {loading && (
-          <div className="text-muted" style={{ padding: 8 }}>불러오는 중...</div>
+          <div className="text-muted p-2">불러오는 중...</div>
         )}
         {!loading && error && (
-          <div className="text-danger" style={{ padding: 8 }}>{error}</div>
+          <div className="text-danger p-2">{error}</div>
         )}
         {!loading && !error && items.length === 0 && (
-          <div className="text-muted" style={{ padding: 8 }}>기록 없음</div>
+          <div className="text-muted p-2">기록 없음</div>
         )}
         {!loading && !error && items.length > 0 && (
           <div>
             {items.map((h, idx) => (
-              <div key={`${h.changedAt || idx}-${idx}`} style={{ padding: "8px 4px", borderBottom: "1px solid #eee" }}>
-                <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                  <span style={{ fontWeight: 600 }}>{h.changedBy || "-"}</span>
-                  <span style={{ whiteSpace: "pre-wrap" }}>{h.memo || ""}</span>
+              <div key={`${h.changedAt || idx}-${idx}`} className="py-2 px-1 border-b border-gray-200">
+                <div className="flex items-baseline gap-2">
+                  <span className="font-semibold">{h.changedBy || "-"}</span>
+                  <span className="whitespace-pre-wrap">{h.memo || ""}</span>
                 </div>
-                <div style={{ fontSize: 12, color: "#888", marginTop: 2 }}>{formatYyMmDdHhMmSs(h.changedAt)}</div>
+                <div className="text-[12px] text-gray-500 mt-0.5">{formatYyMmDdHhMmSs(h.changedAt)}</div>
               </div>
             ))}
           </div>

@@ -27,7 +27,7 @@ const Modal = ({
   };
 
   const renderDefaultFooter = () => (
-    <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+    <div className="flex gap-2 mt-2">
       {onSubmit && formId && (
         <button type="submit" className="form-button" form={formId}>
           {submitText}
@@ -35,8 +35,7 @@ const Modal = ({
       )}
       <button 
         type="button" 
-        className="form-button" 
-        style={{ background: COLORS.GRAY_900 }} 
+        className="form-button bg-gray-900" 
         onClick={onClose}
       >
         {cancelText}
@@ -65,18 +64,17 @@ const Modal = ({
     >
       <div className={`modal ${getModalSizeClass()} ${className}`} onClick={(e) => e.stopPropagation()}>
         {(title || customHeaderContent) && (
-          <div className="header-row" style={{ marginBottom: 8 }}>
+          <div className="header-row mb-2">
             {customHeaderContent ? (
               customHeaderContent
             ) : (
               <>
                 <strong>{title}</strong>
                 {showHeaderClose && (
-                  <div style={{ marginLeft: "auto" }}>
+                  <div className="ml-auto">
                     <button 
                       type="button" 
-                      className="form-button" 
-                      style={{ background: COLORS.GRAY_900 }} 
+                      className="form-button bg-gray-900" 
                       onClick={onClose}
                     >
                       닫기
@@ -89,7 +87,7 @@ const Modal = ({
         )}
 
         {!title && !customHeaderContent && (
-          <h2 style={{ marginTop: 0, marginBottom: 12 }} />
+          <h2 className="mt-0 mb-3" />
         )}
 
         {children}

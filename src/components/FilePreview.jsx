@@ -73,9 +73,8 @@ export default function FilePreview({ file, className = "" }) {
         <img
           src={previewUrl}
           alt={file.name}
-          className="file-preview__image"
+          className="file-preview__image cursor-zoom-in"
           onClick={() => setShowViewer(true)}
-          style={{ cursor: "zoom-in" }}
         />
         <div className="file-preview__info">
           <span className="file-preview__filename">{file.name}</span>
@@ -101,7 +100,7 @@ export default function FilePreview({ file, className = "" }) {
           className="file-preview__pdf-viewer"
           title={file.name}
         />
-        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 12px" }}>
+        <div className="flex justify-end py-1.5 px-3">
           <button type="button" className="form-button" onClick={() => setShowViewer(true)} title="창 크기에 맞게 보기">확대</button>
         </div>
         <div className="file-preview__info">
@@ -130,7 +129,7 @@ export default function FilePreview({ file, className = "" }) {
           preload="metadata"
           aria-label={file.name}
         />
-        <div style={{ display: "flex", justifyContent: "flex-end", padding: "6px 12px" }}>
+        <div className="flex justify-end py-1.5 px-3">
           <button type="button" className="form-button" onClick={() => setShowViewer(true)} title="창 크기에 맞게 보기">확대</button>
         </div>
         <div className="file-preview__info">

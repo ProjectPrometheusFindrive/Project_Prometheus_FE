@@ -233,10 +233,10 @@ export default function SignUp() {
   }, [form]);
 
   return (
-    <div className="login-container">
-      <div className="login-card" style={{ maxWidth: "600px", maxHeight: "90vh", overflowY: "auto" }}>
-        <h1 className="login-title">회원가입</h1>
-        <form onSubmit={handleSubmit} className="login-form">
+    <div className="login-container min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-white px-4">
+      <div className="login-card w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-100 rounded-xl shadow-lg p-5">
+        <h1 className="login-title text-2xl font-semibold mb-4 text-gray-800">회원가입</h1>
+        <form onSubmit={handleSubmit} className="login-form grid gap-3">
           <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
             <label className="login-label" htmlFor="su-id" style={{ width: "120px", marginBottom: 0 }}>아이디</label>
             <div className="input-with-hint" style={{ flex: 1 }}>

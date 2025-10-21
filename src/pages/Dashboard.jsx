@@ -68,37 +68,37 @@ export default function Dashboard() {
     ];
 
     return (
-        <div className="page">
-            <h1>홈</h1>
+        <div className="page space-y-4">
+            <h1 className="text-2xl font-semibold text-gray-900">홈</h1>
 
-            <div className="page-scroll">
-                <div className="dashboard-grid">
-                    <section className="card chart-card">
-                        <h2 className="section-title">자산 현황</h2>
-                        <div className="chart-wrap">
+            <div className="page-scroll space-y-4">
+                <div className="dashboard-grid gap-4">
+                    <section className="card chart-card bg-white border border-gray-100 rounded-xl shadow-sm p-4">
+                        <h2 className="section-title text-lg font-semibold text-gray-800">자산 현황</h2>
+                        <div className="chart-wrap flex items-center justify-center">
                             <StatusDonut data={vehicleStatus} colors={COLORS} innerRadius="40%" outerRadius="78%" unit="대" colorOffset={0} />
                         </div>
                     </section>
 
-                    <section className="card chart-card">
-                        <h2 className="section-title">계약 현황</h2>
-                        <div className="chart-wrap">
+                    <section className="card chart-card bg-white border border-gray-100 rounded-xl shadow-sm p-4">
+                        <h2 className="section-title text-lg font-semibold text-gray-800">계약 현황</h2>
+                        <div className="chart-wrap flex items-center justify-center">
                             <StatusDonut data={bizStatusLabeled} colors={COLORS} innerRadius="48%" outerRadius="78%" unit="건" colorOffset={1} />
                         </div>
                     </section>
                 </div>
 
-                <div className="dashboard-grid dashboard-grid--gauges">
+                <div className="dashboard-grid dashboard-grid--gauges gap-4">
                     {scores.map((s) => (
-                        <section className="card gauge-card" key={s.key}>
-                            <div className="gauge-title">
+                        <section className="card gauge-card text-center bg-white border border-gray-100 rounded-xl shadow-sm p-4" key={s.key}>
+                            <div className="gauge-title font-semibold text-gray-800">
                                 {s.label}
-                                <span className="gauge-sub">(샘플 지표)</span>
+                                <span className="gauge-sub block text-sm text-gray-500">(샘플 지표)</span>
                             </div>
                             <Gauge value={s.value} label="" color={s.color} size={240} />
-                            <div className="gauge-footer" aria-live="polite">
-                                <span className="gauge-value">{s.value}</span>
-                                <span className={`gauge-delta ${s.delta >= 0 ? "up" : "down"}`}>
+                            <div className="gauge-footer flex items-center justify-center gap-2 mt-0" aria-live="polite">
+                                <span className="gauge-value text-2xl font-bold">{s.value}</span>
+                                <span className={`gauge-delta ${s.delta >= 0 ? "up" : "down"} text-sm`}>
                                     {s.delta >= 0 ? "+" : "-"} {Math.abs(s.delta)}p {s.delta >= 0 ? "상승" : "하락"}
                                 </span>
                             </div>

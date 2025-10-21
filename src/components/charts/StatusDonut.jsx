@@ -26,7 +26,7 @@ export default function StatusDonut({
     const y = cy + radius * Math.sin(-midAngle * RAD);
     const display = payload && payload.rawValue != null ? payload.rawValue : value;
     return (
-      <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600} style={{ pointerEvents: "none" }}>
+      <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600} className="pointer-events-none">
         {display}
       </text>
     );
@@ -58,4 +58,3 @@ export default function StatusDonut({
     </ResponsiveContainer>
   );
 }
-

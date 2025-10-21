@@ -61,7 +61,7 @@ export default function ChangePasswordModal({ open, onClose, onChanged }) {
         </div>
         <form onSubmit={handleSubmit}>
           <div className="modal-body">
-            <p className="info-box" style={{ marginBottom: 12 }}>
+            <p className="info-box mb-3">
               임시 비밀번호로 로그인했습니다. 즉시 새 비밀번호로 변경해 주세요.
             </p>
             <div className="form-group">
@@ -87,4 +87,3 @@ export default function ChangePasswordModal({ open, onClose, onChanged }) {
     </div>
   );
 }
-

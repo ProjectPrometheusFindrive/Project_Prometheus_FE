@@ -14,7 +14,7 @@ export default function NavigationBar() {
     const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
 
     return (
-        <nav className="navigation-bar" role="navigation" aria-label="Main Navigation">
+        <nav className="navigation-bar bg-white border-r border-gray-200" role="navigation" aria-label="Main Navigation">
             <NavLink to="/dashboard" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="Home" title="Home">
                 <FiHome className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">

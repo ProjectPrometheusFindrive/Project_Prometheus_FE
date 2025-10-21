@@ -470,93 +470,49 @@ const KakaoMap = ({
     }
 
     return (
-        <div style={{ position: "relative", width, height }}>
+        <div className="relative" style={{ width, height }}>
             {/* 속도 범례 */}
             {trackingData && trackingData.length > 0 && (
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "10px",
-                        right: "10px",
-                        zIndex: 10,
-                        background: "rgba(255, 255, 255, 0.95)",
-                        padding: "12px",
-                        borderRadius: "8px",
-                        boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
-                        fontSize: "11px",
-                        fontFamily: "Arial, sans-serif",
-                        minWidth: "120px"
-                    }}
-                >
-                    <div style={{ fontWeight: "bold", marginBottom: "8px", color: "#333" }}>속도 범례</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <div style={{ width: "12px", height: "3px", backgroundColor: "#4CAF50" }}></div>
+                <div className="absolute top-2.5 right-2.5 z-10 bg-white/95 p-3 rounded-lg shadow-md text-[11px] min-w-[120px]">
+                    <div className="font-bold mb-2 text-gray-800">속도 범례</div>
+                    <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-[3px] bg-[#4CAF50]"></div>
                             <span>저속 (30km/h 미만)</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <div style={{ width: "12px", height: "3px", backgroundColor: "#FFC107" }}></div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-[3px] bg-[#FFC107]"></div>
                             <span>중속 (30-100km/h)</span>
                         </div>
-                        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                            <div style={{ width: "12px", height: "3px", backgroundColor: "#F44336" }}></div>
+                        <div className="flex items-center gap-1.5">
+                            <div className="w-3 h-[3px] bg-[#F44336]"></div>
                             <span>고속 (100km/h 초과)</span>
                         </div>
                     </div>
                 </div>
             )}
             {(renterName || typeof engineOn !== "undefined") && (
-                <div
-                    style={{
-                        position: "absolute",
-                        top: "10px",
-                        left: "10px",
-                        zIndex: 10,
-                        background: "rgba(255, 255, 255, 0.9)",
-                        padding: "10px",
-                        borderRadius: "8px",
-                        boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "5px",
-                        fontSize: "12px",
-                        fontFamily: "Arial, sans-serif",
-                    }}
-                >
-                    {renterName && <div style={{ fontWeight: "bold" }}>대여자: {renterName}</div>}
+                <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 p-2.5 rounded-lg shadow text-[12px] flex flex-col gap-1.5">
+                    {renterName && <div className="font-bold">대여자: {renterName}</div>}
                     {typeof engineOn !== "undefined" && (
                         <div>
                             <span>엔진: </span>
-                            <span style={{ color: engineOn ? "green" : "red", fontWeight: "bold" }}>{engineOn ? "ON" : "OFF"}</span>
+                            <span className={`font-bold ${engineOn ? 'text-green-600' : 'text-red-600'}`}>{engineOn ? "ON" : "OFF"}</span>
                         </div>
                     )}
                     {typeof isOnline !== "undefined" && (
                         <div>
                             <span>단말기: </span>
-                            <span style={{ color: isOnline ? "green" : "red", fontWeight: "bold" }}>{isOnline ? "온라인" : "오프라인"}</span>
+                            <span className={`font-bold ${isOnline ? 'text-green-600' : 'text-red-600'}`}>{isOnline ? "온라인" : "오프라인"}</span>
                         </div>
                     )}
                 </div>
             )}
-            <div ref={mapContainer} style={{ width: "100%", height: "100%", borderRadius: "8px", border: "2px solid #dee2e6" }} />
+            <div ref={mapContainer} className="w-full h-full rounded-lg border-2 border-[#dee2e6]" />
             {showLoading && (
-                <div
-                    style={{
-                        position: "absolute",
-                        top: 0,
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        borderRadius: "8px",
-                        backgroundColor: "#f8f9fa",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        zIndex: 1000,
-                    }}
-                >
-                    <div style={{ textAlign: "center", color: "#666" }}>
-                        <div style={{ fontSize: "24px", marginBottom: "8px" }}>🗺️</div>
+                <div className="absolute inset-0 rounded-lg bg-gray-50 flex items-center justify-center z-[1000]">
+                    <div className="text-center text-gray-600">
+                        <div className="text-2xl mb-2">🗺️</div>
                         <div>카카오 지도 로딩 중...</div>
                     </div>
                 </div>

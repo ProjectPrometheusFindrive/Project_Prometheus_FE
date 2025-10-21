@@ -66,7 +66,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 disabled={readOnly}
             >
                 {Array.isArray(form.insuranceDoc) ? (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                    <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
                         {form.insuranceDoc.map((f, idx) => (
                             <FilePreview key={f.name + idx} file={f} />
                         ))}
@@ -88,7 +88,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 disabled={readOnly}
             >
                 {Array.isArray(form.registrationDoc) ? (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                    <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
                         {form.registrationDoc.map((f, idx) => (
                             <FilePreview key={f.name + idx} file={f} />
                         ))}
@@ -152,7 +152,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 disabled={readOnly}
             >
                 {!readOnly && form.plate && !isValidKoreanPlate(normalizeKoreanPlate(form.plate)) && (
-                    <div className="form-field-extra" aria-live="polite" style={{ color: "#d32f2f", fontSize: "12px", textAlign: "right" }}>
+                    <div className="form-field-extra text-right text-[12px] text-[#d32f2f]" aria-live="polite">
                         올바르지 않은 형식
                     </div>
                 )}

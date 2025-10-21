@@ -36,19 +36,12 @@ export default function TermsAgreement() {
   const canProceed = agreements.privacy && agreements.location;
 
   return (
-    <div className="login-container">
-      <div className="login-card" style={{ maxWidth: "600px", maxHeight: "90vh", overflowY: "auto" }}>
-        <h1 className="login-title">약관 동의</h1>
+    <div className="login-container min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-white px-4">
+      <div className="login-card w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-white border border-gray-100 rounded-xl shadow-lg p-5">
+        <h1 className="login-title text-2xl font-semibold mb-4 text-gray-800">약관 동의</h1>
 
         <div style={{ marginBottom: "20px" }}>
-          <div style={{
-            display: "flex",
-            alignItems: "center",
-            marginBottom: "15px",
-            padding: "10px",
-            backgroundColor: "#f5f5f5",
-            borderRadius: "5px"
-          }}>
+          <div className="flex items-center mb-4 p-3 bg-gray-100 rounded">
             <input
               type="checkbox"
               id="selectAll"
@@ -56,13 +49,13 @@ export default function TermsAgreement() {
               onChange={handleSelectAll}
               style={{ marginRight: "10px", transform: "scale(1.2)" }}
             />
-            <label htmlFor="selectAll" style={{ fontWeight: "bold", fontSize: "16px" }}>
+            <label htmlFor="selectAll" className="font-semibold text-base">
               전체 동의
             </label>
           </div>
 
-          <div style={{ marginBottom: "15px" }}>
-            <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+          <div className="mb-4">
+            <div className="flex items-center mb-2">
               <input
                 type="checkbox"
                 id="privacy"
@@ -70,19 +63,11 @@ export default function TermsAgreement() {
                 onChange={() => handleAgreementChange("privacy")}
                 style={{ marginRight: "10px" }}
               />
-              <label htmlFor="privacy" style={{ fontWeight: "500" }}>
+              <label htmlFor="privacy" className="font-medium">
                 (필수) 개인정보 처리방침 동의
               </label>
             </div>
-            <div style={{
-              backgroundColor: "#f9f9f9",
-              padding: "15px",
-              borderRadius: "5px",
-              fontSize: "13px",
-              maxHeight: "100px",
-              overflowY: "auto",
-              border: "1px solid #ddd"
-            }}>
+            <div className="bg-gray-50 p-4 rounded text-sm max-h-28 overflow-y-auto border border-gray-200">
               <h4>개인정보 처리방침</h4>
               <p>1. 개인정보의 처리 목적</p>
               <p>회사는 다음의 목적을 위하여 개인정보를 처리하고 있으며, 다음의 목적 이외의 용도로는 이용하지 않습니다.</p>
@@ -101,8 +86,8 @@ export default function TermsAgreement() {
             </div>
           </div>
 
-          <div style={{ marginBottom: "15px" }}>
-            <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+          <div className="mb-4">
+            <div className="flex items-center mb-2">
               <input
                 type="checkbox"
                 id="location"
@@ -110,19 +95,11 @@ export default function TermsAgreement() {
                 onChange={() => handleAgreementChange("location")}
                 style={{ marginRight: "10px" }}
               />
-              <label htmlFor="location" style={{ fontWeight: "500" }}>
+              <label htmlFor="location" className="font-medium">
                 (필수) 위치정보 이용약관 동의
               </label>
             </div>
-            <div style={{
-              backgroundColor: "#f9f9f9",
-              padding: "15px",
-              borderRadius: "5px",
-              fontSize: "13px",
-              maxHeight: "100px",
-              overflowY: "auto",
-              border: "1px solid #ddd"
-            }}>
+            <div className="bg-gray-50 p-4 rounded text-sm max-h-28 overflow-y-auto border border-gray-200">
               <h4>위치정보 이용약관</h4>
               <p>1. 위치정보의 수집·이용 목적</p>
               <ul>
@@ -147,8 +124,8 @@ export default function TermsAgreement() {
             </div>
           </div>
 
-          <div style={{ marginBottom: "20px" }}>
-            <div style={{ display: "flex", alignItems: "center", marginBottom: "10px" }}>
+          <div className="mb-5">
+            <div className="flex items-center mb-2">
               <input
                 type="checkbox"
                 id="marketing"
@@ -156,56 +133,31 @@ export default function TermsAgreement() {
                 onChange={() => handleAgreementChange("marketing")}
                 style={{ marginRight: "10px" }}
               />
-              <label htmlFor="marketing" style={{ fontWeight: "500" }}>
+              <label htmlFor="marketing" className="font-medium">
                 (선택) 마케팅 정보 수신 동의
               </label>
             </div>
-            <div style={{
-              backgroundColor: "#f9f9f9",
-              padding: "15px",
-              borderRadius: "5px",
-              fontSize: "13px",
-              maxHeight: "60px",
-              overflowY: "auto",
-              border: "1px solid #ddd"
-            }}>
+            <div className="bg-gray-50 p-4 rounded text-sm max-h-16 overflow-y-auto border border-gray-200">
               <p>서비스 관련 새로운 소식, 이벤트 정보, 맞춤형 광고 등을 이메일, SMS, 앱 푸시 등으로 받아보실 수 있습니다.</p>
               <p>동의하지 않으셔도 서비스 이용이 가능하며, 언제든지 철회하실 수 있습니다.</p>
             </div>
           </div>
         </div>
 
-        <div style={{
-          display: "flex",
-          gap: "10px",
-          position: "sticky",
-          bottom: 0,
-          backgroundColor: "white",
-          padding: "15px 0",
-          marginTop: "20px",
-          borderTop: "1px solid #eee"
-        }}>
+        <div className="sticky bottom-0 bg-white pt-4 mt-5 border-t border-gray-200 flex gap-2">
           <button
             type="button"
             onClick={() => navigate("/")}
-            className="login-button"
-            style={{
-              backgroundColor: "#6c757d",
-              flex: 1
-            }}
+            className="login-button flex-1 bg-gray-600 hover:bg-gray-700 text-white rounded-lg h-11"
           >
             취소
           </button>
           <button
             type="button"
             onClick={handleNext}
-            className="login-button"
+            className="login-button flex-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg h-11"
             disabled={!canProceed}
-            style={{
-              opacity: canProceed ? 1 : 0.5,
-              cursor: canProceed ? "pointer" : "not-allowed",
-              flex: 1
-            }}
+            style={{ opacity: canProceed ? 1 : 0.5, cursor: canProceed ? "pointer" : "not-allowed" }}
           >
             다음
           </button>

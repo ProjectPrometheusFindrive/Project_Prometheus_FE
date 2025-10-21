@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
     --app-header-height: 60px;
     /* Shared badge typography for consistent look */
@@ -6,26 +10,9 @@
     --badge-line-height: 1;
 }
 
-/* === Utility Helpers === */
-/* Layout */
-.flex { display: flex; }
-.inline-flex { display: inline-flex; }
-.flex-col { flex-direction: column; }
-.flex-wrap { flex-wrap: wrap; }
-.items-center { align-items: center; }
-.justify-end { justify-content: flex-end; }
-.flex-1 { flex: 1; }
-.relative { position: relative; }
-.gap-4 { gap: 4px; }
-.gap-6 { gap: 6px; }
-.gap-8 { gap: 8px; }
-
-/* Sizing */
-.w-16 { width: 16px; }
-.text-center { text-align: center; }
-
-/* Typography */
-.text-xs { font-size: 0.75rem; }
+/* === Legacy utility helpers moved to Tailwind === */
+/* Use Tailwind utilities (flex, gap, items-center, text-xs, text-center, etc.) */
+/* Keep a few custom text helpers that Tailwind does not provide by name */
 .text-85 { font-size: 0.85rem; }
 .text-70 { font-size: 0.7rem; }
 .text-95 { font-size: 0.95rem; }

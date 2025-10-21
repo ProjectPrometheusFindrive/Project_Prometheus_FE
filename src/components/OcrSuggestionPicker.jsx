@@ -51,9 +51,9 @@ export default function OcrSuggestionPicker({ items = [], onApply, style = {}, s
   const selectedColor = selected ? confidenceColor(selected.confidence) : "#666";
 
   return (
-    <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", minWidth: 0, ...style }}>
+    <div className="flex gap-1.5 items-center flex-wrap min-w-0" style={style}>
       {selectedPct ? (
-        <span style={{ fontSize: 11, color: selectedColor, flex: "0 0 auto" }} title="OCR 신뢰도">
+        <span className="text-[11px]" style={{ color: selectedColor, flex: "0 0 auto" }} title="OCR 신뢰도">
           신뢰도 {selectedPct}
         </span>
       ) : null}

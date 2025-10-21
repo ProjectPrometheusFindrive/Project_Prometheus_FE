@@ -901,9 +901,9 @@ export default function RentalContracts() {
     };
 
     return (
-        <div className="page">
-            <h1>계약 등록/관리</h1>
-            <div className="page-scroll">
+        <div className="page space-y-4">
+            <h1 className="text-2xl font-semibold text-gray-900">계약 등록/관리</h1>
+            <div className="page-scroll space-y-4">
                 <div className="asset-toolbar">
                     <div className="flex-1" />
                     <div className="flex gap-8">

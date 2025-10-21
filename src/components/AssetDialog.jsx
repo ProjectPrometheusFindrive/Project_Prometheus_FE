@@ -143,7 +143,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         <img
           src={url}
           alt={title}
-          style={{ maxWidth: '100%', maxHeight: '200px', objectFit: 'contain', cursor: 'zoom-in' }}
+          className="max-w-full max-h-[200px] object-contain cursor-zoom-in"
           onClick={() => openViewer(url, docName)}
         />
       );
@@ -152,7 +152,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     return (
       <div className="asset-doc">
         <div className="asset-doc__title">{title}</div>
-        <div className="asset-doc__box" aria-label={`${title} 미리보기 영역`} style={{ height: 'auto', minHeight: 80, padding: 8 }}>
+        <div className="asset-doc__box min-h-20 p-2" aria-label={`${title} 미리보기 영역`}>
           {renderContent()}
         </div>
       </div>
@@ -162,7 +162,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
   const docBoxEdit = (title, key, accept = "image/*,application/pdf") => (
     <div className="asset-doc">
       <div className="asset-doc__title">{title}</div>
-      <div style={{ marginBottom: 12 }}>
+      <div className="mb-3">
         <input
           type="file"
           accept={accept}
@@ -172,7 +172,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         />
       </div>
       {Array.isArray(form[key]) ? (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
           {form[key].map((f, idx) => (
             <FilePreview key={f.name + idx} file={f} />
           ))}
@@ -336,28 +336,28 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
   const UploadStep = () => (
     <>
-      <div className="asset-docs-section" style={{ marginBottom: 16 }}>
+      <div className="asset-docs-section mb-4">
         {docBoxEdit("원리금 상환 계획표", "insuranceDoc")}
         {docBoxEdit("자동차 등록증", "registrationDoc")}
       </div>
-      <div style={{ minHeight: 26, marginTop: 4 }}>
+      <div className="min-h-[26px] mt-1">
         {busy.status === "uploading" && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 8, overflow: 'hidden' }}>
+          <div className="flex items-center gap-2">
+            <div aria-label="업로드 진행률" className="flex-1 bg-gray-200 rounded h-2 overflow-hidden">
               <div style={{ width: `${busy.percent}%`, height: '100%', background: '#4caf50' }} />
             </div>
-            <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{busy.percent}%</span>
+            <span className="text-[12px] text-gray-800 min-w-10 text-right">{busy.percent}%</span>
           </div>
         )}
         {busy.status === "ocr" && (
-          <div style={{ fontSize: 12, color: '#555' }}>OCR 처리 중...</div>
+          <div className="text-[12px] text-gray-600">OCR 처리 중...</div>
         )}
       </div>
       <div className="asset-dialog__footer">
-        <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"} style={{ marginRight: 8 }}>
+        <button type="button" className="form-button mr-2" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
           업로드 및 OCR
         </button>
-        <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} disabled={busy.status !== "idle"} style={{ marginRight: 8 }}>
+        <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep("details")} disabled={busy.status !== "idle"}>
           OCR 없이 진행
         </button>
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
@@ -370,22 +370,22 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       <div className="asset-info grid-info">
         {infoRow(
           "제조사",
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
-            <input className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+          <div className="flex items-center gap-2 flex-nowrap">
+            <input className="form-input flex-1 min-w-0" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
             <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "차종",
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
-            <input className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+          <div className="flex items-center gap-2 flex-nowrap">
+            <input className="form-input flex-1 min-w-0" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
             <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "연식",
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
-            <select className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+          <div className="flex items-center gap-2 flex-nowrap">
+            <select className="form-input flex-1 min-w-0" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
               {(() => {
                 const CURRENT_YEAR = new Date().getFullYear();
                 const YEAR_START = 1990;
@@ -413,7 +413,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
         {infoRow(
           "차량번호",
-          <div style={{ display: "flex", alignItems: "center", gap: 8, width: "100%", flexWrap: "wrap" }}>
+          <div className="flex items-center gap-2 w-full flex-wrap">
             <input
               className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
               value={form.plate}
@@ -426,15 +426,15 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
               placeholder="예: 28가2345"
             />
             {isPlateInvalid && (
-              <span aria-live="polite" style={{ color: "#d32f2f", fontSize: 12 }}>올바르지 않은 형식</span>
+              <span aria-live="polite" className="text-red-700 text-[12px]">올바르지 않은 형식</span>
             )}
             <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "차대번호(VIN)",
-          <div style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "nowrap" }}>
-            <input className="form-input" style={{ flex: 1, minWidth: 0 }} value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+          <div className="flex items-center gap-2 flex-nowrap">
+            <input className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
             <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
           </div>
         )}
@@ -452,8 +452,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
       </div>
       <div className="asset-dialog__footer">
-        <button type="button" className="form-button form-button--muted" onClick={() => setStep("upload")} style={{ marginRight: 8 }}>이전</button>
-        <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid} style={{ marginRight: 8 }}>저장</button>
+        <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep("upload")}>이전</button>
+        <button type="button" className="form-button mr-2" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>
     </>
@@ -464,7 +464,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       <div className="asset-dialog__body">
         {isEdit ? (
           <>
-            <div className="asset-docs-section" style={{ marginBottom: 16 }}>
+            <div className="asset-docs-section mb-4">
               {/* Multi-doc gallery (preferred) */}
               {Array.isArray(asset.insuranceDocGcsObjectNames) && asset.insuranceDocGcsObjectNames.length > 0 ? (
                 <MultiDocGallery
@@ -496,8 +496,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         ) : (step === "upload" ? <UploadStep /> : <DetailsStep />)}
 
         {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
-          <div style={{ marginTop: 16 }}>
-            <div className="asset-doc__title" style={{ marginBottom: 8 }}>등록 정보</div>
+          <div className="mt-4">
+            <div className="asset-doc__title mb-2">등록 정보</div>
             <div className="asset-dates">
               {asset.purchaseDate && dateItem("차량 구매일", asset.purchaseDate)}
               {(asset.registrationDate || asset.systemRegDate) && dateItem("전산 등록일", asset.registrationDate || asset.systemRegDate)}

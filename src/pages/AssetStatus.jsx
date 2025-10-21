@@ -1297,8 +1297,8 @@ export default function AssetStatus() {
         );
 
     return (
-        <div className="page">
-            <h1>자산 등록/관리</h1>
+        <div className="page space-y-4">
+            <h1 className="text-2xl font-semibold text-gray-900">자산 등록/관리</h1>
 
             <div className="asset-toolbar">
                 <div className="flex-1" />

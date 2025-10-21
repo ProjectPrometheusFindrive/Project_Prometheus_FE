@@ -95,30 +95,29 @@ export default function OnboardingDocs() {
   };
 
   return (
-    <div className="page">
-      <h1>회사 서류 제출</h1>
-      <div className="page-scroll">
-        <div className="card" style={{ maxWidth: 720 }}>
-          <div className="header-row" style={{ marginBottom: 10 }}>
+    <div className="page space-y-4">
+      <h1 className="text-2xl font-semibold text-gray-900">회사 서류 제출</h1>
+      <div className="page-scroll space-y-4">
+        <div className="card bg-white border border-gray-100 rounded-xl shadow-sm p-4" style={{ maxWidth: 720 }}>
+          <div className="header-row mb-2">
             <div>
-              <h2>사업자등록증 업로드</h2>
+              <h2 className="text-lg font-semibold text-gray-800">사업자등록증 업로드</h2>
             </div>
           </div>
           <p style={{ color: "#555", marginTop: 0 }}>
             안전한 서비스 이용을 위해 회사 서류를 제출해 주세요. PDF 또는 이미지 파일을 지원합니다.
           </p>
           <form onSubmit={handleUpload}>
-            <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+            <div className="flex items-center gap-2 mb-3">
               <input
                 id="biz-file"
                 name="biz-file"
                 type="file"
                 accept="application/pdf,image/*"
-                className="form-input"
+                className="form-input flex-1"
                 onChange={onFileChange}
-                style={{ flex: 1 }}
               />
-              <button className="form-button" type="submit" disabled={status === "uploading"}>
+              <button className="form-button rounded-lg h-10" type="submit" disabled={status === "uploading"}>
                 {status === "uploading" ? "업로드 중..." : "업로드"}
               </button>
             </div>

@@ -52,7 +52,7 @@ export default function Gauge({ value = 0, label = "", color = "#2563eb", size =
 
     return (
         <div className="gauge" role="img" aria-label={`${label} ${v}`}>
-            <svg viewBox={`0 0 ${width} ${height + topPadding}`} style={{ width: "100%", height: `${height + topPadding}px`, display: "block" }} preserveAspectRatio="xMidYMax meet">
+            <svg viewBox={`0 0 ${width} ${height + topPadding}`} className="w-full block" style={{ height: `${height + topPadding}px` }} preserveAspectRatio="xMidYMax meet">
                 {/* Track */}
                 <path d={describeArc(cx, cy, r, startAngle, endAngle)} fill="none" stroke="#e5e7eb" strokeWidth={strokeWidth} strokeLinecap="round" />
 

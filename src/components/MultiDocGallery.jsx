@@ -20,13 +20,13 @@ export default function MultiDocGallery({ title = "문서", items = [] }) {
   };
   if (!Array.isArray(items) || items.length === 0) return null;
   return (
-    <div className="multi-doc-gallery" style={{ marginTop: 8 }}>
-      {title && <div className="asset-doc__title" style={{ marginBottom: 6 }}>{title}</div>}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))", gap: 8 }}>
+    <div className="multi-doc-gallery mt-2">
+      {title && <div className="asset-doc__title mb-1.5">{title}</div>}
+      <div className="grid [grid-template-columns:repeat(auto-fill,minmax(220px,1fr))] gap-2">
         {items.map((it, idx) => (
-          <div key={(it.objectName || it.url || it.name || idx) + idx} className="doc-card" style={{ border: "1px solid #eee", borderRadius: 8, padding: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-            <div style={{ fontSize: 13, color: "#333", wordBreak: "break-all" }}>{it.name || `문서 ${idx + 1}`}</div>
-            <div style={{ display: "flex", gap: 6 }}>
+          <div key={(it.objectName || it.url || it.name || idx) + idx} className="doc-card border rounded-lg p-2.5 flex flex-col gap-1.5 border-[#eee]">
+            <div className="text-[13px] text-gray-800 break-words">{it.name || `문서 ${idx + 1}`}</div>
+            <div className="flex gap-1.5">
               <button type="button" className="form-button" onClick={() => openItem(it)}>보기</button>
               {(it.url || it.objectName) && (
                 <button
@@ -58,4 +58,3 @@ export default function MultiDocGallery({ title = "문서", items = [] }) {
     </div>
   );
 }
-

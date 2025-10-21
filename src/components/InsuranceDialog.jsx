@@ -279,20 +279,20 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       <div className="asset-dialog__body">
         {/* Step 1: Upload & OCR (new registration) */}
         {(!isReadOnly && step === "upload") && (
-          <div className="asset-doc" style={{ marginBottom: 12 }}>
+          <div className="asset-doc mb-3">
             <div className="asset-doc__title">Step 1 · 보험증권 업로드 (OCR)</div>
-            <div style={{ marginBottom: 12 }}>
+            <div className="mb-3">
               <input
                 type="file"
                 accept="image/*,application/pdf"
                 capture="environment"
                 multiple
                 onChange={onFile}
-                style={{ marginBottom: 8 }}
+                className="mb-2"
               />
             </div>
             {Array.isArray(form.insuranceDoc) ? (
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+              <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
                 {form.insuranceDoc.map((f, idx) => (
                   <FilePreview key={f.name + idx} file={f} />
                 ))}
@@ -301,9 +301,9 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               <FilePreview file={form.insuranceDoc} />
             )}
             {(busy.status === "uploading" || busy.status === "ocr") && (
-              <div style={{ width: "100%", marginTop: 8 }}>
-                <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>{busy.message}</div>
-                <div aria-label="처리 진행률" style={{ background: "#eee", borderRadius: 4, height: 8, overflow: "hidden" }}>
+              <div className="w-full mt-2">
+                <div className="text-[12px] text-gray-600 mb-1">{busy.message}</div>
+                <div aria-label="처리 진행률" className="bg-gray-200 rounded h-2 overflow-hidden">
                   <div style={{ width: `${busy.percent}%`, height: "100%", background: "#4caf50" }} />
                 </div>
               </div>
@@ -314,7 +314,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
         {/* Step 2: Details */}
         {(step === "details") && (
           <>
-            <div className="asset-doc" style={{ marginBottom: 12 }}>
+            <div className="asset-doc mb-3">
               <div className="asset-doc__title">{isReadOnly ? "보험증권" : "Step 2 · 세부 정보 확인/수정"}</div>
               {/* Existing saved docs (read-only or when editing with previous history) */}
               {(() => {
@@ -325,40 +325,40 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                       ? asset.insuranceDocGcsObjectNames.map((obj, idx) => ({ name: (asset.insuranceDocNames && asset.insuranceDocNames[idx]) || `보험서류 ${idx + 1}`, objectName: obj }))
                       : []);
                 return list.length > 0 ? (
-                  <div style={{ marginTop: 12 }}>
-                    <MultiDocGallery title="등록된 보험 서류" items={list} />
-                  </div>
+                <div className="mt-3">
+                  <MultiDocGallery title="등록된 보험 서류" items={list} />
+                </div>
                 ) : null;
               })()}
 
               {/* Allow OCR upload also in edit mode */}
               {!isReadOnly && (
-                <div style={{ marginTop: 12 }}>
-                  <div style={{ fontWeight: 600, marginBottom: 6 }}>보험증권 OCR 업로드</div>
+                <div className="mt-3">
+                  <div className="font-semibold mb-1.5">보험증권 OCR 업로드</div>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
                     capture="environment"
                     multiple
                     onChange={onFile}
-                    style={{ marginBottom: 8 }}
+                    className="mb-2"
                   />
                   {Array.isArray(form.insuranceDoc) ? (
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(160px, 1fr))", gap: 8, marginBottom: 8 }}>
+                    <div className="grid [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))] gap-2 mb-2">
                       {form.insuranceDoc.map((f, idx) => (
                         <FilePreview key={f.name + idx} file={f} />
                       ))}
                     </div>
-                  ) : (form.insuranceDoc ? <div style={{ marginBottom: 8 }}><FilePreview file={form.insuranceDoc} /></div> : null)}
+                  ) : (form.insuranceDoc ? <div className="mb-2"><FilePreview file={form.insuranceDoc} /></div> : null)}
                   {(busy.status === "uploading" || busy.status === "ocr") && (
-                    <div style={{ width: "100%", marginTop: 4, marginBottom: 8 }}>
-                      <div style={{ fontSize: 12, color: "#666", marginBottom: 4 }}>{busy.message}</div>
-                      <div aria-label="처리 진행률" style={{ background: "#eee", borderRadius: 4, height: 8, overflow: "hidden" }}>
+                    <div className="w-full mt-1 mb-2">
+                      <div className="text-[12px] text-gray-600 mb-1">{busy.message}</div>
+                      <div aria-label="처리 진행률" className="bg-gray-200 rounded h-2 overflow-hidden">
                         <div style={{ width: `${busy.percent}%`, height: "100%", background: "#4caf50" }} />
                       </div>
                     </div>
                   )}
-                  <div style={{ display: "flex", gap: 8 }}>
+                  <div className="flex gap-2">
                     <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={!form.insuranceDoc || busy.status !== 'idle'}>
                       업로드 및 OCR
                     </button>
@@ -423,14 +423,14 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                   placeholder={isReadOnly ? undefined : "예: 긴급출동 포함, 자기부담금 20만원"}
                   disabled={isReadOnly}
                 />
-                {!isReadOnly && <div style={{ marginTop: 6 }}><OcrSuggestionPicker items={fieldSuggestions.insuranceSpecialTerms || []} onApply={(v) => setForm((p) => ({ ...p, specialTerms: String(v || "") }))} showLabel={true} maxWidth={360} /></div>}
+                {!isReadOnly && <div className="mt-1.5"><OcrSuggestionPicker items={fieldSuggestions.insuranceSpecialTerms || []} onApply={(v) => setForm((p) => ({ ...p, specialTerms: String(v || "") }))} showLabel={true} maxWidth={360} /></div>}
               </div>
             </div>
 
             {Array.isArray(asset.insuranceHistory) && asset.insuranceHistory.length > 0 && (
-              <div style={{ marginTop: 16 }}>
-                <div className="asset-doc__title" style={{ marginBottom: 6 }}>변경 이력</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <div className="mt-4">
+                <div className="asset-doc__title mb-1.5">변경 이력</div>
+                <div className="flex flex-col gap-1.5">
                   {asset.insuranceHistory
                     .slice()
                     .sort((a, b) => new Date(a.startDate || a.date || 0) - new Date(b.startDate || b.date || 0))
@@ -439,8 +439,8 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                       const label = h.type === "등록" ? "보험 등록" : "보험 갱신(기존 보험 만료 또는 변경으로 인한)";
                       return (
                         <div key={`${h.date || h.startDate || idx}-${h.company || ''}`} className="asset-history__item">
-                          <div style={{ fontSize: 12 }}>{label} {when}</div>
-                          <div style={{ fontSize: 12, color: '#666' }}>
+                          <div className="text-[12px]">{label} {when}</div>
+                          <div className="text-[12px] text-gray-600">
                             {(h.company || "") + (h.product ? ` ${h.product}` : "")} · {h.startDate || "-"} ~ {h.expiryDate || "-"}
                           </div>
                         </div>
@@ -456,17 +456,17 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       <div className="asset-dialog__footer">
         {!isReadOnly && step === "upload" && (
           <>
-            <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} style={{ marginRight: 8 }}>건너뛰기</button>
+            <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep("details")}>건너뛰기</button>
             <button type="button" className="form-button" onClick={handleUploadAndOcr}>다음</button>
           </>
         )}
         {!isReadOnly && step === "details" && (
-          <button type="button" className="form-button" onClick={handleSave} disabled={uploadState.status === 'uploading'} style={{ marginRight: 8 }}>
+          <button type="button" className="form-button mr-2" onClick={handleSave} disabled={uploadState.status === 'uploading'}>
             {(asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) ? '저장' : '등록'}
           </button>
         )}
         {allowEditToggle && isReadOnly && (asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) && (
-          <button type="button" className="form-button" onClick={() => setIsReadOnly(false)} style={{ marginRight: 8 }}>수정</button>
+          <button type="button" className="form-button mr-2" onClick={() => setIsReadOnly(false)}>수정</button>
         )}
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>

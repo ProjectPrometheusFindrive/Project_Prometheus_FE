@@ -18,10 +18,10 @@ export default function RequireAuth({ children }) {
 
   if (auth.status === "checking") {
     return (
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh" }}>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="flex flex-col items-center gap-3">
           <div className="spinner" aria-label="Loading" />
-          <div style={{ color: "#555", fontSize: 14 }}>세션 확인 중...</div>
+          <div className="text-[14px] text-gray-600">세션 확인 중...</div>
         </div>
       </div>
     );

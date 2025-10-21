@@ -40,16 +40,16 @@ export default function Detail() {
 
     if (!data) {
         return (
-            <div className="page">
-                <h1>Details</h1>
+            <div className="page space-y-4">
+                <h1 className="text-2xl font-semibold text-gray-900">Details</h1>
                 <div className="empty">No data found.</div>
             </div>
         );
     }
 
     return (
-        <div className="page">
-            <h1>Details</h1>
+        <div className="page space-y-4">
+            <h1 className="text-2xl font-semibold text-gray-900">Details</h1>
 
             <div className="sticky-header">
                 <div className="header-row">
@@ -94,7 +94,7 @@ export default function Detail() {
                 </div>
             </div>
 
-            <div className="page-scroll">
+            <div className="page-scroll space-y-4">
                 {t === "asset" && (
                     <AssetForm
                         key={`asset-${editing}-${data.id}`}

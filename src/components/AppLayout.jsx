@@ -11,7 +11,7 @@ export default function AppLayout() {
       <DocsReminderBanner />
       <div className="app-main">
         <NavigationBar />
-        <div className="app-content">
+        <div className="app-content bg-slate-50">
           <Outlet />
         </div>
       </div>

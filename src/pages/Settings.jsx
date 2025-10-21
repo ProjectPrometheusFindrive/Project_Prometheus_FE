@@ -417,9 +417,9 @@ export default function Settings() {
     }, [viewData?.bizCertDocGcsObjectName, viewData?.bizCertDocGcsObjectNames, viewData?.bizCertDocName]);
 
     return (
-        <div className="page">
-            <h1>회사정보설정</h1>
-            <div className="page-scroll">
+        <div className="page space-y-4">
+            <h1 className="text-2xl font-semibold text-gray-900">회사정보설정</h1>
+            <div className="page-scroll space-y-4">
                 {/* 로고 + 사업자등록증: 넓은 화면 가로 배치, 좁은 화면 세로 배치 */}
                 <div className="company-docs-split">
                     {/* 회사 로고 섹션 */}

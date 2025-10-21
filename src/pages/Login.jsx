@@ -55,16 +55,16 @@ export default function Login() {
   }
 
   return (
-    <div className="login-container">
-      <div className="login-card">
-        <h1 className="login-title">Login</h1>
-        <form onSubmit={handleSubmit} className="login-form" autoComplete="on">
-          <label className="login-label" htmlFor="login-id">ID</label>
+    <div className="login-container min-h-screen flex items-center justify-center bg-gradient-to-b from-slate-50 to-white px-4">
+      <div className="login-card w-full max-w-md bg-white border border-gray-100 rounded-xl shadow-lg p-5">
+        <h1 className="login-title text-2xl font-semibold mb-4 text-gray-800">Login</h1>
+        <form onSubmit={handleSubmit} className="login-form grid gap-3" autoComplete="on">
+          <label className="login-label text-sm text-gray-700" htmlFor="login-id">ID</label>
           <input
             id="login-id"
             name="username"
             type="text"
-            className="login-input"
+            className="form-input block w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none py-2 px-3 bg-white"
             value={id}
             onChange={(e) => setId(e.target.value)}
             placeholder="Enter ID"
@@ -72,12 +72,12 @@ export default function Login() {
             required
           />
 
-          <label className="login-label" htmlFor="login-pw">Password</label>
+          <label className="login-label text-sm text-gray-700" htmlFor="login-pw">Password</label>
           <input
             id="login-pw"
             name="password"
             type="password"
-            className="login-input"
+            className="form-input block w-full rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 focus:outline-none py-2 px-3 bg-white"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Enter password"
@@ -85,15 +85,15 @@ export default function Login() {
             required
           />
 
-          <button type="submit" className="login-button" disabled={loading}>
+          <button type="submit" className="form-button w-full h-11 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700 text-white transition-colors" disabled={loading}>
             {loading ? "로그인 중..." : "Login"}
           </button>
         </form>
-        {error && <p className="login-help" style={{ color: "#b71c1c" }}>{error}</p>}
-        <div className="login-help" style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-          <Link to="/terms">회원가입</Link>
-          <span style={{ color: "#bbb" }}>|</span>
-          <Link to="/forgot-password">비밀번호 찾기</Link>
+        {error && <p className="login-help text-red-700 mt-2 text-sm">{error}</p>}
+        <div className="login-help flex gap-3 flex-wrap text-gray-600 text-sm mt-3">
+          <Link to="/terms" className="text-blue-700 hover:underline">회원가입</Link>
+          <span className="text-gray-300">|</span>
+          <Link to="/forgot-password" className="text-blue-700 hover:underline">비밀번호 찾기</Link>
         </div>
       </div>
     </div>
