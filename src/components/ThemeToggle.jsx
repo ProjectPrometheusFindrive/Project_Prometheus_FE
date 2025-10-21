@@ -30,10 +30,9 @@ export default function ThemeToggle() {
       aria-pressed={isDark}
       aria-label={label}
       title={label}
-      className="top-header__logout-btn"
+      className="icon-button"
     >
       {isDark ? "☀️" : "🌙"}
-      {isDark ? "Light" : "Dark"}
     </button>
   );
 }

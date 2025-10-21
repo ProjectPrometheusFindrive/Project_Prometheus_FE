@@ -146,7 +146,6 @@ export default function TopHeader() {
             </div>
 
             <div className="top-header__right">
-                <ThemeToggle />
                 <div className="top-header__user" aria-label={`사용자 ${userName}, 역할 ${roleLabel}`}>
                     <span className="top-header__user-id">{userName}</span>
                     <span className="top-header__user-separator" aria-hidden>·</span>
@@ -158,6 +157,7 @@ export default function TopHeader() {
                         {roleLabel}
                     </span>
                 </div>
+                <ThemeToggle />
                 <button
                     type="button"
                     className="top-header__logout-btn"
