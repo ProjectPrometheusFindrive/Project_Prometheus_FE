@@ -38,150 +38,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     insuranceDoc: null, // 원리금 상환 계획표 (placeholder)
   });
 
-  // State for displaying documents in view mode (single legacy)
-  const [insuranceDocUrl, setInsuranceDocUrl] = useState("");
-  const [registrationDocUrl, setRegistrationDocUrl] = useState("");
-  const [loadingDocs, setLoadingDocs] = useState(false);
-
-  // Fetch signed URLs for documents when in view mode
-  useEffect(() => {
-    if (!isEdit || !asset) return;
-
-    let cancelled = false;
-    const fetchUrls = async () => {
-      setLoadingDocs(true);
-      try {
-        const promises = [];
-        if (asset.insuranceDocGcsObjectName) {
-          promises.push(
-            getSignedDownloadUrl(asset.insuranceDocGcsObjectName)
-              .then(url => !cancelled && setInsuranceDocUrl(url))
-              .catch(err => console.error("Failed to get insurance doc URL:", err))
-          );
-        }
-        if (asset.registrationDocGcsObjectName) {
-          promises.push(
-            getSignedDownloadUrl(asset.registrationDocGcsObjectName)
-              .then(url => !cancelled && setRegistrationDocUrl(url))
-              .catch(err => console.error("Failed to get registration doc URL:", err))
-          );
-        }
-        await Promise.all(promises);
-      } finally {
-        if (!cancelled) setLoadingDocs(false);
-      }
-    };
-
-    fetchUrls();
-    return () => { cancelled = true; };
-  }, [isEdit, asset]);
-
-  const onFile = (key) => (e) => {
-    const files = Array.from(e.target.files || []);
-    if (files.length > 0) {
-      if (e.target.multiple) {
-        console.debug("[upload-ui] asset dialog files selected:", { key, count: files.length, names: files.map(f => f.name) });
-        setForm((p) => ({ ...p, [key]: files }));
-      } else {
-        const file = files[0];
-        console.debug("[upload-ui] asset dialog file selected:", { key, name: file.name, size: file.size, type: file.type });
-        setForm((p) => ({ ...p, [key]: file }));
-      }
-    } else {
-      console.debug("[upload-ui] asset dialog file cleared:", { key });
-      setForm((p) => ({ ...p, [key]: e.target.multiple ? [] : null }));
-    }
-  };
-
-  const normalizedPlate = normalizeKoreanPlate(form.plate);
-  const isPlateInvalid = !!form.plate && !isValidKoreanPlate(normalizedPlate);
-
-  const handleSave = () => {
-    if (!onSubmit) return;
-    // Normalize on save; UI disables invalid state
-    if (!isEdit && form.plate && normalizedPlate !== form.plate) {
-      setForm((p) => ({ ...p, plate: normalizedPlate }));
-    }
-    onSubmit({
-      ...form,
-      preUploaded,
-      ocrSuggestions: ocrSuggest,
-    });
-  };
-
-  const [viewer, setViewer] = useState({ open: false, src: "", type: "", title: "" });
-
-  const openViewer = (src, name) => {
-    if (!src) return;
-    const lower = String(name || "").toLowerCase();
-    const isPdf = lower.endsWith(".pdf") || /(?:^|[.?=&])content-type=application%2Fpdf/.test(src);
-    const isVideo = /\.(mp4|webm|mov|avi|mpeg|mpg)$/.test(lower) || /[?&]type=video\//.test(src);
-    const type = isPdf ? "pdf" : isVideo ? "video" : "image";
-    const t = name ? `${title} - ${name}` : title;
-    setViewer({ open: true, src, type, title: t });
-  };
-
-  const docBoxView = (title, url, docName) => {
-    const renderContent = () => {
-      if (loadingDocs) {
-        return <div className="asset-doc__placeholder">로딩 중...</div>;
-      }
-      if (!url) {
-        return <div className="asset-doc__placeholder">문서 없음</div>;
-      }
-      // Check if it's a PDF or image
-      const isPdf = docName?.toLowerCase().endsWith('.pdf') || url.includes('content-type=application%2Fpdf');
-      if (isPdf) {
-        return (
-          <button type="button" className="simple-button" onClick={() => openViewer(url, docName)} title="문서 미리보기">
-            {docName || "문서 보기"}
-          </button>
-        );
-      }
-      // Display as image
-      return (
-        <img
-          src={url}
-          alt={title}
-          className="max-w-full max-h-[200px] object-contain cursor-zoom-in"
-          onClick={() => openViewer(url, docName)}
-        />
-      );
-    };
-
-    return (
-      <div className="asset-doc">
-        <div className="asset-doc__title">{title}</div>
-        <div className="asset-doc__box min-h-20 p-2" aria-label={`${title} 미리보기 영역`}>
-          {renderContent()}
-        </div>
-      </div>
-    );
-  };
-
-  const docBoxEdit = (title, key, accept = "image/*,application/pdf") => (
-    <div className="asset-doc">
-      <div className="asset-doc__title">{title}</div>
-      <div className="mb-3">
-        <input
-          type="file"
-          accept={accept}
-          multiple
-          onChange={onFile(key)}
-          required={requireDocs}
-        />
-      </div>
-      {Array.isArray(form[key]) ? (
-        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-          {form[key].map((f, idx) => (
-            <FilePreview key={f.name + idx} file={f} />
-          ))}
-        </div>
-      ) : (
-        <FilePreview file={form[key]} />
-      )}
-    </div>
-  );
+  // Validate plate format
+  const isPlateInvalid = form.plate && !isValidKoreanPlate(form.plate);
 
   const infoRow = (label, value) => (
     <>
@@ -334,7 +192,149 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     }
   };
 
-  const UploadStep = () => (
+  // Document preview state and helpers
+  const [insuranceDocUrl, setInsuranceDocUrl] = useState("");
+  const [registrationDocUrl, setRegistrationDocUrl] = useState("");
+  const [loadingDocs, setLoadingDocs] = useState(false);
+
+  useEffect(() => {
+    if (!isEdit || !asset) return;
+    let cancelled = false;
+    const fetchUrls = async () => {
+      setLoadingDocs(true);
+      try {
+        const tasks = [];
+        if (asset.insuranceDocGcsObjectName) {
+          tasks.push(
+            getSignedDownloadUrl(asset.insuranceDocGcsObjectName)
+              .then((url) => { if (!cancelled) setInsuranceDocUrl(url); })
+              .catch(() => {})
+          );
+        }
+        if (asset.registrationDocGcsObjectName) {
+          tasks.push(
+            getSignedDownloadUrl(asset.registrationDocGcsObjectName)
+              .then((url) => { if (!cancelled) setRegistrationDocUrl(url); })
+              .catch(() => {})
+          );
+        }
+        await Promise.all(tasks);
+      } finally {
+        if (!cancelled) setLoadingDocs(false);
+      }
+    };
+    fetchUrls();
+    return () => { cancelled = true; };
+  }, [isEdit, asset]);
+
+  const [viewer, setViewer] = useState({ open: false, src: "", type: "", title: "" });
+  const openViewer = (src, name) => {
+    if (!src) return;
+    const lower = String(name || "").toLowerCase();
+    const isPdf = lower.endsWith(".pdf") || /(?:^|[.?=&])content-type=application%2Fpdf/.test(src);
+    const isVideo = /(\.mp4|\.webm|\.mov|\.avi|\.mpeg|\.mpg)$/i.test(lower) || /[?&]type=video\//.test(src);
+    const type = isPdf ? "pdf" : isVideo ? "video" : "image";
+    const t = name ? `${name}` : "";
+    setViewer({ open: true, src, type, title: t });
+  };
+
+  const onFile = (key) => (e) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      if (e.target.multiple) {
+        console.debug("[upload-ui] asset dialog files selected:", { key, count: files.length, names: files.map(f => f.name) });
+        setForm((p) => ({ ...p, [key]: files }));
+      } else {
+        const file = files[0];
+        console.debug("[upload-ui] asset dialog file selected:", { key, name: file.name, size: file.size, type: file.type });
+        setForm((p) => ({ ...p, [key]: file }));
+      }
+    } else {
+      console.debug("[upload-ui] asset dialog file cleared:", { key });
+      setForm((p) => ({ ...p, [key]: e.target.multiple ? [] : null }));
+    }
+  };
+
+  const docBoxView = (title, url, docName) => {
+    const renderContent = () => {
+      if (loadingDocs) {
+        return <div className="text-[12px] text-gray-600">문서 불러오는 중…</div>;
+      }
+      if (!url) {
+        return <div className="empty">문서 없음</div>;
+      }
+      const lower = String(docName || "").toLowerCase();
+      const isPdf = lower.endsWith('.pdf') || url.includes('content-type=application%2Fpdf');
+      if (isPdf) {
+        return (
+          <button type="button" className="simple-button" onClick={() => openViewer(url, docName)} title="문서 미리보기">
+            {docName || "문서 보기"}
+          </button>
+        );
+      }
+      return (
+        <img
+          src={url}
+          alt={title}
+          className="max-w-full max-h-[200px] object-contain cursor-zoom-in"
+          onClick={() => openViewer(url, docName)}
+        />
+      );
+    };
+
+    return (
+      <div className="asset-doc">
+        <div className="asset-doc__title">{title}</div>
+        <div className="asset-doc__box min-h-20 p-2" aria-label={`${title} 미리보기 영역`}>
+          {renderContent()}
+        </div>
+      </div>
+    );
+  };
+
+  const docBoxEdit = (title, key, accept = "image/*,application/pdf") => (
+    <div className="asset-doc">
+      <div className="asset-doc__title">{title}</div>
+      <div className="mb-3">
+        <input
+          id={`asset-${key}`}
+          name={key}
+          type="file"
+          accept={accept}
+          multiple
+          onChange={onFile(key)}
+          required={requireDocs}
+        />
+      </div>
+      {Array.isArray(form[key]) ? (
+        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
+          {form[key].map((f, idx) => (
+            <FilePreview key={f.name + idx} file={f} />
+          ))}
+        </div>
+      ) : (
+        <FilePreview file={form[key]} />
+      )}
+    </div>
+  );
+
+  const handleSave = async () => {
+    if (isPlateInvalid) {
+      alert("올바르지 않은 차량번호 형식입니다.");
+      return;
+    }
+    if (onSubmit) {
+      await onSubmit({
+        ...form,
+        registrationDocGcsObjectName: preUploaded.registration[0]?.objectName || null,
+        registrationDocName: preUploaded.registration[0]?.name || null,
+        insuranceDocGcsObjectName: preUploaded.insurance[0]?.objectName || null,
+        insuranceDocName: preUploaded.insurance[0]?.name || null,
+      });
+    }
+  };
+
+  const UploadStep = (
     <>
       <div className="asset-docs-section mb-4">
         {docBoxEdit("원리금 상환 계획표", "insuranceDoc")}
@@ -365,27 +365,27 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     </>
   );
 
-  const DetailsStep = () => (
+  const DetailsStep = (
     <>
       <div className="asset-info grid-info">
         {infoRow(
           "제조사",
           <div className="flex items-center gap-2 flex-nowrap">
-            <input className="form-input flex-1 min-w-0" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+            <input id="asset-make" name="make" className="form-input flex-1 min-w-0" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
             <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "차종",
           <div className="flex items-center gap-2 flex-nowrap">
-            <input className="form-input flex-1 min-w-0" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+            <input id="asset-model" name="model" className="form-input flex-1 min-w-0" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
             <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} showLabel={false} maxWidth={200} />
           </div>
         )}
         {infoRow(
           "연식",
           <div className="flex items-center gap-2 flex-nowrap">
-            <select className="form-input flex-1 min-w-0" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+            <select id="asset-year" name="year" className="form-input flex-1 min-w-0" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
               {(() => {
                 const CURRENT_YEAR = new Date().getFullYear();
                 const YEAR_START = 1990;
@@ -405,7 +405,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
         {infoRow(
           "연료 타입",
-          <select className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
+          <select id="asset-fuelType" name="fuelType" className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
             {["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"].map((v) => (
               <option key={v} value={v}>{v || "선택"}</option>
             ))}
@@ -414,7 +414,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         {infoRow(
           "차량번호",
           <div className="flex items-center gap-2 w-full flex-wrap">
-            <input
+            <input id="asset-plate" name="plate"
               className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
               value={form.plate}
               onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
@@ -434,13 +434,13 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         {infoRow(
           "차대번호(VIN)",
           <div className="flex items-center gap-2 flex-nowrap">
-            <input className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+            <input id="asset-vin" name="vin" className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
             <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
           </div>
         )}
         {infoRow(
           "차량가액",
-          <input
+          <input id="asset-vehicleValue" name="vehicleValue"
             className="form-input"
             type="text"
             value={form.vehicleValue}
@@ -493,7 +493,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             {infoRow("차량가액", asset.vehicleValue || "")}
           </div>
           </>
-        ) : (step === "upload" ? <UploadStep /> : <DetailsStep />)}
+        ) : (step === "upload" ? UploadStep : DetailsStep)}
 
         {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
           <div className="mt-4">
