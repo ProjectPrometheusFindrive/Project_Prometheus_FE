@@ -70,17 +70,6 @@ const Modal = ({
             ) : (
               <>
                 <strong>{title}</strong>
-                {showHeaderClose && (
-                  <div className="ml-auto">
-                    <button 
-                      type="button" 
-                      className="form-button bg-gray-900" 
-                      onClick={onClose}
-                    >
-                      닫기
-                    </button>
-                  </div>
-                )}
               </>
             )}
           </div>

@@ -188,38 +188,38 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                     </div>
 
                     {/* 차량 정보 */}
-                    <div className="p-5 bg-gray-50 rounded-lg border border-[#dee2e6]">
-                        <h3 className="m-0 mb-4 text-[1.1rem] text-gray-800">
+                    <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-lg border border-[#dee2e6] dark:border-gray-600">
+                        <h3 className="m-0 mb-4 text-[1.1rem] text-gray-800 dark:text-gray-100">
                             차량 및 대여 정보
                         </h3>
                         <div className="flex flex-col gap-3">
                             <div>
-                                <strong className="text-[0.9rem] text-gray-600">차량번호:</strong>
-                                <div className="text-[1rem] font-semibold text-gray-800 mt-1">
+                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">차량번호:</strong>
+                                <div className="text-[1rem] font-semibold text-gray-800 dark:text-gray-100 mt-1">
                                     {vehicleData?.plate || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong className="text-[0.9rem] text-gray-600">차종:</strong>
-                                <div className="text-[0.95rem] text-gray-800 mt-1">
+                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">차종:</strong>
+                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
                                     {vehicleData?.vehicleType || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong className="text-[0.9rem] text-gray-600">대여자:</strong>
-                                <div className="text-[0.95rem] text-gray-800 mt-1">
+                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">대여자:</strong>
+                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
                                     {vehicleData?.renterName || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong className="text-[0.9rem] text-gray-600">연락처:</strong>
-                                <div className="text-[0.95rem] text-gray-800 mt-1">
+                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">연락처:</strong>
+                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
                                     {vehicleData?.contactNumber || "-"}
                                 </div>
                             </div>
                             <div>
-                                <strong className="text-[0.9rem] text-gray-600">대여 기간:</strong>
-                                <div className="text-[0.95rem] text-gray-800 mt-1">
+                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">대여 기간:</strong>
+                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
                                     {vehicleData?.rentalPeriod?.start && vehicleData?.rentalPeriod?.end
                                         ? `${new Date(vehicleData.rentalPeriod.start).toLocaleDateString()} ~ ${new Date(vehicleData.rentalPeriod.end).toLocaleDateString()}`
                                         : "-"
@@ -334,12 +334,6 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                     </div>
                 )}
 
-                {/* 하단 액션 버튼 */}
-                <div className="flex justify-end gap-2 pt-4 border-t border-[#dee2e6]">
-                    <button onClick={onClose} className="py-2.5 px-5 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-[0.9rem] font-medium" type="button">
-                        닫기
-                    </button>
-                </div>
             </div>
         </Modal>
     );
