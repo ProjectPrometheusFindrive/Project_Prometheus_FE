@@ -101,9 +101,9 @@ function App() {
   return (
     <ErrorBoundary>
       <AuthProvider>
+        <ConfirmProvider>
         <CompanyProvider>
           <Router>
-            <ConfirmProvider>
             <GlobalToast />
           <ForcePasswordChange />
           <DynamicFavicon />
@@ -153,9 +153,9 @@ function App() {
             {/* Fallback for unknown routes */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-            </ConfirmProvider>
-          </Router>
+            </Router>
         </CompanyProvider>
+        </ConfirmProvider>
       </AuthProvider>
     </ErrorBoundary>
   );
