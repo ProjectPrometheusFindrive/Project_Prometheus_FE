@@ -1628,31 +1628,22 @@ body {
     font-size: 0.9rem;
 }
 
-/* Input + inline hint layout (responsive, aligned widths) */
+/* Input + hint layout (hint appears below input) */
 .input-with-hint {
-    /* Two columns: input grows, hint fixed width for alignment */
-    --hint-col-width: 240px;
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) var(--hint-col-width);
-    align-items: center;
-    column-gap: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px; /* minimal vertical spacing */
 }
 .input-with-hint .login-input {
     width: 100%;
     min-width: 0;
 }
 .input-with-hint .input-hint {
-    margin: 0; /* override .login-help default margin */
-    white-space: normal; /* allow wrapping within fixed column */
-}
-@media (max-width: 600px) {
-    .input-with-hint {
-        grid-template-columns: 1fr; /* stack below */
-        row-gap: 4px;
-    }
-    .input-with-hint .input-hint {
-        margin-top: 4px;
-    }
+    margin: 0; /* remove default margin */
+    font-size: 0.75rem; /* small font for hint */
+    line-height: 1.2; /* compact line height */
+    color: #999; /* default color */
+    white-space: normal; /* allow wrapping */
 }
 
 /* Generic form styles */
@@ -2267,6 +2258,10 @@ html {
 [data-theme='dark'] .login-container { background: #0f172a !important; background-image: none !important; }
 [data-theme='dark'] .form-input { background: #0b1220; border-color: #1f2937; color: #e5e7eb; }
 [data-theme='dark'] .form-input::placeholder { color: #94a3b8; }
+/* Form label readability in dark mode */
+[data-theme='dark'] .form-label { color: #cbd5e1; }
+/* Member management form labels */
+[data-theme='dark'] .form-group label { color: #cbd5e1; }
 
 /* Quick actions strip in contract detail modal */
 .quick-actions {
