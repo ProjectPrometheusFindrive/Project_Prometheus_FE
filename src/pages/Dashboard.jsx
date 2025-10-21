@@ -62,9 +62,9 @@ export default function Dashboard() {
     }, []);
 
     const scores = [
-        { key: "safe", label: "고객 안전/보안 지표", value: 79, delta: +2, color: "#25cdebff" },
-        { key: "fleet", label: "차량 운영 지표", value: 62, delta: -14, color: "#10b981" },
-        { key: "sales", label: "매출 지표", value: 85, delta: +4, color: "#f59e0b" },
+        { key: "safe", label: "안전운전점수", value: 79, delta: +2, color: "#25cdebff" },
+        { key: "fleet", label: "차량관리점수", value: 62, delta: -14, color: "#10b981" },
+        { key: "sales", label: "사업운영점수", value: 85, delta: +4, color: "#f59e0b" },
     ];
 
     return (
