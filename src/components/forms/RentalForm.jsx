@@ -12,6 +12,7 @@ import { chooseUploadMode } from "../../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../../utils/uploads";
 import { ocrExtract } from "../../api";
 import { randomId } from "../../utils/id";
+import generateContractNumber from "../../utils/rentalId";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCompany } from "../../contexts/CompanyContext";
 import OcrSuggestionPicker from "../OcrSuggestionPicker";
@@ -39,6 +40,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
 
     const hasInitial = !!(initial && Object.keys(initial).length > 0);
     const tmpIdRef = useRef(randomId("rental"));
+    const generatedAtRef = useRef(new Date());
     const [preUploaded, setPreUploaded] = useState({ contract: [], license: [] });
     const [ocrSuggest, setOcrSuggest] = useState({});
     const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0 });
@@ -47,6 +49,25 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
     const { companyInfo } = useCompany();
     const companyId = (auth?.user?.companyId || companyInfo?.companyId || "ci");
     const ocrFolderBase = `company/${companyId}/docs`;
+
+    const getBizRegNo = () => {
+        const c = (auth?.user && typeof auth.user.company === 'object') ? (auth.user.company || {}) : {};
+        const u = auth?.user || {};
+        const ci = companyInfo || {};
+        const candidates = [
+            // From /auth/me response and possible shapes
+            u.companyId, c.companyId,
+            // Common business reg fields
+            c.regNumber, c.bizRegNo, c.businessNumber, c.reg_no, c.biz_no,
+            u.regNumber, u.bizRegNo, u.businessNumber, u.reg_no, u.biz_no,
+            // Fallback to company settings if present
+            ci.regNumber, ci.bizRegNo, ci.businessNumber, ci.reg_no, ci.biz_no, ci.companyId,
+        ];
+        for (const v of candidates) {
+            if (v != null && String(v).trim()) return String(v);
+        }
+        return '';
+    };
 
     // Suggestion map by field name
     const fieldSuggestions = useMemo(() => {
@@ -73,7 +94,9 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
 
     const onSubmitWrapped = async (values) => {
         if (typeof onSubmit === 'function') {
-            await onSubmit({ ...values, preUploaded, ocrSuggestions: ocrSuggest });
+            const bizRegNo = getBizRegNo();
+            const contractNumber = generateContractNumber({ bizRegNo, plate: values.plate, date: generatedAtRef.current });
+            await onSubmit({ ...values, rentalId: contractNumber, preUploaded, ocrSuggestions: ocrSuggest });
         }
     };
 
@@ -432,15 +455,15 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 ) : null}
             </FormField>
 
-            <FormField
-                id="rentalId"
-                label="대여 계약번호"
-                value={form.rentalId}
-                onChange={(value) => update("rentalId", value)}
-                placeholder="예: 100000000017"
-                required
-                disabled={readOnly}
-            />
+            {(() => {
+                const bizRegNo = getBizRegNo();
+                const contractNumber = generateContractNumber({ bizRegNo, plate: form.plate, date: generatedAtRef.current });
+                return (
+                    <>
+                        <label className="form-label" htmlFor="rentalIdDisplay">대여 계약번호: {contractNumber}</label>
+                    </>
+                );
+            })()}
 
             {false && (
                 <>
