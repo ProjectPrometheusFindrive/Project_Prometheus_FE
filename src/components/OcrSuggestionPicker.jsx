@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef } from "react";
 
 function formatPct(confidence) {
   const c = typeof confidence === "number" ? confidence : (confidence && confidence.value) ? confidence.value : 0;
@@ -6,50 +6,57 @@ function formatPct(confidence) {
   return `${Math.round(pct)}%`;
 }
 
+function normalizeConfidence(confidence) {
+  const c = typeof confidence === "number" ? confidence : (confidence && confidence.value) ? confidence.value : 0;
+  return c > 1 ? c / 100 : c;
+}
+
+function confidenceColor(confidence) {
+  const n = normalizeConfidence(confidence);
+  // >= 70%: green, >40% and <70%: yellow, <=40%: red
+  if (n >= 0.7) return "#2e7d32"; // green
+  if (n > 0.4) return "#f9a825"; // yellow/amber
+  return "#d32f2f"; // red
+}
+
 export default function OcrSuggestionPicker({ items = [], onApply, style = {}, showLabel = true, maxWidth = 220 }) {
   const list = Array.isArray(items) ? items.filter((it) => it && typeof it.value !== "undefined") : [];
-  const [index, setIndex] = useState(0);
   const initialIndex = useMemo(() => {
     if (list.length === 0) return 0;
     let best = 0;
     let bestC = -1;
     list.forEach((it, i) => {
-      const c = typeof it.confidence === "number" ? it.confidence : (it.confidence && it.confidence.value) ? it.confidence.value : 0;
-      const norm = c > 1 ? c / 100 : c;
+      const norm = normalizeConfidence(it.confidence);
       if (norm > bestC) { bestC = norm; best = i; }
     });
     return best;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(list.map((it) => it.confidence))]);
 
-  React.useEffect(() => { setIndex(initialIndex); }, [initialIndex]);
+  // Auto-apply the best suggestion once, then only show confidence.
+  const appliedRef = useRef(false);
+  React.useEffect(() => {
+    if (appliedRef.current) return;
+    const best = list[initialIndex];
+    if (best && typeof onApply === "function") {
+      onApply(best.value);
+      appliedRef.current = true;
+    }
+  }, [list, initialIndex, onApply]);
 
   if (list.length === 0) return null;
 
-  const apply = () => {
-    const it = list[index] || list[0];
-    if (!it) return;
-    onApply && onApply(it.value);
-  };
+  const selected = list[initialIndex] || list[0];
+  const selectedPct = selected ? formatPct(selected.confidence) : null;
+  const selectedColor = selected ? confidenceColor(selected.confidence) : "#666";
 
   return (
     <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap", minWidth: 0, ...style }}>
-      {showLabel ? <span style={{ fontSize: 12, color: "#666" }}>제안</span> : null}
-      <select
-        className="form-input"
-        value={String(index)}
-        onChange={(e) => setIndex(Number(e.target.value))}
-        style={{ maxWidth, minWidth: 120, flex: "1 1 auto" }}
-      >
-        {list.map((it, i) => (
-          <option key={`${String(it.value)}-${i}`} value={String(i)}>
-            {String(it.value)} · {formatPct(it.confidence)}
-          </option>
-        ))}
-      </select>
-      <button type="button" className="form-button form-button--muted" onClick={apply} style={{ flex: "0 0 auto", marginTop: 0 }}>
-        적용
-      </button>
+      {selectedPct ? (
+        <span style={{ fontSize: 11, color: selectedColor, flex: "0 0 auto" }} title="OCR 신뢰도">
+          신뢰도 {selectedPct}
+        </span>
+      ) : null}
     </div>
   );
 }
