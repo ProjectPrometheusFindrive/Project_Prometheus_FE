@@ -50,7 +50,7 @@ export default function DocumentViewer({
             <iframe
               src={src}
               title={title}
-              className="w-[90vw] h-[80vh] bg-[#fafafa] border-0"
+              className="w-[90vw] h-[80vh] bg-[#fafafa] border-0 document-viewer__pdf"
             />
           )}
           {kind === "video" && (

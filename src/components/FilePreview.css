@@ -129,3 +129,15 @@
     max-height: 300px;
   }
 }
+
+
+/* Dark mode overrides */
+[data-theme='dark'] .file-preview { background-color: #0b1220; border-color: #1f2937; }
+[data-theme='dark'] .file-preview--image { background-color: #0b1220; }
+[data-theme='dark'] .file-preview__image { background-color: #0f172a; }
+[data-theme='dark'] .file-preview--pdf { background-color: #0b1220; }
+[data-theme='dark'] .file-preview__pdf-viewer { background-color: #0b1220; }
+[data-theme='dark'] .file-preview__info { background-color: #0f172a; border-top-color: #1f2937; }
+[data-theme='dark'] .file-preview__filename { color: #e5e7eb; }
+[data-theme='dark'] .file-preview__filesize,
+[data-theme='dark'] .file-preview__filetype { color: #9ca3af; }

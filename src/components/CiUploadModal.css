@@ -103,3 +103,14 @@
   cursor: not-allowed;
 }
 
+
+
+/* Dark mode overrides */
+[data-theme='dark'] .ci-upload-modal__content { background: #0b1220; color: #e5e7eb; border: 1px solid #1f2937; }
+[data-theme='dark'] .ci-upload-modal__header { border-bottom: 1px solid #1f2937; }
+[data-theme='dark'] .ci-upload-modal__footer { border-top: 1px solid #1f2937; }
+[data-theme='dark'] .ci-upload-modal__preview { background: #0f172a; border-color: #1f2937; }
+[data-theme='dark'] .ci-upload-modal__placeholder { color: #9ca3af; }
+[data-theme='dark'] .ci-upload-modal__button--secondary { background: #111827; border-color: #1f2937; color: #e5e7eb; }
+[data-theme='dark'] .ci-upload-modal__button--secondary:hover { background: #1f2937; }
+[data-theme='dark'] .ci-upload-modal__button--primary { background: #1e3a8a; color: #fff; }

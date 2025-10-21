@@ -5,12 +5,16 @@ function CenterTotal({ data, x, y }) {
   const total = useMemo(() => (Array.isArray(data) ? data.reduce((s, it) => s + (it?.value || 0), 0) : 0), [data]);
   return (
     <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="recharts-text recharts-label">
-      <tspan x={x} dy="-0.5em" fontSize="32" fontWeight="700" fill="#333">{total}</tspan>
+      <tspan x={x} dy="-0.5em" fontSize="32" fontWeight="700" fill={isDark ? '#e5e7eb' : '#333'}>{total}</tspan>
     </text>
   );
 }
 
+
+const isDark = typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark';
+
 export default function StatusDonut({
+
   data = [],
   colors = [],
   innerRadius = "40%",
@@ -48,7 +52,7 @@ export default function StatusDonut({
           labelLine={false}
         >
           {(data || []).map((_, i) => (
-            <Cell key={`cell-${i}`} fill={colors[(i + colorOffset) % (colors.length || 1)]} />
+            <Cell key={`cell-${i}`} fill={colors[(i + colorOffset) % (colors.length || 1)]} stroke={isDark ? '#0b1220' : '#fff'} strokeWidth={isDark ? 0 : 1} />
           ))}
         </Pie>
         <CenterTotal data={data} x="50%" y="50%" />

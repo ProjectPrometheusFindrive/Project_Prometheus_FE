@@ -32,6 +32,7 @@ export const STORAGE_KEYS = {
   
   // User Preferences
   DEFAULT_LANDING: 'defaultLanding',
+  UI_THEME: 'uiTheme',
 
   // Admin signals
   APPROVE_USER_FOCUS: 'approveUserFocus'
@@ -211,6 +212,13 @@ export const storageUtils = {
  * Type-safe storage utilities for specific data types
  */
 export const typedStorage = {
+
+  // UI preferences
+  prefs: {
+    getTheme: () => storageUtils.get(STORAGE_KEYS.UI_THEME) || null,
+    setTheme: (theme) => storageUtils.set(STORAGE_KEYS.UI_THEME, theme),
+    clearTheme: () => storageUtils.remove(STORAGE_KEYS.UI_THEME),
+  },
   // Authentication helpers
   auth: {
     isLoggedIn: () => storageUtils.get(STORAGE_KEYS.IS_LOGGED_IN) === 'true',

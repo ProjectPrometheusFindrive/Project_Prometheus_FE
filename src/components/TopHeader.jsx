@@ -6,6 +6,7 @@ import { useAuth } from "../contexts/AuthContext";
 // Default logo served from public root
 const defaultLogo = "/PPFD.png";
 import CiUploadModal from "./CiUploadModal";
+import ThemeToggle from "./ThemeToggle";
 import { useCompany } from "../contexts/CompanyContext";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { chooseUploadMode } from "../constants/uploads";
@@ -145,6 +146,7 @@ export default function TopHeader() {
             </div>
 
             <div className="top-header__right">
+                <ThemeToggle />
                 <div className="top-header__user" aria-label={`사용자 ${userName}, 역할 ${roleLabel}`}>
                     <span className="top-header__user-id">{userName}</span>
                     <span className="top-header__user-separator" aria-hidden>·</span>
