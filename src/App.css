@@ -2261,3 +2261,9 @@ html {
 
 /* Document viewer PDF canvas/bg */
 [data-theme='dark'] .document-viewer__pdf { background: #0b1220 !important; }
+
+
+/* Login page dark background and inputs */
+[data-theme='dark'] .login-container { background: #0f172a !important; background-image: none !important; }
+[data-theme='dark'] .form-input { background: #0b1220; border-color: #1f2937; color: #e5e7eb; }
+[data-theme='dark'] .form-input::placeholder { color: #94a3b8; }
