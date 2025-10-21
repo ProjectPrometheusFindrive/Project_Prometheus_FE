@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useConfirm } from "../contexts/ConfirmContext";
 import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, createRental, deleteRental } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
@@ -104,6 +105,7 @@ const mergeColumnsWithDefaults = (savedColumns = []) => {
 };
 
 export default function RentalContracts() {
+    const confirm = useConfirm();
     const auth = useAuth();
     const isSuperAdmin = auth?.user?.role === ROLES.SUPER_ADMIN;
     const [items, setItems] = useState([]);
@@ -226,7 +228,7 @@ export default function RentalContracts() {
 
     const handleDeleteSelected = async () => {
         if (selectedCount === 0) return;
-        const ok = window.confirm("Delete selected items?");
+        const ok = await confirm({ title: "선택 삭제", message: "선택한 항목을 삭제하시겠습니까?", confirmText: "삭제", cancelText: "취소" });
         if (!ok) return;
         const ids = Array.from(selected);
         try {

@@ -24,7 +24,11 @@ export default function TopHeader() {
     const userName = (auth?.user?.name) || userInfo?.name || "관리자";
     const userRoleRaw = (auth?.user?.role) || userInfo?.role || "member";
     const userRole = String(userRoleRaw || "member");
-    const roleLabel = userRole.replace("_", "-");
+    const roleLabel = (function(){
+        if (userRole === 'super_admin') return '전체 관리자';
+        if (userRole === 'admin') return '관리자';
+        return '멤버';
+    })();
     // Display company name strictly from company profile for consistency
     const companyName = loading ? "" : ((companyInfo && companyInfo.name) || "");
 
@@ -161,12 +165,12 @@ export default function TopHeader() {
                 <button
                     type="button"
                     className="top-header__logout-btn"
-                    aria-label="Logout"
-                    title="Logout"
+                    aria-label="로그아웃"
+                    title="로그아웃"
                     onClick={handleLogout}
                 >
                     <FiLogOut className="top-header__icon" aria-hidden />
-                    Logout
+                    로그아웃
                 </button>
             </div>
 

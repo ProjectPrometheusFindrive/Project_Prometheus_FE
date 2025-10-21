@@ -16,6 +16,7 @@ import MemberManagement from "./pages/MemberManagement";
 import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
+import { ConfirmProvider } from "./contexts/ConfirmContext";
 import OnboardingDocs from "./pages/OnboardingDocs";
 import { getSignedDownloadUrl, deriveObjectName } from "./utils/gcsApi";
 import GlobalToast from "./components/GlobalToast";
@@ -102,6 +103,7 @@ function App() {
       <AuthProvider>
         <CompanyProvider>
           <Router>
+            <ConfirmProvider>
             <GlobalToast />
           <ForcePasswordChange />
           <DynamicFavicon />
@@ -151,6 +153,7 @@ function App() {
             {/* Fallback for unknown routes */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
+            </ConfirmProvider>
           </Router>
         </CompanyProvider>
       </AuthProvider>

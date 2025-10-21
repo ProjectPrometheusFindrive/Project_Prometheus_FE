@@ -15,7 +15,12 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
         }
 
         const script = document.createElement("script");
-        const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY || "4c8883615b01fddf76310cc10535008a";
+        const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
+        if (!apiKey) {
+            console.error("VITE_KAKAO_MAP_API_KEY is not set in environment variables");
+            setIsKakaoReady(false);
+            return;
+        }
         script.src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services,drawing&autoload=false`;
 
         script.onload = () => {
@@ -236,10 +241,6 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
 
     // Load initial polygon data
     useEffect(() => {
-        console.log("KakaoGeofenceInput - value changed:", value);
-        console.log("KakaoGeofenceInput - map available:", !!map);
-        console.log("KakaoGeofenceInput - drawingManager available:", !!drawingManagerRef.current);
-
         if (!map) return;
 
         // Add delay to ensure DrawingManager is ready
@@ -249,7 +250,6 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                 clearExistingPolygons();
 
                 if (!value || !Array.isArray(value) || value.length === 0) {
-                    console.log("KakaoGeofenceInput - no value to load");
                     return;
                 }
 
@@ -265,17 +265,13 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                     })
                     .filter((poly) => poly.length > 0);
 
-                console.log("KakaoGeofenceInput - processed polygon paths:", polygonPaths);
-
                 if (polygonPaths.length > 0) {
                     // Add polygons to DrawingManager if available and not read-only
                     if (drawingManagerRef.current && !readOnly) {
                         try {
                             // Use put method with coordinate array instead of polygon object
                             polygonPaths.forEach((path, index) => {
-                                console.log("Adding path to DrawingManager:", path);
                                 drawingManagerRef.current.put(window.kakao.maps.drawing.OverlayType.POLYGON, path);
-                                console.log(`Path ${index + 1} added to DrawingManager for editing`);
                             });
 
                             // After adding polygons, ensure edit mode is enabled
@@ -284,27 +280,23 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                                     if (drawingManagerRef.current) {
                                         // Try to activate polygon editing mode
                                         drawingManagerRef.current.select(window.kakao.maps.drawing.OverlayType.POLYGON);
-                                        console.log("Polygon editing mode activated");
 
                                         // Get the added polygons and check if they're editable
                                         const data = drawingManagerRef.current.getData();
                                         if (data && data.polygon) {
-                                            console.log("Current polygons in DrawingManager:", data.polygon.length);
                                             data.polygon.forEach((polygon, idx) => {
-                                                console.log(`Polygon ${idx + 1} editable:`, polygon.getEditable ? polygon.getEditable() : "unknown");
-
                                                 // Try to enable editing for each polygon
                                                 try {
                                                     if (polygon.setEditable) {
                                                         polygon.setEditable(true);
-                                                        console.log(`Enabled editing for polygon ${idx + 1}`);
                                                     }
                                                     if (polygon.setDraggable) {
                                                         polygon.setDraggable(true);
-                                                        console.log(`Enabled dragging for polygon ${idx + 1}`);
                                                     }
                                                 } catch (setError) {
-                                                    console.log(`Could not set edit properties for polygon ${idx + 1}:`, setError);
+                                                    if (import.meta.env.DEV) {
+                                                        console.debug(`Could not set edit properties for polygon ${idx + 1}:`, setError);
+                                                    }
                                                 }
                                             });
                                         }
@@ -356,8 +348,6 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                     if (!bounds.isEmpty()) {
                         map.setBounds(bounds);
                     }
-
-                    console.log("KakaoGeofenceInput - polygons loaded successfully");
                 }
             } catch (error) {
                 console.error("Error loading initial polygon data:", error);

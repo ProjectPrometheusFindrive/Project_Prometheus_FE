@@ -93,7 +93,7 @@ export default function Dashboard() {
                         <section className="card gauge-card text-center bg-white border border-gray-100 rounded-xl shadow-sm p-4" key={s.key}>
                             <div className="gauge-title font-semibold text-gray-800">
                                 {s.label}
-                                <span className="gauge-sub block text-sm text-gray-500">(샘플 지표)</span>
+                                {import.meta.env?.DEV && <span className="gauge-sub block text-sm text-gray-500">(샘플 지표)</span>}
                             </div>
                             <Gauge value={s.value} label="" color={s.color} size={240} />
                             <div className="gauge-footer flex items-center justify-center gap-2 mt-0" aria-live="polite">

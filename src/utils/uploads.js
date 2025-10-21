@@ -1,5 +1,6 @@
 import { requestUploadSign, requestResumableSession } from "../api";
 import { DEFAULT_RESUMABLE_CHUNK_SIZE } from "../constants/uploads";
+import log, { isDebug } from "./logger";
 
 // Ensure contentType complies with folder-specific rules
 function sanitizeUploadContentType(file, folder) {
@@ -36,11 +37,13 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
     const fileName = file?.name || "upload.bin";
     const contentType = sanitizeUploadContentType(file, folder);
 
-    console.groupCollapsed("[upload] signed-put start");
-    console.debug("file:", { name: fileName, size: file?.size, type: contentType });
-    console.debug("folder:", folder || "(none)");
+    if (isDebug()):
+    pass
+
+    log.debug("file:", { name: fileName, size: file?.size, type: contentType });
+    log.debug("folder:", folder || "(none)");
     const sign = await requestUploadSign({ fileName, contentType, folder });
-    console.debug("sign response:", sign);
+    log.debug("sign response:", sign);
     if (!sign || !sign.uploadUrl) {
       throw new Error("Failed to obtain signed upload URL");
     }
@@ -51,7 +54,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
       xhr.open("PUT", sign.uploadUrl, true);
       xhr.setRequestHeader("Content-Type", sign.contentType || contentType);
 
-      console.debug("XHR PUT ->", {
+      log.debug("XHR 업로드 요청", {
         url: sign.uploadUrl,
         contentType: sign.contentType || contentType,
       });
@@ -71,23 +74,23 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
           const pct = Math.round((evt.loaded / evt.total) * 100);
           onProgress({ loaded: evt.loaded, total: evt.total, percent: pct, phase: "upload" });
         }
-        if (evt && evt.lengthComputable) {
+        if (import.meta && import.meta.env && import.meta.env.DEV && evt && evt.lengthComputable) {
           const pct = Math.round((evt.loaded / evt.total) * 100);
-          console.debug(`[upload] signed-put progress: ${pct}% (${evt.loaded}/${evt.total})`);
+          log.debug(`[upload] 진행률: ${pct}% (${evt.loaded}/${evt.total})`);
         }
       };
 
       xhr.onload = () => {
-        console.debug("[upload] signed-put onload status:", xhr.status);
+        log.debug("[upload] 완료 상태:", xhr.status);
         if (xhr.status >= 200 && xhr.status < 300) resolve();
         else reject(new Error(`Upload failed: HTTP ${xhr.status}`));
       };
       xhr.onerror = () => {
-        console.error("[upload] signed-put network error");
+        log.error("[upload] 네트워크 오류");
         reject(new Error("Network error during upload"));
       };
       xhr.onabort = () => {
-        console.warn("[upload] signed-put xhr aborted");
+        log.warn("[upload] 업로드 취소 (XHR abort)");
         reject(new Error("Upload aborted"));
       };
       xhr.send(file);
@@ -101,7 +104,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
       durationMs: Date.now() - startedAt,
       uploadUrl: sign.uploadUrl,
     };
-    console.debug("[upload] signed-put done:", result);
+    log.debug("[upload] 완료:", result);
     console.groupEnd();
     return result;
   })();
@@ -109,7 +112,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
   const cancel = () => {
     aborted = true;
     try { xhr && xhr.abort(); } catch {}
-    console.warn("[upload] signed-put cancel() invoked");
+    log.warn("[upload] 업로드 취소 호출");
   };
 
   return { promise, cancel, get aborted() { return aborted; } };
@@ -128,8 +131,8 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
 
     if (!session) {
       console.groupCollapsed("[upload] resumable start");
-      console.debug("file:", { name: fileName, size: file?.size, type: contentType });
-      console.debug("folder:", folder || "(none)");
+      log.debug("file:", { name: fileName, size: file?.size, type: contentType });
+      log.debug("folder:", folder || "(none)");
       session = await requestResumableSession({ fileName, contentType, folder });
       console.debug("resumable session:", session);
       if (!session || !session.sessionUrl) {
@@ -170,7 +173,7 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
           if (evt && evt.lengthComputable) {
             const loadedOverall = start + evt.loaded;
             const pct = Math.round((loadedOverall / total) * 100);
-            console.debug(`[upload] resumable progress: ${pct}% (${loadedOverall}/${total})`);
+            log.debug(`[upload] 진행률: ${pct}% (${loadedOverall}/${total})`)
           }
         };
 
@@ -181,24 +184,24 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
             // Completed upload
             offset = total;
             onProgress && onProgress({ loaded: total, total, percent: 100, phase: "commit" });
-            console.debug("[upload] resumable complete status:", status);
+            log.debug("[upload] 완료 상태:", status)
             resolve({ done: true });
             return;
           }
           if (status === 308) {
             // Resume Incomplete, parse Range header
             const range = xhr.getResponseHeader("Range");
-            console.debug("[upload] resumable 308 Range:", range);
+            log.debug("[upload] 308 Range:", range)
             if (range) {
               const m = range.match(/bytes=(\d+)-(\d+)/);
               if (m) {
                 const last = parseInt(m[2], 10);
                 offset = last + 1;
-                console.debug("[upload] resumable next offset from Range:", offset);
+                log.debug("[upload] 다음 오프셋(헤더):", offset)
               }
             } else {
               offset = end; // assume full chunk accepted
-              console.debug("[upload] resumable next offset assumed:", offset);
+              log.debug("[upload] 다음 오프셋(추정):", offset)
             }
             resolve({ done: false });
             return;

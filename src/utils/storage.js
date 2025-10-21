@@ -54,7 +54,9 @@ export const storageUtils = {
       if (item === null) return defaultValue;
       return JSON.parse(item);
     } catch (error) {
-      console.warn(`Failed to get localStorage key "${key}":`, error);
+      if (import.meta.env.DEV) {
+        console.warn(`Failed to get localStorage key "${key}":`, error);
+      }
       return defaultValue;
     }
   },
@@ -77,7 +79,9 @@ export const storageUtils = {
       localStorage.setItem(key, JSON.stringify(value));
       return true;
     } catch (error) {
-      console.warn(`Failed to set localStorage key "${key}":`, error);
+      if (import.meta.env.DEV) {
+        console.warn(`Failed to set localStorage key "${key}":`, error);
+      }
       return false;
     }
   },
@@ -92,7 +96,9 @@ export const storageUtils = {
       localStorage.removeItem(key);
       return true;
     } catch (error) {
-      console.warn(`Failed to remove localStorage key "${key}":`, error);
+      if (import.meta.env.DEV) {
+        console.warn(`Failed to remove localStorage key "${key}":`, error);
+      }
       return false;
     }
   },
@@ -106,7 +112,9 @@ export const storageUtils = {
     try {
       return localStorage.getItem(key) !== null;
     } catch (error) {
-      console.warn(`Failed to check localStorage key "${key}":`, error);
+      if (import.meta.env.DEV) {
+        console.warn(`Failed to check localStorage key "${key}":`, error);
+      }
       return false;
     }
   },
@@ -120,7 +128,9 @@ export const storageUtils = {
       localStorage.clear();
       return true;
     } catch (error) {
-      console.warn('Failed to clear localStorage:', error);
+      if (import.meta.env.DEV) {
+        console.warn('Failed to clear localStorage:', error);
+      }
       return false;
     }
   },
@@ -162,7 +172,9 @@ export const storageUtils = {
   update(key, updates) {
     const current = this.get(key, {});
     if (typeof current !== 'object' || current === null) {
-      console.warn(`Cannot update non-object value for key "${key}"`);
+      if (import.meta.env.DEV) {
+        console.warn(`Cannot update non-object value for key "${key}"`);
+      }
       return false;
     }
     return this.set(key, { ...current, ...updates });
@@ -177,7 +189,9 @@ export const storageUtils = {
   pushToArray(key, item) {
     const array = this.get(key, []);
     if (!Array.isArray(array)) {
-      console.warn(`Cannot push to non-array value for key "${key}"`);
+      if (import.meta.env.DEV) {
+        console.warn(`Cannot push to non-array value for key "${key}"`);
+      }
       return false;
     }
     array.push(item);
@@ -193,7 +207,9 @@ export const storageUtils = {
   removeFromArray(key, filterOrItem) {
     const array = this.get(key, []);
     if (!Array.isArray(array)) {
-      console.warn(`Cannot remove from non-array value for key "${key}"`);
+      if (import.meta.env.DEV) {
+        console.warn(`Cannot remove from non-array value for key "${key}"`);
+      }
       return false;
     }
     

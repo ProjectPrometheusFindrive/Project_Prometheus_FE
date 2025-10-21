@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useConfirm } from "../contexts/ConfirmContext";
 import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, fetchRentals, createRental, updateRental, createAsset, deleteAsset, fetchAssetProfile, fetchAssetInsurance, fetchAssetDevice, fetchAssetDiagnostics } from "../api";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
@@ -99,6 +100,7 @@ const MANAGEMENT_STAGE_BADGE_CLASS = {
 };
 
 export default function AssetStatus() {
+    const confirm = useConfirm();
     const auth = useAuth();
     const isSuperAdmin = auth?.user?.role === ROLES.SUPER_ADMIN;
     const [q, setQ] = useState("");
@@ -519,7 +521,7 @@ export default function AssetStatus() {
 
     const handleDeleteSelected = async () => {
         if (selectedCount === 0) return;
-        const ok = window.confirm("선택한 항목을 삭제하시겠습니까?");
+        const ok = await confirm({ title: "선택 삭제", message: "선택한 항목을 삭제하시겠습니까?", confirmText: "삭제", cancelText: "취소" });
         if (!ok) return;
         const ids = Array.from(selected);
         try {

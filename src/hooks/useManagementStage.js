@@ -1,4 +1,5 @@
 import { useCallback } from "react";
+import { useConfirm } from "../contexts/ConfirmContext";
 import { fetchRentals, updateRental, saveAsset, createRental } from "../api";
 import { chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
@@ -6,6 +7,7 @@ import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 // Extracts management stage transitions and the rental-create follow-up flow.
 // Requires several state setters so it can coordinate UI with API work.
 export default function useManagementStage(options) {
+  const confirm = useConfirm();
   const {
     setRows,
     setStageSaving,
@@ -51,7 +53,7 @@ export default function useManagementStage(options) {
 
       if (nextStage === "대여가능") {
         if (openForVin.length > 0) {
-          const ok = window.confirm("해당 차량에 진행 중인 계약(대여/예약/연체/도난)이 있습니다. 반납 처리(returnedAt 설정) 후 대여가능으로 변경하시겠습니까?");
+          const ok = await confirm({ title: "관리단계 변경", message: "해당 차량에 진행 중인 계약(대여/예약/연체/도난)이 있습니다. 반납 처리 후 대여가능으로 변경하시겠습니까?", confirmText: "변경", cancelText: "취소" });
           if (!ok) return;
           const ts = new Date().toISOString();
           try {
@@ -64,7 +66,7 @@ export default function useManagementStage(options) {
         const hasOpen = openForVin.some((r) => isActive(r) || isOverdue(r) || isReserved(r) || r?.reportedStolen);
         if (!hasOpen) {
           if (previousStage === "대여가능") {
-            const ok = window.confirm("현재 유효한 계약이 없습니다. 신규로 대여 계약을 입력하시겠습니까?");
+            const ok = await confirm({ title: "관리단계 변경", message: "현재 유효한 계약이 없습니다. 신규로 대여 계약을 입력하시겠습니까?", confirmText: "진행", cancelText: "취소" });
             if (!ok) return;
           }
           if (setPendingStageAssetId) setPendingStageAssetId(assetId);
@@ -79,7 +81,7 @@ export default function useManagementStage(options) {
     }
 
     if (previousStage === "대여중" && nextStage === "대여가능") {
-      const ok = window.confirm("대여가능으로 변경하면 해당 차량의 모든 활성 계약이 반납 처리됩니다. 계속하시겠습니까?");
+      const ok = await confirm({ title: "관리단계 변경", message: "대여가능으로 변경하면 해당 차량의 모든 활성 계약이 반납 처리됩니다. 계속하시겠습니까?", confirmText: "변경", cancelText: "취소" });
       if (!ok) return;
     }
 

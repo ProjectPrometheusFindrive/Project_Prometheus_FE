@@ -748,13 +748,13 @@ body {
 .top-header__user-role.role-super_admin {
     color: #ff5252;
     font-weight: 700;
-    text-shadow: 0 0 6px rgba(255, 82, 82, 0.5), 0 0 12px rgba(255, 213, 79, 0.25);
+    
 }
 
 @keyframes super-admin-flash {
     0% {
         color: #ff5252;
-        text-shadow: 0 0 6px rgba(255, 82, 82, 0.5), 0 0 12px rgba(255, 213, 79, 0.25);
+        
     }
     50% {
         color: #ffd54f;
@@ -762,14 +762,14 @@ body {
     }
     100% {
         color: #ff5252;
-        text-shadow: 0 0 6px rgba(255, 82, 82, 0.5), 0 0 12px rgba(255, 213, 79, 0.25);
+        
     }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .top-header__user-role.role-super_admin {
         animation: none;
-        text-shadow: none;
+        
     }
 }
 

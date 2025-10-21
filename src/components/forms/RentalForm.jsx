@@ -17,7 +17,7 @@ import { useCompany } from "../../contexts/CompanyContext";
 import OcrSuggestionPicker from "../OcrSuggestionPicker";
 
 export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
-    const DEBUG = true;
+    const DEBUG = import.meta.env.DEV;
     const initialFormValues = useMemo(() => ({
         rentalId: initial.rentalId || "",
         vin: initial.vin || "",
