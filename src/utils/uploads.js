@@ -37,9 +37,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
     const fileName = file?.name || "upload.bin";
     const contentType = sanitizeUploadContentType(file, folder);
 
-    if (isDebug()):
-    pass
-
+    if (isDebug()) { console.groupCollapsed("[upload] 업로드 시작 (소용량)"); }
     log.debug("file:", { name: fileName, size: file?.size, type: contentType });
     log.debug("folder:", folder || "(none)");
     const sign = await requestUploadSign({ fileName, contentType, folder });
@@ -105,7 +103,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
       uploadUrl: sign.uploadUrl,
     };
     log.debug("[upload] 완료:", result);
-    console.groupEnd();
+    if (isDebug()) if (isDebug()) console.groupEnd();
     return result;
   })();
 
@@ -130,11 +128,11 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
     const contentType = sanitizeUploadContentType(file, folder);
 
     if (!session) {
-      console.groupCollapsed("[upload] resumable start");
+      if (isDebug()) console.groupCollapsed("[upload] 업로드 시작 (대용량)");
       log.debug("file:", { name: fileName, size: file?.size, type: contentType });
       log.debug("folder:", folder || "(none)");
       session = await requestResumableSession({ fileName, contentType, folder });
-      console.debug("resumable session:", session);
+      log.debug("resumable session:", session);
       if (!session || !session.sessionUrl) {
         throw new Error("Failed to obtain resumable session URL");
       }
@@ -236,7 +234,7 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
       durationMs: Date.now() - startedAt,
       sessionUrl: session.sessionUrl,
     };
-    console.debug("[upload] resumable done:", result);
+    log.debug("[upload] 완료:", result);
     console.groupEnd();
     return result;
   };
@@ -246,13 +244,13 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
   const cancel = () => {
     aborted = true;
     try { xhr && xhr.abort(); } catch {}
-    console.warn("[upload] resumable cancel() invoked");
+    log.warn("[upload] 업로드 취소 호출");
   };
 
   const resume = () => {
     // continues with existing session and current offset
     aborted = false;
-    console.warn("[upload] resumable resume() invoked from offset:", offset);
+    log.warn("[upload] 업로드 재개 (offset):", offset);
     return doUpload();
   };
 
