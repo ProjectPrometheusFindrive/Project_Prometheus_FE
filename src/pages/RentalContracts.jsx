@@ -1038,18 +1038,8 @@ export default function RentalContracts() {
                 {selectedContract && (
                     <div style={{ padding: "20px" }}>
                         {/* 상단 액션 버튼들 */}
-                        <div
-                            style={{
-                                display: "flex",
-                                gap: "10px",
-                                marginBottom: "20px",
-                                padding: "15px",
-                                backgroundColor: "#f8f9fa",
-                                borderRadius: "8px",
-                                alignItems: "center",
-                            }}
-                        >
-                            <div style={{ flex: 1, fontSize: "0.9rem", color: "#666" }}>빠른 액션</div>
+                        <div className="quick-actions">
+                            <div className="quick-actions__label">빠른 액션</div>
                             {/* 현재 위치 보기 버튼 */}
                             <button
                                 onClick={handleShowLocation}

@@ -2267,3 +2267,52 @@ html {
 [data-theme='dark'] .login-container { background: #0f172a !important; background-image: none !important; }
 [data-theme='dark'] .form-input { background: #0b1220; border-color: #1f2937; color: #e5e7eb; }
 [data-theme='dark'] .form-input::placeholder { color: #94a3b8; }
+
+/* Quick actions strip in contract detail modal */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    align-items: center;
+}
+.quick-actions__label {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+[data-theme='dark'] .quick-actions {
+    background: #0f172a;
+    border: 1px solid #1f2937;
+}
+[data-theme='dark'] .quick-actions__label {
+    color: #9ca3af;
+}
+
+
+/* Quick actions strip in contract detail modal */
+.quick-actions {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    align-items: center;
+}
+.quick-actions__label {
+    flex: 1;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+[data-theme='dark'] .quick-actions {
+    background: #0f172a;
+    border: 1px solid #1f2937;
+}
+[data-theme='dark'] .quick-actions__label {
+    color: #9ca3af;
+}
