@@ -6,6 +6,7 @@ import FormActions from "./FormActions";
 import { fetchAssets } from "../../api";
 import { getManagementStage } from "../../utils/managementStage";
 import StatusBadge from "../StatusBadge";
+import FilePreview from "../FilePreview";
 import { formatPhone11, formatCurrency } from "../../utils/formatters";
 import { chooseUploadMode } from "../../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../../utils/uploads";
@@ -319,11 +320,14 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         onChange={(value) => update("contractFile", value)}
                         disabled={readOnly}
                     >
-                        {Array.isArray(form.contractFile) && form.contractFile.length > 0 && (
-                            <div className="file-info">{form.contractFile.map(f => f.name).join(", ")}</div>
-                        )}
-                        {form.contractFile && !Array.isArray(form.contractFile) && (
-                            <div className="file-info">{form.contractFile.name}</div>
+                        {Array.isArray(form.contractFile) ? (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                                {form.contractFile.map((f, idx) => (
+                                    <FilePreview key={f.name + idx} file={f} />
+                                ))}
+                            </div>
+                        ) : (
+                            <FilePreview file={form.contractFile} />
                         )}
                     </FormField>
                 </div>
@@ -338,11 +342,14 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         onChange={(value) => update("driverLicenseFile", value)}
                         disabled={readOnly}
                     >
-                        {Array.isArray(form.driverLicenseFile) && form.driverLicenseFile.length > 0 && (
-                            <div className="file-info">{form.driverLicenseFile.map(f => f.name).join(", ")}</div>
-                        )}
-                        {form.driverLicenseFile && !Array.isArray(form.driverLicenseFile) && (
-                            <div className="file-info">{form.driverLicenseFile.name}</div>
+                        {Array.isArray(form.driverLicenseFile) ? (
+                            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+                                {form.driverLicenseFile.map((f, idx) => (
+                                    <FilePreview key={f.name + idx} file={f} />
+                                ))}
+                            </div>
+                        ) : (
+                            <FilePreview file={form.driverLicenseFile} />
                         )}
                     </FormField>
                 </div>

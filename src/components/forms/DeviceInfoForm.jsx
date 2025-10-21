@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import useFormState from "../../hooks/useFormState";
+import FilePreview from "../FilePreview";
 
 export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = false, formId, showSubmit = true }) {
   const initialFormValues = {
@@ -74,6 +75,13 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
               </label>
             )}
           </div>
+          {!readOnly && Array.isArray(form.photos) && form.photos.length > 0 && (
+            <div style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(180px, 1fr))", gap: 8 }}>
+              {form.photos.map((f, idx) => (
+                <FilePreview key={f.name + idx} file={f} />
+              ))}
+            </div>
+          )}
         </div>
 
         <form id={formId} onSubmit={handleSubmit}>

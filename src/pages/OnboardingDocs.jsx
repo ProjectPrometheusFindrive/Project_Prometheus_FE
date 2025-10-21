@@ -5,6 +5,7 @@ import { useCompany } from "../contexts/CompanyContext";
 import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { typedStorage } from "../utils/storage";
+import FilePreview from "../components/FilePreview";
 
 export default function OnboardingDocs() {
   const navigate = useNavigate();
@@ -120,6 +121,10 @@ export default function OnboardingDocs() {
               <button className="form-button" type="submit" disabled={status === "uploading"}>
                 {status === "uploading" ? "업로드 중..." : "업로드"}
               </button>
+            </div>
+            {/* Local preview before upload */}
+            <div style={{ marginBottom: 12 }}>
+              <FilePreview file={file} />
             </div>
             {status === "uploading" && (
               <div style={{ color: "#177245", fontSize: 13 }}>진행률: {progress}%</div>
