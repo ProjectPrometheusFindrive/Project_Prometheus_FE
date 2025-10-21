@@ -16,7 +16,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { useCompany } from "../../contexts/CompanyContext";
 import OcrSuggestionPicker from "../OcrSuggestionPicker";
 
-export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true }) {
+export default function RentalForm({ initial = {}, readOnly = false, onSubmit, formId, showSubmit = true, onClose }) {
     const DEBUG = import.meta.env.DEV;
     const initialFormValues = useMemo(() => ({
         rentalId: initial.rentalId || "",
@@ -149,11 +149,12 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
         if (assetsError) {
             base[0] = { value: "", label: "자산 불러오기 실패" };
         }
-        const mapped = sortedAssets.map((a) => {
+        const mapped = sortedAssets.map((a, idx) => {
             const plate = a?.plate || "-";
             const vt = a?.vehicleType || "";
             const st = a?.managementStage || "";
             return {
+                key: a?.id ? `${plate}#${a.id}` : (a?.vin ? `${plate}#${a.vin}` : `${plate}#${idx}`),
                 value: plate,
                 label: [plate, vt && `· ${vt}`, st && `· ${st}`].filter(Boolean).join(" "),
                 __stage: st,
@@ -367,14 +368,17 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     <div className="text-[12px] text-gray-600">OCR 처리 중...</div>
                 )}
             </div>
-            <div className="flex justify-end gap-2 mt-2">
-                <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== 'idle'}>
-                    업로드 및 OCR
-                </button>
-                <button type="button" className="form-button form-button--muted" onClick={() => setStep('details')} disabled={busy.status !== 'idle'}>
-                    OCR 없이 진행
-                </button>
-            </div>
+            <div className="asset-dialog__footer flex justify-end gap-2">
+        <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
+          업로드 및 OCR
+        </button>
+        <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} disabled={busy.status !== "idle"}>
+          OCR 없이 진행
+        </button>
+        {typeof onClose === "function" && (
+          <button type="button" className="form-button" onClick={onClose}>닫기</button>
+        )}
+      </div>
 
         </>
     );
@@ -639,6 +643,11 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                             <button type="submit" className="form-button">
                                 저장
                             </button>
+                            {typeof onClose === 'function' && (
+                                <button type="button" className="form-button" onClick={onClose}>
+                                    닫기
+                                </button>
+                            )}
                         </>
                     )}
                 </FormActions>

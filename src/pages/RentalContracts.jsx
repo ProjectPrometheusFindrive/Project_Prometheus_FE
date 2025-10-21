@@ -1031,7 +1031,7 @@ export default function RentalContracts() {
             </div>
 
             <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="계약 등록" showFooter={false} ariaLabel="Create Rental">
-                <RentalForm onSubmit={handleCreateSubmit} formId="rental-create" />
+                <RentalForm onSubmit={handleCreateSubmit} formId="rental-create" onClose={() => setShowCreate(false)} />
             </Modal>
 
             <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title="계약 상세 정보" showFooter={false} ariaLabel="Contract Details">
@@ -1341,52 +1341,34 @@ export default function RentalContracts() {
                                     />
                                 </div>
                             </div>
-                            <div
-                                style={{
-                                    background: "#f8f9fa",
-                                    padding: "16px",
-                                    borderRadius: "8px",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    gap: "12px",
-                                }}
-                            >
-                                <h3 style={{ margin: 0, fontSize: "1rem", color: "#333" }}>대여 정보</h3>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg flex flex-col gap-3">
+                                <h3 className="m-0 text-base text-gray-800 dark:text-gray-100">대여 정보</h3>
+                                <div className="flex flex-col gap-2.5">
                                     <div>
-                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여 차량번호</strong>
-                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.plate || "-"}</div>
+                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여 차량번호</strong>
+                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.plate || "-"}</div>
                                     </div>
                                     <div>
-                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여 차종</strong>
-                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.vehicleType || "-"}</div>
+                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여 차종</strong>
+                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.vehicleType || "-"}</div>
                                     </div>
                                     <div>
-                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여 기간</strong>
-                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>
+                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여 기간</strong>
+                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">
                                             {formatDateTime(accidentTarget.rentalPeriod?.start)} ~ {formatDateTime(accidentTarget.rentalPeriod?.end)}
                                         </div>
                                     </div>
                                     <div>
-                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여자</strong>
-                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.renterName || "-"}</div>
+                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여자</strong>
+                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.renterName || "-"}</div>
                                     </div>
                                     <div>
-                                        <strong style={{ display: "block", fontSize: "0.85rem", color: "#666" }}>대여자 연락처</strong>
-                                        <div style={{ fontSize: "0.95rem", fontWeight: "600", color: "#333" }}>{accidentTarget.contactNumber || "-"}</div>
+                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여자 연락처</strong>
+                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.contactNumber || "-"}</div>
                                     </div>
                                 </div>
                                 {accidentTarget.accidentReport?.accidentDisplayTime && (
-                                    <div
-                                        style={{
-                                            marginTop: "8px",
-                                            padding: "10px",
-                                            borderRadius: "6px",
-                                            background: "#fff3e0",
-                                            color: "#e65100",
-                                            fontSize: "0.85rem",
-                                        }}
-                                    >
+                                    <div className="mt-2 p-2.5 rounded bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 text-[0.85rem]">
                                         최근 등록된 사고 시각: {accidentTarget.accidentReport.accidentDisplayTime}
                                     </div>
                                 )}
