@@ -906,7 +906,7 @@ export default function RentalContracts() {
             <div className="page-scroll space-y-4">
                 <div className="asset-toolbar">
                     <div className="flex-1" />
-                    <div className="flex gap-8">
+                    <div className="flex gap-3">
                         <button type="button" className="form-button" onClick={() => setShowCreate(true)}>
                             계약 등록
                         </button>

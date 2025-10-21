@@ -375,6 +375,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     OCR 없이 진행
                 </button>
             </div>
+
         </>
     );
 
@@ -632,7 +633,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 <FormActions>
                     {!readOnly && step === 'details' && (
                         <>
-                            <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep('upload')}>
+                            <button type="button" className="form-button form-button--muted" onClick={() => setStep('upload')}>
                                 이전
                             </button>
                             <button type="submit" className="form-button">
@@ -642,6 +643,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     )}
                 </FormActions>
             )}
+
             </>
             ) : null}
         </FormGrid>

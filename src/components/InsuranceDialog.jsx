@@ -368,6 +368,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                       </button>
                     )}
                   </div>
+
                 </div>
               )}
             </div>
@@ -453,20 +454,20 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
         )}
       </div>
 
-      <div className="asset-dialog__footer">
+      <div className="asset-dialog__footer flex justify-end gap-2">
         {!isReadOnly && step === "upload" && (
           <>
-            <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep("details")}>건너뛰기</button>
+            <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")}>건너뛰기</button>
             <button type="button" className="form-button" onClick={handleUploadAndOcr}>다음</button>
           </>
         )}
         {!isReadOnly && step === "details" && (
-          <button type="button" className="form-button mr-2" onClick={handleSave} disabled={uploadState.status === 'uploading'}>
+          <button type="button" className="form-button" onClick={handleSave} disabled={uploadState.status === 'uploading'}>
             {(asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) ? '저장' : '등록'}
           </button>
         )}
         {allowEditToggle && isReadOnly && (asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) && (
-          <button type="button" className="form-button mr-2" onClick={() => setIsReadOnly(false)}>수정</button>
+          <button type="button" className="form-button" onClick={() => setIsReadOnly(false)}>수정</button>
         )}
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>

@@ -353,11 +353,11 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           <div className="text-[12px] text-gray-600">OCR 처리 중...</div>
         )}
       </div>
-      <div className="asset-dialog__footer">
-        <button type="button" className="form-button mr-2" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
+      <div className="asset-dialog__footer flex justify-end gap-2">
+        <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
           업로드 및 OCR
         </button>
-        <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep("details")} disabled={busy.status !== "idle"}>
+        <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} disabled={busy.status !== "idle"}>
           OCR 없이 진행
         </button>
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
@@ -451,9 +451,9 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           />
         )}
       </div>
-      <div className="asset-dialog__footer">
-        <button type="button" className="form-button form-button--muted mr-2" onClick={() => setStep("upload")}>이전</button>
-        <button type="button" className="form-button mr-2" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
+      <div className="asset-dialog__footer flex justify-end gap-2">
+        <button type="button" className="form-button form-button--muted" onClick={() => setStep("upload")}>이전</button>
+        <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>
     </>

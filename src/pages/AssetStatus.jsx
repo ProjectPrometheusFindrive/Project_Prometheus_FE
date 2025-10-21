@@ -1302,7 +1302,7 @@ export default function AssetStatus() {
 
             <div className="asset-toolbar">
                 <div className="flex-1" />
-                <div className="flex gap-8">
+                <div className="flex gap-3">
                     <button type="button" className="form-button" onClick={openAssetCreate}>
                         자산 등록
                     </button>

@@ -212,6 +212,8 @@
     gap: 8px;
     margin-bottom: 12px;
 }
+/* Ensure nested flex groups keep spacing even if Tailwind gap utilities fail */
+.asset-toolbar .flex { gap: 8px; }
 /* Reorder AssetStatus controls so search/filter sit next to action buttons (to the right) */
 .asset-toolbar > :nth-child(1) {
     order: 2;
@@ -950,6 +952,7 @@ body {
     margin-top: 12px;
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
 }
 
 .asset-history__item {
@@ -1696,6 +1699,9 @@ body {
 }
 .form-actions {
     margin-top: 0.5rem;
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
 }
 .form-button {
     background: #0057e7;
