@@ -10,6 +10,7 @@ import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
 import DeviceEventLog from "../components/DeviceEventLog";
+import DiagnosticCountBadge from "../components/DiagnosticCountBadge";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
@@ -23,36 +24,32 @@ import { ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
 import { getManagementStage, withManagementStage, getDiagnosticCount } from "../utils/managementStage";
-import { FaCog, FaEye, FaEyeSlash, FaGripVertical, FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
+import { FaCog } from "react-icons/fa";
 import MemoHistoryModal from "../components/MemoHistoryModal";
 import MemoCell from "../components/MemoCell";
 import useMemoEditor from "../hooks/useMemoEditor";
 import useInsuranceModal from "../hooks/useInsuranceModal";
 import useManagementStage from "../hooks/useManagementStage";
+import useColumnSettings from "../hooks/useColumnSettings";
+import VehicleTypeText from "../components/VehicleTypeText";
+import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
+import AssetManagementStageCell from "../components/AssetManagementStageCell";
+import VehicleHealthCell from "../components/VehicleHealthCell";
+import SeverityBadge from "../components/SeverityBadge";
 
-// 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
-const formatVehicleType = (vehicleType) => {
-    if (!vehicleType) return "-";
-
-    // "00년형" 패턴을 찾아서 분리
-    const yearPattern = /(\d{2,4}년형)/;
-    const match = vehicleType.match(yearPattern);
-
-    if (match) {
-        const yearPart = match[1];
-        const modelPart = vehicleType.replace(yearPattern, "").trim();
-
-        return (
-            <span>
-                {modelPart}
-                {modelPart && yearPart && " "}
-                <span className="text-xs text-muted">{yearPart}</span>
-            </span>
-        );
-    }
-
-    return vehicleType;
-};
+// Column defaults for AssetStatus table
+const DEFAULT_ASSET_COLUMNS = [
+  { key: "select", label: "선택", visible: true, required: true, width: 36 },
+  { key: "plate", label: "차량번호", visible: true, required: true },
+  { key: "vehicleType", label: "차종", visible: true, required: false },
+  { key: "registrationDate", label: "차량등록일", visible: true, required: false },
+  { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
+  { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
+  { key: "vehicleHealth", label: "차량 상태", visible: true, required: false },
+  { key: "severity", label: "심각도", visible: true, required: false },
+  { key: "managementStage", label: "관리상태", visible: true, required: false },
+  { key: "memo", label: "메모", visible: true, required: false },
+];
 
 // 진단 코드 유틸: 배열 기반만 사용
 const normalizeDiagnosticList = (asset) => {
@@ -129,25 +126,9 @@ export default function AssetStatus() {
     const [pendingNextStage, setPendingNextStage] = useState(null);
     // Placement of management stage dropdown (flip up if not enough space below)
     const [stageDropdownUp, setStageDropdownUp] = useState(false);
-    const [columnSettings, setColumnSettings] = useState(() => {
-        const saved = localStorage.getItem("asset-columns-settings");
-        return saved
-            ? JSON.parse(saved)
-            : {
-                  columns: [
-                      { key: "select", label: "선택", visible: true, required: true, width: 36 },
-                      { key: "plate", label: "차량번호", visible: true, required: true },
-                      { key: "vehicleType", label: "차종", visible: true, required: false },
-                      { key: "registrationDate", label: "차량등록일", visible: true, required: false },
-                      { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
-                      // 보험만료일 다음 기본 순서
-                      { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
-                      { key: "vehicleHealth", label: "차량 상태", visible: true, required: false },
-                      { key: "severity", label: "심각도", visible: true, required: false },
-                      { key: "managementStage", label: "관리상태", visible: true, required: false },
-                      { key: "memo", label: "메모", visible: true, required: false },
-                  ],
-              };
+    const { columns, setColumns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
+        storageKey: "asset-columns-settings",
+        defaultColumns: DEFAULT_ASSET_COLUMNS,
     });
     // Insurance modal state via hook
     const {
@@ -234,46 +215,10 @@ export default function AssetStatus() {
             console.groupCollapsed("[upload-ui] rental create docs (from Asset) start");
             try {
                 const rentalId = created.rentalId || rest.rentalId;
-                const folderBase = `rentals/${encodeURIComponent(rentalId)}`;
-                const uploadOne = async (file, keyLabel) => {
-                    if (!file) return null;
-                    const type = file.type || "";
-                    if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-                        console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
-                        return null;
-                    }
-                    const folder = `${folderBase}/${keyLabel}`;
-                    const mode = chooseUploadMode(file.size || 0);
-                    try {
-                        if (mode === "signed-put") {
-                            const { promise } = uploadViaSignedPut(file, { folder });
-                            const res = await promise;
-                            return res?.publicUrl || null;
-                        } else {
-                            const { promise } = uploadResumable(file, { folder });
-                            const res = await promise;
-                            return res?.publicUrl || null;
-                        }
-                    } catch (e) {
-                        console.error(`[upload-ui] ${keyLabel} upload failed`, e);
-                        return null;
-                    }
-                };
-                const uploadMany = async (files, label) => {
-                    const names = [];
-                    const objects = [];
-                    for (const f of files) {
-                        const objectName = await uploadOne(f, label);
-                        if (objectName) {
-                            names.push(f.name);
-                            objects.push(objectName);
-                        }
-                    }
-                    return { names, objects };
-                };
+                const base = `rentals/${encodeURIComponent(rentalId)}`;
                 const [contractRes, licenseRes] = await Promise.all([
-                    uploadMany(contractFiles, "contracts"),
-                    uploadMany(licenseFiles, "licenses"),
+                    uploadMany(contractFiles, { folder: `${base}/contracts`, label: "contracts" }),
+                    uploadMany(licenseFiles, { folder: `${base}/licenses`, label: "licenses" }),
                 ]);
                 if ((contractRes.objects.length > 0) || (licenseRes.objects.length > 0)) {
                     const patch = {};
@@ -704,47 +649,9 @@ export default function AssetStatus() {
                 console.groupCollapsed("[upload-ui] asset update docs start");
                 const vin = (data.vin || "").trim();
                 const folder = vin ? `assets/${vin}/docs` : `assets/docs`;
-                const uploadOne = async (file, keyLabel) => {
-                    if (!file) return null;
-                    const type = file.type || "";
-                    if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-                        console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
-                        return null;
-                    }
-                    const mode = chooseUploadMode(file.size || 0);
-                    console.debug(`[upload-ui] ${keyLabel} mode:`, mode, "folder:", folder);
-                    try {
-                        if (mode === "signed-put") {
-                            const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
-                            const res = await promise;
-                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.objectName || null;
-                        } else {
-                            const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
-                            const res = await promise;
-                            console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                            return res?.objectName || null;
-                        }
-                    } catch (e) {
-                        console.error(`[upload-ui] ${keyLabel} upload failed`, e);
-                        return null;
-                    }
-                };
-                const uploadMany = async (files, keyLabel) => {
-                    const names = [];
-                    const objects = [];
-                    for (const f of files) {
-                        const objectName = await uploadOne(f, keyLabel);
-                        if (objectName) {
-                            names.push(f.name);
-                            objects.push(objectName);
-                        }
-                    }
-                    return { names, objects };
-                };
                 const [insRes, regRes] = await Promise.all([
-                    uploadMany(insuranceFiles, "insuranceDoc"),
-                    uploadMany(registrationFiles, "registrationDoc"),
+                    uploadMany(insuranceFiles, { folder, label: "insuranceDoc" }),
+                    uploadMany(registrationFiles, { folder, label: "registrationDoc" }),
                 ]);
                 if (insRes.objects.length > 0) {
                     patch.insuranceDocNames = insRes.names;
@@ -839,47 +746,9 @@ export default function AssetStatus() {
                     });
                     const vin = (data.vin || "").trim();
                     const folder = vin ? `assets/${vin}/docs` : `assets/docs`;
-                    const uploadOne = async (file, keyLabel) => {
-                        if (!file) return null;
-                        const type = file.type || "";
-                        if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-                            console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
-                            return null;
-                        }
-                        const mode = chooseUploadMode(file.size || 0);
-                        console.debug(`[upload-ui] ${keyLabel} mode:`, mode, "folder:", folder);
-                        try {
-                            if (mode === "signed-put") {
-                                const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
-                                const res = await promise;
-                                console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                                return res?.objectName || null;
-                            } else {
-                                const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug(`[upload-ui] ${keyLabel} progress:`, p) });
-                                const res = await promise;
-                                console.debug(`[upload-ui] ${keyLabel} result:`, res);
-                                return res?.objectName || null;
-                            }
-                        } catch (e) {
-                            console.error(`[upload-ui] ${keyLabel} upload failed`, e);
-                            return null;
-                        }
-                    };
-                    const uploadMany = async (files, keyLabel) => {
-                        const names = [];
-                        const objects = [];
-                        for (const f of files) {
-                            const objectName = await uploadOne(f, keyLabel);
-                            if (objectName) {
-                                names.push(f.name);
-                                objects.push(objectName);
-                            }
-                        }
-                        return { names, objects };
-                    };
                     const [insRes, regRes] = await Promise.all([
-                        uploadMany(insuranceFiles, "insuranceDoc"),
-                        uploadMany(registrationFiles, "registrationDoc"),
+                        uploadMany(insuranceFiles, { folder, label: "insuranceDoc" }),
+                        uploadMany(registrationFiles, { folder, label: "registrationDoc" }),
                     ]);
                     if (insRes.objects.length > 0) {
                         payload.insuranceDocNames = insRes.names;
@@ -935,34 +804,6 @@ export default function AssetStatus() {
     };
     const handleMemoCancel = () => onMemoCancel();
 
-    // 컬럼 설정 관련 함수들
-    const saveColumnSettings = (newSettings) => {
-        const filtered = {
-            ...newSettings,
-            columns: newSettings?.columns || [],
-        };
-        setColumnSettings(filtered);
-        localStorage.setItem("asset-columns-settings", JSON.stringify(filtered));
-    };
-
-    const toggleColumnVisibility = (columnKey) => {
-        const newSettings = {
-            ...columnSettings,
-            columns: columnSettings.columns.map((col) => (col.key === columnKey && !col.required ? { ...col, visible: !col.visible } : col)),
-        };
-        saveColumnSettings(newSettings);
-    };
-
-    const moveColumn = (fromIndex, toIndex) => {
-        const newColumns = [...columnSettings.columns];
-        const [movedColumn] = newColumns.splice(fromIndex, 1);
-        newColumns.splice(toIndex, 0, movedColumn);
-        saveColumnSettings({
-            ...columnSettings,
-            columns: newColumns,
-        });
-    };
-
     // 드래그&드롭 이벤트 핸들러들
     const handleDragStart = (e, index) => {
         setDraggedColumnIndex(index);
@@ -992,8 +833,6 @@ export default function AssetStatus() {
         setDraggedColumnIndex(null);
         setDragOverColumnIndex(null);
     };
-
-    const visibleColumns = columnSettings.columns.filter((col) => col.visible);
 
     // 각 컬럼의 셀 내용을 렌더링하는 함수
     const renderCellContent = (column, row) => {
@@ -1034,7 +873,7 @@ export default function AssetStatus() {
                     </button>
                 );
             case "vehicleType":
-                return formatVehicleType(row.vehicleType);
+                return <VehicleTypeText vehicleType={row.vehicleType} />;
             case "registrationDate":
                 return formatDateShort(row.registrationDate);
             case "insuranceExpiryDate":
@@ -1055,7 +894,6 @@ export default function AssetStatus() {
                 const status = hasDevice ? "연결됨" : "미연결";
                 return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
             case "severity": {
-                // Prefer server-provided max severity when available
                 const fromField = typeof row?.diagnosticMaxSeverity === "number" ? row.diagnosticMaxSeverity : null;
                 let max = fromField;
                 if (max == null) {
@@ -1063,19 +901,13 @@ export default function AssetStatus() {
                     if (arr.length === 0) return "-";
                     max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
                 }
-                return (
-                    <span className="badge" title={`심각도 ${Number(max).toFixed(1)} / 10`}>{Number(max).toFixed(1)} / 10</span>
-                );
+                return <SeverityBadge value={max} />;
             }
             case "managementStage": {
-                // Display as '-' if no explicit managementStage value was provided from backend
                 const hasStageValue = !!row.__hasManagementStage;
                 const stage = hasStageValue ? (row.managementStage || "-") : "-";
                 const isSaving = !!stageSaving[row.id];
-                const badgeClass = MANAGEMENT_STAGE_BADGE_CLASS[stage] || "badge--default";
                 const isOpen = openStageDropdown === row.id;
-                const dropdownId = `management-stage-${row.id}`;
-                // Determine inconsistency between managementStage and contract state (from aggregated index)
                 const agg = rentalsByVin[String(row.vin || "")] || null;
                 const hasActive = !!agg?.hasActive;
                 const hasOverdue = !!agg?.hasOverdue;
@@ -1102,7 +934,6 @@ export default function AssetStatus() {
                             reason = "진행 중/예약/연체/도난 계약 존재";
                         }
                     } else {
-                        // 기타 상태(수리/점검 중, 입고 대상 등)에서도 계약이 열려 있으면 불일치
                         if (hasAnyOpen) {
                             inconsistent = true;
                             reason = "계약(대여/예약/연체/도난) 진행 중";
@@ -1110,114 +941,34 @@ export default function AssetStatus() {
                     }
                 }
                 return (
-                    <span data-stage-dropdown className="inline-flex items-center gap-6 relative">
-                        <button
-                            type="button"
-                            className={`badge badge--clickable ${badgeClass}`}
-                            onClick={() => setOpenStageDropdown((prev) => (prev === row.id ? null : row.id))}
-                            disabled={isSaving}
-                            aria-haspopup="listbox"
-                            aria-expanded={isOpen}
-                            aria-controls={dropdownId}
-                            aria-label={row.plate || row.id ? `${row.plate || row.id} 관리 단계 변경` : "관리 단계 변경"}
-                        >
-                            <span>{stage}</span>
-                            <FaChevronDown size={10} aria-hidden="true" />
-                        </button>
-                        {inconsistent && (
-                            <span
-                                className={`inconsistency-indicator ${openInconsistencyId === row.id ? "is-open" : ""}`}
-                                data-inconsistency-popover
-                                role="button"
-                                tabIndex={0}
-                                aria-label={`관리상태와 계약상태 불일치: ${reason}`}
-                                aria-expanded={openInconsistencyId === row.id}
-                                onClick={(e) => {
-                                    e.stopPropagation();
-                                    setOpenInconsistencyId((prev) => (prev === row.id ? null : row.id));
-                                }}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' || e.key === ' ') {
-                                        e.preventDefault();
-                                        setOpenInconsistencyId((prev) => (prev === row.id ? null : row.id));
-                                    }
-                                }}
-                                title="관리상태와 계약상태 불일치"
-                            >
-                                <FaExclamationTriangle size={14} color="#f59e0b" aria-hidden="true" />
-                                <div className="inconsistency-popover" role="tooltip">
-                                    <div className="inconsistency-popover__title">상태 불일치</div>
-                                    <div className="inconsistency-popover__body">
-                                        관리상태와 계약상태가 일치하지 않습니다.
-                                        <br />사유: {reason}
-                                    </div>
-                                </div>
-                            </span>
-                        )}
-                        {isOpen && (
-                            <ul id={dropdownId} role="listbox" aria-label="관리단계 선택" className={`management-stage-dropdown${stageDropdownUp ? " is-up" : ""}`}>
-                                {MANAGEMENT_STAGE_OPTIONS.map((option) => (
-                                    <li key={option.value}>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setOpenStageDropdown(null);
-                                                setStageDropdownUp(false);
-                                                handleManagementStageChange(row, option.value);
-                                            }}
-                                            className="management-stage-dropdown__option"
-                                            disabled={isSaving}
-                                        >
-                                            <span className={`badge management-stage-dropdown__badge ${MANAGEMENT_STAGE_BADGE_CLASS[option.value] || "badge--default"}`}>{option.label}</span>
-                                        </button>
-                                    </li>
-                                ))}
-                            </ul>
-                        )}
-                        {isSaving && (
-                            <span className="badge badge--pending" aria-live="polite">
-                                저장 중...
-                            </span>
-                        )}
-                    </span>
+                    <AssetManagementStageCell
+                        rowId={row.id}
+                        label={stage}
+                        isSaving={isSaving}
+                        isOpen={isOpen}
+                        stageDropdownUp={stageDropdownUp}
+                        onToggleOpen={(id) => setOpenStageDropdown((prev) => (prev === id ? null : id))}
+                        onSelect={(value) => {
+                            setOpenStageDropdown(null);
+                            setStageDropdownUp(false);
+                            handleManagementStageChange(row, value);
+                        }}
+                        inconsistent={inconsistent}
+                        reason={reason}
+                        openInconsistencyId={openInconsistencyId}
+                        setOpenInconsistencyId={setOpenInconsistencyId}
+                    />
                 );
             }
 
             case "vehicleHealth": {
                 const label = row.diagnosticStatus || "-";
-                const clsMap = {
-                    "-": "badge--default",
-                    정상: "badge--normal",
-                    관심필요: "badge--overdue",
-                    심각: "badge--maintenance",
-                };
-                const cls = clsMap[label] || "badge--default";
-                return label === "-" ? (
-                    "-"
-                ) : (
-                    <button
-                        type="button"
-                        className={`badge ${cls} badge--clickable`}
-                        onClick={() => openDiagnosticModalFromStatus(row)}
-                        title="진단 코드 상세 보기"
-                    >
-                        {label}
-                    </button>
-                );
+                return <VehicleHealthCell label={label} onClick={() => openDiagnosticModalFromStatus(row)} />;
             }
             case "diagnosticCodes":
                 const dcount = getDiagnosticCount(row);
-                return dcount > 0 ? (
-                    <button
-                        type="button"
-                        className="badge badge--diagnostic badge--clickable badge--compact"
-                        onClick={() => openDiagnosticModal(row)}
-                        title="진단 코드 상세 보기"
-                    >
-                        진단 {dcount}개
-                    </button>
-                ) : (
-                    <span className="badge badge--normal">정상</span>
+                return (
+                    <DiagnosticCountBadge count={dcount} onClick={() => openDiagnosticModal(row)} />
                 );
             case "memo":
                 return (
@@ -1323,36 +1074,17 @@ export default function AssetStatus() {
                             컬럼 설정
                         </button>
                         {showColumnDropdown && (
-                            <div data-column-dropdown className="dropdown-menu">
-                                <div className="dropdown-menu__header">컬럼 표시 설정</div>
-                                {columnSettings.columns.map((column, index) => (
-                                    <div
-                                        key={column.key}
-                                        draggable
-                                        onDragStart={(e) => handleDragStart(e, index)}
-                                        onDragOver={(e) => handleDragOver(e, index)}
-                                        onDragLeave={handleDragLeave}
-                                        onDrop={(e) => handleDrop(e, index)}
-                                        onDragEnd={handleDragEnd}
-                                        className={`dropdown-menu__item${column.required ? " is-required" : ""}${draggedColumnIndex === index ? " is-dragging" : ""}${dragOverColumnIndex === index ? " is-dragover" : ""}`}
-                                    >
-                                        <div className="drag-handle">
-                                            <FaGripVertical size={10} color="#999" />
-                                        </div>
-                                        <div
-                                            className="icon-cell"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                !column.required && toggleColumnVisibility(column.key);
-                                            }}
-                                        >
-                                            {column.visible ? <FaEye size={12} color="#4caf50" /> : <FaEyeSlash size={12} color="#f44336" />}
-                                        </div>
-                                        <span className="text-85 flex-1">{column.label}</span>
-                                        {column.required && <span className="text-70 text-muted-light">필수</span>}
-                                    </div>
-                                ))}
-                            </div>
+                            <ColumnSettingsMenu
+                                columns={columns}
+                                draggedColumnIndex={draggedColumnIndex}
+                                dragOverColumnIndex={dragOverColumnIndex}
+                                onDragStart={handleDragStart}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                onDragEnd={handleDragEnd}
+                                onToggleVisibility={toggleColumnVisibility}
+                            />
                         )}
                     </div>
                 </div>
