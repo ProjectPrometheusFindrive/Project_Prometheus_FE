@@ -13,7 +13,7 @@ import { FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaCheck } from "react-ico
 import VideoIcon from "../components/VideoIcon";
 import { FiAlertTriangle } from "react-icons/fi";
 import MemoHistoryModal from "../components/MemoHistoryModal";
-import MemoCell from "../components/MemoCell";
+import { MemoCell, CompanyCell, PlateCell, RentalPeriodCell, RentalAmountCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
 // (unused constants/uploads imports removed)
@@ -26,10 +26,6 @@ import useColumnSettings from "../hooks/useColumnSettings";
 import VehicleTypeText from "../components/VehicleTypeText";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import useAccidentReport from "../hooks/useAccidentReport";
-import CompanyCell from "../components/CompanyCell";
-import PlateCell from "../components/PlateCell";
-import RentalPeriodCell from "../components/RentalPeriodCell";
-import RentalAmountCell from "../components/RentalAmountCell";
 
 
 const DEFAULT_COLUMN_CONFIG = [

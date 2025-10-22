@@ -25,7 +25,7 @@ import { formatDateShort } from "../utils/date";
 import { getManagementStage, withManagementStage, getDiagnosticCount } from "../utils/managementStage";
 import { FaCog } from "react-icons/fa";
 import MemoHistoryModal from "../components/MemoHistoryModal";
-import MemoCell from "../components/MemoCell";
+import { MemoCell, AssetManagementStageCell, VehicleHealthCell, CompanyCell, PlateCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import useInsuranceModal from "../hooks/useInsuranceModal";
 import useManagementStage from "../hooks/useManagementStage";
@@ -33,11 +33,7 @@ import useColumnSettings from "../hooks/useColumnSettings";
 import useDropdownState from "../hooks/useDropdownState";
 import VehicleTypeText from "../components/VehicleTypeText";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
-import AssetManagementStageCell from "../components/AssetManagementStageCell";
-import VehicleHealthCell from "../components/VehicleHealthCell";
 import SeverityBadge from "../components/SeverityBadge";
-import CompanyCell from "../components/CompanyCell";
-import PlateCell from "../components/PlateCell";
 
 // Column defaults for AssetStatus table
 const DEFAULT_ASSET_COLUMNS = [
