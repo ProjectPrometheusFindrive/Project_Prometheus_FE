@@ -1,8 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
-import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, fetchRentals, createRental, updateRental, createAsset, deleteAsset, fetchAssetProfile, fetchAssetInsurance, fetchAssetDevice, fetchAssetDiagnostics } from "../api";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
-import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
+import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, createRental, updateRental, createAsset, deleteAsset, fetchAssetProfile, fetchAssetDevice, fetchAssetDiagnostics } from "../api";
+import { uploadMany } from "../utils/uploadHelpers";
 import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
 import DeviceInfoForm from "../components/forms/DeviceInfoForm";
@@ -31,11 +30,14 @@ import useMemoEditor from "../hooks/useMemoEditor";
 import useInsuranceModal from "../hooks/useInsuranceModal";
 import useManagementStage from "../hooks/useManagementStage";
 import useColumnSettings from "../hooks/useColumnSettings";
+import useDropdownState from "../hooks/useDropdownState";
 import VehicleTypeText from "../components/VehicleTypeText";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import AssetManagementStageCell from "../components/AssetManagementStageCell";
 import VehicleHealthCell from "../components/VehicleHealthCell";
 import SeverityBadge from "../components/SeverityBadge";
+import CompanyCell from "../components/CompanyCell";
+import PlateCell from "../components/PlateCell";
 
 // Column defaults for AssetStatus table
 const DEFAULT_ASSET_COLUMNS = [
@@ -116,17 +118,23 @@ export default function AssetStatus() {
     const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
     const [diagnosticDetail, setDiagnosticDetail] = useState(null);
     const { editingId: editingMemo, memoText, onEdit: onMemoEdit, onChange: onMemoChange, onCancel: onMemoCancel } = useMemoEditor();
-    const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
-    const [openStageDropdown, setOpenStageDropdown] = useState(null);
     const [showRentalModal, setShowRentalModal] = useState(false);
     const [rentalFormInitial, setRentalFormInitial] = useState({});
     const [pendingStageAssetId, setPendingStageAssetId] = useState(null);
     const [pendingNextStage, setPendingNextStage] = useState(null);
-    // Placement of management stage dropdown (flip up if not enough space below)
-    const [stageDropdownUp, setStageDropdownUp] = useState(false);
-    const { columns, setColumns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
+    // Dropdown state management via hook
+    const {
+        openDropdowns,
+        stageDropdownUp,
+        setStageDropdownUp,
+        toggleColumn: toggleColumnDropdown,
+        toggleStage: toggleStageDropdown,
+        toggleInconsistency,
+        closeStage: closeStageDropdown,
+    } = useDropdownState();
+    const { columns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
         storageKey: "asset-columns-settings",
         defaultColumns: DEFAULT_ASSET_COLUMNS,
     });
@@ -139,7 +147,6 @@ export default function AssetStatus() {
         openInsuranceModalReadOnly,
         closeInsuranceModal,
         handleInsuranceSubmit,
-        setInsuranceAsset,
     } = useInsuranceModal({
         onSaved: (id, patch, resp) => {
             setRows((prev) =>
@@ -152,7 +159,6 @@ export default function AssetStatus() {
         }
     });
     const [rentalsByVin, setRentalsByVin] = useState({});
-    const [openInconsistencyId, setOpenInconsistencyId] = useState(null);
     const [toast, setToast] = useState(null);
     const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
     const [memoHistoryTarget, setMemoHistoryTarget] = useState(null);
@@ -297,25 +303,10 @@ export default function AssetStatus() {
         };
     }, [activeAsset]);
 
-    const openDeviceRegister = (asset) => {
+    // Unified device modal opener (replaces openDeviceRegister + openDeviceView)
+    const openDeviceModal = (asset, readOnly = false) => {
         setActiveAsset(asset);
-        setDeviceReadOnly(false);
-        setShowDeviceModal(true);
-        if (asset?.id) {
-            (async () => {
-                try {
-                    const detail = await fetchAssetDevice(asset.id);
-                    if (detail) setActiveAsset((prev) => ({ ...(prev || {}), ...detail }));
-                } catch (e) {
-                    console.error("Failed to load device detail", e);
-                }
-            })();
-        }
-    };
-
-    const openDeviceView = (asset) => {
-        setActiveAsset(asset);
-        setDeviceReadOnly(true);
+        setDeviceReadOnly(readOnly);
         setShowDeviceModal(true);
         if (asset?.id) {
             (async () => {
@@ -369,57 +360,16 @@ export default function AssetStatus() {
         };
     }, []);
 
-    // 컬럼 드롭다운 / 상태 드롭다운 / 불일치 팝업 외부 클릭 감지
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            // Ignore clicks that originate inside an open modal to avoid
-            // disrupting focus/interaction within modal dialogs.
-            if (event.target.closest('.modal') || event.target.closest('.modal-backdrop')) {
-                return;
-            }
-            if (showColumnDropdown && !event.target.closest("[data-column-dropdown]")) {
-                setShowColumnDropdown(false);
-            }
-            if (openStageDropdown !== null && !event.target.closest("[data-stage-dropdown]")) {
-                setOpenStageDropdown(null);
-                setStageDropdownUp(false);
-            }
-            if (openInconsistencyId !== null && !event.target.closest("[data-inconsistency-popover]")) {
-                setOpenInconsistencyId(null);
-            }
-        };
-
-        const handleKeyDown = (event) => {
-            if (event.key === "Escape") {
-                if (showColumnDropdown) {
-                    setShowColumnDropdown(false);
-                }
-                if (openStageDropdown !== null) {
-                    setOpenStageDropdown(null);
-                    setStageDropdownUp(false);
-                }
-                if (openInconsistencyId !== null) {
-                    setOpenInconsistencyId(null);
-                }
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-            document.removeEventListener("keydown", handleKeyDown);
-        };
-    }, [showColumnDropdown, openStageDropdown, openInconsistencyId]);
+    // 외부 클릭 및 ESC 감지는 useDropdownState 훅에서 처리됨
 
     // Recalculate stage dropdown placement on open, scroll, and resize
     useEffect(() => {
         const recalc = () => {
-            if (openStageDropdown == null) {
+            if (openDropdowns.stage == null) {
                 setStageDropdownUp(false);
                 return;
             }
-            const dropdownId = `management-stage-${openStageDropdown}`;
+            const dropdownId = `management-stage-${openDropdowns.stage}`;
             const trigger = document.querySelector(`[aria-controls="${dropdownId}"]`);
             const listEl = document.getElementById(dropdownId);
             if (!trigger || !listEl) {
@@ -436,7 +386,7 @@ export default function AssetStatus() {
             setStageDropdownUp(!!shouldFlipUp);
         };
 
-        if (openStageDropdown != null) {
+        if (openDropdowns.stage != null) {
             // Defer until after dropdown is rendered
             requestAnimationFrame(recalc);
         }
@@ -448,7 +398,7 @@ export default function AssetStatus() {
             window.removeEventListener('resize', recalc);
             if (tableWrap) tableWrap.removeEventListener('scroll', recalc);
         };
-    }, [openStageDropdown]);
+    }, [openDropdowns.stage, setStageDropdownUp]);
 
     const filtered = useMemo(() => {
         const term = q.trim().toLowerCase();
@@ -504,11 +454,6 @@ export default function AssetStatus() {
         setShowInfoModal(true);
     };
 
-    const openDeviceModal = (asset) => {
-        setActiveAsset(asset);
-        setShowDeviceModal(true);
-    };
-
     const openAssetCreate = () => {
         setAssetFormInitial({});
         setEditingAssetId(null);
@@ -553,6 +498,7 @@ export default function AssetStatus() {
         }
     };
 
+    // Unified diagnostic modal opener (consolidates openDiagnosticModal + openDiagnosticModalFromStatus)
     const openDiagnosticModal = (vehicle) => {
         const buildAndOpen = (v, diag) => {
             const issues = Array.isArray(diag?.diagnosticCodes) ? diag.diagnosticCodes : normalizeDiagnosticList(v);
@@ -580,12 +526,6 @@ export default function AssetStatus() {
         } else {
             buildAndOpen(vehicle, null);
         }
-    };
-
-    // 상태 배지 클릭 시: 백엔드 제공 상태값 기반으로 종합 진단 상세 표시
-    const openDiagnosticModalFromStatus = (vehicle) => {
-        // 상태 배지 클릭 시에도 실제 데이터 기반 목록을 그대로 노출
-        openDiagnosticModal(vehicle);
     };
 
     const handleDeviceInfoSubmit = async (form) => {
@@ -839,39 +779,10 @@ export default function AssetStatus() {
         switch (column.key) {
             case "select":
                 return null; // Table 컴포넌트에서 자동 처리
-            case "company": {
-                const name = row.company || row.companyName || row.company_id || row.companyId || "-";
-                const biz = row.bizRegNo || row.businessNumber || row.bizNo || row.biz_reg_no || "";
-                // Check multiple possible field names for logo path
-                const logoPath = row.companyLogoPath || row.company_logo_path || row.logoPath || row.logo_path ||
-                                (row.companyInfo && (row.companyInfo.logoPath || row.companyInfo.logo_path)) || "";
-
-                return (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                        {logoPath && (
-                            <GCSImage
-                                objectName={logoPath}
-                                alt={`${name} CI`}
-                                style={{ width: "32px", height: "32px", objectFit: "contain", flexShrink: 0 }}
-                            />
-                        )}
-                        <div style={{ textAlign: "center" }}>
-                            <div style={{ fontWeight: 600 }}>{name}</div>
-                            {biz ? (
-                                <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
-                            ) : (
-                                <div style={{ fontSize: "0.8rem", color: "#bbb" }}>( - )</div>
-                            )}
-                        </div>
-                    </div>
-                );
-            }
+            case "company":
+                return <CompanyCell row={row} />;
             case "plate":
-                return (
-                    <button type="button" onClick={() => openAssetEdit(row)} className="simple-button" title="자산 등록/편집">
-                        {row.plate}
-                    </button>
-                );
+                return <PlateCell plate={row.plate} onClick={() => openAssetEdit(row)} title="자산 등록/편집" />;
             case "vehicleType":
                 return <VehicleTypeText vehicleType={row.vehicleType} />;
             case "registrationDate":
@@ -907,7 +818,7 @@ export default function AssetStatus() {
                 const hasStageValue = !!row.__hasManagementStage;
                 const stage = hasStageValue ? (row.managementStage || "-") : "-";
                 const isSaving = !!stageSaving[row.id];
-                const isOpen = openStageDropdown === row.id;
+                const isOpen = openDropdowns.stage === row.id;
                 const agg = rentalsByVin[String(row.vin || "")] || null;
                 const hasActive = !!agg?.hasActive;
                 const hasOverdue = !!agg?.hasOverdue;
@@ -947,23 +858,22 @@ export default function AssetStatus() {
                         isSaving={isSaving}
                         isOpen={isOpen}
                         stageDropdownUp={stageDropdownUp}
-                        onToggleOpen={(id) => setOpenStageDropdown((prev) => (prev === id ? null : id))}
+                        onToggleOpen={toggleStageDropdown}
                         onSelect={(value) => {
-                            setOpenStageDropdown(null);
-                            setStageDropdownUp(false);
+                            closeStageDropdown();
                             handleManagementStageChange(row, value);
                         }}
                         inconsistent={inconsistent}
                         reason={reason}
-                        openInconsistencyId={openInconsistencyId}
-                        setOpenInconsistencyId={setOpenInconsistencyId}
+                        openInconsistencyId={openDropdowns.inconsistency}
+                        setOpenInconsistencyId={toggleInconsistency}
                     />
                 );
             }
 
             case "vehicleHealth": {
                 const label = row.diagnosticStatus || "-";
-                return <VehicleHealthCell label={label} onClick={() => openDiagnosticModalFromStatus(row)} />;
+                return <VehicleHealthCell label={label} onClick={() => openDiagnosticModal(row)} />;
             }
             case "diagnosticCodes":
                 const dcount = getDiagnosticCount(row);
@@ -1021,13 +931,13 @@ export default function AssetStatus() {
                           const hasDevice = !!row.deviceSerial;
                           if (hasDevice) {
                               return (
-                                  <button type="button" className="badge badge--on badge--clickable" onClick={() => openDeviceView(row)} title="단말 정보 보기">
+                                  <button type="button" className="badge badge--on badge--clickable" onClick={() => openDeviceModal(row, true)} title="단말 정보 보기">
                                       연결됨
                                   </button>
                               );
                           }
                           return (
-                              <button type="button" className="badge badge--default badge--clickable" onClick={() => openDeviceRegister(row)} title="단말 등록">
+                              <button type="button" className="badge badge--default badge--clickable" onClick={() => openDeviceModal(row, false)} title="단말 등록">
                                   단말 등록
                               </button>
                           );
@@ -1069,11 +979,11 @@ export default function AssetStatus() {
                         선택 삭제
                     </button>
                     <div className="relative" data-column-dropdown>
-                        <button type="button" className="form-button form-button--neutral" onClick={() => setShowColumnDropdown(!showColumnDropdown)} title="컬럼 설정">
+                        <button type="button" className="form-button form-button--neutral" onClick={toggleColumnDropdown} title="컬럼 설정">
                             <FaCog size={14} />
                             컬럼 설정
                         </button>
-                        {showColumnDropdown && (
+                        {openDropdowns.column && (
                             <ColumnSettingsMenu
                                 columns={columns}
                                 draggedColumnIndex={draggedColumnIndex}

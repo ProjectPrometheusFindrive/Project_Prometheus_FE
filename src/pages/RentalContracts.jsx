@@ -4,6 +4,7 @@ import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, creat
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
+import Table from "../components/Table";
 import AccidentInfoModal from "../components/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
@@ -15,18 +16,20 @@ import MemoHistoryModal from "../components/MemoHistoryModal";
 import MemoCell from "../components/MemoCell";
 import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
-import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from "../constants/uploads";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+// (unused constants/uploads imports removed)
 import { uploadMany } from "../utils/uploadHelpers";
 import { parseCurrency } from "../utils/formatters";
 import FilePreview from "../components/FilePreview";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
-import GCSImage from "../components/GCSImage";
 import useColumnSettings from "../hooks/useColumnSettings";
 import VehicleTypeText from "../components/VehicleTypeText";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import useAccidentReport from "../hooks/useAccidentReport";
+import CompanyCell from "../components/CompanyCell";
+import PlateCell from "../components/PlateCell";
+import RentalPeriodCell from "../components/RentalPeriodCell";
+import RentalAmountCell from "../components/RentalAmountCell";
 
 
 const DEFAULT_COLUMN_CONFIG = [
@@ -42,16 +45,6 @@ const DEFAULT_COLUMN_CONFIG = [
     { key: "accident", label: "사고 등록", visible: true, required: false, width: 100 },
     { key: "memo", label: "메모", visible: true, required: false },
 ];
-
-const ACCIDENT_FORM_DEFAULT = {
-    accidentDate: "",
-    accidentHour: "00",
-    accidentMinute: "00",
-    accidentSecond: "00",
-    handlerName: "",
-    blackboxFile: null,
-    blackboxFileName: "",
-};
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
 const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
@@ -73,7 +66,7 @@ export default function RentalContracts() {
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
-    const { columns, setColumns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
+    const { columns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
         storageKey: "rental-columns-settings",
         defaultColumns: DEFAULT_COLUMN_CONFIG,
     });
@@ -138,15 +131,12 @@ export default function RentalContracts() {
                 if (status === "반납지연" || status === "도난의심" || status === "사고접수") return true;
 
                 // 진행/예약 상태만 표시
-                const start = toDate(r?.rentalPeriod?.start);
-                const isFuture = !!(start && now < start);
-                const end = toDate(r?.rentalPeriod?.end);
-                const isActive = !!(start && end && now >= start && now <= end);
+                const isFuture = !!(toDate(r?.rentalPeriod?.start) && now < toDate(r.rentalPeriod.start));
+                const isActive = !!(toDate(r?.rentalPeriod?.start) && toDate(r?.rentalPeriod?.end) && now >= toDate(r.rentalPeriod.start) && now <= toDate(r.rentalPeriod.end));
                 return isActive || isFuture;
             })
             .map((r) => {
                 const now = new Date();
-                const start = toDate(r?.rentalPeriod?.start);
                 const end = toDate(r?.rentalPeriod?.end);
                 const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
                 const status = computeContractStatus(r, now);
@@ -324,121 +314,7 @@ export default function RentalContracts() {
         return base;
     }, [visibleColumns, isSuperAdmin]);
 
-    // Sorting state for contracts table
-    const [sortKey, setSortKey] = useState(null); // column.key
-    const [sortDir, setSortDir] = useState(null); // 'asc' | 'desc' | null
-
-    const handleSortToggle = (key, column) => {
-        if (!key || key === "select") return;
-        if (column && column.sortable === false) return;
-        if (sortKey !== key) {
-            setSortKey(key);
-            setSortDir("asc");
-            return;
-        }
-        setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-    };
-
-    const parseMaybeDate = (val) => {
-        if (val == null) return null;
-        if (val instanceof Date && !isNaN(val)) return val;
-        if (typeof val !== "string") return null;
-        const s = val.trim();
-        if (!s) return null;
-        const iso = Date.parse(s);
-        if (!Number.isNaN(iso)) return new Date(iso);
-        return null;
-    };
-
-    const normalizeValue = (val) => {
-        if (val == null) return { type: "empty", v: null };
-        const t = typeof val;
-        if (t === "number") return { type: "number", v: val };
-        if (t === "boolean") return { type: "number", v: val ? 1 : 0 };
-        if (val instanceof Date && !isNaN(val)) return { type: "date", v: val.getTime() };
-        if (t === "string") {
-            const asDate = parseMaybeDate(val);
-            if (asDate) return { type: "date", v: asDate.getTime() };
-            // numeric string
-            const num = Number(val);
-            if (!Number.isNaN(num) && /^-?\d+(?:\.\d+)?$/.test(val.trim())) {
-                return { type: "number", v: num };
-            }
-            return { type: "string", v: val.toLowerCase() };
-        }
-        try {
-            return { type: "string", v: String(val).toLowerCase() };
-        } catch {
-            return { type: "string", v: "" };
-        }
-    };
-
-    const getSortValue = (row, key) => {
-        switch (key) {
-            case "company": {
-                const name = row?.companyName || row?.company || row?.companyId || "";
-                return name;
-            }
-            case "plate":
-            case "vehicleType":
-            case "renterName":
-            case "contractStatus":
-            case "memo":
-                return row?.[key] ?? "";
-            case "rentalPeriod": {
-                const start = row?.rentalPeriod?.start || "";
-                return start;
-            }
-            case "rentalAmount": {
-                const v = row?.rentalAmount;
-                if (typeof v === "number") return v;
-                if (typeof v === "string") {
-                    const m = v.replace(/[^0-9.-]/g, "");
-                    const n = Number(m);
-                    return Number.isNaN(n) ? 0 : n;
-                }
-                return 0;
-            }
-            case "engineStatus":
-                return row?.engineStatus === "on" || !!row?.engineOn;
-            case "restartBlocked":
-                return !!(row?.restartBlocked);
-            case "accident":
-                return !!row?.accidentReported;
-            default:
-                return row?.[key];
-        }
-    };
-
-    const sortedRows = useMemo(() => {
-        if (!Array.isArray(rows)) return [];
-        if (!sortKey || !sortDir) return rows;
-        // ensure key exists in visible columns (only allow sorting visible columns)
-        const col = visibleColumns.find((c) => c.key === sortKey);
-        if (!col || col.key === "select" || col.sortable === false) return rows;
-        const list = rows.map((r, idx) => ({ r, idx }));
-        list.sort((a, b) => {
-            const va = getSortValue(a.r, sortKey);
-            const vb = getSortValue(b.r, sortKey);
-            const na = normalizeValue(va);
-            const nb = normalizeValue(vb);
-            if (na.type !== nb.type) {
-                const order = { empty: 3, string: 2, number: 1, date: 1 };
-                const pa = order[na.type] ?? 2;
-                const pb = order[nb.type] ?? 2;
-                if (pa !== pb) return sortDir === "asc" ? pa - pb : pb - pa;
-            }
-            let cmp = 0;
-            if (na.v == null && nb.v != null) cmp = 1;
-            else if (na.v != null && nb.v == null) cmp = -1;
-            else if (na.v == null && nb.v == null) cmp = 0;
-            else if (na.type === "number" || na.type === "date") cmp = na.v - nb.v;
-            else if (na.type === "string") cmp = String(na.v).localeCompare(String(nb.v), undefined, { sensitivity: "base", numeric: true });
-            if (cmp === 0) return a.idx - b.idx;
-            return sortDir === "asc" ? cmp : -cmp;
-        });
-        return list.map((x) => x.r);
-    }, [rows, visibleColumns, sortKey, sortDir]);
+    // Sorting is now handled by Table component - sortAccessor provides custom value extraction
 
     // 드래그&드롭 이벤트 핸들러들
     const handleDragStart = (e, index) => {
@@ -470,57 +346,21 @@ export default function RentalContracts() {
         setDragOverColumnIndex(null);
     };
 
-    // 각 컬럼의 셀 내용을 렌더링하는 함수
+    // 각 컬럼의 셀 내용을 렌더링하는 함수 (select는 Table 컴포넌트에서 자동 처리)
     const renderCellContent = (column, row) => {
         switch (column.key) {
-            case "select":
-                return <input type="checkbox" aria-label={`Select: ${row.plate || row.rentalId}`} checked={selected.has(row.rentalId)} onChange={() => toggleSelect(row.rentalId)} />;
-            case "company": {
-                const name = row.company || row.companyName || row.company_id || row.companyId || "-";
-                const biz = row.bizRegNo || row.businessNumber || row.bizNo || row.biz_reg_no || "";
-                // Check multiple possible field names for logo path
-                const logoPath = row.companyLogoPath || row.company_logo_path || row.logoPath || row.logo_path ||
-                                (row.companyInfo && (row.companyInfo.logoPath || row.companyInfo.logo_path)) || "";
-
-                return (
-                    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "8px" }}>
-                        {logoPath && (
-                            <GCSImage
-                                objectName={logoPath}
-                                alt={`${name} CI`}
-                                style={{ width: "32px", height: "32px", objectFit: "contain", flexShrink: 0 }}
-                            />
-                        )}
-                        <div style={{ textAlign: "center" }}>
-                            <div style={{ fontWeight: 600 }}>{name}</div>
-                            {biz ? (
-                                <div style={{ fontSize: "0.8rem", color: "#999" }}>( {biz} )</div>
-                            ) : (
-                                <div style={{ fontSize: "0.8rem", color: "#bbb" }}>( - )</div>
-                            )}
-                        </div>
-                    </div>
-                );
-            }
+            case "company":
+                return <CompanyCell row={row} />;
             case "plate":
-                return (
-                    <button type="button" className="simple-button" onClick={() => handlePlateClick(row)} title="계약 상세 정보 보기">
-                        {row.plate || "-"}
-                    </button>
-                );
+                return <PlateCell plate={row.plate} onClick={() => handlePlateClick(row)} title="계약 상세 정보 보기" />;
             case "vehicleType":
                 return <VehicleTypeText vehicleType={row.vehicleType} />;
             case "renterName":
                 return row.renterName || "-";
             case "rentalPeriod":
-                return (
-                    <div style={{ fontSize: "0.9rem", lineHeight: "1.4" }}>
-                        <div>{formatDateTime(row.rentalPeriod?.start)} ~</div>
-                        <div>{formatDateTime(row.rentalPeriod?.end)}</div>
-                    </div>
-                );
+                return <RentalPeriodCell rentalPeriod={row.rentalPeriod} />;
             case "rentalAmount":
-                return getRentalAmountBadges(row);
+                return <RentalAmountCell row={row} />;
             case "contractStatus":
                 return getContractStatusBadge(row.contractStatus);
             case "engineStatus":
@@ -580,6 +420,7 @@ export default function RentalContracts() {
         }
     };
 
+    // formatDateTime is now in RentalPeriodCell component, but still needed for detail modal
     const formatDateTime = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
@@ -607,23 +448,7 @@ export default function RentalContracts() {
         return <StatusBadge type={badgeType}>{status}</StatusBadge>;
     };
 
-    const getRentalAmountBadges = (row) => {
-        const amount = row.rentalAmount || 0;
-        const formattedAmount = new Intl.NumberFormat("ko-KR").format(amount);
-
-        return (
-            <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                <div style={{ fontWeight: "500", fontSize: "0.9rem" }}>₩{formattedAmount}</div>
-                <div className="flex gap-4 flex-wrap">
-                    <StatusBadge variant={row.isLongTerm ? "badge--contract-term" : "badge--contract-term-short"}>{row.isLongTerm ? "장기" : "단기"}</StatusBadge>
-                    <StatusBadge variant="badge--contract-amount">
-                        {row.isLongTerm ? `월 ₩${new Intl.NumberFormat("ko-KR").format(Math.floor(amount / Math.max(1, Math.floor((row.rentalDurationDays || 1) / 30))))}` : `총 ₩${formattedAmount}`}
-                    </StatusBadge>
-                    {row.hasUnpaid && <StatusBadge variant="badge--contract-unpaid">미납</StatusBadge>}
-                </div>
-            </div>
-        );
-    };
+    // getRentalAmountBadges moved to RentalAmountCell component
 
     return (
         <div className="page space-y-4">
@@ -666,70 +491,51 @@ export default function RentalContracts() {
                     </div>
                 </div>
 
-                <div className="table-wrap table-wrap--sticky">
-                    <table className="asset-table rentals-table asset-table--sticky">
-                        <thead>
-                            <tr>
-                                {columnsForRender.map((column) => {
-                                    const isSortable = column.key !== "select" && column.sortable !== false;
-                                    const isActive = isSortable && sortKey === column.key && !!sortDir;
-                                    const ariaSort = isActive ? (sortDir === "asc" ? "ascending" : "descending") : "none";
-                                    return (
-                                        <th
-                                            key={column.key}
-                                            style={{
-                                                width: column.width,
-                                                textAlign: column.key === "memo" ? "left" : "center",
-                                            }}
-                                            aria-sort={ariaSort}
-                                            className={isSortable ? "th-sortable" : undefined}
-                                        >
-                                            {column.key === "select" ? (
-                                                <input type="checkbox" aria-label="Select all visible" checked={allVisibleSelected} onChange={toggleSelectAllVisible} />
-                                            ) : (
-                                                <>
-                                                    <span className="th-label">{column.label}</span>
-                                                    {isSortable && (
-                                                        <button
-                                                            type="button"
-                                                            className={["sort-toggle", isActive ? "active" : "", isActive ? `dir-${sortDir}` : ""].filter(Boolean).join(" ")}
-                                                            title={`${column.label} 정렬 토글`}
-                                                            aria-label={`${column.label} 정렬 토글 (오름차순/내림차순)`}
-                                                            onClick={() => handleSortToggle(column.key, column)}
-                                                        >
-                                                            <span className="tri up">▲</span>
-                                                            <span className="tri down">▼</span>
-                                                        </button>
-                                                    )}
-                                                </>
-                                            )}
-                                        </th>
-                                    );
-                                })}
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {sortedRows.map((r, index) => (
-                                <tr key={r.rentalId || `rental-${index}`}>
-                                    {columnsForRender.map((column) => (
-                                        <td
-                                            key={column.key}
-                                            style={{
-                                                textAlign: column.key === "memo" ? "left" : "center",
-                                                maxWidth: column.key === "memo" ? "150px" : undefined,
-                                            }}
-                                        >
-                                            {renderCellContent(column, r)}
-                                        </td>
-                                    ))}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {sortedRows.length === 0 && (
-                        <div className="empty">조건에 맞는 계약이 없습니다.</div>
-                    )}
-                </div>
+                <Table
+                    rowIdKey="rentalId"
+                    columns={columnsForRender
+                        .filter((col) => col.key !== "select") // Table 컴포넌트가 자동으로 select 추가
+                        .map((col) => ({
+                            ...col,
+                            style: {
+                                ...(col.style || {}),
+                                textAlign: col.key === "memo" ? "left" : (col.style?.textAlign || "center"),
+                                maxWidth: col.key === "memo" ? "150px" : col.style?.maxWidth,
+                            },
+                            render: (row) => renderCellContent(col, row),
+                            sortAccessor: (row) => {
+                            // Custom sort value extraction for each column
+                            switch (col.key) {
+                                case "company":
+                                    return row?.companyName || row?.company || row?.companyId || "";
+                                case "rentalPeriod":
+                                    return row?.rentalPeriod?.start || "";
+                                case "rentalAmount": {
+                                    const v = row?.rentalAmount;
+                                    if (typeof v === "number") return v;
+                                    if (typeof v === "string") {
+                                        const n = Number(v.replace(/[^0-9.-]/g, ""));
+                                        return Number.isNaN(n) ? 0 : n;
+                                    }
+                                    return 0;
+                                }
+                                case "engineStatus":
+                                    return row?.engineStatus === "on" || !!row?.engineOn;
+                                case "restartBlocked":
+                                    return !!(row?.restartBlocked);
+                                case "accident":
+                                    return !!row?.accidentReported;
+                                default:
+                                    return row?.[col.key] ?? "";
+                            }
+                        },
+                    }))}
+                    data={rows}
+                    selection={{ selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected }}
+                    emptyMessage="조건에 맞는 계약이 없습니다."
+                    stickyHeader
+                    className="rentals-table"
+                />
             </div>
 
             <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="계약 등록" showFooter={false} ariaLabel="Create Rental">

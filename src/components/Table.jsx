@@ -12,6 +12,7 @@ export default function Table({
     stickyOffset = 0,
     initialSort,
     rowClassName,
+    rowIdKey = "id", // 기본값은 "id", 커스텀 가능
     ...props
 }) {
     const { selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected } = selection || {};
@@ -167,29 +168,33 @@ export default function Table({
                     </tr>
                 </thead>
                 <tbody>
-                    {sortedData.map((row, index) => (
-                        <tr
-                            key={row.id || index}
-                            onClick={onRowClick ? () => onRowClick(row) : undefined}
-                            className={typeof rowClassName === "function" ? rowClassName(row, index) : undefined}
-                        >
-                            {hasSelection && (
-                                <td className="text-center">
-                                    <input
-                                        type="checkbox"
-                                        aria-label={`선택: ${row.plate || row.id}`}
-                                        checked={selected?.has ? selected.has(row.id) : false}
-                                        onChange={() => toggleSelect && toggleSelect(row.id)}
-                                    />
-                                </td>
-                            )}
-                            {columns.map((col) => (
-                                <td key={col.key} style={col.style} className={(col.style && col.style.textAlign === 'right') ? 'text-right' : (col.style && col.style.textAlign === 'center') ? 'text-center' : undefined}>
-                                    {col.render ? col.render(row, index) : row[col.key]}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
+                    {sortedData.map((row, index) => {
+                        const rowId = row[rowIdKey] || index;
+                        return (
+                            <tr
+                                key={rowId}
+                                onClick={onRowClick ? () => onRowClick(row) : undefined}
+                                className={typeof rowClassName === "function" ? rowClassName(row, index) : undefined}
+                            >
+                                {hasSelection && (
+                                    <td className="text-center">
+                                        <input
+                                            type="checkbox"
+                                            aria-label={`선택: ${row.plate || rowId}`}
+                                            checked={selected?.has ? selected.has(rowId) : false}
+                                            onChange={() => toggleSelect && toggleSelect(rowId)}
+                                        />
+                                    </td>
+                                )}
+
+                                {columns.map((col) => (
+                                    <td key={col.key} style={col.style} className={(col.style && col.style.textAlign === 'right') ? 'text-right' : (col.style && col.style.textAlign === 'center') ? 'text-center' : undefined}>
+                                        {col.render ? col.render(row, index) : row[col.key]}
+                                    </td>
+                                ))}
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
             {data.length === 0 && <div className="empty">{emptyMessage}</div>}
