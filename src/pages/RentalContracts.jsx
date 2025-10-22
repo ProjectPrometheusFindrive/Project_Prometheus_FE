@@ -8,7 +8,7 @@ import AccidentInfoModal from "../components/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
-import { FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaEye, FaEyeSlash, FaGripVertical, FaCheck } from "react-icons/fa";
+import { FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaCheck } from "react-icons/fa";
 import VideoIcon from "../components/VideoIcon";
 import { FiAlertTriangle } from "react-icons/fi";
 import MemoHistoryModal from "../components/MemoHistoryModal";
@@ -17,35 +17,17 @@ import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
 import { ALLOWED_MIME_TYPES, SMALL_FILE_THRESHOLD_BYTES, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { uploadMany } from "../utils/uploadHelpers";
 import { parseCurrency } from "../utils/formatters";
 import FilePreview from "../components/FilePreview";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
 import GCSImage from "../components/GCSImage";
+import useColumnSettings from "../hooks/useColumnSettings";
+import VehicleTypeText from "../components/VehicleTypeText";
+import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
+import useAccidentReport from "../hooks/useAccidentReport";
 
-// 차종에서 년도 부분을 작고 회색으로 스타일링하는 함수
-const formatVehicleType = (vehicleType) => {
-    if (!vehicleType) return "-";
-
-    // "00년형" 패턴을 찾아서 분리
-    const yearPattern = /(\d{2,4}년형)/;
-    const match = vehicleType.match(yearPattern);
-
-    if (match) {
-        const yearPart = match[1];
-        const modelPart = vehicleType.replace(yearPattern, "").trim();
-
-        return (
-            <span>
-                {modelPart}
-                {modelPart && yearPart && " "}
-                <span className="text-xs text-muted">{yearPart}</span>
-            </span>
-        );
-    }
-
-    return vehicleType;
-};
 
 const DEFAULT_COLUMN_CONFIG = [
     { key: "select", label: "선택", visible: true, required: true, width: 36 },
@@ -74,35 +56,7 @@ const ACCIDENT_FORM_DEFAULT = {
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
 const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
 
-const mergeColumnsWithDefaults = (savedColumns = []) => {
-    const merged = Array.isArray(savedColumns) ? savedColumns.map((column) => ({ ...column })) : [];
-    const existingKeys = new Set(merged.map((column) => column.key));
-
-    merged.forEach((column, index) => {
-        const defaultColumn = DEFAULT_COLUMN_CONFIG.find((definition) => definition.key === column.key);
-        if (defaultColumn) {
-            merged[index] = { ...defaultColumn, ...column };
-        }
-    });
-
-    DEFAULT_COLUMN_CONFIG.forEach((defaultColumn, defaultIndex) => {
-        if (!existingKeys.has(defaultColumn.key)) {
-            let insertIndex = merged.length;
-            for (let i = defaultIndex - 1; i >= 0; i -= 1) {
-                const previousKey = DEFAULT_COLUMN_CONFIG[i].key;
-                const existingIndex = merged.findIndex((column) => column.key === previousKey);
-                if (existingIndex !== -1) {
-                    insertIndex = existingIndex + 1;
-                    break;
-                }
-            }
-            merged.splice(insertIndex, 0, { ...defaultColumn });
-            existingKeys.add(defaultColumn.key);
-        }
-    });
-
-    return merged;
-};
+// Column merging is handled by useColumnSettings hook
 
 export default function RentalContracts() {
     const confirm = useConfirm();
@@ -119,32 +73,25 @@ export default function RentalContracts() {
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
-    const [columnSettings, setColumnSettings] = useState(() => {
-        try {
-            const saved = localStorage.getItem("rental-columns-settings");
-            if (saved) {
-                const parsed = JSON.parse(saved);
-                const savedColumns = Array.isArray(parsed?.columns) ? parsed.columns : [];
-                return {
-                    ...parsed,
-                    columns: mergeColumnsWithDefaults(savedColumns),
-                };
-            }
-        } catch (error) {
-            console.error("Failed to parse rental column settings", error);
-        }
-        return {
-            columns: DEFAULT_COLUMN_CONFIG.map((column) => ({ ...column })),
-        };
+    const { columns, setColumns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
+        storageKey: "rental-columns-settings",
+        defaultColumns: DEFAULT_COLUMN_CONFIG,
     });
-    const [showAccidentModal, setShowAccidentModal] = useState(false);
-    const [showAccidentInfoModal, setShowAccidentInfoModal] = useState(false);
-    const [accidentTarget, setAccidentTarget] = useState(null);
-    const [accidentForm, setAccidentForm] = useState(() => ({ ...ACCIDENT_FORM_DEFAULT }));
-    const [fileInputKey, setFileInputKey] = useState(0);
     const [toast, setToast] = useState(null);
-    // Upload state for accident blackbox
-    const [uploadState, setUploadState] = useState({ status: "idle", percent: 0, error: "", cancel: null, mode: "" });
+    const {
+        showAccidentModal,
+        showAccidentInfoModal,
+        accidentTarget,
+        accidentForm,
+        fileInputKey,
+        uploadState,
+        handleAccidentInputChange,
+        handleAccidentFileChange,
+        handleOpenAccidentModal,
+        handleCloseAccidentModal,
+        handleCloseAccidentInfoModal,
+        handleAccidentSubmit,
+    } = useAccidentReport({ setItems, setSelectedContract });
 
     // Initial load via API (prefer summary)
     useEffect(() => {
@@ -266,51 +213,11 @@ export default function RentalContracts() {
             console.groupCollapsed("[upload-ui] rental create docs start");
             try {
                 const rentalId = created.rentalId || rest.rentalId;
-                const folderBase = `rentals/${encodeURIComponent(rentalId)}`;
-                const uploadOne = async (file, keyLabel) => {
-                    if (!file) return null;
-                    const type = file.type || "";
-                    if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-                        console.warn(`[upload-ui] ${keyLabel} skipped: disallowed type`, type);
-                        return null;
-                    }
-                    const folder = `${folderBase}/${keyLabel}`;
-                    const mode = chooseUploadMode(file.size || 0);
-                    try {
-                        if (mode === "signed-put") {
-                            const { promise } = uploadViaSignedPut(file, { folder });
-                            const res = await promise;
-                            return { url: res?.publicUrl || null, objectName: res?.objectName || null };
-                        } else {
-                            const { promise } = uploadResumable(file, { folder });
-                            const res = await promise;
-                            return { url: res?.publicUrl || null, objectName: res?.objectName || null };
-                        }
-                    } catch (e) {
-                        console.error(`[upload-ui] ${keyLabel} upload failed`, e);
-                        return null;
-                    }
-                };
-                const uploadMany = async (files, label) => {
-                    const urls = [];
-                    const objects = [];
-                    const names = [];
-                    for (const f of files) {
-                        const res = await uploadOne(f, label);
-                        if (res && (res.url || res.objectName)) {
-                            names.push(f.name);
-                            if (res.url) urls.push(res.url);
-                            if (res.objectName) objects.push(res.objectName);
-                        }
-                    }
-                    return { names, urls, objects };
-                };
-
+                const base = `rentals/${encodeURIComponent(rentalId)}`;
                 const [contractRes, licenseRes] = await Promise.all([
-                    uploadMany(contractFiles, "contracts"),
-                    uploadMany(licenseFiles, "licenses"),
+                    uploadMany(contractFiles, { folder: `${base}/contracts`, label: "contracts" }),
+                    uploadMany(licenseFiles, { folder: `${base}/licenses`, label: "licenses" }),
                 ]);
-
                 if ((contractRes.names.length > 0) || (licenseRes.names.length > 0)) {
                     const patch = {};
                     if (contractRes.names.length > 0) {
@@ -387,167 +294,7 @@ export default function RentalContracts() {
     };
     const handleMemoCancel = () => onMemoCancel();
 
-    const handleAccidentInputChange = (name, value) => {
-        setAccidentForm((prev) => ({ ...prev, [name]: value }));
-    };
-
-    const handleAccidentFileChange = (event) => {
-        const file = event.target?.files && event.target.files[0] ? event.target.files[0] : null;
-        setAccidentForm((prev) => ({
-            ...prev,
-            blackboxFile: file,
-            blackboxFileName: file ? file.name : prev.blackboxFileName,
-        }));
-    };
-
-    const handleOpenAccidentModal = async (contract) => {
-        if (!contract) return;
-
-        // Always hydrate from detail when accidentReported is true but summary lacks report details
-        if (contract.accidentReported && !contract.accidentReport) {
-            try {
-                const full = await fetchRentalById(contract.rentalId);
-                if (full && (full.accidentReported || contract.accidentReported) && full.accidentReport) {
-                    setAccidentTarget(full);
-                    setShowAccidentInfoModal(true);
-                    return;
-                }
-            } catch (e) {
-                // Ignore and fall back to summary behavior
-            }
-        }
-
-        // 이미 사고가 등록된 경우 정보 조회 모달을 열고, 아닌 경우 등록 모달을 연다
-        if (contract.accidentReported && contract.accidentReport) {
-            setAccidentTarget(contract);
-            setShowAccidentInfoModal(true);
-            return;
-        }
-
-        const report = contract.accidentReport || {};
-        setAccidentTarget(contract);
-        setAccidentForm({
-            accidentDate: report.accidentDate || "",
-            accidentHour: report.accidentHour || "00",
-            accidentMinute: report.accidentMinute || "00",
-            accidentSecond: report.accidentSecond || "00",
-            handlerName: report.handlerName || "",
-            blackboxFile: report.blackboxFile || null,
-            blackboxFileName: report.blackboxFileName || "",
-        });
-        setFileInputKey((prev) => prev + 1);
-        setShowAccidentModal(true);
-    };
-
-    const handleCloseAccidentModal = () => {
-        setShowAccidentModal(false);
-        setAccidentTarget(null);
-        setAccidentForm({ ...ACCIDENT_FORM_DEFAULT });
-        setFileInputKey((prev) => prev + 1);
-        setUploadState({ status: "idle", percent: 0, error: "", cancel: null, mode: "" });
-    };
-
-    const handleCloseAccidentInfoModal = () => {
-        setShowAccidentInfoModal(false);
-        setAccidentTarget(null);
-    };
-
-    const buildAccidentMemo = (currentMemo, note) => {
-        if (!currentMemo) return note;
-        if (currentMemo.includes("사고 접수")) return currentMemo;
-        return `${currentMemo} / ${note}`;
-    };
-
-    const handleAccidentSubmit = async (event) => {
-        event.preventDefault();
-        if (!accidentTarget) return;
-
-        const now = new Date();
-        const memoNote = `사고 접수됨 (${now.toLocaleDateString()})`;
-        const { accidentDate, accidentHour, accidentMinute, accidentSecond, handlerName, blackboxFile, blackboxFileName } = accidentForm;
-        const accidentDateTime = accidentDate ? `${accidentDate}T${accidentHour}:${accidentMinute}:${accidentSecond}` : "";
-        const accidentDisplayTime = accidentDate ? `${accidentDate.replace(/-/g, ".")} ${accidentHour}:${accidentMinute}:${accidentSecond}` : "";
-
-        const updatedReport = {
-            accidentDate,
-            accidentHour,
-            accidentMinute,
-            accidentSecond,
-            handlerName,
-            accidentDateTime,
-            accidentDisplayTime,
-            blackboxFile,
-            blackboxFileName,
-            recordedAt: now.toISOString(),
-        };
-        try {
-            // If video selected, upload to GCS first
-            if (blackboxFile) {
-                // Validate MIME and choose upload mode
-                const typeOk = !blackboxFile.type || ALLOWED_MIME_TYPES.includes(blackboxFile.type);
-                if (!typeOk) {
-                    alert("허용되지 않는 파일 형식입니다.");
-                    return;
-                }
-                const folder = `rentals/${encodeURIComponent(accidentTarget.rentalId)}/blackbox`;
-                const mode = chooseUploadMode(blackboxFile.size);
-                setUploadState({ status: "uploading", percent: 0, error: "", cancel: null, mode });
-                let controller = new AbortController();
-                const onProgress = (p) => setUploadState((s) => ({ ...s, percent: p.percent }));
-                if (mode === "signed-put") {
-                    const { promise, cancel } = uploadViaSignedPut(blackboxFile, { folder, onProgress, signal: controller.signal });
-                    setUploadState((s) => ({ ...s, cancel }));
-                    const result = await promise;
-                    setUploadState({ status: "success", percent: 100, error: "", cancel: null, mode });
-                    updatedReport.blackboxFileUrl = result.publicUrl || "";
-                    updatedReport.blackboxGcsObjectName = result.objectName || "";
-                } else {
-                    const { promise, cancel } = uploadResumable(blackboxFile, { folder, onProgress, signal: controller.signal });
-                    setUploadState((s) => ({ ...s, cancel }));
-                    const result = await promise;
-                    setUploadState({ status: "success", percent: 100, error: "", cancel: null, mode });
-                    updatedReport.blackboxFileUrl = result.publicUrl || "";
-                    updatedReport.blackboxGcsObjectName = result.objectName || "";
-                }
-            }
-            await updateRental(accidentTarget.rentalId, {
-                accidentReported: true,
-                accidentReport: updatedReport,
-                memo: buildAccidentMemo(accidentTarget.memo || "", memoNote),
-            });
-            setItems((prev) =>
-                prev.map((item) => {
-                    if (item.rentalId !== accidentTarget.rentalId) return item;
-                    return {
-                        ...item,
-                        accidentReported: true,
-                        memo: buildAccidentMemo(item.memo || "", memoNote),
-                        accidentReport: updatedReport,
-                    };
-                })
-            );
-            setSelectedContract((prev) => {
-                if (!prev || prev.rentalId !== accidentTarget.rentalId) return prev;
-                return {
-                    ...prev,
-                    accidentReported: true,
-                    memo: buildAccidentMemo(prev.memo || "", memoNote),
-                    accidentReport: updatedReport,
-                };
-            });
-            alert("사고 등록이 저장되었습니다.");
-            handleCloseAccidentModal();
-        } catch (e) {
-            console.error("Failed to submit accident info", e);
-            const isAbort = String(e && e.message || "").toLowerCase().includes("abort");
-            if (isAbort) {
-                setUploadState((s) => ({ ...s, status: "idle" }));
-                return;
-            }
-            setUploadState((s) => ({ ...s, status: "error", error: e?.message || "업로드/저장 실패" }));
-            alert("사고 등록 저장 실패");
-        }
-    };
+    
 
     const handleShowLocation = () => {
         setShowDetail(false);
@@ -559,31 +306,7 @@ export default function RentalContracts() {
         setShowDetail(true);
     };
 
-    // 컬럼 설정 관련 함수들
-    const saveColumnSettings = (newSettings) => {
-        setColumnSettings(newSettings);
-        localStorage.setItem("rental-columns-settings", JSON.stringify(newSettings));
-    };
-
-    const toggleColumnVisibility = (columnKey) => {
-        const newSettings = {
-            ...columnSettings,
-            columns: columnSettings.columns.map((col) => (col.key === columnKey && !col.required ? { ...col, visible: !col.visible } : col)),
-        };
-        saveColumnSettings(newSettings);
-    };
-
-    const moveColumn = (fromIndex, toIndex) => {
-        const newColumns = [...columnSettings.columns];
-        const [movedColumn] = newColumns.splice(fromIndex, 1);
-        newColumns.splice(toIndex, 0, movedColumn);
-        saveColumnSettings({
-            ...columnSettings,
-            columns: newColumns,
-        });
-    };
-
-    const visibleColumns = columnSettings.columns.filter((col) => col.visible);
+    // Column settings handled by useColumnSettings hook
 
     // Derive columns for rendering; inject company column for super-admin just after 'select'
     const columnsForRender = useMemo(() => {
@@ -786,7 +509,7 @@ export default function RentalContracts() {
                     </button>
                 );
             case "vehicleType":
-                return formatVehicleType(row.vehicleType);
+                return <VehicleTypeText vehicleType={row.vehicleType} />;
             case "renterName":
                 return row.renterName || "-";
             case "rentalPeriod":
@@ -926,40 +649,19 @@ export default function RentalContracts() {
                                 <FaCog size={14} />
                                 컬럼 설정
                             </button>
-                            {showColumnDropdown && (
-                                <div data-column-dropdown className="dropdown-menu">
-                                    <div className="dropdown-menu__header">컬럼 표시 설정</div>
-                                    {columnSettings.columns.map((column, index) => (
-                                        <div
-                                            key={column.key}
-                                            draggable
-                                            onDragStart={(e) => handleDragStart(e, index)}
-                                            onDragOver={(e) => handleDragOver(e, index)}
-                                            onDragLeave={handleDragLeave}
-                                            onDrop={(e) => handleDrop(e, index)}
-                                            onDragEnd={handleDragEnd}
-                                            className={`dropdown-menu__item${column.required ? " is-required" : ""}${draggedColumnIndex === index ? " is-dragging" : ""}${
-                                                dragOverColumnIndex === index ? " is-dragover" : ""
-                                            }`}
-                                        >
-                                            <div className="drag-handle">
-                                                <FaGripVertical size={10} color="#999" />
-                                            </div>
-                                            <div
-                                                className="icon-cell"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    !column.required && toggleColumnVisibility(column.key);
-                                                }}
-                                            >
-                                                {column.visible ? <FaEye size={12} color="#4caf50" /> : <FaEyeSlash size={12} color="#f44336" />}
-                                            </div>
-                                            <span className="text-85 flex-1">{column.label}</span>
-                                            {column.required && <span className="text-70 text-muted-light">필수</span>}
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+                        {showColumnDropdown && (
+                            <ColumnSettingsMenu
+                                columns={columns}
+                                draggedColumnIndex={draggedColumnIndex}
+                                dragOverColumnIndex={dragOverColumnIndex}
+                                onDragStart={handleDragStart}
+                                onDragOver={handleDragOver}
+                                onDragLeave={handleDragLeave}
+                                onDrop={handleDrop}
+                                onDragEnd={handleDragEnd}
+                                onToggleVisibility={toggleColumnVisibility}
+                            />
+                        )}
                         </div>
                     </div>
                 </div>
