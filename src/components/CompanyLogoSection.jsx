@@ -49,6 +49,7 @@ function CompanyLogoSection() {
             <DragDropUpload
               folder={folder}
               accept="image/png,image/jpeg,image/jpg,image/webp"
+              multiple={false}
               onUploadSuccess={handleUploadSuccess}
               onError={(e) => console.error(e)}
             />

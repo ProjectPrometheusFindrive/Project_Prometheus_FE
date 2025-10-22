@@ -7,6 +7,7 @@ import { fetchAssets } from "../../api";
 import { getManagementStage } from "../../utils/managementStage";
 import StatusBadge from "../StatusBadge";
 import FilePreview from "../FilePreview";
+import FilesPreviewCarousel from "../FilesPreviewCarousel";
 import { formatPhone11, formatCurrency } from "../../utils/formatters";
 import { chooseUploadMode } from "../../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../../utils/uploads";
@@ -345,11 +346,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         disabled={readOnly}
                     >
                         {Array.isArray(form.contractFile) ? (
-                            <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-                                {form.contractFile.map((f, idx) => (
-                                    <FilePreview key={f.name + idx} file={f} />
-                                ))}
-                            </div>
+                            <FilesPreviewCarousel files={form.contractFile} />
                         ) : (
                             <FilePreview file={form.contractFile} />
                         )}
@@ -367,11 +364,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         disabled={readOnly}
                     >
                         {Array.isArray(form.driverLicenseFile) ? (
-                            <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-                                {form.driverLicenseFile.map((f, idx) => (
-                                    <FilePreview key={f.name + idx} file={f} />
-                                ))}
-                            </div>
+                            <FilesPreviewCarousel files={form.driverLicenseFile} />
                         ) : (
                             <FilePreview file={form.driverLicenseFile} />
                         )}

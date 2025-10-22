@@ -221,7 +221,7 @@ export default function AssetStatus() {
             console.groupCollapsed("[upload-ui] rental create docs (from Asset) start");
             try {
                 const rentalId = created.rentalId || rest.rentalId;
-                const base = `rentals/${encodeURIComponent(rentalId)}`;
+                const base = `rentals/${rentalId}`;
                 const [contractRes, licenseRes] = await Promise.all([
                     uploadMany(contractFiles, { folder: `${base}/contracts`, label: "contracts" }),
                     uploadMany(licenseFiles, { folder: `${base}/licenses`, label: "licenses" }),

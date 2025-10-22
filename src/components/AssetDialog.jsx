@@ -7,6 +7,7 @@ import GCSImage from "./GCSImage";
 import FilePreview from "./FilePreview";
 import DocumentViewer from "./DocumentViewer";
 import MultiDocGallery from "./MultiDocGallery";
+import FilesPreviewCarousel from "./FilesPreviewCarousel";
 import { chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import { ocrExtract } from "../api";
@@ -307,10 +308,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         />
       </div>
       {Array.isArray(form[key]) ? (
-        <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-          {form[key].map((f, idx) => (
-            <FilePreview key={f.name + idx} file={f} />
-          ))}
+        <div>
+          <FilesPreviewCarousel files={form[key]} />
         </div>
       ) : (
         <FilePreview file={form[key]} />

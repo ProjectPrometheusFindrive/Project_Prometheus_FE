@@ -359,7 +359,7 @@ export default function Settings() {
             setBizProgress(0);
             const { chooseUploadMode } = await import("../constants/uploads");
             const { uploadViaSignedPut, uploadResumable } = await import("../utils/uploads");
-            const folder = `business-certificates/${encodeURIComponent(companyId)}`;
+            const folder = `business-certificates/${companyId}`;
             const onProgress = (p) => setBizProgress(p?.percent || 0);
             const mode = chooseUploadMode(bizFile.size || 0);
             let result;

@@ -59,7 +59,7 @@ export default function OnboardingDocs() {
     try {
       setStatus("uploading");
       setProgress(0);
-      const folder = `business-certificates/${encodeURIComponent(companyId)}`;
+      const folder = `business-certificates/${companyId}`;
       const mode = chooseUploadMode(file.size || 0);
       const onProgress = (p) => setProgress(p?.percent || 0);
 

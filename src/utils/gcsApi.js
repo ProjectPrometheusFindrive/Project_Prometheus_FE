@@ -50,6 +50,7 @@ export async function uploadFileToGCS(file, folder = "") {
       fileName: file.name,
       contentType: sanitizeContentType(file, folder),
       folder: folder || "",
+      fileSize: file.size || 0,
     }),
   });
 

@@ -137,7 +137,7 @@ export default function Detail() {
                                 const patch = { ...rest };
                                 // Upload new files if provided
                                 if (contractFiles.length > 0 || licenseFiles.length > 0) {
-                                    const folderBase = `rentals/${encodeURIComponent(data.rentalId)}`;
+                                    const folderBase = `rentals/${data.rentalId}`;
                                 const uploadOne = async (file, keyLabel) => {
                                         if (!file) return null;
                                         const type = file.type || "";

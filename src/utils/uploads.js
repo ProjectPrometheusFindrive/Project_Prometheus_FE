@@ -40,7 +40,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
     if (isDebug()) { console.groupCollapsed("[upload] 업로드 시작 (소용량)"); }
     log.debug("file:", { name: fileName, size: file?.size, type: contentType });
     log.debug("folder:", folder || "(none)");
-    const sign = await requestUploadSign({ fileName, contentType, folder });
+    const sign = await requestUploadSign({ fileName, contentType, folder, fileSize: file?.size || 0 });
     log.debug("sign response:", sign);
     if (!sign || !sign.uploadUrl) {
       throw new Error("Failed to obtain signed upload URL");
@@ -131,7 +131,7 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
       if (isDebug()) console.groupCollapsed("[upload] 업로드 시작 (대용량)");
       log.debug("file:", { name: fileName, size: file?.size, type: contentType });
       log.debug("folder:", folder || "(none)");
-      session = await requestResumableSession({ fileName, contentType, folder });
+      session = await requestResumableSession({ fileName, contentType, folder, fileSize: file?.size || 0 });
       log.debug("resumable session:", session);
       if (!session || !session.sessionUrl) {
         throw new Error("Failed to obtain resumable session URL");

@@ -120,7 +120,7 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
           alert("허용되지 않는 파일 형식입니다.");
           return;
         }
-        const folder = `rentals/${encodeURIComponent(accidentTarget.rentalId)}/blackbox`;
+        const folder = `rentals/${accidentTarget.rentalId}/blackbox`;
         const onProgress = (p) => setUploadState((s) => ({ ...s, percent: p.percent }));
         const { mode, cancel, promise } = uploadOneCancelable(blackboxFile, { folder, label: "blackbox", onProgress });
         setUploadState({ status: "uploading", percent: 0, error: "", cancel, mode });

@@ -3,6 +3,7 @@ import { formatDateShort } from "../utils/date";
 import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
 import FilePreview from "./FilePreview";
+import FilesPreviewCarousel from "./FilesPreviewCarousel";
 import MultiDocGallery from "./MultiDocGallery";
 import { ocrExtract } from "../api";
 import { useAuth } from "../contexts/AuthContext";
@@ -226,7 +227,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     } else {
       const files = Array.isArray(form.insuranceDoc) ? form.insuranceDoc : (form.insuranceDoc ? [form.insuranceDoc] : []);
       if (files.length > 0 && asset?.id) {
-      const folder = `assets/${encodeURIComponent(asset.id)}/insurance`;
+      const folder = `assets/${asset.id}/insurance`;
       try {
         let uploaded = [];
         for (let i = 0; i < files.length; i++) {
@@ -292,11 +293,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               />
             </div>
             {Array.isArray(form.insuranceDoc) ? (
-              <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-                {form.insuranceDoc.map((f, idx) => (
-                  <FilePreview key={f.name + idx} file={f} />
-                ))}
-              </div>
+              <FilesPreviewCarousel files={form.insuranceDoc} />
             ) : (
               <FilePreview file={form.insuranceDoc} />
             )}
@@ -344,10 +341,8 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                     className="mb-2"
                   />
                   {Array.isArray(form.insuranceDoc) ? (
-                    <div className="grid [grid-template-columns:repeat(auto-fill,minmax(160px,1fr))] gap-2 mb-2">
-                      {form.insuranceDoc.map((f, idx) => (
-                        <FilePreview key={f.name + idx} file={f} />
-                      ))}
+                    <div className="mb-2">
+                      <FilesPreviewCarousel files={form.insuranceDoc} />
                     </div>
                   ) : (form.insuranceDoc ? <div className="mb-2"><FilePreview file={form.insuranceDoc} /></div> : null)}
                   {(busy.status === "uploading" || busy.status === "ocr") && (

@@ -4,6 +4,7 @@ import FormGrid from "./FormGrid";
 import FormField from "./FormField";
 import FormActions from "./FormActions";
 import FilePreview from "../FilePreview";
+import FilesPreviewCarousel from "../FilesPreviewCarousel";
 import { STATUS_OPTIONS, FUEL_TYPE_OPTIONS, YEAR_OPTIONS } from "../../constants/forms";
 import { formatCurrency } from "../../utils/formatters";
 import { normalizeKoreanPlate, isValidKoreanPlate } from "../../utils/validators";
@@ -66,11 +67,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 disabled={readOnly}
             >
                 {Array.isArray(form.insuranceDoc) ? (
-                    <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-                        {form.insuranceDoc.map((f, idx) => (
-                            <FilePreview key={f.name + idx} file={f} />
-                        ))}
-                    </div>
+                    <FilesPreviewCarousel files={form.insuranceDoc} />
                 ) : (
                     <FilePreview file={form.insuranceDoc} />
                 )}
@@ -88,11 +85,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 disabled={readOnly}
             >
                 {Array.isArray(form.registrationDoc) ? (
-                    <div className="grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-                        {form.registrationDoc.map((f, idx) => (
-                            <FilePreview key={f.name + idx} file={f} />
-                        ))}
-                    </div>
+                    <FilesPreviewCarousel files={form.registrationDoc} />
                 ) : (
                     <FilePreview file={form.registrationDoc} />
                 )}

@@ -1,6 +1,7 @@
 import React, { useEffect } from "react";
 import useFormState from "../../hooks/useFormState";
 import FilePreview from "../FilePreview";
+import FilesPreviewCarousel from "../FilesPreviewCarousel";
 
 export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = false, formId, showSubmit = true }) {
   const initialFormValues = {
@@ -76,10 +77,8 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
             )}
           </div>
           {!readOnly && Array.isArray(form.photos) && form.photos.length > 0 && (
-            <div className="mt-2 grid [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))] gap-2">
-              {form.photos.map((f, idx) => (
-                <FilePreview key={f.name + idx} file={f} />
-              ))}
+            <div className="mt-2">
+              <FilesPreviewCarousel files={form.photos} />
             </div>
           )}
         </div>
