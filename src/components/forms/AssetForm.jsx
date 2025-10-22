@@ -162,7 +162,7 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
 
             <FormField
                 id="vehicleValue"
-                label="차량가액"
+                label="차량가액(원)"
                 type="text"
                 value={form.vehicleValue}
                 onChange={(value) => update("vehicleValue", formatCurrency(value))}

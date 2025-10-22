@@ -60,7 +60,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     );
   };
 
-  // OCR suggestions mapped by field name
+  // OCR suggestions mapped by field name, including aliasing for amortizationSchedule
   const fieldSuggestions = useMemo(() => {
     const map = {};
     const push = (name, value, confidence, source) => {
@@ -72,9 +72,30 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       const doc = ocrSuggest && ocrSuggest[docKey];
       const fields = (doc && Array.isArray(doc.fields)) ? doc.fields : [];
       const source = doc && doc.source;
-      fields.forEach((f) => push(f.name, f.value, f.confidence, source));
+      fields.forEach((f) => {
+        // Capture array suggestions, e.g., possibleFuelTypes: ["디젤", ...]
+        if (f && f.name === "possibleFuelTypes" && Array.isArray(f.value)) {
+          f.value.forEach((ft) => push("fuelType", String(ft || ""), f.confidence, source));
+        }
+        // Default push
+        push(f.name, f.value, f.confidence, source);
+      });
     };
+    // Registration doc fields (plate, vin, make, model, year, ...)
     addDoc("registrationDoc");
+    // Amortization schedule fields (e.g., vehiclePrice, monthlyPayment)
+    const amort = ocrSuggest && ocrSuggest.amortizationSchedule;
+    if (amort && Array.isArray(amort.fields)) {
+      const source = amort.source;
+      amort.fields.forEach(({ name, value, confidence }) => {
+        // Alias vehiclePrice -> vehicleValue for FE form
+        if (name === "vehiclePrice") {
+          push("vehicleValue", value, confidence, source);
+        }
+        // Also keep original keys available if needed
+        push(name, value, confidence, source);
+      });
+    }
     return map;
   }, [ocrSuggest]);
 
@@ -170,6 +191,15 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           });
           if (resp && resp.ocrSuggestions && resp.ocrSuggestions.amortizationSchedule) {
             suggestions.amortizationSchedule = resp.ocrSuggestions.amortizationSchedule;
+            // If vehiclePrice is present and 차량가액이 비어있으면 채워 넣기
+            try {
+              const fields = suggestions.amortizationSchedule.fields || [];
+              const vField = fields.find((f) => f.name === "vehiclePrice");
+              if (vField && (form.vehicleValue == null || form.vehicleValue === "")) {
+                const raw = String(vField.value || "");
+                setForm((p) => ({ ...p, vehicleValue: formatCurrency(raw) }));
+              }
+            } catch {}
           }
         } catch (e) {
           console.warn("amortizationSchedule OCR failed", e);
@@ -399,11 +429,25 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
         {infoRow(
           "연료 타입",
-          <select id="asset-fuelType" name="fuelType" className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
-            {["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"].map((v) => (
-              <option key={v} value={v}>{v || "선택"}</option>
-            ))}
-          </select>
+          (() => {
+            const base = ["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"];
+            const suggested = (fieldSuggestions.fuelType || [])
+              .map((it) => String(it.value || "").trim())
+              .filter(Boolean);
+            const seen = new Set();
+            const ordered = [];
+            // Always start with empty option for accessibility
+            ordered.push("");
+            suggested.forEach((v) => { if (!seen.has(v)) { seen.add(v); ordered.push(v); } });
+            base.forEach((v) => { if (!seen.has(v)) { seen.add(v); ordered.push(v); } });
+            return (
+              <select id="asset-fuelType" name="fuelType" className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
+                {ordered.map((v) => (
+                  <option key={v || "_empty"} value={v}>{v || "선택"}</option>
+                ))}
+              </select>
+            );
+          })()
         )}
         {infoRow(
           "차량번호",
@@ -433,16 +477,27 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           </div>
         )}
         {infoRow(
-          "차량가액",
-          <input id="asset-vehicleValue" name="vehicleValue"
-            className="form-input"
-            type="text"
-            value={form.vehicleValue}
-            onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
-            inputMode="numeric"
-            maxLength={20}
-            placeholder="예: 25,000,000"
-          />
+          "차량가액(원)",
+          <div className="flex items-center gap-2 flex-nowrap w-full">
+            <input id="asset-vehicleValue" name="vehicleValue"
+              className="form-input flex-1"
+              type="text"
+              value={form.vehicleValue}
+              onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
+              inputMode="numeric"
+              maxLength={20}
+              placeholder="예: 25,000,000"
+            />
+            <OcrSuggestionPicker
+              items={fieldSuggestions.vehicleValue || []}
+              onApply={(val) => {
+                const raw = val == null ? "" : String(val);
+                setForm((p) => ({ ...p, vehicleValue: formatCurrency(raw) }));
+              }}
+              showLabel={false}
+              maxWidth={200}
+            />
+          </div>
         )}
       </div>
       <div className="asset-dialog__footer flex justify-end gap-2">
