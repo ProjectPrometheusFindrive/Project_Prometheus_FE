@@ -2,6 +2,7 @@ import { useState } from "react";
 import { fetchRentalById, updateRental } from "../api";
 import { ALLOWED_MIME_TYPES } from "../constants/uploads";
 import { uploadOneCancelable } from "../utils/uploadHelpers";
+import { emitToast } from "../utils/toast";
 
 const DEFAULT_FORM = {
   accidentDate: "",
@@ -117,7 +118,7 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
       if (blackboxFile) {
         const typeOk = !blackboxFile.type || ALLOWED_MIME_TYPES.includes(blackboxFile.type);
         if (!typeOk) {
-          alert("허용되지 않는 파일 형식입니다.");
+          emitToast("허용되지 않는 파일 형식입니다.", "warning");
           return;
         }
         const folder = `rentals/${accidentTarget.rentalId}/blackbox`;
@@ -159,7 +160,7 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
           accidentReport: updatedReport,
         };
       });
-      alert("사고 등록이 저장되었습니다.");
+      emitToast("사고 등록이 저장되었습니다.", "success");
       handleCloseAccidentModal();
     } catch (e) {
       console.error("Failed to submit accident info", e);
@@ -169,7 +170,7 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
         return;
       }
       setUploadState((s) => ({ ...s, status: "error", error: e?.message || "업로드/저장 실패" }));
-      alert("사고 등록 저장 실패");
+      emitToast("사고 등록 저장 실패", "error");
     }
   };
 

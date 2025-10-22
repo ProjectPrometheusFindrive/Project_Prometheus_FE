@@ -1,5 +1,5 @@
 import React from 'react';
-import { formatDateShort } from '../../../utils/date';
+import { formatDateShort } from '../../utils/date';
 
 /**
  * 보험 만료일 셀 컴포넌트

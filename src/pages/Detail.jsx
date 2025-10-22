@@ -5,6 +5,7 @@ import { uploadMany } from "../utils/uploadHelpers";
 import AssetForm from "../components/forms/AssetForm";
 import RentalForm from "../components/forms/RentalForm";
 import IssueForm from "../components/forms/IssueForm";
+import { emitToast } from "../utils/toast";
 
 export default function Detail() {
     const { type, id } = useParams();
@@ -111,7 +112,7 @@ export default function Detail() {
                                 await saveAsset(data.id, patch);
                             } catch (e) {
                                 console.error("Failed saving asset via API", e);
-                                alert("자산 저장에 실패했습니다.");
+                                emitToast("자산 저장에 실패했습니다.", "error");
                                 return;
                             }
                             setEditing(false);
@@ -161,7 +162,7 @@ export default function Detail() {
                                 await updateRental(data.rentalId, patch);
                             } catch (e) {
                                 console.error("Failed saving rental via API", e);
-                                alert("계약 저장에 실패했습니다.");
+                                emitToast("계약 저장에 실패했습니다.", "error");
                                 return;
                             }
                             setEditing(false);
@@ -188,7 +189,7 @@ export default function Detail() {
                                 if (!result?.ok) throw new Error(result?.error || "Issue create failed");
                             } catch (e) {
                                 console.error("Failed creating issue via API", e);
-                                alert("이슈 저장에 실패했습니다.");
+                                emitToast("이슈 저장에 실패했습니다.", "error");
                                 return;
                             }
                             setEditing(false);

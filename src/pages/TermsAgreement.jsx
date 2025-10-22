@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { emitToast } from "../utils/toast";
 
 export default function TermsAgreement() {
   const navigate = useNavigate();
@@ -27,7 +28,7 @@ export default function TermsAgreement() {
 
   const handleNext = () => {
     if (!agreements.privacy || !agreements.location) {
-      alert("필수 약관에 동의해주세요.");
+      emitToast("필수 약관에 동의해주세요.", "warning");
       return;
     }
     navigate("/signup");

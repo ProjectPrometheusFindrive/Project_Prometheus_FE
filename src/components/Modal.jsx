@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { COLORS } from "../constants";
 
 const Modal = ({
@@ -18,6 +18,23 @@ const Modal = ({
   size = "default",
   showHeaderClose = true
 }) => {
+  const containerRef = useRef(null);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const onKey = (e) => {
+      if (e.key === "Escape") {
+        try { onClose && onClose(); } catch {}
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    // set initial focus to modal container for better tab order
+    setTimeout(() => {
+      try { containerRef.current && containerRef.current.focus(); } catch {}
+    }, 0);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleBackdropClick = (e) => {
@@ -62,7 +79,12 @@ const Modal = ({
       aria-modal="true"
       aria-label={ariaLabel || title}
     >
-      <div className={`modal ${getModalSizeClass()} ${className}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        className={`modal ${getModalSizeClass()} ${className}`}
+        onClick={(e) => e.stopPropagation()}
+        ref={containerRef}
+        tabIndex={-1}
+      >
         {(title || customHeaderContent) && (
           <div className="header-row mb-2">
             {customHeaderContent ? (

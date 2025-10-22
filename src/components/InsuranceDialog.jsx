@@ -9,6 +9,7 @@ import { ocrExtract } from "../api";
 import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
 import OcrSuggestionPicker from "./OcrSuggestionPicker";
+import { emitToast } from "../utils/toast";
 
 export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false, allowEditToggle = false }) {
   const [form, setForm] = useState({
@@ -72,7 +73,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     }
     const allowed = files.filter((f) => !f.type || ALLOWED_MIME_TYPES.includes(f.type));
     if (allowed.length === 0) {
-      alert("허용되지 않는 파일 형식입니다.");
+      emitToast("허용되지 않는 파일 형식입니다.", "warning");
       return;
     }
     // For OCR flow, keep the selected file(s) as-is; previews will show
@@ -181,7 +182,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
 
   const handleSave = async () => {
     if (!form.insuranceCompany || !form.insuranceExpiryDate) {
-      alert("보험사명과 만료일을 입력해 주세요.");
+      emitToast("보험사명과 만료일을 입력해 주세요.", "warning");
       return;
     }
     const isRenewal = (Array.isArray(asset.insuranceHistory) && asset.insuranceHistory.length > 0) || !!asset.insuranceInfo;
@@ -254,7 +255,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       } catch (e) {
         console.error("Insurance doc upload failed", e);
         setUploadState((s) => ({ status: "error", percent: 0, error: e?.message || "문서 업로드 실패", cancel: null, mode: s.mode }));
-        alert("문서 업로드에 실패했습니다.");
+        emitToast("문서 업로드에 실패했습니다.", "error");
         return;
       }
       }

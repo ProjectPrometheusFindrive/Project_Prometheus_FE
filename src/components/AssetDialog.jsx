@@ -14,6 +14,7 @@ import { randomId } from "../utils/id";
 import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
 import OcrSuggestionPicker from "./OcrSuggestionPicker";
+import { emitToast } from "../utils/toast";
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
@@ -104,7 +105,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     const regFiles = toArray(form.registrationDoc);
     const planFiles = toArray(form.insuranceDoc); // 원리금 상환 계획표
     if (requireDocs && regFiles.length === 0 && planFiles.length === 0) {
-      alert("업로드할 파일을 선택해 주세요.");
+      emitToast("업로드할 파일을 선택해 주세요.", "warning");
       return;
     }
     setBusy({ status: "uploading", message: "업로드 중...", percent: 0 });
@@ -182,7 +183,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       console.error("upload/OCR error", e);
       setBusy({ status: "idle", message: "", percent: 0 });
       // allow proceeding without OCR
-      alert("업로드 또는 OCR 처리 중 오류가 발생했습니다. 수동으로 진행해 주세요.");
+      emitToast("업로드 또는 OCR 처리 중 오류가 발생했습니다. 수동으로 진행해 주세요.", "error");
       setStep("details");
     }
   };
@@ -313,7 +314,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
   const handleSave = async () => {
     if (isPlateInvalid) {
-      alert("올바르지 않은 차량번호 형식입니다.");
+      emitToast("올바르지 않은 차량번호 형식입니다.", "warning");
       return;
     }
     if (onSubmit) {

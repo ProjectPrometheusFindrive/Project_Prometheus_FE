@@ -26,6 +26,7 @@ import useColumnSettings from "../hooks/useColumnSettings";
 import VehicleTypeText from "../components/VehicleTypeText";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import useAccidentReport from "../hooks/useAccidentReport";
+import { emitToast } from "../utils/toast";
 
 
 const DEFAULT_COLUMN_CONFIG = [
@@ -190,7 +191,7 @@ export default function RentalContracts() {
             created = await createRental(payload);
         } catch (e) {
             console.error("Failed to create rental via API", e);
-            alert("계약 생성에 실패했습니다.");
+            emitToast("계약 생성에 실패했습니다.", "error");
             return;
         }
 
@@ -260,7 +261,7 @@ export default function RentalContracts() {
             setItems((prev) => prev.map((item) => (item.rentalId === rentalId ? { ...item, restartBlocked: next } : item)));
         } catch (e) {
             console.error("Failed to update restart flag", e);
-            alert("재시동 금지 상태 변경 실패");
+            emitToast("재시동 금지 상태 변경 실패", "error");
         }
     };
 
@@ -275,7 +276,7 @@ export default function RentalContracts() {
             onMemoCancel();
         } catch (e) {
             console.error("Failed to save memo", e);
-            alert("메모 저장 실패");
+            emitToast("메모 저장 실패", "error");
         }
     };
     const handleMemoCancel = () => onMemoCancel();

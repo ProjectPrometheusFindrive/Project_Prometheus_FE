@@ -2,6 +2,7 @@ import { useCallback } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
 import { fetchRentals, updateRental, saveAsset, createRental } from "../api";
 import { uploadMany } from "../utils/uploadHelpers";
+import { emitToast } from "../utils/toast";
 
 // Extracts management stage transitions and the rental-create follow-up flow.
 // Requires several state setters so it can coordinate UI with API work.
@@ -103,7 +104,7 @@ export default function useManagementStage(options) {
       }
     } catch (error) {
       console.error("Failed to update management stage", error);
-      alert("관리단계를 저장하지 못했습니다. 다시 시도해주세요.");
+      emitToast("관리단계를 저장하지 못했습니다. 다시 시도해주세요.", "error");
       if (setRows && withManagementStage) {
         setRows((prev) => prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: previousStage }) : row)));
       }
@@ -152,7 +153,7 @@ export default function useManagementStage(options) {
           }
         } catch (e) {
           console.error("Failed to save management stage after rental create", e);
-          alert("관리단계를 저장하지 못했습니다. 다시 시도해주세요.");
+          emitToast("관리단계를 저장하지 못했습니다. 다시 시도해주세요.", "error");
         } finally {
           if (setStageSaving) setStageSaving((prev) => { const n = { ...prev }; delete n[pendingStageAssetId]; return n; });
         }
@@ -167,4 +168,3 @@ export default function useManagementStage(options) {
 
   return { handleManagementStageChange, handleRentalCreateSubmit };
 }
-

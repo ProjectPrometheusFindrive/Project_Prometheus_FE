@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { FaChevronDown, FaExclamationTriangle } from "react-icons/fa";
-import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
+import { MANAGEMENT_STAGE_OPTIONS } from "../../constants/forms";
 
 const MANAGEMENT_STAGE_BADGE_CLASS = {
   대여가능: "badge--available",
@@ -26,6 +26,15 @@ export default function AssetManagementStageCell({
 }) {
   const badgeClass = MANAGEMENT_STAGE_BADGE_CLASS[label] || "badge--default";
   const dropdownId = `management-stage-${rowId}`;
+  const listRef = useRef(null);
+
+  useEffect(() => {
+    if (isOpen && listRef.current) {
+      // Focus first option when opening for keyboard navigation
+      const firstBtn = listRef.current.querySelector('button');
+      if (firstBtn) firstBtn.focus();
+    }
+  }, [isOpen]);
 
   return (
     <span data-stage-dropdown className="inline-flex items-center gap-6 relative">
@@ -73,7 +82,31 @@ export default function AssetManagementStageCell({
         </span>
       )}
       {isOpen && (
-        <ul id={dropdownId} role="listbox" aria-label="관리단계 선택" className={`management-stage-dropdown${stageDropdownUp ? " is-up" : ""}`}>
+        <ul
+          id={dropdownId}
+          role="listbox"
+          aria-label="관리단계 선택"
+          className={`management-stage-dropdown${stageDropdownUp ? " is-up" : ""}`}
+          ref={listRef}
+          onKeyDown={(e) => {
+            const current = document.activeElement;
+            if (!listRef.current) return;
+            const buttons = Array.from(listRef.current.querySelectorAll('button'));
+            const idx = buttons.indexOf(current);
+            if (e.key === 'Escape') {
+              e.preventDefault();
+              onToggleOpen(rowId);
+            } else if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              const next = buttons[Math.min(buttons.length - 1, idx + 1)] || buttons[0];
+              next && next.focus();
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              const prev = buttons[Math.max(0, idx - 1)] || buttons[buttons.length - 1];
+              prev && prev.focus();
+            }
+          }}
+        >
           {MANAGEMENT_STAGE_OPTIONS.map((option) => (
             <li key={option.value}>
               <button
@@ -81,6 +114,7 @@ export default function AssetManagementStageCell({
                 onClick={() => onSelect(option.value)}
                 className="management-stage-dropdown__option"
                 disabled={isSaving}
+                role="option"
               >
                 <span className={`badge management-stage-dropdown__badge ${MANAGEMENT_STAGE_BADGE_CLASS[option.value] || "badge--default"}`}>{option.label}</span>
               </button>
@@ -96,4 +130,3 @@ export default function AssetManagementStageCell({
     </span>
   );
 }
-

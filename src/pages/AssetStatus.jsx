@@ -32,6 +32,7 @@ import useColumnSettings from "../hooks/useColumnSettings";
 import useDropdownState from "../hooks/useDropdownState";
 import VehicleTypeText from "../components/VehicleTypeText";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
+import { emitToast } from "../utils/toast";
 import SeverityBadge from "../components/SeverityBadge";
 
 // Column defaults for AssetStatus table
@@ -189,7 +190,7 @@ export default function AssetStatus() {
             created = await createRental(payload);
         } catch (e) {
             console.error("Failed to create rental via API", e);
-            alert("계약 생성에 실패했습니다.");
+            emitToast("계약 생성에 실패했습니다.", "error");
             return;
         }
 
@@ -270,7 +271,7 @@ export default function AssetStatus() {
                 );
             } catch (error) {
                 console.error("Failed to save management stage after rental create", error);
-                alert("관리단계를 저장하지 못했습니다. 다시 시도해주세요.");
+                emitToast("관리단계를 저장하지 못했습니다. 다시 시도해주세요.", "error");
             } finally {
                 setStageSaving((prev) => {
                     const next = { ...prev };
@@ -536,7 +537,7 @@ export default function AssetStatus() {
             setRows((prev) => prev.map((a) => (a.id === activeAsset.id ? withManagementStage({ ...a, ...(resp || patch) }) : a)));
         } catch (e) {
             console.error("Failed to save device info", e);
-            alert("단말 정보 저장 실패");
+            emitToast("단말 정보 저장 실패", "error");
         }
         setShowDeviceModal(false);
         setActiveAsset(null);
@@ -635,7 +636,7 @@ export default function AssetStatus() {
         } else {
             // Create new asset via API
             if (!data?.vin) {
-                alert("VIN은 필수입니다.");
+                emitToast("VIN은 필수입니다.", "warning");
                 return;
             }
             const today = new Date().toISOString().slice(0, 10);
@@ -713,7 +714,7 @@ export default function AssetStatus() {
                 setRows((prev) => [normalized, ...prev]);
             } catch (e) {
                 console.error("Failed to create asset via API", e);
-                alert("자산 생성에 실패했습니다.");
+                emitToast("자산 생성에 실패했습니다.", "error");
             }
         }
 
@@ -734,7 +735,7 @@ export default function AssetStatus() {
             onMemoCancel();
         } catch (error) {
             console.error("Failed to save memo:", error);
-            alert("메모 저장에 실패했습니다.");
+            emitToast("메모 저장에 실패했습니다.", "error");
         }
     };
     const handleMemoCancel = () => onMemoCancel();
@@ -926,13 +927,25 @@ export default function AssetStatus() {
                           const hasDevice = !!row.deviceSerial;
                           if (hasDevice) {
                               return (
-                                  <button type="button" className="badge badge--on badge--clickable" onClick={() => openDeviceModal(row, true)} title="단말 정보 보기">
+                                  <button
+                                      type="button"
+                                      className="badge badge--on badge--clickable"
+                                      onClick={() => openDeviceModal(row, true)}
+                                      title="단말 정보 보기"
+                                      aria-label={`${row.plate || row.id || "자산"} 단말 정보 보기`}
+                                  >
                                       연결됨
                                   </button>
                               );
                           }
                           return (
-                              <button type="button" className="badge badge--default badge--clickable" onClick={() => openDeviceModal(row, false)} title="단말 등록">
+                              <button
+                                  type="button"
+                                  className="badge badge--default badge--clickable"
+                                  onClick={() => openDeviceModal(row, false)}
+                                  title="단말 등록"
+                                  aria-label={`${row.plate || row.id || "자산"} 단말 등록`}
+                              >
                                   단말 등록
                               </button>
                           );
