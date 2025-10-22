@@ -1,5 +1,5 @@
 import React from "react";
-import GCSImage from "./GCSImage";
+import GCSImage from "../GCSImage";
 
 /**
  * CompanyCell - 회사 정보 표시 셀 컴포넌트
