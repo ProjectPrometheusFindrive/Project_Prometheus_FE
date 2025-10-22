@@ -2,8 +2,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
-import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { ALLOWED_MIME_TYPES } from "../constants/uploads";
+import { uploadOne } from "../utils/uploadHelpers";
 import { typedStorage } from "../utils/storage";
 import FilePreview from "../components/FilePreview";
 
@@ -60,18 +60,9 @@ export default function OnboardingDocs() {
       setStatus("uploading");
       setProgress(0);
       const folder = `business-certificates/${companyId}`;
-      const mode = chooseUploadMode(file.size || 0);
       const onProgress = (p) => setProgress(p?.percent || 0);
 
-      let result;
-      if (mode === "signed-put") {
-        const { promise } = uploadViaSignedPut(file, { folder, onProgress });
-        result = await promise;
-      } else {
-        const { promise } = uploadResumable(file, { folder, onProgress });
-        result = await promise;
-      }
-
+      const result = await uploadOne(file, { folder, label: "bizCert", onProgress });
       const objectName = result?.objectName || "";
       if (!objectName) throw new Error("업로드 결과에 objectName이 없습니다.");
 

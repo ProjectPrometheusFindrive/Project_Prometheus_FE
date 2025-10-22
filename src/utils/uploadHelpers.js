@@ -79,3 +79,32 @@ export async function uploadMany(files, { folder, label, onProgress } = {}) {
   }
   return { names, urls, objects };
 }
+
+/**
+ * Upload a single file with OCR filename wrapping.
+ * Wraps filename as: ocr-{type}-{tmpId}-{label}-{originalFileName}
+ * Returns { name: wrappedFileName, objectName } on success, null on failure.
+ *
+ * @param {File} file - File to upload
+ * @param {Object} options
+ * @param {string} options.folder - GCS folder path
+ * @param {string} options.type - OCR type (e.g., "asset", "rental", "insurance")
+ * @param {string} options.tmpId - Temporary ID to group related uploads
+ * @param {string} options.label - Label for the file (e.g., "registrationDoc", "contractFile")
+ * @param {Function} [options.onProgress] - Progress callback function
+ * @returns {Promise<{name: string, objectName: string} | null>}
+ */
+export async function uploadOneOCR(file, { folder, type, tmpId, label, onProgress } = {}) {
+  if (!file || !type || !tmpId) return null;
+
+  const wrappedName = `ocr-${type}-${tmpId}-${label}-${file.name}`;
+  const wrapped = new File([file], wrappedName, { type: file.type });
+
+  const uploadRes = await uploadOne(wrapped, { folder, label: `OCR ${type}/${label}`, onProgress });
+  if (!uploadRes || !uploadRes.objectName) return null;
+
+  return {
+    name: wrappedName,
+    objectName: uploadRes.objectName,
+  };
+}

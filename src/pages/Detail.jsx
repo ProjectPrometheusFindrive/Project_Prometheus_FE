@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { fetchAssetById, fetchRentalById, saveAsset, updateRental, createIssueDraft } from "../api";
-import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { uploadMany } from "../utils/uploadHelpers";
 import AssetForm from "../components/forms/AssetForm";
 import RentalForm from "../components/forms/RentalForm";
 import IssueForm from "../components/forms/IssueForm";
@@ -138,43 +137,9 @@ export default function Detail() {
                                 // Upload new files if provided
                                 if (contractFiles.length > 0 || licenseFiles.length > 0) {
                                     const folderBase = `rentals/${data.rentalId}`;
-                                const uploadOne = async (file, keyLabel) => {
-                                        if (!file) return null;
-                                        const type = file.type || "";
-                                        if (type && !ALLOWED_MIME_TYPES.includes(type)) return null;
-                                        const folder = `${folderBase}/${keyLabel}`;
-                                        const mode = chooseUploadMode(file.size || 0);
-                                        try {
-                                            if (mode === "signed-put") {
-                                                const { promise } = uploadViaSignedPut(file, { folder });
-                                                const res = await promise;
-                                                return { url: res?.publicUrl || null, objectName: res?.objectName || null };
-                                            } else {
-                                                const { promise } = uploadResumable(file, { folder });
-                                                const res = await promise;
-                                                return { url: res?.publicUrl || null, objectName: res?.objectName || null };
-                                            }
-                                        } catch {
-                                            return null;
-                                        }
-                                    };
-                                    const uploadMany = async (files, label) => {
-                                        const urls = [];
-                                        const objects = [];
-                                        const names = [];
-                                        for (const f of files) {
-                                            const res = await uploadOne(f, label);
-                                            if (res && (res.url || res.objectName)) {
-                                                names.push(f.name);
-                                                if (res.url) urls.push(res.url);
-                                                if (res.objectName) objects.push(res.objectName);
-                                            }
-                                        }
-                                        return { names, urls, objects };
-                                    };
                                     const [contractRes, licenseRes] = await Promise.all([
-                                        uploadMany(contractFiles, "contracts"),
-                                        uploadMany(licenseFiles, "licenses"),
+                                        uploadMany(contractFiles, { folder: `${folderBase}/contracts`, label: "contracts" }),
+                                        uploadMany(licenseFiles, { folder: `${folderBase}/licenses`, label: "licenses" }),
                                     ]);
                                     if (contractRes.names.length > 0) {
                                         patch.contractDocNames = contractRes.names;

@@ -1,8 +1,7 @@
 import { useCallback } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
 import { fetchRentals, updateRental, saveAsset, createRental } from "../api";
-import { chooseUploadMode } from "../constants/uploads";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { uploadMany } from "../utils/uploadHelpers";
 
 // Extracts management stage transitions and the rental-create follow-up flow.
 // Requires several state setters so it can coordinate UI with API work.
@@ -123,23 +122,13 @@ export default function useManagementStage(options) {
     const licenseList = toArray(driverLicenseFile);
 
     try {
-      // Upload documents first
-      const uploadOne = async (file, folder) => {
-        const mode = chooseUploadMode(file.size || 0);
-        if (mode === "signed-put") {
-          const { promise } = uploadViaSignedPut(file, { folder });
-          return await promise;
-        }
-        const { promise } = uploadResumable(file, { folder });
-        return await promise;
-      };
+      // Upload documents using consolidated helpers
+      const [contractRes, licenseRes] = await Promise.all([
+        uploadMany(contractList, { folder: `rentals/contracts`, label: "contracts" }),
+        uploadMany(licenseList, { folder: `rentals/licenses`, label: "licenses" }),
+      ]);
 
-      const uploads = [];
-      for (const f of contractList) uploads.push(uploadOne(f, `rentals/contracts`));
-      for (const f of licenseList) uploads.push(uploadOne(f, `rentals/licenses`));
-      const results = await Promise.all(uploads);
-
-      const objectNames = results.map((r) => r?.objectName).filter(Boolean);
+      const objectNames = [...(contractRes?.objects || []), ...(licenseRes?.objects || [])];
       const rentalPayload = {
         ...rest,
         contractFiles: contractList.map((f) => ({ name: f.name })),

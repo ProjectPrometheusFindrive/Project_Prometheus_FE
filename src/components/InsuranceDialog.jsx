@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { formatDateShort } from "../utils/date";
-import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { ALLOWED_MIME_TYPES } from "../constants/uploads";
+import { uploadOneOCR } from "../utils/uploadHelpers";
 import FilePreview from "./FilePreview";
 import FilesPreviewCarousel from "./FilesPreviewCarousel";
 import MultiDocGallery from "./MultiDocGallery";
@@ -109,19 +109,14 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   }, [ocrSuggest]);
 
   const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
-  const uploadOne = async (file, label) => {
-    const newName = `ocr-insurance-${asset?.id || "asset"}-${label}-${file.name}`;
-    const wrapped = new File([file], newName, { type: file.type });
-    const mode = chooseUploadMode(wrapped.size || 0);
-    if (mode === "signed-put") {
-      const { promise } = uploadViaSignedPut(wrapped, { folder: ocrFolderBase, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
-      const res = await promise;
-      return { name: newName, objectName: res.objectName || "" };
-    } else {
-      const { promise } = uploadResumable(wrapped, { folder: ocrFolderBase, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
-      const res = await promise;
-      return { name: newName, objectName: res.objectName || "" };
-    }
+  const uploadOneFile = async (file, label) => {
+    return uploadOneOCR(file, {
+      folder: ocrFolderBase,
+      type: "insurance",
+      tmpId: asset?.id || "asset",
+      label,
+      onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })),
+    });
   };
 
   const handleUploadAndOcr = async () => {
@@ -135,8 +130,8 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     try {
       const uploaded = [];
       for (const f of docs) {
-        const item = await uploadOne(f, `insurance`);
-        if (item.objectName) uploaded.push(item);
+        const item = await uploadOneFile(f, `insurance`);
+        if (item?.objectName) uploaded.push(item);
       }
       setPreUploaded(uploaded);
 

@@ -17,7 +17,6 @@ import Table from "../components/Table";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
 import useTableSelection from "../hooks/useTableSelection";
-import GCSImage from "../components/GCSImage";
 // Local storage fallbacks removed; use API persistence instead
 import { ASSET } from "../constants";
 import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";

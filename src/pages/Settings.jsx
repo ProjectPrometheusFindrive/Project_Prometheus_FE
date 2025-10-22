@@ -15,6 +15,7 @@ import {
 import { CountBadge, GeofenceBadge } from "../components/StatusBadge";
 import DocumentViewer from "../components/DocumentViewer";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
+import { uploadOne } from "../utils/uploadHelpers";
 
 export default function Settings() {
     const auth = useAuth();
@@ -357,19 +358,9 @@ export default function Settings() {
         try {
             setBizStatus("uploading");
             setBizProgress(0);
-            const { chooseUploadMode } = await import("../constants/uploads");
-            const { uploadViaSignedPut, uploadResumable } = await import("../utils/uploads");
             const folder = `business-certificates/${companyId}`;
             const onProgress = (p) => setBizProgress(p?.percent || 0);
-            const mode = chooseUploadMode(bizFile.size || 0);
-            let result;
-            if (mode === "signed-put") {
-                const { promise } = uploadViaSignedPut(bizFile, { folder, onProgress });
-                result = await promise;
-            } else {
-                const { promise } = uploadResumable(bizFile, { folder, onProgress });
-                result = await promise;
-            }
+            const result = await uploadOne(bizFile, { folder, label: "bizCert", onProgress });
             const objectName = result?.objectName || "";
             if (!objectName) throw new Error("업로드 결과에 objectName이 없습니다.");
             // Persist via company API (updateCompanyInfo triggers PUT)

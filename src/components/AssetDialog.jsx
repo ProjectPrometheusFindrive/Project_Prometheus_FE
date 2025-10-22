@@ -8,8 +8,7 @@ import FilePreview from "./FilePreview";
 import DocumentViewer from "./DocumentViewer";
 import MultiDocGallery from "./MultiDocGallery";
 import FilesPreviewCarousel from "./FilesPreviewCarousel";
-import { chooseUploadMode } from "../constants/uploads";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
+import { uploadOneOCR } from "../utils/uploadHelpers";
 import { ocrExtract } from "../api";
 import { randomId } from "../utils/id";
 import { useAuth } from "../contexts/AuthContext";
@@ -91,19 +90,14 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
   // Step 1: upload & OCR helpers (create mode only)
   const toArray = (val) => (Array.isArray(val) ? val : (val instanceof File ? [val] : []));
-  const uploadOne = async (file, label) => {
-    const newName = `ocr-asset-${tmpIdRef.current}-${label}-${file.name}`;
-    const wrapped = new File([file], newName, { type: file.type });
-    const mode = chooseUploadMode(wrapped.size || 0);
-    if (mode === "signed-put") {
-      const { promise } = uploadViaSignedPut(wrapped, { folder: ocrFolderBase, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
-      const res = await promise;
-      return { name: newName, objectName: res.objectName || "" };
-    } else {
-      const { promise } = uploadResumable(wrapped, { folder: ocrFolderBase, onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })) });
-      const res = await promise;
-      return { name: newName, objectName: res.objectName || "" };
-    }
+  const uploadOneFile = async (file, label) => {
+    return uploadOneOCR(file, {
+      folder: ocrFolderBase,
+      type: "asset",
+      tmpId: tmpIdRef.current,
+      label,
+      onProgress: (p) => setBusy((s) => ({ ...s, percent: p.percent })),
+    });
   };
 
   const handleUploadAndOcr = async () => {
@@ -118,14 +112,14 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       const uploaded = { registration: [], insurance: [] };
       if (regFiles.length > 0) {
         for (const f of regFiles) {
-          const item = await uploadOne(f, `registrationDoc`);
-          if (item.objectName) uploaded.registration.push(item);
+          const item = await uploadOneFile(f, `registrationDoc`);
+          if (item?.objectName) uploaded.registration.push(item);
         }
       }
       if (planFiles.length > 0) {
         for (const f of planFiles) {
-          const item = await uploadOne(f, `amortizationSchedule`);
-          if (item.objectName) uploaded.insurance.push(item);
+          const item = await uploadOneFile(f, `amortizationSchedule`);
+          if (item?.objectName) uploaded.insurance.push(item);
         }
       }
       setPreUploaded(uploaded);

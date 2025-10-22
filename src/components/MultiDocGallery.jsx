@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
+import { emitToast } from "../utils/toast";
 import DocumentViewer from "./DocumentViewer";
 
 // items: Array<{ name: string, objectName?: string, url?: string }>
@@ -15,7 +16,7 @@ export default function MultiDocGallery({ title = "문서", items = [] }) {
       setViewer({ open: true, src, name: it.name || "document" });
     } catch (e) {
       console.error("Failed to open document", e);
-      alert("문서를 열 수 없습니다.");
+      emitToast("문서를 열 수 없습니다.", "error");
     }
   };
   if (!Array.isArray(items) || items.length === 0) return null;
@@ -43,7 +44,7 @@ export default function MultiDocGallery({ title = "문서", items = [] }) {
                       link.remove();
                     } catch (e) {
                       console.error("download failed", e);
-                      alert("다운로드에 실패했습니다.");
+                      emitToast("다운로드에 실패했습니다.", "error");
                     }
                   }}
                 >

@@ -8,9 +8,9 @@ const defaultLogo = "/PPFD.png";
 import CiUploadModal from "./CiUploadModal";
 import ThemeToggle from "./ThemeToggle";
 import { useCompany } from "../contexts/CompanyContext";
-import { uploadViaSignedPut, uploadResumable } from "../utils/uploads";
-import { chooseUploadMode } from "../constants/uploads";
+import { uploadOne } from "../utils/uploadHelpers";
 import GCSImage from "./GCSImage";
+import { emitToast } from "../utils/toast";
 
 export default function TopHeader() {
     const navigate = useNavigate();
@@ -47,7 +47,7 @@ export default function TopHeader() {
 
     async function handleModalSubmit(file, previewUrl) {
         if (!file || (file.type && !String(file.type).startsWith("image/"))) {
-            alert("이미지 파일을 선택해 주세요.");
+            emitToast("이미지 파일을 선택해 주세요.", "warning");
             return;
         }
 
@@ -56,29 +56,17 @@ export default function TopHeader() {
             // Use canonical companyId for uploads: company/{companyId}/docs
             const companyId = auth?.user?.companyId || companyInfo?.companyId || "ci";
             const folder = `company/${companyId}/docs`;
-            const mode = chooseUploadMode(file.size);
-            let objectName = "";
             console.groupCollapsed("[upload-ui] logo upload start");
             console.debug("file:", { name: file?.name, size: file?.size, type: file?.type });
-            console.debug("mode:", mode, "folder:", folder);
-            if (mode === "signed-put") {
-                const { promise } = uploadViaSignedPut(file, { folder, onProgress: (p) => console.debug("[upload-ui] signed-put progress:", p) });
-                const res = await promise;
-                console.debug("[upload-ui] signed-put result:", res);
-                objectName = res.objectName || "";
-            } else {
-                const { promise } = uploadResumable(file, { folder, onProgress: (p) => console.debug("[upload-ui] resumable progress:", p) });
-                const res = await promise;
-                console.debug("[upload-ui] resumable result:", res);
-                objectName = res.objectName || "";
-            }
-            console.debug("[upload-ui] updating company logo objectName:", objectName || "(none)");
+            const res = await uploadOne(file, { folder, label: "logo" });
+            console.debug("[upload-ui] uploadOne result:", res);
+            console.debug("[upload-ui] updating company logo objectName:", res?.objectName || "(none)");
             // Persist preferred field: logoPath (objectName). Clear legacy data URL.
-            updateCompanyInfo({ logoPath: objectName, logoDataUrl: "" });
+            updateCompanyInfo({ logoPath: res?.objectName || "", logoDataUrl: "" });
             setIsModalOpen(false);
         } catch (err) {
             console.error("Failed to save logo:", err);
-            alert("업로드 실패: " + (err?.message || String(err)));
+            emitToast("업로드 실패: " + (err?.message || String(err)), "error");
         } finally {
             console.groupEnd();
             setUploading(false);
