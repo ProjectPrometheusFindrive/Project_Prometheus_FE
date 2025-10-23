@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
-import Modal from "./Modal";
-import { fetchAssetMemoHistory, fetchRentalMemoHistory } from "../api";
-import { formatYyMmDdHhMmSs } from "../utils/datetime";
+import Modal from "../Modal";
+import { fetchAssetMemoHistory, fetchRentalMemoHistory } from "../../api";
+import { formatYyMmDdHhMmSs } from "../../utils/datetime";
 
 export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId, title }) {
   const [items, setItems] = useState([]);

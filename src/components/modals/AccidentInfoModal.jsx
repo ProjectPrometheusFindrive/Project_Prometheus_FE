@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
-import Modal from "./Modal";
+import Modal from "../Modal";
 import { FaPlay, FaPause, FaStop, FaVolumeUp, FaVolumeDown, FaExpand, FaClock, FaUser, FaExclamationTriangle } from "react-icons/fa";
-import { getSignedDownloadUrl } from "../utils/gcsApi";
+import { getSignedDownloadUrl } from "../../utils/gcsApi";
 
 const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title = "사고 정보 조회" }) => {
     const [isPlaying, setIsPlaying] = useState(false);
@@ -158,7 +158,7 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                             <div>
                                 <strong className="text-[0.9rem] text-gray-600">접수 일시:</strong>
                                 <div className="text-[0.95rem] text-gray-800 mt-1">
-                                    {accidentData.recordedAt ? new Date(accidentData.recordedAt).toLocaleString("ko-KR") : "-"}
+                                    {accidentData.recordedAt ? require('../../utils/datetime').formatYyMmDdHhMmSs(accidentData.recordedAt) : "-"}
                                 </div>
                             </div>
                             <div>
@@ -221,7 +221,7 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                                 <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">대여 기간:</strong>
                                 <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
                                     {vehicleData?.rentalPeriod?.start && vehicleData?.rentalPeriod?.end
-                                        ? `${new Date(vehicleData.rentalPeriod.start).toLocaleDateString()} ~ ${new Date(vehicleData.rentalPeriod.end).toLocaleDateString()}`
+                                        ? `${require('../../utils/date').formatDisplayDate(vehicleData.rentalPeriod.start)} ~ ${require('../../utils/date').formatDisplayDate(vehicleData.rentalPeriod.end)}`
                                         : "-"
                                     }
                                 </div>

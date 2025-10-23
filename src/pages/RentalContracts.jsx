@@ -19,7 +19,9 @@ import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
 // (unused constants/uploads imports removed)
 import { uploadMany } from "../utils/uploadHelpers";
-import { parseCurrency } from "../utils/formatters";
+import { parseCurrency, formatCurrencyDisplay, formatNumberDisplay } from "../utils/formatters";
+import { formatDisplayDate } from "../utils/date";
+import { formatYyMmDdHhMmSs } from "../utils/datetime";
 import FilePreview from "../components/FilePreview";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
@@ -314,6 +316,45 @@ export default function RentalContracts() {
 
     // Sorting is now handled by Table component - sortAccessor provides custom value extraction
 
+    // 동적 컬럼 생성
+    const dynamicColumns = useMemo(() => columnsForRender
+        .filter((col) => col.key !== "select") // Table 컴포넌트가 자동으로 select 추가
+        .map((col) => ({
+            ...col,
+            style: {
+                ...(col.style || {}),
+                textAlign: col.key === "memo" ? "left" : (col.style?.textAlign || "center"),
+                maxWidth: col.key === "memo" ? "150px" : col.style?.maxWidth,
+            },
+            render: (row) => renderCellContent(col, row),
+            sortAccessor: (row) => {
+                // Custom sort value extraction for each column
+                switch (col.key) {
+                    case "company":
+                        return row?.companyName || row?.company || row?.companyId || "";
+                    case "rentalPeriod":
+                        return row?.rentalPeriod?.start || "";
+                    case "rentalAmount": {
+                        const v = row?.rentalAmount;
+                        if (typeof v === "number") return v;
+                        if (typeof v === "string") {
+                            const n = Number(v.replace(/[^0-9.-]/g, ""));
+                            return Number.isNaN(n) ? 0 : n;
+                        }
+                        return 0;
+                    }
+                    case "engineStatus":
+                        return row?.engineStatus === "on" || !!row?.engineOn;
+                    case "restartBlocked":
+                        return !!(row?.restartBlocked);
+                    case "accident":
+                        return !!row?.accidentReported;
+                    default:
+                        return row?.[col.key] ?? "";
+                }
+            },
+        })), [columnsForRender]);
+
     // 드래그&드롭 이벤트 핸들러들
     const handleDragStart = (e, index) => {
         setDraggedColumnIndex(index);
@@ -491,43 +532,7 @@ export default function RentalContracts() {
 
                 <Table
                     rowIdKey="rentalId"
-                    columns={columnsForRender
-                        .filter((col) => col.key !== "select") // Table 컴포넌트가 자동으로 select 추가
-                        .map((col) => ({
-                            ...col,
-                            style: {
-                                ...(col.style || {}),
-                                textAlign: col.key === "memo" ? "left" : (col.style?.textAlign || "center"),
-                                maxWidth: col.key === "memo" ? "150px" : col.style?.maxWidth,
-                            },
-                            render: (row) => renderCellContent(col, row),
-                            sortAccessor: (row) => {
-                            // Custom sort value extraction for each column
-                            switch (col.key) {
-                                case "company":
-                                    return row?.companyName || row?.company || row?.companyId || "";
-                                case "rentalPeriod":
-                                    return row?.rentalPeriod?.start || "";
-                                case "rentalAmount": {
-                                    const v = row?.rentalAmount;
-                                    if (typeof v === "number") return v;
-                                    if (typeof v === "string") {
-                                        const n = Number(v.replace(/[^0-9.-]/g, ""));
-                                        return Number.isNaN(n) ? 0 : n;
-                                    }
-                                    return 0;
-                                }
-                                case "engineStatus":
-                                    return row?.engineStatus === "on" || !!row?.engineOn;
-                                case "restartBlocked":
-                                    return !!(row?.restartBlocked);
-                                case "accident":
-                                    return !!row?.accidentReported;
-                                default:
-                                    return row?.[col.key] ?? "";
-                            }
-                        },
-                    }))}
+                    columns={dynamicColumns}
                     data={rows}
                     selection={{ selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected }}
                     emptyMessage="조건에 맞는 계약이 없습니다."
@@ -672,7 +677,7 @@ export default function RentalContracts() {
                                         <strong>위치:</strong> {selectedContract.location || "정보 없음"}
                                     </div>
                                     <div>
-                                        <strong>주행 거리:</strong> {selectedContract.mileage ? `${new Intl.NumberFormat("ko-KR").format(selectedContract.mileage)} km` : "-"}
+                                        <strong>주행 거리:</strong> {selectedContract.mileage ? `${formatNumberDisplay(selectedContract.mileage)} km` : "-"}
                                     </div>
                                 </div>
                             </div>
@@ -680,13 +685,13 @@ export default function RentalContracts() {
                                 <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>금액 정보</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <div>
-                                        <strong>대여 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.rentalAmount || 0)}
+                                        <strong>대여 금액:</strong> {formatCurrencyDisplay(selectedContract.rentalAmount || 0)}
                                     </div>
                                     <div>
-                                        <strong>보증금:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.deposit || 0)}
+                                        <strong>보증금:</strong> {formatCurrencyDisplay(selectedContract.deposit || 0)}
                                     </div>
                                     <div>
-                                        <strong>미납 금액:</strong> ₩{new Intl.NumberFormat("ko-KR").format(selectedContract.unpaidAmount || 0)}
+                                        <strong>미납 금액:</strong> {formatCurrencyDisplay(selectedContract.unpaidAmount || 0)}
                                     </div>
                                     <div>
                                         <strong>결제 방법:</strong> {selectedContract.paymentMethod || "-"}
@@ -704,7 +709,7 @@ export default function RentalContracts() {
                                     <strong>특이사항:</strong> {selectedContract.specialNotes || "없음"}
                                 </div>
                                 <div>
-                                    <strong>등록일:</strong> {selectedContract.createdAt ? new Date(selectedContract.createdAt).toLocaleString("ko-KR") : "-"}
+                                    <strong>등록일:</strong> {selectedContract.createdAt ? formatYyMmDdHhMmSs(selectedContract.createdAt) : "-"}
                                 </div>
                             </div>
                         </div>

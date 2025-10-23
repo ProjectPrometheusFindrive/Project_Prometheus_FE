@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
-import { changePassword } from "../api";
-import { typedStorage } from "../utils/storage";
-import { emitToast } from "../utils/toast";
+import { changePassword } from "../../api";
+import { typedStorage } from "../../utils/storage";
+import { emitToast } from "../../utils/toast";
 
 export default function ChangePasswordModal({ open, onClose, onChanged }) {
   const [currentPassword, setCurrentPassword] = useState("");

@@ -1,7 +1,7 @@
 import React from "react";
 import { FiClock, FiEdit2, FiCheck, FiX } from "react-icons/fi";
 
-export default function MemoCell({
+const MemoCell = React.memo(function MemoCell({
   id,
   value,
   isEditing,
@@ -85,4 +85,6 @@ export default function MemoCell({
       </div>
     </div>
   );
-}
+});
+
+export default MemoCell;

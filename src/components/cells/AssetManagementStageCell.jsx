@@ -11,7 +11,7 @@ const MANAGEMENT_STAGE_BADGE_CLASS = {
   "수리/점검 완료": "badge--completed",
 };
 
-export default function AssetManagementStageCell({
+const AssetManagementStageCell = React.memo(function AssetManagementStageCell({
   rowId,
   label,
   isSaving,
@@ -129,4 +129,6 @@ export default function AssetManagementStageCell({
       )}
     </span>
   );
-}
+});
+
+export default AssetManagementStageCell;

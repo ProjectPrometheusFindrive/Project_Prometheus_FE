@@ -4,7 +4,7 @@ import React from "react";
  * RentalPeriodCell - 대여 기간 표시 셀 컴포넌트
  * 시작일과 종료일을 포맷팅하여 표시합니다.
  */
-export default function RentalPeriodCell({ rentalPeriod }) {
+const RentalPeriodCell = React.memo(function RentalPeriodCell({ rentalPeriod }) {
     const formatDateTime = (dateString) => {
         if (!dateString) return "-";
         const date = new Date(dateString);
@@ -22,4 +22,6 @@ export default function RentalPeriodCell({ rentalPeriod }) {
             <div>{formatDateTime(rentalPeriod?.end)}</div>
         </div>
     );
-}
+});
+
+export default RentalPeriodCell;

@@ -11,6 +11,7 @@ import { useCompany } from "../contexts/CompanyContext";
 import { uploadOne } from "../utils/uploadHelpers";
 import GCSImage from "./GCSImage";
 import { emitToast } from "../utils/toast";
+import log from "../utils/logger";
 
 export default function TopHeader() {
     const navigate = useNavigate();
@@ -56,19 +57,19 @@ export default function TopHeader() {
             // Use canonical companyId for uploads: company/{companyId}/docs
             const companyId = auth?.user?.companyId || companyInfo?.companyId || "ci";
             const folder = `company/${companyId}/docs`;
-            console.groupCollapsed("[upload-ui] logo upload start");
-            console.debug("file:", { name: file?.name, size: file?.size, type: file?.type });
+            log.debug("[upload-ui] logo upload start");
+            log.debug("file:", { name: file?.name, size: file?.size, type: file?.type });
             const res = await uploadOne(file, { folder, label: "logo" });
-            console.debug("[upload-ui] uploadOne result:", res);
-            console.debug("[upload-ui] updating company logo objectName:", res?.objectName || "(none)");
+            log.debug("[upload-ui] uploadOne result:", res);
+            log.debug("[upload-ui] updating company logo objectName:", res?.objectName || "(none)");
             // Persist preferred field: logoPath (objectName). Clear legacy data URL.
             updateCompanyInfo({ logoPath: res?.objectName || "", logoDataUrl: "" });
             setIsModalOpen(false);
         } catch (err) {
-            console.error("Failed to save logo:", err);
+            log.error("Failed to save logo:", err);
             emitToast("업로드 실패: " + (err?.message || String(err)), "error");
         } finally {
-            console.groupEnd();
+            log.debug("[upload-ui] logo upload complete");
             setUploading(false);
         }
     }

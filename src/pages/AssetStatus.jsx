@@ -915,7 +915,7 @@ export default function AssetStatus() {
         return base;
     }, [visibleColumns, isSuperAdmin]);
 
-    const dynamicColumns = columnsForRender
+    const dynamicColumns = useMemo(() => columnsForRender
         .filter((col) => col.key !== "select") // select는 Table 컴포넌트에서 자동 처리
         .map((column) =>
             column.key === "deviceStatus"
@@ -965,7 +965,7 @@ export default function AssetStatus() {
                       style: { textAlign: column.key === "memo" ? "left" : "center" },
                       render: (row) => renderCellContent(column, row),
                   }
-        );
+        ), [columnsForRender]);
 
     return (
         <div className="page space-y-4">

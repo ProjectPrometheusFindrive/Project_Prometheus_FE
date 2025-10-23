@@ -5,7 +5,7 @@ import GCSImage from "../GCSImage";
  * CompanyCell - 회사 정보 표시 셀 컴포넌트
  * 로고 이미지와 회사명, 사업자등록번호를 표시합니다.
  */
-export default function CompanyCell({ row }) {
+const CompanyCell = React.memo(function CompanyCell({ row }) {
     const name = row?.company || row?.companyName || row?.company_id || row?.companyId || "-";
     const biz = row?.bizRegNo || row?.businessNumber || row?.bizNo || row?.biz_reg_no || "";
     // Check multiple possible field names for logo path
@@ -31,4 +31,6 @@ export default function CompanyCell({ row }) {
             </div>
         </div>
     );
-}
+});
+
+export default CompanyCell;

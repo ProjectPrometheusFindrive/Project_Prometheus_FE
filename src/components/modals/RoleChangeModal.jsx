@@ -1,5 +1,5 @@
 import React from "react";
-import { ROLES } from "../constants/auth";
+import { ROLES } from "../../constants/auth";
 
 export default function RoleChangeModal({ member, newRole, setNewRole, onClose, onConfirm, loading = false }) {
   if (!member) return null;

@@ -26,3 +26,15 @@ export function parseCurrency(value) {
   return d ? Number(d) : 0;
 }
 
+// Display helpers (do not use for input masking)
+export function formatCurrencyDisplay(value) {
+  const n = typeof value === "string" ? Number(value) : value;
+  const num = Number.isFinite(n) ? n : 0;
+  return `₩${new Intl.NumberFormat("ko-KR").format(num)}`;
+}
+
+export function formatNumberDisplay(value) {
+  const n = typeof value === "string" ? Number(value) : value;
+  const num = Number.isFinite(n) ? n : 0;
+  return new Intl.NumberFormat("ko-KR").format(num);
+}

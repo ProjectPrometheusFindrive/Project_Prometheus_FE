@@ -1,5 +1,6 @@
 import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "./uploads";
+import log from "./logger";
 
 /**
  * Upload a single File to GCS using either signed PUT or resumable upload.
@@ -9,7 +10,7 @@ export async function uploadOne(file, { folder, label, onProgress } = {}) {
   if (!file) return null;
   const type = file.type || "";
   if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-    console.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, type);
+    log.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, type);
     return null;
   }
   const mode = chooseUploadMode(file.size || 0);
@@ -23,7 +24,7 @@ export async function uploadOne(file, { folder, label, onProgress } = {}) {
     const res = await promise;
     return { url: res?.publicUrl || null, objectName: res?.objectName || null };
   } catch (e) {
-    console.error(`[upload-ui] ${label || "file"} upload failed`, e);
+    log.error(`[upload-ui] ${label || "file"} upload failed`, e);
     return null;
   }
 }
@@ -36,7 +37,7 @@ export function uploadOneCancelable(file, { folder, label, onProgress } = {}) {
   if (!file) return { mode: "", cancel: null, promise: Promise.resolve(null) };
   const type = file.type || "";
   if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-    console.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, type);
+    log.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, type);
     return { mode: "", cancel: null, promise: Promise.resolve(null) };
   }
   const mode = chooseUploadMode(file.size || 0);
@@ -45,7 +46,7 @@ export function uploadOneCancelable(file, { folder, label, onProgress } = {}) {
     const mapped = promise
       .then((res) => ({ url: res?.publicUrl || null, objectName: res?.objectName || null }))
       .catch((e) => {
-        console.error(`[upload-ui] ${label || "file"} upload failed`, e);
+        log.error(`[upload-ui] ${label || "file"} upload failed`, e);
         return null;
       });
     return { mode, cancel, promise: mapped };
@@ -54,7 +55,7 @@ export function uploadOneCancelable(file, { folder, label, onProgress } = {}) {
   const mapped = promise
     .then((res) => ({ url: res?.publicUrl || null, objectName: res?.objectName || null }))
     .catch((e) => {
-      console.error(`[upload-ui] ${label || "file"} upload failed`, e);
+      log.error(`[upload-ui] ${label || "file"} upload failed`, e);
       return null;
     });
   return { mode, cancel, promise: mapped };

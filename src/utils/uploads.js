@@ -37,7 +37,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
     const fileName = file?.name || "upload.bin";
     const contentType = sanitizeUploadContentType(file, folder);
 
-    if (isDebug()) { console.groupCollapsed("[upload] 업로드 시작 (소용량)"); }
+    log.debug("[upload] 업로드 시작 (소용량)");
     log.debug("file:", { name: fileName, size: file?.size, type: contentType });
     log.debug("folder:", folder || "(none)");
     const sign = await requestUploadSign({ fileName, contentType, folder, fileSize: file?.size || 0 });
@@ -61,7 +61,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
         const onAbort = () => {
           try { xhr.abort(); } catch {}
           aborted = true;
-          console.warn("[upload] signed-put aborted by signal");
+          log.warn("[upload] signed-put aborted by signal");
         };
         if (signal.aborted) onAbort();
         signal.addEventListener("abort", onAbort, { once: true });
@@ -103,7 +103,7 @@ export function uploadViaSignedPut(file, { folder, onProgress, signal } = {}) {
       uploadUrl: sign.uploadUrl,
     };
     log.debug("[upload] 완료:", result);
-    if (isDebug()) if (isDebug()) console.groupEnd();
+    log.debug("[upload] 업로드 완료 (소용량)");
     return result;
   })();
 
@@ -128,7 +128,7 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
     const contentType = sanitizeUploadContentType(file, folder);
 
     if (!session) {
-      if (isDebug()) console.groupCollapsed("[upload] 업로드 시작 (대용량)");
+      log.debug("[upload] 업로드 시작 (대용량)");
       log.debug("file:", { name: fileName, size: file?.size, type: contentType });
       log.debug("folder:", folder || "(none)");
       session = await requestResumableSession({ fileName, contentType, folder, fileSize: file?.size || 0 });
@@ -150,13 +150,13 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
         xhr.open("PUT", session.sessionUrl, true);
         xhr.setRequestHeader("Content-Type", session.contentType || contentType);
         xhr.setRequestHeader("Content-Range", `bytes ${start}-${endInclusive}/${total}`);
-        console.debug("[upload] resumable send chunk:", { start, end: endInclusive, total });
+        log.debug("[upload] resumable send chunk:", { start, end: endInclusive, total });
 
         if (signal) {
           const onAbort = () => {
             try { xhr.abort(); } catch {}
             aborted = true;
-            console.warn("[upload] resumable aborted by signal");
+            log.warn("[upload] resumable aborted by signal");
           };
           if (signal.aborted) onAbort();
           signal.addEventListener("abort", onAbort, { once: true });
@@ -204,16 +204,16 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
             resolve({ done: false });
             return;
           }
-          console.error("[upload] resumable unexpected status:", status);
+          log.error("[upload] resumable unexpected status:", status);
           reject(new Error(`Resumable upload error: HTTP ${status}`));
         };
 
         xhr.onerror = () => {
-          console.error("[upload] resumable network error");
+          log.error("[upload] resumable network error");
           reject(new Error("Network error during resumable upload"));
         };
         xhr.onabort = () => {
-          console.warn("[upload] resumable xhr aborted");
+          log.warn("[upload] resumable xhr aborted");
           reject(new Error("Upload aborted"));
         };
         xhr.send(blob);
@@ -235,7 +235,7 @@ export function uploadResumable(file, { folder, onProgress, signal, chunkSize = 
       sessionUrl: session.sessionUrl,
     };
     log.debug("[upload] 완료:", result);
-    console.groupEnd();
+    log.debug("[upload] 업로드 완료 (대용량)");
     return result;
   };
 

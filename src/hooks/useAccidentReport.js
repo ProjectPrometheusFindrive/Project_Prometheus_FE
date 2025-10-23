@@ -96,7 +96,8 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
     if (!accidentTarget) return;
 
     const now = new Date();
-    const memoNote = `사고 접수됨 (${now.toLocaleDateString()})`;
+    const { formatDisplayDate } = require("../utils/date");
+    const memoNote = `사고 접수됨 (${formatDisplayDate(now)})`;
     const { accidentDate, accidentHour, accidentMinute, accidentSecond, handlerName, blackboxFile, blackboxFileName } = accidentForm;
     const accidentDateTime = accidentDate ? `${accidentDate}T${accidentHour}:${accidentMinute}:${accidentSecond}` : "";
     const accidentDisplayTime = accidentDate ? `${accidentDate.replace(/-/g, ".")} ${accidentHour}:${accidentMinute}:${accidentSecond}` : "";

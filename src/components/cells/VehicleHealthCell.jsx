@@ -7,7 +7,7 @@ const CLASS_BY_LABEL = {
   심각: "badge--maintenance",
 };
 
-export default function VehicleHealthCell({ label, onClick }) {
+const VehicleHealthCell = React.memo(function VehicleHealthCell({ label, onClick }) {
   if (!label || label === "-") return <>-</>;
   const cls = CLASS_BY_LABEL[label] || "badge--default";
   return (
@@ -21,5 +21,7 @@ export default function VehicleHealthCell({ label, onClick }) {
       {label}
     </button>
   );
-}
+});
+
+export default VehicleHealthCell;
 

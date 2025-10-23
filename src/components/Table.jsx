@@ -1,4 +1,5 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useCallback } from "react";
+import { safeDate } from "../utils/date";
 import { DIMENSIONS } from "../constants";
 
 export default function Table({
@@ -37,26 +38,23 @@ export default function Table({
     const [sortKey, setSortKey] = useState(() => (initialSort && initialSort.key) || null);
     const [sortDir, setSortDir] = useState(() => (initialSort && initialSort.direction) || null); // 'asc' | 'desc' | null
 
-    const getCellValue = (row, col) => {
+    const getCellValue = useCallback((row, col) => {
         if (!col) return undefined;
         if (typeof col.sortAccessor === "function") return col.sortAccessor(row);
         if (typeof col.accessor === "function") return col.accessor(row);
         if (typeof col.key === "string") return row?.[col.key];
         return undefined;
-    };
+    }, []);
 
-    const parseMaybeDate = (val) => {
+    const parseMaybeDate = useCallback((val) => {
         if (val == null) return null;
         if (val instanceof Date && !isNaN(val)) return val;
         if (typeof val !== "string") return null;
-        const s = val.trim();
-        if (!s) return null;
-        const iso = Date.parse(s);
-        if (!Number.isNaN(iso)) return new Date(iso);
-        return null;
-    };
+        const d = safeDate(val.trim());
+        return d && !isNaN(d) ? d : null;
+    }, []);
 
-    const normalize = (val) => {
+    const normalize = useCallback((val) => {
         if (val == null) return { type: "empty", v: null };
         const t = typeof val;
         if (t === "number") return { type: "number", v: val };
@@ -76,7 +74,7 @@ export default function Table({
         } catch {
             return { type: "string", v: "" };
         }
-    };
+    }, [parseMaybeDate]);
 
     const sortedData = useMemo(() => {
         if (!Array.isArray(data)) return [];
@@ -112,9 +110,9 @@ export default function Table({
             return sortDir === "asc" ? cmp : -cmp;
         });
         return withIndex.map((x) => x.row);
-    }, [data, columns, sortKey, sortDir]);
+    }, [data, columns, sortKey, sortDir, getCellValue, normalize]);
 
-    const handleSortToggle = (key, col) => {
+    const handleSortToggle = useCallback((key, col) => {
         if (col && (col.sortable === false || key === "select")) return;
         if (sortKey !== key) {
             setSortKey(key);
@@ -122,7 +120,7 @@ export default function Table({
             return;
         }
         setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
-    };
+    }, [sortKey]);
 
     return (
         <div className={wrapClassNames.filter(Boolean).join(" ")} style={stickyStyle}>
