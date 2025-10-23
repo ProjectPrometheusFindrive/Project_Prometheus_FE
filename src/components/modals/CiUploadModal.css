@@ -1,0 +1,63 @@
+/* moved from src/components/CiUploadModal.css */
+ .ci-upload-modal__overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.ci-upload-modal__content {
+  background: #fff;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  width: 520px;
+  max-width: 92vw;
+  box-shadow: 0 10px 30px rgba(0,0,0,.15);
+}
+
+.ci-upload-modal__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.ci-upload-modal__title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.ci-upload-modal__close {
+  border: none;
+  background: transparent;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.ci-upload-modal__body { padding: 14px; }
+.ci-upload-modal__preview { background: #f8fafc; border: 1px solid #e5e7eb; border-radius: 8px; min-height: 160px; display:flex; align-items:center; justify-content:center; }
+.ci-upload-modal__image { max-width: 100%; max-height: 240px; object-fit: contain; border-radius: 6px; }
+.ci-upload-modal__placeholder { color: #6b7280; font-size: 12px; }
+.ci-upload-modal__controls { margin-top: 10px; }
+
+.ci-upload-modal__footer { padding: 12px 14px; display:flex; gap:10px; justify-content:flex-end; border-top: 1px solid #e5e7eb; }
+
+.ci-upload-modal__button { padding: 8px 12px; border-radius: 6px; border: 1px solid #e5e7eb; cursor: pointer; font-size: 14px; }
+.ci-upload-modal__button--secondary { background: #f9fafb; }
+.ci-upload-modal__button--primary { background: #2563eb; border-color: #1d4ed8; color: #fff; }
+.ci-upload-modal__button[disabled] { opacity: .6; cursor: not-allowed; }
+
+[data-theme='dark'] .ci-upload-modal__content { background: #0b1220; color: #e5e7eb; border: 1px solid #1f2937; }
+[data-theme='dark'] .ci-upload-modal__header { border-bottom: 1px solid #1f2937; }
+[data-theme='dark'] .ci-upload-modal__footer { border-top: 1px solid #1f2937; }
+[data-theme='dark'] .ci-upload-modal__preview { background: #0f172a; border-color: #1f2937; }
+[data-theme='dark'] .ci-upload-modal__placeholder { color: #9ca3af; }
+[data-theme='dark'] .ci-upload-modal__button--secondary { background: #111827; border-color: #1f2937; color: #e5e7eb; }
+[data-theme='dark'] .ci-upload-modal__button--secondary:hover { background: #1f2937; }
+[data-theme='dark'] .ci-upload-modal__button--primary { background: #1e3a8a; color: #fff; }

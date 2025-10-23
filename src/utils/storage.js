@@ -95,7 +95,6 @@ export const storageUtils = {
       return true;
     } catch (error) {
       log.warn(`Failed to remove localStorage key "${key}":`, error);
-      }
       return false;
     }
   },
