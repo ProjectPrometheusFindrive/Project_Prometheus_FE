@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
 import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary, saveAsset, buildRentalIndexByVin, createRental, updateRental, createAsset, deleteAsset, fetchAssetProfile, fetchAssetDevice, fetchAssetDiagnostics } from "../api";
 import { uploadMany } from "../utils/uploadHelpers";
@@ -14,6 +14,7 @@ import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 import Table from "../components/Table";
+import useDebouncedValue from "../hooks/useDebouncedValue";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
 import useTableSelection from "../hooks/useTableSelection";
@@ -358,6 +359,8 @@ export default function AssetStatus() {
 
     // 외부 클릭 및 ESC 감지는 useDropdownState 훅에서 처리됨
 
+    const tableWrapRef = useRef(null);
+
     // Recalculate stage dropdown placement on open, scroll, and resize
     useEffect(() => {
         const recalc = () => {
@@ -387,7 +390,7 @@ export default function AssetStatus() {
             requestAnimationFrame(recalc);
         }
 
-        const tableWrap = document.querySelector('.table-wrap--sticky');
+        const tableWrap = tableWrapRef.current;
         window.addEventListener('resize', recalc);
         if (tableWrap) tableWrap.addEventListener('scroll', recalc, { passive: true });
         return () => {
@@ -396,8 +399,9 @@ export default function AssetStatus() {
         };
     }, [openDropdowns.stage, setStageDropdownUp]);
 
+    const debouncedQ = useDebouncedValue(q, 250);
     const filtered = useMemo(() => {
-        const term = q.trim().toLowerCase();
+        const term = debouncedQ.trim().toLowerCase();
         return rows.filter((a) => {
             const matchesTerm = term
                 ? [a.plate, a.vehicleType, a.insuranceInfo, a.registrationDate, a.registrationStatus, a.installer, a.deviceSerial, a.id, a.memo].filter(Boolean).join(" ").toLowerCase().includes(term)
@@ -405,7 +409,7 @@ export default function AssetStatus() {
             const matchesStatus = status === "all" ? true : a.registrationStatus === status;
             return matchesTerm && matchesStatus;
         });
-    }, [q, status, rows]);
+    }, [debouncedQ, status, rows]);
 
     const selection = useTableSelection(filtered, "id");
     const { selected, selectedCount, clearSelection } = selection;
@@ -1064,7 +1068,7 @@ export default function AssetStatus() {
                 title={memoHistoryTarget ? `메모 히스토리 - ${memoHistoryTarget.plate}` : undefined}
             />
 
-            <Table columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." stickyHeader />
+            <Table wrapRef={tableWrapRef} columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." stickyHeader />
 
             {/* inline panel removed */}
             <Modal

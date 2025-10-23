@@ -56,7 +56,8 @@ function GCSImage({ objectName, alt = "", ...props }) {
   if (loading) return <div className="spinner" aria-label="Loading" />;
   if (error) return <div className="error-message">Failed to load image</div>;
   if (!signedUrl) return null;
-  return <img src={signedUrl} alt={alt} {...props} />;
+  const { loading: loadingAttr, ...rest } = props || {};
+  return <img src={signedUrl} alt={alt} loading={loadingAttr || "lazy"} {...rest} />;
 }
 
 export default GCSImage;

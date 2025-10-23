@@ -14,6 +14,7 @@ export default function Table({
     initialSort,
     rowClassName,
     rowIdKey = "id", // 기본값은 "id", 커스텀 가능
+    wrapRef,
     ...props
 }) {
     const { selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected } = selection || {};
@@ -123,7 +124,7 @@ export default function Table({
     }, [sortKey]);
 
     return (
-        <div className={wrapClassNames.filter(Boolean).join(" ")} style={stickyStyle}>
+        <div ref={wrapRef} className={wrapClassNames.filter(Boolean).join(" ")} style={stickyStyle}>
             <table className={tableClassNames.filter(Boolean).join(" ")} {...props}>
                 <thead>
                     <tr>

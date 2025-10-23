@@ -237,6 +237,22 @@
     color: #fff;
 }
 
+/* Dark mode role badge styles */
+[data-theme='dark'] .role-badge.role-super_admin {
+    background-color: #dc2626;
+    color: #fff;
+}
+
+[data-theme='dark'] .role-badge.role-admin {
+    background-color: #2563eb;
+    color: #fff;
+}
+
+[data-theme='dark'] .role-badge.role-member {
+    background-color: #6b7280;
+    color: #e5e7eb;
+}
+
 /* Button styles */
 .btn-secondary,
 .btn-primary,

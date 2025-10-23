@@ -2,6 +2,7 @@ import { useState } from "react";
 import { fetchRentalById, updateRental } from "../api";
 import { ALLOWED_MIME_TYPES } from "../constants/uploads";
 import { uploadOneCancelable } from "../utils/uploadHelpers";
+import { formatDisplayDate } from "../utils/date";
 import { emitToast } from "../utils/toast";
 
 const DEFAULT_FORM = {
@@ -96,7 +97,6 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
     if (!accidentTarget) return;
 
     const now = new Date();
-    const { formatDisplayDate } = require("../utils/date");
     const memoNote = `사고 접수됨 (${formatDisplayDate(now)})`;
     const { accidentDate, accidentHour, accidentMinute, accidentSecond, handlerName, blackboxFile, blackboxFileName } = accidentForm;
     const accidentDateTime = accidentDate ? `${accidentDate}T${accidentHour}:${accidentMinute}:${accidentSecond}` : "";

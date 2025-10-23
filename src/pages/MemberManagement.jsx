@@ -7,6 +7,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import Table from "../components/Table";
 import './MemberManagement.css';
 import RoleChangeModal from "../components/modals/RoleChangeModal";
+import { formatDisplayDate } from "../utils/date";
 
 /**
  * MemberManagement page - Admin/Super Admin only
@@ -60,7 +61,7 @@ function MemberManagement() {
                     {r.role || 'member'}
                 </span>
             ) },
-            { key: 'createdAt', label: '가입일', render: (r) => (r.createdAt ? require('../utils/date').formatDisplayDate(r.createdAt, 'ko-KR') : '-') },
+            { key: 'createdAt', label: '가입일', render: (r) => (r.createdAt ? formatDisplayDate(r.createdAt, 'ko-KR') : '-') },
         ];
         if (isSuperAdmin) {
             cols.push({
@@ -101,7 +102,7 @@ function MemberManagement() {
         { key: 'position', label: '직책', render: (r) => r.position || '-' },
         { key: 'name', label: '이름', render: (r) => r.name || '-' },
         { key: 'phone', label: '전화번호', render: (r) => r.phone || '-' },
-        { key: 'createdAt', label: '가입일', render: (r) => (r.createdAt ? require('../utils/date').formatDisplayDate(r.createdAt, 'ko-KR') : '-') },
+        { key: 'createdAt', label: '가입일', render: (r) => (r.createdAt ? formatDisplayDate(r.createdAt, 'ko-KR') : '-') },
         {
             key: 'actions',
             label: '승인 여부',
