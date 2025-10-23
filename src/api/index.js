@@ -61,4 +61,6 @@ export const {
   approveMember,
   rejectMember,
   changeMemberRole,
+  withdrawMember,
+  restoreMember,
 } = api;

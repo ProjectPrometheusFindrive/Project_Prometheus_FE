@@ -3,11 +3,14 @@ import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
 import CompanyLogoSection from "../components/CompanyLogoSection";
 import { useAuth } from "../contexts/AuthContext";
+import { useConfirm } from "../contexts/ConfirmContext";
 import {
     fetchCompanyInfo as loadCompanyInfo,
     saveCompanyInfo,
     defaultCompanyInfo,
     fetchGeofences,
+    fetchAllMembers,
+    withdrawMember,
     createGeofence,
     updateGeofence,
     deleteGeofence,
@@ -16,9 +19,12 @@ import { CountBadge, GeofenceBadge } from "../components/badges/StatusBadge";
 import DocumentViewer from "../components/DocumentViewer";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
 import { uploadOne } from "../utils/uploadHelpers";
+import { typedStorage } from "../utils/storage";
+import { emitToast } from "../utils/toast";
 
 export default function Settings() {
     const auth = useAuth();
+    const confirm = useConfirm();
     const [viewData, setViewData] = useState({ ...defaultCompanyInfo });
     const [editData, setEditData] = useState({ ...defaultCompanyInfo });
     const [editing, setEditing] = useState(false);
@@ -304,6 +310,51 @@ export default function Settings() {
     const handleNewGeofenceDraftChange = useCallback((v) => {
         setNewGeofenceDraft(v);
     }, []);
+
+    // --- Account self-withdrawal ---
+    const ensureNotLastAdminSelf = async () => {
+        try {
+            const members = await fetchAllMembers();
+            const me = auth?.user;
+            if (!me) return true;
+            if (me.role !== 'admin') return true;
+            const adminCount = (Array.isArray(members) ? members : []).filter((m) => m && m.companyId === me.companyId && m.role === 'admin' && m.membershipStatus !== 'withdrawn').length;
+            if (adminCount <= 1) {
+                const ok = await confirm({
+                    title: '마지막 관리자 경고',
+                    message: '현재 회사의 마지막 관리자입니다. 탈퇴 시 회사 관리 권한이 사라집니다. 계속 진행하시겠습니까?',
+                    confirmText: '계속',
+                    cancelText: '취소'
+                });
+                return !!ok;
+            }
+            return true;
+        } catch {
+            return true;
+        }
+    };
+
+    const handleSelfWithdraw = async () => {
+        const me = auth?.user;
+        if (!me || !me.userId) return;
+        const proceed = await ensureNotLastAdminSelf();
+        if (!proceed) return;
+        const ok = await confirm({ title: '회원 탈퇴', message: '정말로 탈퇴하시겠습니까? 이 작업은 되돌릴 수 없습니다.', confirmText: '탈퇴', cancelText: '취소' });
+        if (!ok) return;
+        try {
+            const success = await withdrawMember(me.userId);
+            if (success) {
+                try { emitToast('탈퇴 처리가 완료되었습니다. 로그아웃합니다.', 'success'); } catch {}
+                try { typedStorage.auth.logout(); } catch {}
+                try { window.location.hash = '#/'; } catch {}
+            } else {
+                emitToast('탈퇴 처리에 실패했습니다.', 'error');
+            }
+        } catch (e) {
+            console.error('Failed to withdraw self:', e);
+            emitToast(e?.message || '탈퇴 처리에 실패했습니다.', 'error');
+        }
+    };
 
     const smallButtonStyle = {
         padding: "4px 8px",
@@ -636,6 +687,22 @@ export default function Settings() {
                             </div>
                         </div>
                 </div>
+
+                {/* 계정 관리: 회원 탈퇴 */}
+                <div className="content-section" style={{ marginTop: '16px' }}>
+                    <div className="info-box" style={{ backgroundColor: '#f8d7da', borderColor: '#f5c6cb', color: '#721c24' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                            <div>
+                                <strong>회원 탈퇴</strong>
+                                <div style={{ fontSize: '0.9rem', marginTop: '4px' }}>계정을 비활성화하고 로그아웃합니다. 필요 시 관리자에게 복원을 요청할 수 있습니다.</div>
+                            </div>
+                            <button type="button" className="form-button form-button--danger" onClick={handleSelfWithdraw}>
+                                회원 탈퇴
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
             </div>
         </div>
     );

@@ -718,5 +718,23 @@ export const membersApi = {
             method: 'PATCH',
             body: JSON.stringify({ role })
         });
+    },
+
+    /**
+     * Withdraw (deactivate) a member
+     * @param {string} userId - User ID (email) to withdraw; if self, pass current user's ID
+     * @returns {Promise<Object>} Response with success status
+     */
+    async withdraw(userId) {
+        if (!userId || typeof userId !== 'string') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: API_ERRORS.VALIDATION_ERROR,
+                message: 'userId is required'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.MEMBERS_WITHDRAW, {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+        });
     }
 };

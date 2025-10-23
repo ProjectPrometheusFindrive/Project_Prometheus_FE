@@ -393,3 +393,23 @@ export async function changeMemberRole(userId, role) {
     const response = await membersApi.changeRole(userId, role);
     return response.status === API_STATUS.SUCCESS;
 }
+
+/**
+ * Withdraw (deactivate) a member
+ * @param {string} userId - User ID (email) to withdraw
+ * @returns {Promise<boolean>} True if successful
+ */
+export async function withdrawMember(userId) {
+    const response = await membersApi.withdraw(userId);
+    return response.status === API_STATUS.SUCCESS;
+}
+
+/**
+ * Restore a withdrawn member by approving them again
+ * @param {string} userId - User ID (email) to restore
+ * @returns {Promise<boolean>} True if successful
+ */
+export async function restoreMember(userId) {
+    // Backend uses the same approve endpoint for reactivation
+    return await approveMember(userId);
+}

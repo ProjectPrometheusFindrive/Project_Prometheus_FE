@@ -54,6 +54,7 @@ export const API_ENDPOINTS = {
     MEMBERS_PENDING: '/members/pending',
     MEMBERS_APPROVE: '/members/approve',
     MEMBERS_REJECT: '/members/reject',
+    MEMBERS_WITHDRAW: '/members/withdraw',
     MEMBER_ROLE: (userId) => `/members/${encodeURIComponent(userId)}/role`,
 
     // Uploads (GCS direct upload helpers)

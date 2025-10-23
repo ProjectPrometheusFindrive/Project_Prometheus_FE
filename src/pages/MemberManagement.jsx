@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { ROLES, isRoleAtLeast } from '../constants/auth';
-import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, changeMemberRole } from '../api';
+import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, changeMemberRole, withdrawMember, restoreMember } from '../api';
 import { emitToast } from '../utils/toast';
 import ErrorBoundary from '../components/ErrorBoundary';
 import Table from "../components/Table";
@@ -9,6 +9,7 @@ import { CompanyCell } from '../components/cells';
 import './MemberManagement.css';
 import RoleChangeModal from "../components/modals/RoleChangeModal";
 import { formatDisplayDate } from "../utils/date";
+import { useConfirm } from "../contexts/ConfirmContext";
 
 /**
  * MemberManagement page - Admin/Super Admin only
@@ -35,6 +36,7 @@ function MemberManagement() {
     const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
     const isSuperAdmin = user && user.role === ROLES.SUPER_ADMIN;
     const isAdmin = user && user.role === ROLES.ADMIN;
+    const confirm = useConfirm();
 
     useEffect(() => {
         if (activeTab === 'all') {
@@ -68,30 +70,45 @@ function MemberManagement() {
                     {r.role || 'member'}
                 </span>
             ) },
+            { key: 'membershipStatus', label: '상태', render: (r) => (r.membershipStatus === 'withdrawn' ? '탈퇴됨' : '정상') },
             { key: 'createdAt', label: '가입일', render: (r) => (r.createdAt ? formatDisplayDate(r.createdAt, 'ko-KR') : '-') },
         ];
-        if (isSuperAdmin) {
+        if (isSuperAdmin || isAdmin) {
             cols.push({
                 key: 'actions',
-                label: '역할 변경',
+                label: '관리',
                 sortable: false,
                 render: (r) => (
                     r.role === ROLES.SUPER_ADMIN ? (
                         <span className="text-muted">변경 불가</span>
+                    ) : r.membershipStatus === 'withdrawn' ? (
+                        canManageMember(r) ? (
+                            <button
+                                className="btn-approve"
+                                onClick={() => handleRestore(r)}
+                                disabled={actionLoading === r.userId}
+                            >
+                                {actionLoading === r.userId ? '처리 중...' : '복원'}
+                            </button>
+                        ) : (
+                            <span className="text-muted">권한 없음</span>
+                        )
                     ) : (
-                        <button
-                            className="btn-role-change"
-                            onClick={() => openRoleChangeModal(r)}
-                            disabled={actionLoading === r.userId}
-                        >
-                            역할 변경
-                        </button>
+                        <div className="action-buttons">
+                            <button
+                                className="btn-role-change"
+                                onClick={() => openRoleChangeModal(r)}
+                                disabled={actionLoading === r.userId}
+                            >
+                                역할 변경
+                            </button>
+                        </div>
                     )
                 ),
             });
         }
         return cols;
-    }, [isSuperAdmin, actionLoading]);
+    }, [isSuperAdmin, isAdmin, actionLoading]);
 
     // Columns for Pending Members tab
     const pendingColumns = useMemo(() => [
@@ -189,6 +206,14 @@ function MemberManagement() {
                     m && m.companyId === user.companyId && (m.role === ROLES.ADMIN || m.role === ROLES.MEMBER)
                 ));
             }
+            // Order: approved first, then withdrawn
+            list.sort((a, b) => {
+                const sa = a?.membershipStatus === 'withdrawn' ? 1 : 0;
+                const sb = b?.membershipStatus === 'withdrawn' ? 1 : 0;
+                if (sa !== sb) return sa - sb;
+                // Keep stable otherwise
+                return String(a.userId).localeCompare(String(b.userId));
+            });
             setAllMembers(list);
         } catch (err) {
             console.error('Failed to fetch all members:', err);
@@ -342,6 +367,86 @@ function MemberManagement() {
         return member.companyId === user.companyId;
     }
 
+    async function refreshMembersForWarning() {
+        try {
+            const data = await fetchAllMembers();
+            return Array.isArray(data) ? data : [];
+        } catch {
+            return [];
+        }
+    }
+
+    async function ensureNotLastAdmin(target) {
+        if (!target || target.role !== ROLES.ADMIN) return true;
+        const latest = await refreshMembersForWarning();
+        const companyId = target.companyId;
+        const adminCount = latest.filter((m) => m && m.companyId === companyId && m.role === ROLES.ADMIN && m.membershipStatus !== 'withdrawn').length;
+        if (adminCount <= 1) {
+            const ok = await confirm({
+                title: '마지막 관리자 경고',
+                message: '해당 사용자는 해당 회사의 마지막 관리자입니다. 탈퇴 시 회사 관리 권한이 사라집니다. 계속 진행하시겠습니까?',
+                confirmText: '계속',
+                cancelText: '취소'
+            });
+            return !!ok;
+        }
+        return true;
+    }
+
+    async function handleWithdraw(member) {
+        if (!member) return;
+        if (!canManageMember(member)) {
+            emitToast('권한이 없습니다.', 'error');
+            return;
+        }
+        // Freshness and last-admin warning
+        const proceed = await ensureNotLastAdmin(member);
+        if (!proceed) return;
+
+        const ok = await confirm({ title: '회원 탈퇴', message: `${member.userId} 사용자를 탈퇴 처리하시겠습니까?`, confirmText: '탈퇴', cancelText: '취소' });
+        if (!ok) return;
+        try {
+            setActionLoading(member.userId);
+            const success = await withdrawMember(member.userId);
+            if (success) {
+                emitToast('탈퇴 처리되었습니다.', 'success');
+                await loadAllMembers();
+            } else {
+                emitToast('탈퇴 처리에 실패했습니다.', 'error');
+            }
+        } catch (err) {
+            console.error('Failed to withdraw member:', err);
+            emitToast(err.message || '탈퇴 처리에 실패했습니다.', 'error');
+        } finally {
+            setActionLoading(null);
+        }
+    }
+
+    async function handleRestore(member) {
+        if (!member) return;
+        if (!canManageMember(member)) {
+            emitToast('권한이 없습니다.', 'error');
+            return;
+        }
+        const ok = await confirm({ title: '회원 복원', message: `${member.userId} 사용자를 복원하시겠습니까?`, confirmText: '복원', cancelText: '취소' });
+        if (!ok) return;
+        try {
+            setActionLoading(member.userId);
+            const success = await restoreMember(member.userId);
+            if (success) {
+                emitToast('복원되었습니다.', 'success');
+                await loadAllMembers();
+            } else {
+                emitToast('복원에 실패했습니다.', 'error');
+            }
+        } catch (err) {
+            console.error('Failed to restore member:', err);
+            emitToast(err.message || '복원에 실패했습니다.', 'error');
+        } finally {
+            setActionLoading(null);
+        }
+    }
+
     if (!canManageMembers) {
         return (
             <div className="page member-management-page space-y-4">
@@ -416,6 +521,7 @@ function MemberManagement() {
                                         const classes = [];
                                         if (actionLoading === row.userId) classes.push('disabled-row');
                                         if (highlightUserId === row.userId) classes.push('highlight-row');
+                                        if (row.membershipStatus === 'withdrawn') classes.push('withdrawn-row');
                                         return classes.join(' ') || undefined;
                                     }}
                                     emptyMessage="회원이 없습니다."
@@ -456,6 +562,8 @@ function MemberManagement() {
                     setNewRole={setNewRole}
                     onClose={closeRoleChangeModal}
                     onConfirm={handleRoleChange}
+                    onWithdraw={canManageMember(selectedMember) ? handleWithdraw : undefined}
+                    canChangeRole={!!isSuperAdmin}
                     loading={actionLoading === selectedMember.userId}
                   />
                 )}
