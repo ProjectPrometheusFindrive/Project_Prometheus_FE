@@ -17,11 +17,27 @@ import { useCompany } from "../contexts/CompanyContext";
 import OcrSuggestionPicker from "./OcrSuggestionPicker";
 import { emitToast } from "../utils/toast";
 
+// Normalize OCR fuel labels to canonical options used in UI
+function normalizeFuelLabel(val) {
+  const v = String(val || "").trim();
+  const lower = v.toLowerCase();
+  if (v === "휘발유") return "가솔린";
+  if (v === "경유") return "디젤";
+  if (v === "수소전기") return "수소";
+  if (["gasoline", "petrol"].includes(lower)) return "가솔린";
+  if (["diesel"].includes(lower)) return "디젤";
+  if (["electric", "ev"].includes(lower)) return "전기";
+  if (["hybrid", "hev", "phev", "plug-in hybrid"].includes(lower)) return "하이브리드";
+  if (["hydrogen", "fcev"].includes(lower)) return "수소";
+  if (["lpg"].includes(lower)) return "LPG";
+  return v;
+}
+
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
   const [step, setStep] = useState(isEdit ? "details" : "upload");
   const tmpIdRef = useRef(randomId("asset"));
-  const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0 });
+  const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0, label: "" });
   const [preUploaded, setPreUploaded] = useState({ registration: [], insurance: [] });
   const [ocrSuggest, setOcrSuggest] = useState({});
   const auth = useAuth();
@@ -39,6 +55,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     registrationDoc: null,
     insuranceDoc: null, // 원리금 상환 계획표 (placeholder)
   });
+
 
   // Validate plate format
   const isPlateInvalid = form.plate && !isValidKoreanPlate(form.plate);
@@ -100,6 +117,19 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     return map;
   }, [ocrSuggest]);
 
+  // Auto-select fuel type when there is exactly one OCR candidate
+  useEffect(() => {
+    if (form.fuelType) return;
+    const candidates = (fieldSuggestions.fuelType || [])
+      .map((it) => normalizeFuelLabel(it?.value))
+      .filter(Boolean);
+    const unique = Array.from(new Set(candidates));
+    if (unique.length === 1) {
+      setForm((p) => ({ ...p, fuelType: unique[0] }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fieldSuggestions.fuelType]);
+
   const applySuggestion = (key) => (val) => {
     const v = (val == null) ? "" : String(val);
     setForm((p) => {
@@ -123,6 +153,30 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     });
   };
 
+  // OCR 진행률 시뮬레이션 (10초 선형 증가, 완료 시 0.5초로 100%)
+  const ocrTimerRef = useRef(null);
+  const ocrStartRef = useRef(0);
+  const startOcrSim = () => {
+    ocrStartRef.current = Date.now();
+    if (ocrTimerRef.current) clearInterval(ocrTimerRef.current);
+    ocrTimerRef.current = setInterval(() => {
+      const elapsed = Date.now() - ocrStartRef.current;
+      const target = Math.min(95, Math.floor((elapsed / 10000) * 95));
+      setBusy((b) => (b.status === "ocr" && b.percent < target ? { ...b, percent: target } : b));
+    }, 200);
+  };
+  const completeOcrSim = async () => {
+    if (ocrTimerRef.current) {
+      clearInterval(ocrTimerRef.current);
+      ocrTimerRef.current = null;
+    }
+    return new Promise((resolve) => {
+      setBusy((b) => ({ ...b, percent: 100 }));
+      setTimeout(resolve, 500);
+    });
+  };
+  useEffect(() => () => { if (ocrTimerRef.current) clearInterval(ocrTimerRef.current); }, []);
+
   const handleUploadAndOcr = async () => {
     const regFiles = toArray(form.registrationDoc);
     const planFiles = toArray(form.insuranceDoc); // 원리금 상환 계획표
@@ -130,24 +184,52 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       emitToast("업로드할 파일을 선택해 주세요.", "warning");
       return;
     }
-    setBusy({ status: "uploading", message: "업로드 중...", percent: 0 });
+
+    // Prepare all items and total bytes for aggregate progress
+    const items = [];
+    regFiles.forEach((f) => items.push({ file: f, ocrLabel: "registrationDoc", display: `자동차 등록증 - ${f?.name || "파일"}` }));
+    planFiles.forEach((f) => items.push({ file: f, ocrLabel: "amortizationSchedule", display: `원리금 상환 계획표 - ${f?.name || "파일"}` }));
+    const totalBytes = items.reduce((sum, it) => sum + (it.file?.size || 0), 0);
+    let completedBytes = 0;
+
+    setBusy({ status: "uploading", message: "업로드 중...", percent: 0, label: items.length ? `${items.length}개 파일 업로드 준비...` : "파일 업로드" });
     try {
       const uploaded = { registration: [], insurance: [] };
-      if (regFiles.length > 0) {
-        for (const f of regFiles) {
-          const item = await uploadOneFile(f, `registrationDoc`);
-          if (item?.objectName) uploaded.registration.push(item);
-        }
-      }
-      if (planFiles.length > 0) {
-        for (const f of planFiles) {
-          const item = await uploadOneFile(f, `amortizationSchedule`);
-          if (item?.objectName) uploaded.insurance.push(item);
-        }
-      }
-      setPreUploaded(uploaded);
+      for (let i = 0; i < items.length; i++) {
+        const { file, ocrLabel, display } = items[i];
+        const fileSize = file?.size || 0;
+        setBusy({ status: "uploading", message: "업로드 중...", percent: Math.round((completedBytes / Math.max(1, totalBytes)) * 100), label: `${i + 1}/${items.length} ${display}` });
 
-      setBusy({ status: "ocr", message: "OCR 처리 중...", percent: 0 });
+        const res = await uploadOneOCR(file, {
+          folder: ocrFolderBase,
+          type: "asset",
+          tmpId: tmpIdRef.current,
+          label: ocrLabel,
+          onProgress: (p) => {
+            const loaded = typeof p?.loaded === "number"
+              ? p.loaded
+              : typeof p?.percent === "number"
+                ? Math.round((p.percent / 100) * fileSize)
+                : 0;
+            const overallLoaded = completedBytes + loaded;
+            const overallPct = totalBytes > 0 ? Math.min(99, Math.round((overallLoaded / totalBytes) * 100)) : 100;
+            setBusy((s) => ({ ...s, percent: overallPct }));
+          },
+        });
+
+        completedBytes += fileSize;
+        const overallPctAfter = totalBytes > 0 ? Math.round((completedBytes / totalBytes) * 100) : 100;
+        setBusy((s) => ({ ...s, percent: overallPctAfter }));
+
+        if (res?.objectName) {
+          if (ocrLabel === "registrationDoc") uploaded.registration.push(res);
+          else if (ocrLabel === "amortizationSchedule") uploaded.insurance.push(res);
+        }
+      }
+
+      setPreUploaded(uploaded);
+      setBusy({ status: "ocr", message: "자동 채움 처리 중...", percent: 0, label: "자동 채움 처리 중..." });
+      startOcrSim();
       const suggestions = {};
       // registrationDoc OCR → prefill
       if (uploaded.registration[0]?.objectName) {
@@ -208,13 +290,14 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       }
 
       setOcrSuggest(suggestions);
-      setBusy({ status: "idle", message: "", percent: 0 });
+      await completeOcrSim();
+      setBusy({ status: "idle", message: "", percent: 0, label: "" });
       setStep("details");
     } catch (e) {
       console.error("upload/OCR error", e);
-      setBusy({ status: "idle", message: "", percent: 0 });
+      setBusy({ status: "idle", message: "", percent: 0, label: "" });
       // allow proceeding without OCR
-      emitToast("업로드 또는 OCR 처리 중 오류가 발생했습니다. 수동으로 진행해 주세요.", "error");
+      emitToast("업로드 또는 자동 채움 처리 중 오류가 발생했습니다. 수동으로 진행해 주세요.", "error");
       setStep("details");
     }
   };
@@ -366,14 +449,14 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         {docBoxEdit("자동차 등록증", "registrationDoc")}
       </div>
       <div className="min-h-[26px] mt-1">
-        <UploadProgress status={busy.status} percent={busy.percent} label={busy.status === 'ocr' ? 'OCR 처리 중...' : undefined} />
+        <UploadProgress status={busy.status} percent={busy.percent} label={busy.label} variant="bar" />
       </div>
       <div className="asset-dialog__footer flex justify-end gap-2">
         <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
-          업로드 및 OCR
+          업로드 및 자동 채움
         </button>
         <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} disabled={busy.status !== "idle"}>
-          OCR 없이 진행
+          자동 채움 없이 진행
         </button>
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>
@@ -422,21 +505,50 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           "연료 타입",
           (() => {
             const base = ["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"];
-            const suggested = (fieldSuggestions.fuelType || [])
+            const suggestedRaw = (fieldSuggestions.fuelType || [])
               .map((it) => String(it.value || "").trim())
               .filter(Boolean);
-            const seen = new Set();
-            const ordered = [];
-            // Always start with empty option for accessibility
-            ordered.push("");
-            suggested.forEach((v) => { if (!seen.has(v)) { seen.add(v); ordered.push(v); } });
-            base.forEach((v) => { if (!seen.has(v)) { seen.add(v); ordered.push(v); } });
+
+            // Normalize OCR values to our base labels (휘발유→가솔린, 경유→디젤, etc.)
+            const suggestedNormalized = new Set(suggestedRaw.map((s) => normalizeFuelLabel(s)));
+
+            // Only use the base option list; do not inject OCR items
+            const ordered = base.slice();
+
+            // Option highlight style for OCR suggestions (light blue background, dark text)
+            const highlightStyle = { backgroundColor: "#e3f2fd", color: "#1e3a8a" };
+
+            // Normalize current selection to base to prevent selecting an unknown value (e.g., 휘발유→가솔린)
+            const selectedValue = normalizeFuelLabel(form.fuelType);
+
             return (
-              <select id="asset-fuelType" name="fuelType" className="form-input" value={form.fuelType} onChange={(e) => setForm((p) => ({ ...p, fuelType: e.target.value }))}>
-                {ordered.map((v) => (
-                  <option key={v || "_empty"} value={v}>{v || "선택"}</option>
-                ))}
-              </select>
+              <div className="flex items-center gap-2 flex-nowrap">
+                <select
+                  id="asset-fuelType"
+                  name="fuelType"
+                  className="form-input"
+                  value={selectedValue}
+                  onChange={(e) => setForm((p) => ({ ...p, fuelType: normalizeFuelLabel(e.target.value) }))}
+                >
+                  {ordered.map((v, i) => {
+                    const label = v || "선택";
+                    const normalized = normalizeFuelLabel(v);
+                    const isSuggested = v && suggestedNormalized.has(normalized);
+                    return (
+                      <option
+                        key={v ? v : `_empty_${i}`}
+                        value={v}
+                        data-suggested={isSuggested ? "true" : undefined}
+                        style={isSuggested ? highlightStyle : undefined}
+                      >
+                        {label}
+                      </option>
+                    );
+                  })}
+                </select>
+                {/* Compact OCR confidence indicator */}
+                <OcrSuggestionPicker items={fieldSuggestions.fuelType || []} onApply={() => { /* no auto-apply for fuel */ }} showLabel={false} maxWidth={140} />
+              </div>
             );
           })()
         )}
