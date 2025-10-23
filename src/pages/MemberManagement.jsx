@@ -6,7 +6,7 @@ import { emitToast } from '../utils/toast';
 import ErrorBoundary from '../components/ErrorBoundary';
 import Table from "../components/Table";
 import './MemberManagement.css';
-import RoleChangeModal from "../components/RoleChangeModal";
+import RoleChangeModal from "../components/modals/RoleChangeModal";
 
 /**
  * MemberManagement page - Admin/Super Admin only

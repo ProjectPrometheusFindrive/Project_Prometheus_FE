@@ -9,6 +9,7 @@ export default function DiagnosticCountBadge({ count, onClick }) {
       className="badge badge--diagnostic badge--clickable badge--compact"
       onClick={onClick}
       title="진단 코드 상세 보기"
+      aria-label={`진단 코드 ${n}개 상세 보기`}
     >
       진단 {n}개
     </button>

@@ -4,6 +4,7 @@ import { ALLOWED_MIME_TYPES } from "../constants/uploads";
 import { uploadOneOCR } from "../utils/uploadHelpers";
 import FilePreview from "./FilePreview";
 import FilesPreviewCarousel from "./FilesPreviewCarousel";
+import UploadProgress from "./UploadProgress";
 import MultiDocGallery from "./MultiDocGallery";
 import { ocrExtract } from "../api";
 import { useAuth } from "../contexts/AuthContext";
@@ -294,12 +295,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               <FilePreview file={form.insuranceDoc} />
             )}
             {(busy.status === "uploading" || busy.status === "ocr") && (
-              <div className="w-full mt-2">
-                <div className="text-[12px] text-gray-600 mb-1">{busy.message}</div>
-                <div aria-label="처리 진행률" className="bg-gray-200 rounded h-2 overflow-hidden">
-                  <div style={{ width: `${busy.percent}%`, height: "100%", background: "#4caf50" }} />
-                </div>
-              </div>
+              <div className="w-full mt-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? 'OCR 처리 중...' : undefined)} /></div>
             )}
           </div>
         )}
@@ -342,12 +338,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                     </div>
                   ) : (form.insuranceDoc ? <div className="mb-2"><FilePreview file={form.insuranceDoc} /></div> : null)}
                   {(busy.status === "uploading" || busy.status === "ocr") && (
-                    <div className="w-full mt-1 mb-2">
-                      <div className="text-[12px] text-gray-600 mb-1">{busy.message}</div>
-                      <div aria-label="처리 진행률" className="bg-gray-200 rounded h-2 overflow-hidden">
-                        <div style={{ width: `${busy.percent}%`, height: "100%", background: "#4caf50" }} />
-                      </div>
-                    </div>
+                    <div className="w-full mt-1 mb-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? 'OCR 처리 중...' : undefined)} /></div>
                   )}
                   <div className="flex gap-2">
                     <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={!form.insuranceDoc || busy.status !== 'idle'}>

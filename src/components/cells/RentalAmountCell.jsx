@@ -1,5 +1,5 @@
 import React from "react";
-import StatusBadge from "../StatusBadge";
+import StatusBadge from "../badges/StatusBadge";
 
 /**
  * RentalAmountCell - 대여 금액 표시 셀 컴포넌트

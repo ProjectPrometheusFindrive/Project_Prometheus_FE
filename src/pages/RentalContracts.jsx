@@ -5,14 +5,15 @@ import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 import Table from "../components/Table";
-import AccidentInfoModal from "../components/AccidentInfoModal";
+import AccidentInfoModal from "../components/modals/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
-import StatusBadge from "../components/StatusBadge";
+import StatusBadge from "../components/badges/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
 import { FaExclamationTriangle, FaMapMarkerAlt, FaCog, FaCheck } from "react-icons/fa";
 import VideoIcon from "../components/VideoIcon";
+import UploadProgress from "../components/UploadProgress";
 import { FiAlertTriangle } from "react-icons/fi";
-import MemoHistoryModal from "../components/MemoHistoryModal";
+import MemoHistoryModal from "../components/modals/MemoHistoryModal";
 import { MemoCell, CompanyCell, PlateCell, RentalPeriodCell, RentalAmountCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
@@ -736,14 +737,8 @@ export default function RentalContracts() {
                                                 업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}
                                             </div>
                                             {uploadState.status === 'uploading' && (
-                                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-                                                    <div aria-label="업로드 진행률" style={{ flex: 1, background: '#eee', borderRadius: 4, height: 10, overflow: 'hidden' }}>
-                                                        <div style={{ width: `${uploadState.percent}%`, height: '100%', background: '#4caf50' }} />
-                                                    </div>
-                                                    <span style={{ fontSize: 12, color: '#333', minWidth: 40, textAlign: 'right' }}>{uploadState.percent}%</span>
-                                                    <button type="button" className="form-button form-button--muted" onClick={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }}>
-                                                        취소
-                                                    </button>
+                                                <div style={{ marginBottom: 12 }}>
+                                                    <UploadProgress status={uploadState.status} percent={uploadState.percent} onCancel={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }} />
                                                 </div>
                                             )}
                                             {uploadState.status === 'error' && (

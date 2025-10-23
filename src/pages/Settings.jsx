@@ -12,7 +12,7 @@ import {
     updateGeofence,
     deleteGeofence,
 } from "../api";
-import { CountBadge, GeofenceBadge } from "../components/StatusBadge";
+import { CountBadge, GeofenceBadge } from "../components/badges/StatusBadge";
 import DocumentViewer from "../components/DocumentViewer";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
 import { uploadOne } from "../utils/uploadHelpers";

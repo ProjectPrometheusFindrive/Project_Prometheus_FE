@@ -5,7 +5,7 @@ import FormField from "./FormField";
 import FormActions from "./FormActions";
 import { fetchAssets } from "../../api";
 import { getManagementStage } from "../../utils/managementStage";
-import StatusBadge from "../StatusBadge";
+import StatusBadge from "../badges/StatusBadge";
 import FilePreview from "../FilePreview";
 import FilesPreviewCarousel from "../FilesPreviewCarousel";
 import { formatPhone11, formatCurrency } from "../../utils/formatters";

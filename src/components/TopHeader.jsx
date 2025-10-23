@@ -5,7 +5,7 @@ import { typedStorage } from "../utils/storage";
 import { useAuth } from "../contexts/AuthContext";
 // Default logo served from public root
 const defaultLogo = "/PPFD.png";
-import CiUploadModal from "./CiUploadModal";
+import CiUploadModal from "./modals/CiUploadModal";
 import ThemeToggle from "./ThemeToggle";
 import { useCompany } from "../contexts/CompanyContext";
 import { uploadOne } from "../utils/uploadHelpers";
@@ -82,6 +82,7 @@ export default function TopHeader() {
                         alt="Company Logo"
                         className="top-header__logo"
                         title={uploading ? "업로드 중..." : "로고 업로드"}
+                        aria-label={uploading ? "로고 업로드 중" : "회사 로고 변경하기"}
                         role="button"
                         tabIndex={0}
                         onClick={() => !uploading && onUploadClick()}
@@ -99,6 +100,7 @@ export default function TopHeader() {
                         alt="Company Logo"
                         className="top-header__logo"
                         title={uploading ? "업로드 중..." : "로고 업로드"}
+                        aria-label={uploading ? "로고 업로드 중" : "회사 로고 변경하기"}
                         role="button"
                         tabIndex={0}
                         onClick={() => !uploading && onUploadClick()}
@@ -119,6 +121,7 @@ export default function TopHeader() {
                     role="link"
                     tabIndex={0}
                     title="대시보드로 이동"
+                    aria-label="Findrive 대시보드로 이동"
                     onClick={() => navigate("/dashboard")}
                     onKeyDown={(e) => {
                         if (e.key === 'Enter' || e.key === ' ') {

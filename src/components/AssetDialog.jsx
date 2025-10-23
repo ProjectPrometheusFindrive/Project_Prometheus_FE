@@ -8,6 +8,7 @@ import FilePreview from "./FilePreview";
 import DocumentViewer from "./DocumentViewer";
 import MultiDocGallery from "./MultiDocGallery";
 import FilesPreviewCarousel from "./FilesPreviewCarousel";
+import UploadProgress from "./UploadProgress";
 import { uploadOneOCR } from "../utils/uploadHelpers";
 import { ocrExtract } from "../api";
 import { randomId } from "../utils/id";
@@ -365,17 +366,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         {docBoxEdit("자동차 등록증", "registrationDoc")}
       </div>
       <div className="min-h-[26px] mt-1">
-        {busy.status === "uploading" && (
-          <div className="flex items-center gap-2">
-            <div aria-label="업로드 진행률" className="flex-1 bg-gray-200 rounded h-2 overflow-hidden">
-              <div style={{ width: `${busy.percent}%`, height: '100%', background: '#4caf50' }} />
-            </div>
-            <span className="text-[12px] text-gray-800 min-w-10 text-right">{busy.percent}%</span>
-          </div>
-        )}
-        {busy.status === "ocr" && (
-          <div className="text-[12px] text-gray-600">OCR 처리 중...</div>
-        )}
+        <UploadProgress status={busy.status} percent={busy.percent} label={busy.status === 'ocr' ? 'OCR 처리 중...' : undefined} />
       </div>
       <div className="asset-dialog__footer flex justify-end gap-2">
         <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>

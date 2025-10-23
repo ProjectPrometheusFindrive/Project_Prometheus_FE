@@ -19,20 +19,37 @@ const Modal = ({
   showHeaderClose = true
 }) => {
   const containerRef = useRef(null);
+  const previousActiveElementRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return;
+
+    // Store the element that had focus before the modal opened
+    previousActiveElementRef.current = document.activeElement;
+
     const onKey = (e) => {
       if (e.key === "Escape") {
         try { onClose && onClose(); } catch {}
       }
     };
     document.addEventListener("keydown", onKey);
-    // set initial focus to modal container for better tab order
+
+    // Set initial focus to modal container for better tab order
     setTimeout(() => {
       try { containerRef.current && containerRef.current.focus(); } catch {}
     }, 0);
-    return () => document.removeEventListener("keydown", onKey);
+
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      // Restore focus to the previously focused element when modal closes
+      setTimeout(() => {
+        try {
+          if (previousActiveElementRef.current && typeof previousActiveElementRef.current.focus === 'function') {
+            previousActiveElementRef.current.focus();
+          }
+        } catch {}
+      }, 0);
+    };
   }, [isOpen, onClose]);
 
   if (!isOpen) return null;

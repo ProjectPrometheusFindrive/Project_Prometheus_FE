@@ -11,6 +11,7 @@ export default function PlateCell({ plate, onClick, title }) {
             onClick={onClick}
             className="simple-button"
             title={title}
+            aria-label={title || `차량번호 ${plate || '미등록'} 상세보기`}
         >
             {plate || "-"}
         </button>

@@ -9,7 +9,7 @@ import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
 import DeviceEventLog from "../components/DeviceEventLog";
-import DiagnosticCountBadge from "../components/DiagnosticCountBadge";
+import DiagnosticCountBadge from "../components/badges/DiagnosticCountBadge";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
@@ -23,7 +23,7 @@ import { MANAGEMENT_STAGE_OPTIONS } from "../constants/forms";
 import { formatDateShort } from "../utils/date";
 import { getManagementStage, withManagementStage, getDiagnosticCount } from "../utils/managementStage";
 import { FaCog } from "react-icons/fa";
-import MemoHistoryModal from "../components/MemoHistoryModal";
+import MemoHistoryModal from "../components/modals/MemoHistoryModal";
 import { MemoCell, AssetManagementStageCell, VehicleHealthCell, CompanyCell, PlateCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import useInsuranceModal from "../hooks/useInsuranceModal";
@@ -33,7 +33,7 @@ import useDropdownState from "../hooks/useDropdownState";
 import { VehicleTypeText } from "../components/cells";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import { emitToast } from "../utils/toast";
-import SeverityBadge from "../components/SeverityBadge";
+import SeverityBadge from "../components/badges/SeverityBadge";
 
 // Column defaults for AssetStatus table
 const DEFAULT_ASSET_COLUMNS = [

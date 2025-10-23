@@ -13,6 +13,7 @@ const InsuranceCell = React.memo(({ insuranceExpiryDate, onViewInsurance, onRegi
         className="simple-button"
         onClick={onViewInsurance}
         title="보험 정보 보기"
+        aria-label={`보험 만료일 ${formatDateShort(insuranceExpiryDate)} 상세보기`}
       >
         {formatDateShort(insuranceExpiryDate)}
       </button>
@@ -25,6 +26,7 @@ const InsuranceCell = React.memo(({ insuranceExpiryDate, onViewInsurance, onRegi
       className="badge badge--default badge--clickable"
       onClick={onRegisterInsurance}
       title="보험 등록"
+      aria-label="보험 정보 등록하기"
     >
       보험 등록
     </button>

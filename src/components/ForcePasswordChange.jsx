@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import ChangePasswordModal from "./ChangePasswordModal";
+import ChangePasswordModal from "./modals/ChangePasswordModal";
 
 export default function ForcePasswordChange() {
   const { user } = useAuth();
