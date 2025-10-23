@@ -5,6 +5,7 @@ import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, chan
 import { emitToast } from '../utils/toast';
 import ErrorBoundary from '../components/ErrorBoundary';
 import Table from "../components/Table";
+import { CompanyCell } from '../components/cells';
 import './MemberManagement.css';
 import RoleChangeModal from "../components/modals/RoleChangeModal";
 import { formatDisplayDate } from "../utils/date";
@@ -50,9 +51,15 @@ function MemberManagement() {
     // Columns for All Members tab
     const allColumns = useMemo(() => {
         const cols = [
+            // 회사 컬럼을 가장 왼쪽으로 이동, super-admin은 CI + 회사명 노출
+            {
+                key: 'company',
+                label: '회사',
+                sortAccessor: (r) => r.company || r.companyId || '',
+                render: (r) => (isSuperAdmin ? (<CompanyCell row={r} />) : (r.company || r.companyId || '-')),
+            },
             { key: 'userId', label: '사용자 ID' },
             { key: 'bizRegNo', label: '사업자등록번호', render: (r) => r.bizRegNo || '-' },
-            { key: 'company', label: '회사', render: (r) => r.company || r.companyId || '-', sortAccessor: (r) => r.company || r.companyId || '' },
             { key: 'position', label: '직책', render: (r) => r.position || '-' },
             { key: 'name', label: '이름', render: (r) => r.name || '-' },
             { key: 'phone', label: '전화번호', render: (r) => r.phone || '-' },
@@ -88,17 +95,26 @@ function MemberManagement() {
 
     // Columns for Pending Members tab
     const pendingColumns = useMemo(() => [
+        // 회사 컬럼을 가장 왼쪽으로 이동, super-admin은 CI + 회사명 노출
+        {
+            key: 'company',
+            label: '회사',
+            sortAccessor: (r) => r.company || r.companyId || '',
+            render: (r) => {
+                if (isSuperAdmin) {
+                    return <CompanyCell row={r} />;
+                }
+                const isOtherCompany = r.companyId !== user.companyId;
+                return (
+                    <>
+                        {r.company || r.companyId || '-'}
+                        {isOtherCompany && <span className="badge badge-warning">타사</span>}
+                    </>
+                );
+            }
+        },
         { key: 'userId', label: '사용자 ID' },
         { key: 'bizRegNo', label: '사업자등록번호', render: (r) => r.bizRegNo || '-' },
-        { key: 'company', label: '회사', sortAccessor: (r) => r.company || r.companyId || '', render: (r) => {
-            const isOtherCompany = !isSuperAdmin && r.companyId !== user.companyId;
-            return (
-                <>
-                    {r.company || r.companyId || '-'}
-                    {isOtherCompany && <span className="badge badge-warning">타사</span>}
-                </>
-            );
-        } },
         { key: 'position', label: '직책', render: (r) => r.position || '-' },
         { key: 'name', label: '이름', render: (r) => r.name || '-' },
         { key: 'phone', label: '전화번호', render: (r) => r.phone || '-' },
