@@ -53,7 +53,7 @@ export default function OcrSuggestionPicker({ items = [], onApply, style = {}, s
   return (
     <div className="flex gap-1.5 items-center flex-wrap min-w-0" style={style}>
       {selectedPct ? (
-        <span className="text-[11px]" style={{ color: selectedColor, flex: "0 0 auto" }} title="OCR 신뢰도">
+        <span className="text-[11px]" style={{ color: selectedColor, flex: "0 0 auto" }} title="자동 채움 신뢰도">
           신뢰도 {selectedPct}
         </span>
       ) : null}

@@ -138,7 +138,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       setPreUploaded(uploaded);
 
       // OCR only the first file for suggestions
-      setBusy({ status: "ocr", message: "OCR 처리 중...", percent: 0 });
+      setBusy({ status: "ocr", message: "자동 채움 처리 중...", percent: 0 });
       if (uploaded[0]?.objectName) {
         try {
           const resp = await ocrExtract({ docType: "insuranceDoc", objectName: uploaded[0].objectName, sourceName: uploaded[0].name, saveOutput: true });
@@ -278,7 +278,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
         {/* Step 1: Upload & OCR (new registration) */}
         {(!isReadOnly && step === "upload") && (
           <div className="asset-doc mb-3">
-            <div className="asset-doc__title">Step 1 · 보험증권 업로드 (OCR)</div>
+            <div className="asset-doc__title">Step 1 · 보험증권 업로드 (자동 채움)</div>
             <div className="mb-3">
               <input
                 type="file"
@@ -295,7 +295,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               <FilePreview file={form.insuranceDoc} />
             )}
             {(busy.status === "uploading" || busy.status === "ocr") && (
-              <div className="w-full mt-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? 'OCR 처리 중...' : undefined)} /></div>
+              <div className="w-full mt-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? '자동 채움 처리 중...' : undefined)} /></div>
             )}
           </div>
         )}
@@ -323,7 +323,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               {/* Allow OCR upload also in edit mode */}
               {!isReadOnly && (
                 <div className="mt-3">
-                  <div className="font-semibold mb-1.5">보험증권 OCR 업로드</div>
+                  <div className="font-semibold mb-1.5">보험증권 자동 채움 업로드</div>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
@@ -338,11 +338,11 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                     </div>
                   ) : (form.insuranceDoc ? <div className="mb-2"><FilePreview file={form.insuranceDoc} /></div> : null)}
                   {(busy.status === "uploading" || busy.status === "ocr") && (
-                    <div className="w-full mt-1 mb-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? 'OCR 처리 중...' : undefined)} /></div>
+                    <div className="w-full mt-1 mb-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? '자동 채움 처리 중...' : undefined)} /></div>
                   )}
                   <div className="flex gap-2">
                     <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={!form.insuranceDoc || busy.status !== 'idle'}>
-                      업로드 및 OCR
+                      업로드 및 자동 채움
                     </button>
                     {form.insuranceDoc && (
                       <button type="button" className="form-button form-button--muted" onClick={() => setForm((p) => ({ ...p, insuranceDoc: null }))}>

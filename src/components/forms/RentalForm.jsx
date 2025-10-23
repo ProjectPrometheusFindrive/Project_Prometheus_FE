@@ -282,7 +282,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             }
             setPreUploaded(uploaded);
 
-            setBusy({ status: 'ocr', message: 'OCR 처리 중...', percent: 0 });
+            setBusy({ status: 'ocr', message: '자동 채움 처리 중...', percent: 0 });
             const suggestions = {};
             if (uploaded.contract[0]?.objectName) {
                 try {
@@ -375,15 +375,15 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                     </div>
                 )}
                 {busy.status === 'ocr' && (
-                    <div className="text-[12px] text-gray-600">OCR 처리 중...</div>
+                    <div className="text-[12px] text-gray-600">자동 채움 처리 중...</div>
                 )}
             </div>
             <div className="asset-dialog__footer flex justify-end gap-2">
         <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
-          업로드 및 OCR
+          업로드 및 자동 채움
         </button>
         <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} disabled={busy.status !== "idle"}>
-          OCR 없이 진행
+          자동 채움 없이 진행
         </button>
         {typeof onClose === "function" && (
           <button type="button" className="form-button" onClick={onClose}>닫기</button>
