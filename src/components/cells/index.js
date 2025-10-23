@@ -22,3 +22,4 @@ export { default as RentalAmountCell } from "./RentalAmountCell";
 export { default as AssetManagementStageCell } from "./AssetManagementStageCell";
 export { default as InsuranceCell } from "./InsuranceCell";
 export { default as SeverityCell } from "./SeverityCell";
+export { default as VehicleTypeText } from "./VehicleTypeText";

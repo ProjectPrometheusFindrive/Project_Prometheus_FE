@@ -30,7 +30,7 @@ import useInsuranceModal from "../hooks/useInsuranceModal";
 import useManagementStage from "../hooks/useManagementStage";
 import useColumnSettings from "../hooks/useColumnSettings";
 import useDropdownState from "../hooks/useDropdownState";
-import VehicleTypeText from "../components/VehicleTypeText";
+import { VehicleTypeText } from "../components/cells";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import { emitToast } from "../utils/toast";
 import SeverityBadge from "../components/SeverityBadge";

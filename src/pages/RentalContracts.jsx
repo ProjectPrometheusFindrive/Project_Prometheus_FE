@@ -23,7 +23,7 @@ import FilePreview from "../components/FilePreview";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
 import useColumnSettings from "../hooks/useColumnSettings";
-import VehicleTypeText from "../components/VehicleTypeText";
+import { VehicleTypeText } from "../components/cells";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import useAccidentReport from "../hooks/useAccidentReport";
 import { emitToast } from "../utils/toast";
