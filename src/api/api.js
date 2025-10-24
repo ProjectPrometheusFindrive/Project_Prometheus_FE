@@ -12,7 +12,7 @@ import {
     ocrApi,
     membersApi
 } from './apiClient';
-import { API_STATUS, createOperationResult } from './apiTypes';
+import { API_STATUS, API_ERRORS, createOperationResult } from './apiTypes';
 
 // Helper to extract data from standardized response
 function extractData(response) {
@@ -91,7 +91,14 @@ export async function deleteAsset(assetId) {
 // Asset memo history
 export async function fetchAssetMemoHistory(assetId) {
     const response = await assetsApi.fetchMemoHistory(assetId);
-    return extractData(response);
+    if (response.status === API_STATUS.SUCCESS) {
+        return extractData(response);
+    }
+    // Gracefully handle not-found as empty history (some BE do not persist memo history for assets)
+    if (response.error?.type === API_ERRORS.NOT_FOUND || response.error?.status === 404) {
+        return [];
+    }
+    throw new Error(response.error?.message || 'Failed to load memo history');
 }
 
 // Rentals
@@ -109,6 +116,17 @@ export async function fetchRentalById(id) {
 }
 export async function fetchLatestRentals() {
     const response = await rentalsApi.fetchLatest();
+    return extractData(response);
+}
+
+// Rental location(s)
+export async function fetchRentalLocation(id, options) {
+    const response = await rentalsApi.fetchLocation(id, options || {});
+    return extractData(response);
+}
+
+export async function fetchRentalLocations(query) {
+    const response = await rentalsApi.fetchLocations(query || {});
     return extractData(response);
 }
 
@@ -136,6 +154,12 @@ export async function deleteRental(rentalId) {
 // Rental memo history
 export async function fetchRentalMemoHistory(rentalId) {
     const response = await rentalsApi.fetchMemoHistory(rentalId);
+    return extractData(response);
+}
+
+// Rental accident detail (video/file refs + metadata)
+export async function fetchRentalAccidentDetail(rentalId) {
+    const response = await rentalsApi.fetchAccidentDetail(rentalId);
     return extractData(response);
 }
 

@@ -29,6 +29,12 @@ export const API_ENDPOINTS = {
     RENTALS_BY_VIN: (vin) => `/rentals/byVin/${encodeURIComponent(vin)}`,
     RENTAL_INDEX_BY_VIN: '/rentals/indexByVin',
     RENTAL_MEMO_HISTORY: (id) => `/rentals/${encodeURIComponent(id)}/memoHistory`,
+    // Current location (and optional recent track) for a single rental
+    RENTAL_LOCATION: (id) => `/rentals/${encodeURIComponent(id)}/location`,
+    // Bulk locations for rentals (e.g., for map views)
+    RENTALS_LOCATIONS: '/rentals/locations',
+    // Accident detail for a rental (blackbox URLs, handler, timestamps)
+    RENTAL_ACCIDENT_DETAIL: (id) => `/rentals/${encodeURIComponent(id)}/accident`,
 
     // Vehicles
     VEHICLES: '/vehicles',

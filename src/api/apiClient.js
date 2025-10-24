@@ -345,6 +345,51 @@ export const rentalsApi = {
         }
         return response;
     },
+
+    /**
+     * Fetch current location (and optionally recent track) for a rental
+     * @param {string} id Rental ID
+     * @param {Object} [options]
+     * @param {boolean} [options.trail] Include recent track points when true
+     * @param {number} [options.limit] Max number of track points
+     * @param {string} [options.since] ISO timestamp to bound track points
+     */
+    async fetchLocation(id, options = {}) {
+        if (!validateId(id)) {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid rental ID'
+            });
+        }
+        const params = new URLSearchParams();
+        if (options.trail != null) params.set('trail', String(Boolean(options.trail)));
+        if (typeof options.limit === 'number') params.set('limit', String(options.limit));
+        if (options.since) params.set('since', options.since);
+        const url = params.toString()
+            ? `${API_ENDPOINTS.RENTAL_LOCATION(id)}?${params.toString()}`
+            : API_ENDPOINTS.RENTAL_LOCATION(id);
+        return await apiRequest(url);
+    },
+
+    /**
+     * Fetch bulk rental locations for map views
+     * @param {Object} [query]
+     * @param {string} [query.bbox] Bounding box 'minLng,minLat,maxLng,maxLat'
+     * @param {string} [query.status] Filter by status
+     * @param {string[]} [query.ids] Filter by rental IDs
+     */
+    async fetchLocations(query = {}) {
+        const params = new URLSearchParams();
+        if (query.bbox) params.set('bbox', query.bbox);
+        if (query.status) params.set('status', query.status);
+        if (Array.isArray(query.ids) && query.ids.length > 0) {
+            for (const id of query.ids) params.append('id', id);
+        }
+        const url = params.toString()
+            ? `${API_ENDPOINTS.RENTALS_LOCATIONS}?${params.toString()}`
+            : API_ENDPOINTS.RENTALS_LOCATIONS;
+        return await apiRequest(url);
+    },
     async fetchAll() {
         const response = await apiRequest(API_ENDPOINTS.RENTALS);
         if (response.status === API_STATUS.SUCCESS && Array.isArray(response.data)) {
@@ -447,6 +492,17 @@ export const rentalsApi = {
         }
         const rid = typeof id === 'number' ? id : String(id);
         return await apiRequest(API_ENDPOINTS.RENTAL_MEMO_HISTORY(rid));
+    },
+
+    async fetchAccidentDetail(id) {
+        if (!validateId(id) && typeof id !== 'number') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid rental ID'
+            });
+        }
+        const rid = typeof id === 'number' ? id : String(id);
+        return await apiRequest(API_ENDPOINTS.RENTAL_ACCIDENT_DETAIL(rid));
     }
 };
 
