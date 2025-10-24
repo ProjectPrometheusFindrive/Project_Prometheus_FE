@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Gauge from "../components/Gauge";
-import { fetchAssets, fetchRentals } from "../api";
-import { computeContractStatus } from "../utils/contracts";
-import { getManagementStage } from "../utils/managementStage";
+import { fetchDashboardData } from "../api";
 import useApprovalQueryEffects from "../hooks/useApprovalQueryEffects";
 import StatusDonut from "../components/charts/StatusDonut";
 
@@ -24,29 +22,19 @@ export default function Dashboard() {
         let mounted = true;
         (async () => {
             try {
-                // 자산 및 대여 데이터를 직접 불러와 프론트에서 분포 계산
-                const [assets, rentals] = await Promise.all([fetchAssets(), fetchRentals()]);
+                // Dashboard BFF: summary 섹션만 요청(기본값)
+                const payload = await fetchDashboardData();
                 if (!mounted) return;
+                const summary = payload && payload.summary ? payload.summary : {};
 
-                // 1) 자산 현황: 관리상태(managementStage) 기준 분포
-                const stageCounts = new Map();
-                (Array.isArray(assets) ? assets : []).forEach((a) => {
-                    // 백엔드가 managementStage를 주지 않는 경우가 있어, 프론트 기준 유틸로 산출
-                    const stage = getManagementStage(a);
-                    stageCounts.set(stage, (stageCounts.get(stage) || 0) + 1);
-                });
-                const stageDist = [...stageCounts.entries()].map(([name, value]) => ({ name, value, rawValue: value }));
+                // 1) 자산 현황: 서버 집계 사용
+                const stageCounts = summary.managementStageCounts || {};
+                const stageDist = Object.entries(stageCounts).map(([name, value]) => ({ name, value: Number(value) || 0, rawValue: Number(value) || 0 }));
                 setVehicleStatus(stageDist.filter((d) => (d?.value ?? 0) > 0));
 
-                // 2) 계약 현황: 계약상태(contractStatus) 기준 분포 (RentalContracts와 동일 로직)
-                const now = new Date();
-                const contractCounts = new Map();
-                (Array.isArray(rentals) ? rentals : []).forEach((r) => {
-                    const status = computeContractStatus(r, now);
-                    if (status === "완료") return; // 완료된 계약은 분포에서 제외
-                    contractCounts.set(status, (contractCounts.get(status) || 0) + 1);
-                });
-                const contractDist = [...contractCounts.entries()].map(([name, value]) => ({ name, value, rawValue: value }));
+                // 2) 계약 현황: 서버 집계 사용 (완료 제외 가정)
+                const contractCounts = summary.contractStatusCounts || {};
+                const contractDist = Object.entries(contractCounts).map(([name, value]) => ({ name, value: Number(value) || 0, rawValue: Number(value) || 0 }));
                 setBizStatusLabeled(contractDist.filter((d) => (d?.value ?? 0) > 0));
             } catch (e) {
                 console.error("Failed to fetch dashboard data", e);
