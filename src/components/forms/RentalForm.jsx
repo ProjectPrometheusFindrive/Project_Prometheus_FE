@@ -3,7 +3,7 @@ import useFormState from "../../hooks/useFormState";
 import FormGrid from "./FormGrid";
 import FormField from "./FormField";
 import FormActions from "./FormActions";
-import { fetchAssets } from "../../api";
+import { fetchAssets, fetchAssetsSummary } from "../../api";
 import { getManagementStage } from "../../utils/managementStage";
 import StatusBadge from "../badges/StatusBadge";
 import FilePreview from "../FilePreview";
@@ -114,12 +114,16 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             setAssetsLoading(true);
             setAssetsError("");
             try {
-                const list = await fetchAssets();
+                let list = await fetchAssetsSummary().catch(() => null);
+                if (!Array.isArray(list)) {
+                    // Fallback to full assets if summary unavailable
+                    list = await fetchAssets();
+                }
                 const normalized = Array.isArray(list)
                     ? list.map((a) => ({ ...a, managementStage: getManagementStage(a) }))
                     : [];
                 if (mounted) setAssets(normalized);
-                if (DEBUG) console.log("[RentalForm] fetchAssets success count=", normalized.length);
+                if (DEBUG) console.log("[RentalForm]  success count=", normalized.length);
             } catch (e) {
                 console.warn("Failed to fetch assets for rental form", e);
                 if (mounted) setAssetsError("자산 목록을 불러오지 못했습니다.");
