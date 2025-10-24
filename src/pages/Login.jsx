@@ -18,11 +18,11 @@ export default function Login() {
   }
 
   useEffect(() => {
-    if (typedStorage.auth.isLoggedIn()) {
+    // Redirect only when authenticated according to AuthContext
+    if (auth && auth.isAuthenticated) {
       goToLanding();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [auth?.isAuthenticated]);
 
   async function handleSubmit(e) {
     e.preventDefault();

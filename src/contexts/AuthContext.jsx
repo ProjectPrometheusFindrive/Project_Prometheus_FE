@@ -15,6 +15,8 @@ export function AuthProvider({ children }) {
     let cancelled = false;
     const token = typedStorage.auth.getToken();
     if (!token) {
+      // Clear any stale auth flags to avoid false positives
+      try { typedStorage.auth.logout(); } catch {}
       setStatus("unauthenticated");
       setUser(null);
       return;
