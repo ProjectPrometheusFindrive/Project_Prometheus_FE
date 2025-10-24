@@ -59,6 +59,7 @@ export default function RentalContracts() {
     const [showCreate, setShowCreate] = useState(false);
     const [showDetail, setShowDetail] = useState(false);
     const [showLocationMap, setShowLocationMap] = useState(false);
+    const [isLoadingLocation, setIsLoadingLocation] = useState(false);
     const [selectedContract, setSelectedContract] = useState(null);
     const { editingId: editingMemo, memoText, onEdit: onMemoEdit, onChange: onMemoChange, onCancel: onMemoCancel } = useMemoEditor();
     const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
@@ -257,11 +258,14 @@ export default function RentalContracts() {
     };
 
     const handleToggleRestart = async (rentalId) => {
-        const target = rows.find((r) => r.rentalId === rentalId);
+        const target = rows.find((r) => String(r.rentalId) === String(rentalId));
         const next = !target?.restartBlocked;
         try {
             await updateRental(rentalId, { restartBlocked: next });
-            setItems((prev) => prev.map((item) => (item.rentalId === rentalId ? { ...item, restartBlocked: next } : item)));
+            // Update list
+            setItems((prev) => prev.map((item) => (String(item.rentalId) === String(rentalId) ? { ...item, restartBlocked: next } : item)));
+            // Update detail panel if same contract is open
+            setSelectedContract((prev) => (prev && String(prev.rentalId) === String(rentalId) ? { ...prev, restartBlocked: next } : prev));
         } catch (e) {
             console.error("Failed to update restart flag", e);
             emitToast("재시동 금지 상태 변경 실패", "error");
@@ -286,9 +290,29 @@ export default function RentalContracts() {
 
     
 
-    const handleShowLocation = () => {
-        setShowDetail(false);
-        setShowLocationMap(true);
+    const handleShowLocation = async () => {
+        if (!selectedContract) return;
+        // Prefer using location already included in rental detail payload
+        const preloadedLoc =
+            selectedContract.currentLocation ||
+            selectedContract.location ||
+            selectedContract.rentalLocation ||
+            selectedContract.returnLocation ||
+            (selectedContract.lat && selectedContract.lng ? { lat: selectedContract.lat, lng: selectedContract.lng } : null);
+
+        if (preloadedLoc && typeof preloadedLoc.lat === "number" && typeof preloadedLoc.lng === "number") {
+            setSelectedContract((prev) => ({
+                ...prev,
+                currentLocation: preloadedLoc,
+                logRecord: Array.isArray(prev?.logRecord) ? prev.logRecord : [],
+            }));
+            setShowDetail(false);
+            setShowLocationMap(true);
+            return;
+        }
+
+        // Fallback: no preloaded location available
+        emitToast("현재 위치 정보가 계약 데이터에 없습니다.", "warning");
     };
 
     const handleBackToDetail = () => {
@@ -353,7 +377,15 @@ export default function RentalContracts() {
                         return row?.[col.key] ?? "";
                 }
             },
-        })), [columnsForRender]);
+        })), [
+            columnsForRender,
+            // Ensure closures used by renderers are always fresh
+            editingMemo,
+            memoText,
+            handleToggleRestart,
+            handlePlateClick,
+            handleOpenAccidentModal,
+        ]);
 
     // 드래그&드롭 이벤트 핸들러들
     const handleDragStart = (e, index) => {
@@ -554,12 +586,12 @@ export default function RentalContracts() {
                             {/* 현재 위치 보기 버튼 */}
                             <button
                                 onClick={handleShowLocation}
-                                disabled={!selectedContract.currentLocation}
+                                disabled={isLoadingLocation}
                                 className="form-button form-button--accent"
-                                title={selectedContract.currentLocation ? "현재 위치를 지도에서 확인" : "현재 위치 정보 없음"}
+                                title="현재 위치를 지도에서 확인"
                             >
                                 <FaMapMarkerAlt size={16} aria-hidden="true" />
-                                현재 위치
+                                {isLoadingLocation ? "불러오는 중..." : "현재 위치"}
                             </button>
                             {/* 사고 접수 버튼 */}
                             <button onClick={() => handleOpenAccidentModal(selectedContract)} className="form-button form-button--warning">
