@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
-import { fetchRentals, updateRental, saveAsset, createRental } from "../api";
+import { fetchRentals, fetchRentalsSummary, updateRental, saveAsset, createRental } from "../api";
 import { uploadMany } from "../utils/uploadHelpers";
 import { emitToast } from "../utils/toast";
 
@@ -29,7 +29,11 @@ export default function useManagementStage(options) {
     // Guardrails based on rentals consistency
     try {
       const now = new Date();
-      const rentals = await fetchRentals();
+      // Prefer lightweight summary; fallback to full list if unavailable
+      let rentals = await fetchRentalsSummary().catch(() => null);
+      if (!Array.isArray(rentals)) {
+        rentals = await fetchRentals();
+      }
       const list = Array.isArray(rentals) ? rentals : [];
       const openForVin = list.filter((r) => String(r.vin) === String(asset.vin)).filter((r) => {
         const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
