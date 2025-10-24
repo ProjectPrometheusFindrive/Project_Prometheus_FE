@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { fetchRentalById, updateRental } from "../api";
+import { fetchRentalById, fetchRentalAccidentDetail, updateRental } from "../api";
 import { ALLOWED_MIME_TYPES } from "../constants/uploads";
 import { uploadOneCancelable } from "../utils/uploadHelpers";
 import { formatDisplayDate } from "../utils/date";
@@ -39,35 +39,57 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
   const handleOpenAccidentModal = async (contract) => {
     if (!contract) return;
 
-    if (contract.accidentReported && !contract.accidentReport) {
+    // If summary lacks full accident data (e.g., only filename), hydrate from detail API
+    const hasReport = !!contract.accidentReport;
+    const report = contract.accidentReport || {};
+    const hasPlayableRef = !!(report.blackboxGcsObjectName || report.blackboxFileUrl || (report.blackboxFile instanceof File));
+    const filenameOnly = !!(report.blackboxFileName && !hasPlayableRef);
+    const needsHydration = !!(contract.accidentReported && (!hasReport || filenameOnly));
+
+    if (needsHydration) {
       try {
-        const full = await fetchRentalById(contract.rentalId);
-        if (full && (full.accidentReported || contract.accidentReported) && full.accidentReport) {
-          setAccidentTarget(full);
+        // Prefer dedicated accident detail endpoint if BE supports it
+        let merged = null;
+        try {
+          const detail = await fetchRentalAccidentDetail(contract.rentalId);
+          if (detail && detail.accidentReport) {
+            merged = { ...contract, accidentReported: true, accidentReport: detail.accidentReport };
+          }
+        } catch (_) {
+          // ignore and fallback to full rental fetch
+        }
+        if (!merged) {
+          const full = await fetchRentalById(contract.rentalId);
+          if (full && (full.accidentReported || contract.accidentReported) && full.accidentReport) {
+            merged = full;
+          }
+        }
+        if (merged) {
+          setAccidentTarget(merged);
           setShowAccidentInfoModal(true);
           return;
         }
       } catch (e) {
-        // ignore
+        // ignore fetch errors; fall through to best-effort display
       }
     }
 
-    if (contract.accidentReported && contract.accidentReport) {
+    if (contract.accidentReported && hasReport) {
       setAccidentTarget(contract);
       setShowAccidentInfoModal(true);
       return;
     }
 
-    const report = contract.accidentReport || {};
+    const prefill = contract.accidentReport || {};
     setAccidentTarget(contract);
     setAccidentForm({
-      accidentDate: report.accidentDate || "",
-      accidentHour: report.accidentHour || "00",
-      accidentMinute: report.accidentMinute || "00",
-      accidentSecond: report.accidentSecond || "00",
-      handlerName: report.handlerName || "",
-      blackboxFile: report.blackboxFile || null,
-      blackboxFileName: report.blackboxFileName || "",
+      accidentDate: prefill.accidentDate || "",
+      accidentHour: prefill.accidentHour || "00",
+      accidentMinute: prefill.accidentMinute || "00",
+      accidentSecond: prefill.accidentSecond || "00",
+      handlerName: prefill.handlerName || "",
+      blackboxFile: prefill.blackboxFile || null,
+      blackboxFileName: prefill.blackboxFileName || "",
     });
     setFileInputKey((k) => k + 1);
     setShowAccidentModal(true);
