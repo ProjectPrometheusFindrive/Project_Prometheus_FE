@@ -67,9 +67,7 @@ export default function useDropdownState({ closeOnEscape = true, closeOnOutsideC
 
         const handleKeyDown = (event) => {
             if (!closeOnEscape || event.key !== "Escape") return;
-            if (openDropdowns.column || openDropdowns.stage !== null || openDropdowns.inconsistency !== null) {
-                closeAll();
-            }
+            if (openDropdowns.column || openDropdowns.stage !== null || openDropdowns.inconsistency !== null) closeAll();
         };
 
         if (closeOnOutsideClick) {

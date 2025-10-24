@@ -361,6 +361,9 @@ export default function AssetStatus() {
 
     const tableWrapRef = useRef(null);
 
+    // Helper to build a safe dropdown id from a row key
+    const stageDropdownIdForKey = (key) => `management-stage-${String(key).replace(/[^a-zA-Z0-9_-]/g, "_")}`;
+
     // Recalculate stage dropdown placement on open, scroll, and resize
     useEffect(() => {
         const recalc = () => {
@@ -368,7 +371,7 @@ export default function AssetStatus() {
                 setStageDropdownUp(false);
                 return;
             }
-            const dropdownId = `management-stage-${openDropdowns.stage}`;
+            const dropdownId = stageDropdownIdForKey(openDropdowns.stage);
             const trigger = document.querySelector(`[aria-controls="${dropdownId}"]`);
             const listEl = document.getElementById(dropdownId);
             if (!trigger || !listEl) {
@@ -398,6 +401,8 @@ export default function AssetStatus() {
             if (tableWrap) tableWrap.removeEventListener('scroll', recalc);
         };
     }, [openDropdowns.stage, setStageDropdownUp]);
+
+    // no-op: removed debug logs
 
     const debouncedQ = useDebouncedValue(q, 250);
     const filtered = useMemo(() => {
@@ -817,8 +822,9 @@ export default function AssetStatus() {
             case "managementStage": {
                 const hasStageValue = !!row.__hasManagementStage;
                 const stage = hasStageValue ? (row.managementStage || "-") : "-";
-                const isSaving = !!stageSaving[row.id];
-                const isOpen = openDropdowns.stage === row.id;
+                const rowKey = String(row.id ?? row.vin ?? row.plate ?? "");
+                const isSaving = !!stageSaving[rowKey] || !!stageSaving[row.id];
+                const isOpen = String(openDropdowns.stage) === rowKey;
                 const agg = rentalsByVin[String(row.vin || "")] || null;
                 const hasActive = !!agg?.hasActive;
                 const hasOverdue = !!agg?.hasOverdue;
@@ -853,7 +859,7 @@ export default function AssetStatus() {
                 }
                 return (
                     <AssetManagementStageCell
-                        rowId={row.id}
+                        rowId={rowKey}
                         label={stage}
                         isSaving={isSaving}
                         isOpen={isOpen}
@@ -969,7 +975,15 @@ export default function AssetStatus() {
                       style: { textAlign: column.key === "memo" ? "left" : "center" },
                       render: (row) => renderCellContent(column, row),
                   }
-        ), [columnsForRender]);
+        ), [
+            columnsForRender,
+            openDropdowns.stage,
+            stageDropdownUp,
+            stageSaving,
+            rentalsByVin,
+            editingMemo,
+            memoText,
+        ]);
 
     return (
         <div className="page space-y-4">

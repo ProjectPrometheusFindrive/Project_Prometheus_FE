@@ -25,7 +25,8 @@ const AssetManagementStageCell = React.memo(function AssetManagementStageCell({
   setOpenInconsistencyId,
 }) {
   const badgeClass = MANAGEMENT_STAGE_BADGE_CLASS[label] || "badge--default";
-  const dropdownId = `management-stage-${rowId}`;
+  const safeKey = String(rowId).replace(/[^a-zA-Z0-9_-]/g, "_");
+  const dropdownId = `management-stage-${safeKey}`;
   const listRef = useRef(null);
 
   useEffect(() => {

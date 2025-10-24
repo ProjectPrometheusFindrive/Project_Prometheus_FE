@@ -457,7 +457,7 @@
     border: 1px solid #e5e7eb;
     border-radius: 8px;
     box-shadow: 0 10px 25px rgba(15, 23, 42, 0.12);
-    z-index: 20;
+    z-index: 1000; /* ensure above table content and sticky header */
 }
 
 .management-stage-dropdown.is-up {
