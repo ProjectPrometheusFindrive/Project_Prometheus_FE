@@ -1,36 +1,40 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { ROLES, isRoleAtLeast } from '../constants/auth';
-import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, changeMemberRole, withdrawMember, restoreMember } from '../api';
-import { emitToast } from '../utils/toast';
-import ErrorBoundary from '../components/ErrorBoundary';
+import React, { useState, useEffect, useMemo } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { ROLES, isRoleAtLeast } from "../constants/auth";
+import { fetchAllMembers, fetchPendingMembers, approveMember, rejectMember, changeMemberRole, withdrawMember, restoreMember } from "../api";
+import { emitToast } from "../utils/toast";
+import ErrorBoundary from "../components/ErrorBoundary";
 import Table from "../components/Table";
-import { CompanyCell } from '../components/cells';
-import './MemberManagement.css';
+import { CompanyCell } from "../components/cells";
+import "./MemberManagement.css";
 import RoleChangeModal from "../components/modals/RoleChangeModal";
 import { formatDisplayDate } from "../utils/date";
 import { useConfirm } from "../contexts/ConfirmContext";
+import useTableSelection from "../hooks/useTableSelection";
 
 /**
  * MemberManagement page - Admin/Super Admin only
  *
  * Features:
- * - List all members and pending members (tabbed view)
+ * - Unified table: pending highlighted at top with approve action
  * - Approve/Reject pending members with confirmation
  * - Change member roles (admin <-> member for super_admin)
  * - Reload list after actions
  */
 function MemberManagement() {
     const { user } = useAuth();
-    const [activeTab, setActiveTab] = useState('all'); // 'all' or 'pending'
     const [allMembers, setAllMembers] = useState([]);
     const [pendingMembers, setPendingMembers] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
+    const [loadingAll, setLoadingAll] = useState(true);
+    const [loadingPending, setLoadingPending] = useState(true);
+    const [errorAll, setErrorAll] = useState(null);
+    const [errorPending, setErrorPending] = useState(null);
     const [actionLoading, setActionLoading] = useState(null); // userId being acted upon
     const [selectedMember, setSelectedMember] = useState(null); // For role change modal
     const [newRole, setNewRole] = useState('');
     const [highlightUserId, setHighlightUserId] = useState('');
+    const [batchWorking, setBatchWorking] = useState(false);
+    const [batchRole, setBatchRole] = useState('');
 
     // Permission check: Only admin or super_admin can access
     const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
@@ -39,19 +43,55 @@ function MemberManagement() {
     const confirm = useConfirm();
 
     useEffect(() => {
-        if (activeTab === 'all') {
-            loadAllMembers();
-        } else {
-            loadPendingMembers();
-        }
-    }, [activeTab]);
+        loadPendingMembers();
+        loadAllMembers();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
-    // Unified data with id field for Table
+    // Normalize
     const allRows = useMemo(() => allMembers.map((m) => ({ ...m, id: m.userId })), [allMembers]);
     const pendingRows = useMemo(() => pendingMembers.map((m) => ({ ...m, id: m.userId })), [pendingMembers]);
 
-    // Columns for All Members tab
-    const allColumns = useMemo(() => {
+    // Build unified rows: pending first, then approved, then withdrawn
+    const unifiedRows = useMemo(() => {
+        const mapAll = allRows.map((m) => ({ ...m, _pending: false, displayRole: m.role || ROLES.MEMBER }));
+        const idsInAll = new Set(mapAll.map((m) => m.userId));
+        const mapPending = pendingRows
+            .filter((p) => !idsInAll.has(p.userId))
+            .map((p) => ({
+                ...p,
+                _pending: true,
+                // Derive role from signup if present, else use role field fallback
+                displayRole: p.requestedRole || p.signupRole || p.role || ROLES.MEMBER,
+                membershipStatus: 'pending',
+            }));
+        const approved = mapAll.filter((m) => m.membershipStatus !== 'withdrawn');
+        const withdrawn = mapAll.filter((m) => m.membershipStatus === 'withdrawn');
+        // Light sorting inside groups
+        mapPending.sort((a, b) => {
+            const da = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+            const db = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+            return da - db;
+        });
+        approved.sort((a, b) => String(a.userId).localeCompare(String(b.userId)));
+        withdrawn.sort((a, b) => String(a.userId).localeCompare(String(b.userId)));
+        return [...mapPending, ...approved, ...withdrawn];
+    }, [allRows, pendingRows]);
+
+    // Single selection across unified table
+    const selection = useTableSelection(unifiedRows, 'id');
+    const selectedPendingCount = useMemo(() => selection.selectedItems.filter((r) => r && r._pending).length, [selection.selectedItems]);
+    const selectedWithdrawEligibleCount = useMemo(
+        () => selection.selectedItems.filter((r) => r && !r._pending && r.membershipStatus !== 'withdrawn' && canManageMember(r)).length,
+        [selection.selectedItems]
+    );
+    const selectedRoleChangeEligibleCount = useMemo(
+        () => selection.selectedItems.filter((r) => r && !r._pending && r.membershipStatus !== 'withdrawn' && r.role !== ROLES.SUPER_ADMIN && canManageMember(r)).length,
+        [selection.selectedItems]
+    );
+
+    // Unified columns (pending + all members in one table)
+    const columns = useMemo(() => {
         const cols = [
             // 회사 컬럼을 가장 왼쪽으로 이동, super-admin은 CI + 회사명 노출
             {
@@ -66,11 +106,13 @@ function MemberManagement() {
             { key: 'name', label: '이름', render: (r) => r.name || '-' },
             { key: 'phone', label: '전화번호', render: (r) => r.phone || '-' },
             { key: 'role', label: '역할', render: (r) => (
-                <span className={`role-badge role-${r.role}`}>
-                    {r.role || 'member'}
+                <span className={`role-badge role-${r.displayRole}`}>
+                    {r.displayRole || 'member'}
                 </span>
             ) },
-            { key: 'membershipStatus', label: '상태', render: (r) => (r.membershipStatus === 'withdrawn' ? '탈퇴됨' : '정상') },
+            { key: 'status', label: '상태', sortAccessor: (r) => (r._pending ? '0' : (r.membershipStatus === 'withdrawn' ? '2' : '1')), render: (r) => (
+                r._pending ? '대기' : (r.membershipStatus === 'withdrawn' ? '탈퇴됨' : '정상')
+            ) },
             { key: 'createdAt', label: '가입일', render: (r) => (r.createdAt ? formatDisplayDate(r.createdAt, 'ko-KR') : '-') },
         ];
         if (isSuperAdmin || isAdmin) {
@@ -81,6 +123,19 @@ function MemberManagement() {
                 render: (r) => (
                     r.role === ROLES.SUPER_ADMIN ? (
                         <span className="text-muted">변경 불가</span>
+                    ) : r._pending ? (
+                        canManageMember(r) ? (
+                            <button
+                                className="btn-approve"
+                                id={`approve-btn-${encodeURIComponent(r.userId)}`}
+                                onClick={() => handleApprove(r.userId)}
+                                disabled={actionLoading === r.userId}
+                            >
+                                {actionLoading === r.userId ? '처리 중...' : '승인'}
+                            </button>
+                        ) : (
+                            <span className="text-muted">권한 없음</span>
+                        )
                     ) : r.membershipStatus === 'withdrawn' ? (
                         canManageMember(r) ? (
                             <button
@@ -110,68 +165,10 @@ function MemberManagement() {
         return cols;
     }, [isSuperAdmin, isAdmin, actionLoading]);
 
-    // Columns for Pending Members tab
-    const pendingColumns = useMemo(() => [
-        // 회사 컬럼을 가장 왼쪽으로 이동, super-admin은 CI + 회사명 노출
-        {
-            key: 'company',
-            label: '회사',
-            sortAccessor: (r) => r.company || r.companyId || '',
-            render: (r) => {
-                if (isSuperAdmin) {
-                    return <CompanyCell row={r} />;
-                }
-                const isOtherCompany = r.companyId !== user.companyId;
-                return (
-                    <>
-                        {r.company || r.companyId || '-'}
-                        {isOtherCompany && <span className="badge badge-warning">타사</span>}
-                    </>
-                );
-            }
-        },
-        { key: 'userId', label: '사용자 ID' },
-        { key: 'bizRegNo', label: '사업자등록번호', render: (r) => r.bizRegNo || '-' },
-        { key: 'position', label: '직책', render: (r) => r.position || '-' },
-        { key: 'name', label: '이름', render: (r) => r.name || '-' },
-        { key: 'phone', label: '전화번호', render: (r) => r.phone || '-' },
-        { key: 'createdAt', label: '가입일', render: (r) => (r.createdAt ? formatDisplayDate(r.createdAt, 'ko-KR') : '-') },
-        {
-            key: 'actions',
-            label: '승인 여부',
-            sortable: false,
-            render: (r) => (
-                !canManageMember(r) ? (
-                    <span className="text-muted">권한 없음</span>
-                ) : (
-                    <div className="action-buttons">
-                        <button
-                            className="btn-approve"
-                            id={`approve-btn-${encodeURIComponent(r.userId)}`}
-                            onClick={() => handleApprove(r.userId)}
-                            disabled={actionLoading === r.userId}
-                        >
-                            {actionLoading === r.userId ? '처리 중...' : '승인'}
-                        </button>
-                        <button
-                            className="btn-reject"
-                            onClick={() => handleReject(r.userId)}
-                            disabled={actionLoading === r.userId}
-                        >
-                            거절
-                        </button>
-                    </div>
-                )
-            ),
-        },
-    ], [isSuperAdmin, user?.companyId, actionLoading]);
-
     // Listen for global refresh signal and consume focus intent stored by dashboard
     useEffect(() => {
         function onRefresh() {
-            if (activeTab === 'pending') {
-                loadPendingMembers();
-            }
+            loadPendingMembers();
         }
         window.addEventListener('app:refresh-pending-members', onRefresh);
         // One-time check for focus intent
@@ -179,7 +176,6 @@ function MemberManagement() {
             const raw = localStorage.getItem('approveUserFocus');
             const parsed = raw ? JSON.parse(raw) : null;
             if (parsed && parsed.userId) {
-                setActiveTab('pending');
                 setHighlightUserId(parsed.userId);
                 localStorage.removeItem('approveUserFocus');
             }
@@ -190,14 +186,14 @@ function MemberManagement() {
 
     async function loadAllMembers() {
         if (!canManageMembers) {
-            setError('접근 권한이 없습니다.');
-            setLoading(false);
+            setErrorAll('접근 권한이 없습니다.');
+            setLoadingAll(false);
             return;
         }
 
         try {
-            setLoading(true);
-            setError(null);
+            setLoadingAll(true);
+            setErrorAll(null);
             const data = await fetchAllMembers();
             let list = Array.isArray(data) ? data : [];
             // If viewer is admin (not super_admin), show only same-company admin/member
@@ -217,23 +213,23 @@ function MemberManagement() {
             setAllMembers(list);
         } catch (err) {
             console.error('Failed to fetch all members:', err);
-            setError(err.message || '회원 목록을 불러오는데 실패했습니다.');
+            setErrorAll(err.message || '회원 목록을 불러오는데 실패했습니다.');
             emitToast('회원 목록을 불러오는데 실패했습니다.', 'error');
         } finally {
-            setLoading(false);
+            setLoadingAll(false);
         }
     }
 
     async function loadPendingMembers() {
         if (!canManageMembers) {
-            setError('접근 권한이 없습니다.');
-            setLoading(false);
+            setErrorPending('접근 권한이 없습니다.');
+            setLoadingPending(false);
             return;
         }
 
         try {
-            setLoading(true);
-            setError(null);
+            setLoadingPending(true);
+            setErrorPending(null);
             const data = await fetchPendingMembers();
             const list = Array.isArray(data) ? data : [];
             setPendingMembers(list);
@@ -249,10 +245,10 @@ function MemberManagement() {
             }
         } catch (err) {
             console.error('Failed to fetch pending members:', err);
-            setError(err.message || '대기 회원 목록을 불러오는데 실패했습니다.');
+            setErrorPending(err.message || '대기 회원 목록을 불러오는데 실패했습니다.');
             emitToast('대기 회원 목록을 불러오는데 실패했습니다.', 'error');
         } finally {
-            setLoading(false);
+            setLoadingPending(false);
         }
     }
 
@@ -266,8 +262,9 @@ function MemberManagement() {
             const success = await approveMember(userId);
             if (success) {
                 emitToast('회원이 승인되었습니다.', 'success');
-                // Reload list
+                // Reload lists
                 await loadPendingMembers();
+                await loadAllMembers();
             } else {
                 emitToast('회원 승인에 실패했습니다.', 'error');
             }
@@ -342,11 +339,7 @@ function MemberManagement() {
                 emitToast('역할이 변경되었습니다. 대상 사용자는 재로그인이 필요합니다.', 'success', 5000);
                 closeRoleChangeModal();
                 // Reload list to show updated data
-                if (activeTab === 'all') {
-                    await loadAllMembers();
-                } else {
-                    await loadPendingMembers();
-                }
+                await loadAllMembers();
             } else {
                 emitToast('역할 변경에 실패했습니다.', 'error');
             }
@@ -447,6 +440,107 @@ function MemberManagement() {
         }
     }
 
+    // Bulk actions for unified table
+    async function handleBulkApprove() {
+        const ids = selection.selectedIds;
+        const targets = ids.map((id) => unifiedRows.find((r) => r.id === id)).filter((r) => r && r._pending && canManageMember(r));
+        if (!targets.length) return emitToast('선택된 대기 회원이 없습니다.', 'warning');
+        const ok = await confirm({ title: '일괄 승인', message: `${targets.length}명의 대기 회원을 승인하시겠습니까?`, confirmText: '승인', cancelText: '취소' });
+        if (!ok) return;
+        try {
+            setBatchWorking(true);
+            let successCount = 0;
+            for (const row of targets) {
+                try {
+                    const ok = await approveMember(row.id);
+                    if (ok) successCount += 1;
+                } catch {}
+            }
+            emitToast(`승인 완료: ${successCount}/${targets.length}`, successCount === targets.length ? 'success' : successCount > 0 ? 'warning' : 'error');
+            await loadPendingMembers();
+            await loadAllMembers();
+            selection.clearSelection();
+        } finally {
+            setBatchWorking(false);
+        }
+    }
+
+    async function handleBulkReject() {
+        const ids = selection.selectedIds;
+        const targets = ids.map((id) => unifiedRows.find((r) => r.id === id)).filter((r) => r && r._pending && canManageMember(r));
+        if (!targets.length) return emitToast('선택된 대기 회원이 없습니다.', 'warning');
+        const reason = window.prompt(`${targets.length}명의 대기 회원을 거절합니다. 사유를 입력하세요 (선택):`, '');
+        if (reason === null) return; // cancelled
+        try {
+            setBatchWorking(true);
+            let successCount = 0;
+            for (const row of targets) {
+                try {
+                    const ok = await rejectMember(row.id, reason || null);
+                    if (ok) successCount += 1;
+                } catch {}
+            }
+            emitToast(`거절 완료: ${successCount}/${targets.length}`, successCount === targets.length ? 'success' : successCount > 0 ? 'warning' : 'error');
+            await loadPendingMembers();
+            selection.clearSelection();
+        } finally {
+            setBatchWorking(false);
+        }
+    }
+
+    async function handleBulkWithdraw() {
+        const ids = selection.selectedIds;
+        const targets = ids.map((id) => unifiedRows.find((r) => r.id === id)).filter((r) => r && !r._pending && r.membershipStatus !== 'withdrawn' && canManageMember(r));
+        if (!targets.length) return emitToast('선택된 회원이 없습니다.', 'warning');
+        const ok = await confirm({ title: '일괄 탈퇴', message: `${targets.length}명의 회원을 탈퇴 처리하시겠습니까?`, confirmText: '탈퇴', cancelText: '취소' });
+        if (!ok) return;
+        try {
+            setBatchWorking(true);
+            let successCount = 0;
+            for (const member of targets) {
+                try {
+                    const proceed = await ensureNotLastAdmin(member);
+                    if (!proceed) continue;
+                    const ok = await withdrawMember(member.id);
+                    if (ok) successCount += 1;
+                } catch {}
+            }
+            emitToast(`탈퇴 처리 완료: ${successCount}/${targets.length}`, successCount === targets.length ? 'success' : successCount > 0 ? 'warning' : 'error');
+            await loadAllMembers();
+            selection.clearSelection();
+        } finally {
+            setBatchWorking(false);
+        }
+    }
+
+    async function handleBulkRoleChange() {
+        if (!isSuperAdmin) return emitToast('역할 변경은 super_admin만 가능합니다.', 'error');
+        const ids = selection.selectedIds;
+        const targets = ids.map((id) => unifiedRows.find((r) => r.id === id)).filter((r) => r && !r._pending && r.membershipStatus !== 'withdrawn' && r.role !== ROLES.SUPER_ADMIN && canManageMember(r));
+        if (!targets.length) return emitToast('선택된 회원이 없습니다.', 'warning');
+        if (!batchRole || (batchRole !== ROLES.ADMIN && batchRole !== ROLES.MEMBER)) {
+            return emitToast('변경할 역할을 선택하세요 (admin/member).', 'warning');
+        }
+        const ok = await confirm({ title: '일괄 역할 변경', message: `${targets.length}명의 역할을 \"${batchRole}\"로 변경하시겠습니까?\n\n대상 사용자는 재로그인이 필요합니다.`, confirmText: '변경', cancelText: '취소' });
+        if (!ok) return;
+        try {
+            setBatchWorking(true);
+            let successCount = 0;
+            for (const member of targets) {
+                try {
+                    if (member.role === batchRole) continue; // no-op
+                    const ok = await changeMemberRole(member.id, batchRole);
+                    if (ok) successCount += 1;
+                } catch {}
+            }
+            emitToast(`역할 변경 완료: ${successCount}/${targets.length}`, successCount === targets.length ? 'success' : successCount > 0 ? 'warning' : 'error');
+            await loadAllMembers();
+            selection.clearSelection();
+        } finally {
+            setBatchWorking(false);
+        }
+    }
+
     if (!canManageMembers) {
         return (
             <div className="page member-management-page space-y-4">
@@ -464,111 +558,105 @@ function MemberManagement() {
             <div className="page member-management-page space-y-4">
                 <h1 className="text-2xl font-semibold text-gray-900">회원 관리</h1>
                 <div className="page-scroll space-y-4">
-                    {error && (
-                        <div className="error-banner">
-                            {error}
-                        </div>
+                    {(errorAll || errorPending) && (
+                        <div className="error-banner">{errorAll || errorPending}</div>
                     )}
 
-                    {/* Toolbar: Right-aligned tab toggles + Refresh */}
-                    <div className="asset-toolbar">
-                        <div className="flex items-center gap-8" style={{ width: '100%' }}>
-                            <div className="flex-1" />
-                            <div className="asset-actions">
-                                <button
-                                    type="button"
-                                    className={['form-button', activeTab === 'all' ? '' : 'form-button--neutral'].filter(Boolean).join(' ')}
-                                    onClick={() => setActiveTab('all')}
-                                    aria-pressed={activeTab === 'all'}
-                                >
-                                    {isAdmin ? '멤버' : '전체 회원'}
-                                </button>
-                                <button
-                                    type="button"
-                                    className={['form-button', activeTab === 'pending' ? '' : 'form-button--neutral'].filter(Boolean).join(' ')}
-                                    onClick={() => setActiveTab('pending')}
-                                    aria-pressed={activeTab === 'pending'}
-                                >
-                                    승인 대기
-                                </button>
+                        <div className="table-toolbar">
+                            <div className="flex-1"></div>
+                            <div className="flex gap-3">
                                 <button
                                     type="button"
                                     className="form-button form-button--neutral"
-                                    onClick={() => (activeTab === 'all' ? loadAllMembers() : loadPendingMembers())}
-                                    disabled={loading}
+                                    onClick={() => { loadPendingMembers(); loadAllMembers(); }}
+                                    disabled={batchWorking || loadingAll || loadingPending}
                                 >
-                                    {loading ? '로딩 중...' : '새로고침'}
+                                    {(loadingAll || loadingPending) ? '로딩 중...' : '새로고침'}
                                 </button>
+                                <button
+                                    type="button"
+                                    className="form-button"
+                                    onClick={handleBulkApprove}
+                                    disabled={batchWorking || selectedPendingCount === 0}
+                                >
+                                    일괄 승인
+                                </button>
+                                <button
+                                    type="button"
+                                    className="form-button form-button--danger"
+                                    onClick={handleBulkWithdraw}
+                                    disabled={batchWorking || selectedWithdrawEligibleCount === 0}
+                                >
+                                    일괄 탈퇴
+                                </button>
+                                {isSuperAdmin && (
+                                    <>
+                                        <select
+                                            className="form-input"
+                                            aria-label="일괄 역할 선택"
+                                            value={batchRole}
+                                            onChange={(e) => setBatchRole(e.target.value)}
+                                            disabled={batchWorking}
+                                        >
+                                            <option value="">역할 선택</option>
+                                            <option value={ROLES.ADMIN}>admin</option>
+                                            <option value={ROLES.MEMBER}>member</option>
+                                        </select>
+                                        <button
+                                            type="button"
+                                            className="form-button"
+                                            onClick={handleBulkRoleChange}
+                                            disabled={batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0}
+                                        >
+                                            일괄 역할 변경
+                                        </button>
+                                    </>
+                                )}
                             </div>
                         </div>
+                        {((loadingAll || loadingPending) && unifiedRows.length === 0) ? (
+                            <div className="loading-state">
+                                <div className="spinner"></div>
+                                <p>로딩 중...</p>
+                            </div>
+                        ) : (
+                            <Table
+                                stickyHeader
+                                columns={columns}
+                                data={unifiedRows}
+                                selection={{
+                                    selected: selection.selected,
+                                    toggleSelect: selection.toggleSelect,
+                                    toggleSelectAllVisible: selection.toggleSelectAllVisible,
+                                    allVisibleSelected: selection.allVisibleSelected,
+                                }}
+                                rowClassName={(row) => {
+                                    const classes = [];
+                                    if (actionLoading === row.userId) classes.push('disabled-row');
+                                    if (row._pending) classes.push('pending-row');
+                                    if (row.membershipStatus === 'withdrawn') classes.push('withdrawn-row');
+                                    if (highlightUserId === row.userId) classes.push('highlight-row');
+                                    return classes.join(' ') || undefined;
+                                }}
+                                emptyMessage="회원이 없습니다."
+                            />
+                        )}
                     </div>
 
-                    {/* All Members Tab */}
-                    {activeTab === 'all' && (
-                        <div className="content-section">
-
-                            {loading ? (
-                                <div className="loading-state">
-                                    <div className="spinner"></div>
-                                    <p>로딩 중...</p>
-                                </div>
-                            ) : (
-                                <Table
-                                    stickyHeader
-                                    columns={allColumns}
-                                    data={allRows}
-                                    rowClassName={(row) => {
-                                        const classes = [];
-                                        if (actionLoading === row.userId) classes.push('disabled-row');
-                                        if (highlightUserId === row.userId) classes.push('highlight-row');
-                                        if (row.membershipStatus === 'withdrawn') classes.push('withdrawn-row');
-                                        return classes.join(' ') || undefined;
-                                    }}
-                                    emptyMessage="회원이 없습니다."
-                                />
-                            )}
-                        </div>
+                    {/* Role Change Modal */}
+                    {selectedMember && (
+                        <RoleChangeModal
+                            member={selectedMember}
+                            newRole={newRole}
+                            setNewRole={setNewRole}
+                            onClose={closeRoleChangeModal}
+                            onConfirm={handleRoleChange}
+                            onWithdraw={canManageMember(selectedMember) ? handleWithdraw : undefined}
+                            canChangeRole={!!isSuperAdmin}
+                            loading={actionLoading === selectedMember.userId}
+                        />
                     )}
-
-                {/* Pending Members Tab */}
-                    {activeTab === 'pending' && (
-                        <div className="content-section">
-
-                            {loading ? (
-                                <div className="loading-state">
-                                    <div className="spinner"></div>
-                                    <p>로딩 중...</p>
-                                </div>
-                            ) : (
-                                <Table
-                                    stickyHeader
-                                    columns={pendingColumns}
-                                    data={pendingRows}
-                                    rowClassName={(row) => {
-                                        const disabled = actionLoading === row.userId || !canManageMember(row);
-                                        return disabled ? 'disabled-row' : undefined;
-                                    }}
-                                    emptyMessage="승인 대기중인 회원이 없습니다."
-                                />
-                            )}
-                        </div>
-                    )}
-
-                {/* Role Change Modal */}
-                {selectedMember && (
-                  <RoleChangeModal
-                    member={selectedMember}
-                    newRole={newRole}
-                    setNewRole={setNewRole}
-                    onClose={closeRoleChangeModal}
-                    onConfirm={handleRoleChange}
-                    onWithdraw={canManageMember(selectedMember) ? handleWithdraw : undefined}
-                    canChangeRole={!!isSuperAdmin}
-                    loading={actionLoading === selectedMember.userId}
-                  />
-                )}
                 </div>
-            </div>
         </ErrorBoundary>
     );
 }

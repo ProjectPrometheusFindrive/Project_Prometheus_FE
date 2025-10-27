@@ -206,28 +206,28 @@
 }
 
 /* Asset/toolbars: align controls consistently */
-.asset-toolbar {
+.table-toolbar {
     display: flex;
     align-items: center;
     gap: 8px;
     margin-bottom: 12px;
 }
 /* Ensure nested flex groups keep spacing even if Tailwind gap utilities fail */
-.asset-toolbar .flex { gap: 8px; }
+.table-toolbar .flex { gap: 8px; }
 /* Reorder AssetStatus controls so search/filter sit next to action buttons (to the right) */
-.asset-toolbar > :nth-child(1) {
+.table-toolbar > :nth-child(1) {
     order: 2;
 } /* search */
-.asset-toolbar > :nth-child(2) {
+.table-toolbar > :nth-child(2) {
     order: 2;
 } /* status filter */
-.asset-toolbar > :nth-child(3) {
+.table-toolbar > :nth-child(3) {
     order: 1;
 } /* spacer (flex: 1 inline) */
-.asset-toolbar > :nth-child(4) {
+.table-toolbar > :nth-child(4) {
     order: 2;
 } /* create button */
-.asset-toolbar > :nth-child(5) {
+.table-toolbar > :nth-child(5) {
     order: 2;
 } /* delete button */
 
@@ -239,8 +239,8 @@
 }
 
 /* Inputs in toolbars match button height and style */
-.asset-toolbar .asset-search,
-.asset-toolbar .asset-filter {
+.table-toolbar .asset-search,
+.table-toolbar .asset-filter {
     padding: 0 0.7rem;
     height: 38px; /* approx .form-button height */
     border: 1px solid #ddd;
@@ -248,12 +248,12 @@
     font-size: 1rem;
     background: #fff;
 }
-.asset-toolbar .asset-search {
+.table-toolbar .asset-search {
     min-width: 220px;
 }
 
 /* Buttons in toolbar: consistent height */
-.asset-toolbar .form-button {
+.table-toolbar .form-button {
     height: 38px;
     display: inline-flex;
     align-items: center;
