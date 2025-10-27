@@ -38,6 +38,7 @@ const KakaoMap = ({
     trackingData = [], // 이동 경로 데이터 배열
     editable = false, // 폴리곤 편집 가능 여부
     onPolygonChange = null, // 폴리곤 변경 콜백
+    onAddressResolved = null, // 역지오코딩된 주소 콜백
 }) => {
     const mapContainer = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -382,10 +383,16 @@ const KakaoMap = ({
         if (geocoder) {
             geocoder.coord2Address(longitude, latitude, (result, status) => {
                 if (status === window.kakao.maps.services.Status.OK && result[0]) {
+                    const resolved = result[0].address.address_name;
                     if (infoWindowRef.current) {
                         infoWindowRef.current.close();
-                        infoWindowRef.current = buildInfoWindow(result[0].address.address_name);
+                        infoWindowRef.current = buildInfoWindow(resolved);
                         infoWindowRef.current.open(map, vehicleMarkerRef.current);
+                    }
+                    if (typeof onAddressResolved === "function") {
+                        try {
+                            onAddressResolved(resolved);
+                        } catch {}
                     }
                 }
             });

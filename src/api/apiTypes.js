@@ -191,6 +191,24 @@ export function transformAsset(asset) {
 
 export function transformRental(rental) {
     if (!rental || typeof rental !== 'object') return rental;
+    // Normalize various location object shapes to a consistent form
+    const normalizeLocation = (loc) => {
+        if (!loc || typeof loc !== 'object') return null;
+        // Support both lat/lng and latitude/longitude keys and string values
+        const latRaw = (loc.lat != null) ? loc.lat : (loc.latitude != null ? loc.latitude : null);
+        const lngRaw = (loc.lng != null) ? loc.lng : (loc.longitude != null ? loc.longitude : null);
+        const latNum = typeof latRaw === 'string' ? Number(latRaw) : latRaw;
+        const lngNum = typeof lngRaw === 'string' ? Number(lngRaw) : lngRaw;
+        if (typeof latNum === 'number' && isFinite(latNum) && typeof lngNum === 'number' && isFinite(lngNum)) {
+            return {
+                lat: latNum,
+                lng: lngNum,
+                address: loc.address || loc.addr || undefined,
+                recordedAt: loc.recordedAt ? new Date(loc.recordedAt) : (loc.recorded_at ? new Date(loc.recorded_at) : undefined)
+            };
+        }
+        return null;
+    };
     // Normalize possible snake_case keys from backend
     const normalized = {
         ...rental,
@@ -208,9 +226,10 @@ export function transformRental(rental) {
         rentalDurationDays: (typeof rental.rentalDurationDays === 'number')
             ? rental.rentalDurationDays
             : (rental.rental_duration_days == null ? undefined : Number(rental.rental_duration_days)),
-        currentLocation: rental.currentLocation ?? rental.current_location,
-        rentalLocation: rental.rentalLocation ?? rental.rental_location,
-        returnLocation: rental.returnLocation ?? rental.return_location,
+        // Normalize locations to ensure numeric lat/lng
+        currentLocation: normalizeLocation(rental.currentLocation ?? rental.current_location),
+        rentalLocation: normalizeLocation(rental.rentalLocation ?? rental.rental_location) || (rental.rentalLocation ?? rental.rental_location) || null,
+        returnLocation: normalizeLocation(rental.returnLocation ?? rental.return_location) || (rental.returnLocation ?? rental.return_location) || null,
         locationUpdatedAt: rental.locationUpdatedAt
             ? new Date(rental.locationUpdatedAt)
             : (rental.location_updated_at ? new Date(rental.location_updated_at) : null),
@@ -224,10 +243,12 @@ export function transformRental(rental) {
             end: periodRaw.end ? new Date(periodRaw.end) : null,
         }
         : null;
-    return {
-        ...normalized,
-        rentalPeriod,
-    };
+    const out = { ...normalized, rentalPeriod };
+    // If locationUpdatedAt is missing, derive from currentLocation.recordedAt when available
+    if (!out.locationUpdatedAt && out.currentLocation && out.currentLocation.recordedAt) {
+        out.locationUpdatedAt = out.currentLocation.recordedAt;
+    }
+    return out;
 }
 
 // Convert outgoing rental payload to camelCase for backend

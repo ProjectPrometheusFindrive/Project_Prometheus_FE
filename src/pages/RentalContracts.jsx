@@ -320,6 +320,83 @@ export default function RentalContracts() {
         setShowDetail(true);
     };
 
+    // Background reverse-geocoding to populate currentLocation.address on detail open
+    useEffect(() => {
+        if (!showDetail) return;
+        const cl = selectedContract?.currentLocation;
+        if (!cl || typeof cl.lat !== "number" || typeof cl.lng !== "number" || cl.address) return;
+
+        let cancelled = false;
+        let loaded = false;
+
+        const loadKakao = () => {
+            if (window.kakao && window.kakao.maps) {
+                return Promise.resolve();
+            }
+            const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
+            const src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services&autoload=false`;
+            return new Promise((resolve, reject) => {
+                const existing = document.querySelector(`script[src="${src}"]`) || document.querySelector("script[src*='dapi.kakao.com']");
+                if (existing) {
+                    const t = setInterval(() => {
+                        if (window.kakao && window.kakao.maps) {
+                            clearInterval(t);
+                            resolve();
+                        }
+                    }, 100);
+                    setTimeout(() => {
+                        clearInterval(t);
+                        // Resolve anyway; maps.load below will no-op if not available
+                        resolve();
+                    }, 5000);
+                    return;
+                }
+                const script = document.createElement("script");
+                script.src = src;
+                script.onload = () => resolve();
+                script.onerror = () => reject(new Error("Kakao Maps SDK load failed"));
+                document.head.appendChild(script);
+            }).then(() => new Promise((resolve) => {
+                try {
+                    if (window.kakao && window.kakao.maps && typeof window.kakao.maps.load === "function") {
+                        window.kakao.maps.load(() => resolve());
+                    } else {
+                        resolve();
+                    }
+                } catch {
+                    resolve();
+                }
+            }));
+        };
+
+        (async () => {
+            try {
+                await loadKakao();
+                loaded = true;
+                if (cancelled || !window.kakao?.maps?.services?.Geocoder) return;
+                const geocoder = new window.kakao.maps.services.Geocoder();
+                geocoder.coord2Address(cl.lng, cl.lat, (result, status) => {
+                    if (cancelled) return;
+                    if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
+                        const addr = result[0].address?.address_name || "";
+                        if (addr) {
+                            setSelectedContract((prev) => {
+                                if (!prev) return prev;
+                                const prevAddr = prev.currentLocation?.address;
+                                if (prevAddr === addr) return prev;
+                                return { ...prev, currentLocation: { ...(prev.currentLocation || {}), address: addr } };
+                            });
+                        }
+                    }
+                });
+            } catch {
+                // ignore background geocoding errors
+            }
+        })();
+
+        return () => { cancelled = true; };
+    }, [showDetail, selectedContract?.currentLocation?.lat, selectedContract?.currentLocation?.lng]);
+
     // Column settings handled by useColumnSettings hook
 
     // Derive columns for rendering; inject company column for super-admin just after 'select'
@@ -706,7 +783,17 @@ export default function RentalContracts() {
                                         </StatusBadge>
                                     </div>
                                     <div>
-                                        <strong>위치:</strong> {selectedContract.location || "정보 없음"}
+                                        <strong>위치:</strong> {
+                                            selectedContract.currentLocation
+                                                ? (selectedContract.currentLocation.address || "주소 확인 중...")
+                                                : (
+                                                    selectedContract.rentalLocation?.address ||
+                                                    selectedContract.returnLocation?.address ||
+                                                    selectedContract.address ||
+                                                    selectedContract.location ||
+                                                    "정보 없음"
+                                                )
+                                        }
                                     </div>
                                     <div>
                                         <strong>주행 거리:</strong> {selectedContract.mileage ? `${formatNumberDisplay(selectedContract.mileage)} km` : "-"}
@@ -959,6 +1046,14 @@ export default function RentalContracts() {
                                     engineOn={selectedContract.engineOn}
                                     isOnline={!!selectedContract.currentLocation}
                                     trackingData={selectedContract.logRecord || []}
+                                    onAddressResolved={(addr) => {
+                                        setSelectedContract((prev) => {
+                                            if (!prev) return prev;
+                                            const cl = prev.currentLocation || {};
+                                            if (cl.address === addr) return prev;
+                                            return { ...prev, currentLocation: { ...cl, address: addr } };
+                                        });
+                                    }}
                                 />
                             </div>
                         ) : (
