@@ -46,14 +46,13 @@ export default function GeofenceGlobalForm({ initial = {}, initialName = "", rea
             {!readOnly && showSubmit && (
                 <div className="form-actions flex items-center gap-2">
                     <input
-                        className="form-input"
+                        className="form-input flex-1"
                         placeholder="Polygon name"
                         value={name}
                         onChange={(e) => {
                             setName(e.target.value);
                             if (onNameChange) onNameChange(e.target.value);
                         }}
-                        className="flex-1"
                     />
                     <button type="submit" className="form-button">
                         Save
