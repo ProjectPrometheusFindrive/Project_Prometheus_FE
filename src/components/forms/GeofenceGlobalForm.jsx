@@ -31,7 +31,7 @@ export default function GeofenceGlobalForm({ initial = {}, initialName = "", rea
     };
 
     return (
-        <form id={formId} className="form-acions" onSubmit={handleSubmit}>
+        <form id={formId} className="form-actions" onSubmit={handleSubmit}>
             <KakaoGeofenceInput
                 value={form.geofences}
                 onChange={(polys) => {
