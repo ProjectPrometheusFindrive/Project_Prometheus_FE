@@ -473,8 +473,8 @@ const KakaoMap = ({
         <div className="relative" style={{ width, height }}>
             {/* 속도 범례 */}
             {trackingData && trackingData.length > 0 && (
-                <div className="absolute top-2.5 right-2.5 z-10 bg-white/95 p-3 rounded-lg shadow-md text-[11px] min-w-[120px]">
-                    <div className="font-bold mb-2 text-gray-800">속도 범례</div>
+                <div className="absolute top-2.5 right-2.5 z-10 bg-white/95 p-3 rounded-lg shadow-md text-[11px] min-w-[120px]" style={{ color: "#111827" }}>
+                    <div className="font-bold mb-2">속도 범례</div>
                     <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-1.5">
                             <div className="w-3 h-[3px] bg-[#4CAF50]"></div>
@@ -492,7 +492,7 @@ const KakaoMap = ({
                 </div>
             )}
             {(renterName || typeof engineOn !== "undefined") && (
-                <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 p-2.5 rounded-lg shadow text-[12px] flex flex-col gap-1.5">
+                <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 p-2.5 rounded-lg shadow text-[12px] flex flex-col gap-1.5" style={{ color: "#111827" }}>
                     {renterName && <div className="font-bold">대여자: {renterName}</div>}
                     {typeof engineOn !== "undefined" && (
                         <div>
@@ -502,7 +502,7 @@ const KakaoMap = ({
                     )}
                     {typeof isOnline !== "undefined" && (
                         <div>
-                            <span>단말기: </span>
+                            <span>단말: </span>
                             <span className={`font-bold ${isOnline ? 'text-green-600' : 'text-red-600'}`}>{isOnline ? "온라인" : "오프라인"}</span>
                         </div>
                     )}

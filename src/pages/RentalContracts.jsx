@@ -925,7 +925,7 @@ export default function RentalContracts() {
                                 alignItems: "center",
                                 marginBottom: "20px",
                                 padding: "15px",
-                                backgroundColor: "#f8f9fa",
+                                backgroundColor: "var(--location-header-bg, #f8f9fa)",
                                 borderRadius: "8px",
                             }}
                         >
@@ -933,7 +933,7 @@ export default function RentalContracts() {
                                 <div style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "8px" }}>
                                     {selectedContract.plate} ({selectedContract.vehicleType})
                                 </div>
-                                <div style={{ fontSize: "0.9rem", color: "#555", lineHeight: 1.6 }}>
+                                <div style={{ fontSize: "0.9rem", color: "var(--location-header-text, #555)", lineHeight: 1.6 }}>
                                     <div>
                                         <strong>대여자 정보:</strong> {selectedContract.renterName || "-"}, {selectedContract.contactNumber || "-"}, {selectedContract.address || "-"}
                                     </div>
@@ -966,18 +966,18 @@ export default function RentalContracts() {
                                 style={{
                                     width: "100%",
                                     height: "400px",
-                                    backgroundColor: "#f8f9fa",
+                                    backgroundColor: "var(--location-placeholder-bg, #f8f9fa)",
                                     borderRadius: "8px",
                                     display: "flex",
                                     flexDirection: "column",
                                     alignItems: "center",
                                     justifyContent: "center",
-                                    border: "2px dashed #dee2e6",
+                                    border: "2px dashed var(--location-placeholder-border, #dee2e6)",
                                 }}
                             >
-                                <FaMapMarkerAlt size={48} color="#adb5bd" style={{ marginBottom: "16px" }} />
-                                <div style={{ fontSize: "1.1rem", fontWeight: "600", color: "#6c757d", marginBottom: "8px" }}>위치 정보 없음</div>
-                                <div style={{ fontSize: "0.9rem", color: "#adb5bd" }}>현재 차량의 위치 정보를 받을 수 없습니다.</div>
+                                <FaMapMarkerAlt size={48} style={{ marginBottom: "16px", color: "var(--location-placeholder-icon, #adb5bd)" }} />
+                                <div style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--location-placeholder-title, #6c757d)", marginBottom: "8px" }}>위치 정보 없음</div>
+                                <div style={{ fontSize: "0.9rem", color: "var(--location-placeholder-subtext, #adb5bd)" }}>현재 차량의 위치 정보를 받을 수 없습니다.</div>
                             </div>
                         )}
                     </div>

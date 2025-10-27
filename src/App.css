@@ -1745,6 +1745,25 @@ body {
     background: #5a6268;
 }
 
+/* Dark mode variants for muted buttons */
+[data-theme='dark'] .form-button--muted {
+    background: #4b5563; /* gray-600 */
+}
+[data-theme='dark'] .form-button--muted:hover {
+    background: #374151; /* gray-700 */
+}
+
+/* Dark mode variables for location map modal preserving light-mode look */
+[data-theme='dark'] {
+    --location-header-bg: #1f2937; /* gray-800 */
+    --location-header-text: #d1d5db; /* gray-300 */
+    --location-placeholder-bg: #1f2937; /* gray-800 */
+    --location-placeholder-border: #4b5563; /* gray-600 */
+    --location-placeholder-icon: #6b7280; /* gray-500 */
+    --location-placeholder-title: #d1d5db; /* gray-300 */
+    --location-placeholder-subtext: #9ca3af; /* gray-400 */
+}
+
 .form-button--warning {
     background: #ff5722;
 }
