@@ -337,6 +337,12 @@ export const assetsApi = {
 };
 
 // Rental API methods
+// Ensure rental IDs are safe for path usage
+const sanitizeId = (id) => {
+    const s = String(id ?? "").trim();
+    return s.endsWith(".0") ? s.slice(0, -2) : s;
+};
+
 export const rentalsApi = {
     async fetchSummary() {
         const response = await apiRequest(API_ENDPOINTS.RENTALS_SUMMARY);
@@ -355,19 +361,20 @@ export const rentalsApi = {
      * @param {string} [options.since] ISO timestamp to bound track points
      */
     async fetchLocation(id, options = {}) {
-        if (!validateId(id)) {
+        if (!validateId(id) && typeof id !== 'number') {
             return createApiResponse(null, API_STATUS.ERROR, {
                 type: 'VALIDATION_ERROR',
                 message: 'Invalid rental ID'
             });
         }
+        const rid = sanitizeId(id);
         const params = new URLSearchParams();
         if (options.trail != null) params.set('trail', String(Boolean(options.trail)));
         if (typeof options.limit === 'number') params.set('limit', String(options.limit));
         if (options.since) params.set('since', options.since);
         const url = params.toString()
-            ? `${API_ENDPOINTS.RENTAL_LOCATION(id)}?${params.toString()}`
-            : API_ENDPOINTS.RENTAL_LOCATION(id);
+            ? `${API_ENDPOINTS.RENTAL_LOCATION(rid)}?${params.toString()}`
+            : API_ENDPOINTS.RENTAL_LOCATION(rid);
         return await apiRequest(url);
     },
 
@@ -399,14 +406,14 @@ export const rentalsApi = {
     },
     
     async fetchById(id) {
-        if (!validateId(id)) {
+        if (!validateId(id) && typeof id !== 'number') {
             return createApiResponse(null, API_STATUS.ERROR, {
                 type: 'VALIDATION_ERROR',
                 message: 'Invalid rental ID'
             });
         }
-        
-        const response = await apiRequest(API_ENDPOINTS.RENTAL_BY_ID(id));
+        const rid = sanitizeId(id);
+        const response = await apiRequest(API_ENDPOINTS.RENTAL_BY_ID(rid));
         if (response.status === API_STATUS.SUCCESS && response.data) {
             response.data = transformRental(response.data);
         }
@@ -462,7 +469,7 @@ export const rentalsApi = {
                 message: 'Invalid rental ID'
             });
         }
-        const rid = typeof id === 'number' ? id : String(id);
+        const rid = sanitizeId(id);
         const payload = toCamelRentalPayload(rentalData);
         return await apiRequest(API_ENDPOINTS.RENTAL_BY_ID(rid), {
             method: 'PUT',
@@ -477,7 +484,7 @@ export const rentalsApi = {
                 message: 'Invalid rental ID'
             });
         }
-        const rid = typeof id === 'number' ? id : String(id);
+        const rid = sanitizeId(id);
         return await apiRequest(API_ENDPOINTS.RENTAL_BY_ID(rid), {
             method: 'DELETE'
         });
@@ -490,7 +497,7 @@ export const rentalsApi = {
                 message: 'Invalid rental ID'
             });
         }
-        const rid = typeof id === 'number' ? id : String(id);
+        const rid = sanitizeId(id);
         return await apiRequest(API_ENDPOINTS.RENTAL_MEMO_HISTORY(rid));
     },
 
@@ -501,7 +508,7 @@ export const rentalsApi = {
                 message: 'Invalid rental ID'
             });
         }
-        const rid = typeof id === 'number' ? id : String(id);
+        const rid = sanitizeId(id);
         return await apiRequest(API_ENDPOINTS.RENTAL_ACCIDENT_DETAIL(rid));
     }
 };
