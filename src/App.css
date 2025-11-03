@@ -50,7 +50,30 @@
 .dropdown-menu__item.is-dragging { opacity: 0.5; }
 .dropdown-menu__item.is-dragover { background: #e3f2fd; border-left: 3px solid #2196f3; }
 .drag-handle { margin-right: 8px; cursor: grab; }
-.icon-cell { margin-right: 8px; width: 16px; text-align: center; }
+.icon-cell {
+  /* layout spacing kept on this element (do not move to parent) */
+  margin-right: 8px;
+  /* make visual and hit area match exactly */
+  width: 16px;
+  height: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  /* reset native button appearance so it doesn't look like a button */
+  padding: 0;
+  border: 0;
+  background: transparent;
+  appearance: none;
+  -webkit-appearance: none;
+  line-height: 0;
+  cursor: pointer;
+  /* ensure it sits above adjacent overlaps (without changing parent) */
+  position: relative;
+  z-index: 1;
+}
+/* make sure inner SVG doesn't intercept pointer events */
+.icon-cell svg { pointer-events: none; display: block; }
 
 /* === Icon buttons (small inline action icons) === */
 .icon-button {
