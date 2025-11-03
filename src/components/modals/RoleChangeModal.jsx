@@ -39,7 +39,7 @@ export default function RoleChangeModal({ member, newRole, setNewRole, onClose, 
             </select>
           </div>
           <div className="info-box">
-            <strong>주의:</strong> 역할 변경 시 대상 사용자의 토큰이 무효화되어 재로그인이 필요합니다. 역할 변경은 super_admin만 가능합니다.
+            <strong>주의:</strong> 역할 변경 시 대상 사용자의 토큰이 무효화되어 재로그인이 필요합니다. 역할 변경은 super_admin 또는 동일 회사의 admin이 가능하며, super_admin 역할로 변경은 허용되지 않습니다.
           </div>
           <div className="info-box" style={{ backgroundColor: '#fff3cd', borderColor: '#ffeeba', color: '#856404' }}>
             <strong>탈퇴 안내:</strong> 탈퇴 시 계정이 비활성화되며, 동일 회사의 관리자 수가 1명뿐인 경우 진행 전 경고가 표시됩니다.

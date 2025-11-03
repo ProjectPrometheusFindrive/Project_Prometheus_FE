@@ -316,9 +316,19 @@ function MemberManagement() {
             return;
         }
 
-        // Only super_admin can change roles in all members tab
-        if (!isSuperAdmin) {
-            emitToast('역할 변경은 super_admin만 가능합니다.', 'error');
+        // Permission: super_admin can change any (except super_admin target via UI).
+        // Admin can change roles only within same company, between admin/member (not super_admin), and not for withdrawn users.
+        const canChange = (
+            isSuperAdmin || (
+                isAdmin &&
+                canManageMember(selectedMember) &&
+                selectedMember.role !== ROLES.SUPER_ADMIN &&
+                newRole !== ROLES.SUPER_ADMIN &&
+                selectedMember.membershipStatus !== 'withdrawn'
+            )
+        );
+        if (!canChange) {
+            emitToast('역할 변경 권한이 없습니다.', 'error');
             return;
         }
 
@@ -652,7 +662,16 @@ function MemberManagement() {
                             onClose={closeRoleChangeModal}
                             onConfirm={handleRoleChange}
                             onWithdraw={canManageMember(selectedMember) ? handleWithdraw : undefined}
-                            canChangeRole={!!isSuperAdmin}
+                            canChangeRole={
+                              !!selectedMember && (
+                                isSuperAdmin || (
+                                  isAdmin &&
+                                  canManageMember(selectedMember) &&
+                                  selectedMember.role !== ROLES.SUPER_ADMIN &&
+                                  selectedMember.membershipStatus !== 'withdrawn'
+                                )
+                              )
+                            }
                             loading={actionLoading === selectedMember.userId}
                         />
                     )}
