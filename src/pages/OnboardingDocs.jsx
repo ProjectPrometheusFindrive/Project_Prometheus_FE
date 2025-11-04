@@ -64,7 +64,11 @@ export default function OnboardingDocs() {
 
       const result = await uploadOne(file, { folder, label: "bizCert", onProgress });
       const objectName = result?.objectName || "";
-      if (!objectName) throw new Error("업로드 결과에 objectName이 없습니다.");
+      if (!objectName) {
+        setStatus("error");
+        setError("업로드가 실패했습니다. 다시 시도해 주세요.");
+        return;
+      }
 
       // Persist to company profile and flip server-flag locally to unblock routing
       await updateCompanyInfo({

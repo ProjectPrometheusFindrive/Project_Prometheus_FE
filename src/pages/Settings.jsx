@@ -401,7 +401,8 @@ export default function Settings() {
             setBizError("허용되지 않는 파일 형식입니다. (PDF/이미지)");
             return;
         }
-        const companyId = auth?.user?.company || viewData?.company || "";
+        // Use canonical companyId for folder rules; avoid display name here
+        const companyId = auth?.user?.companyId || viewData?.companyId || "";
         if (!companyId) {
             setBizError("회사 식별 정보를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
             return;
@@ -413,7 +414,11 @@ export default function Settings() {
             const onProgress = (p) => setBizProgress(p?.percent || 0);
             const result = await uploadOne(bizFile, { folder, label: "bizCert", onProgress });
             const objectName = result?.objectName || "";
-            if (!objectName) throw new Error("업로드 결과에 objectName이 없습니다.");
+            if (!objectName) {
+                setBizStatus("error");
+                setBizError("업로드가 실패했습니다. 다시 시도해 주세요.");
+                return;
+            }
             // Persist via company API (updateCompanyInfo triggers PUT)
             setViewData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
             setEditData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
