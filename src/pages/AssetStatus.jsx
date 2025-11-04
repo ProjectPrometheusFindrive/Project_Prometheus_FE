@@ -114,6 +114,10 @@ export default function AssetStatus() {
     const [infoVehicle, setInfoVehicle] = useState(null);
     const [showDiagnosticModal, setShowDiagnosticModal] = useState(false);
     const [diagnosticDetail, setDiagnosticDetail] = useState(null);
+    // Device install application modal
+    const [installModalOpen, setInstallModalOpen] = useState(false);
+    const openInstallModal = () => setInstallModalOpen(true);
+    const closeInstallModal = () => setInstallModalOpen(false);
     const { editingId: editingMemo, memoText, onEdit: onMemoEdit, onChange: onMemoChange, onCancel: onMemoCancel } = useMemoEditor();
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
@@ -812,7 +816,17 @@ export default function AssetStatus() {
             case "severity": {
                 const hasDevice = !!row?.deviceSerial;
                 if (!hasDevice) {
-                    return <span className="badge badge--default">단말 필요</span>;
+                    return (
+                        <button
+                            type="button"
+                            className="badge badge--default badge--clickable"
+                            onClick={openInstallModal}
+                            title="단말 장착 신청"
+                            aria-label="단말 장착 신청"
+                        >
+                            단말 필요
+                        </button>
+                    );
                 }
                 // Compute severity: if there are no diagnostics, show 정상
                 const fromField = typeof row?.diagnosticMaxSeverity === "number" ? row.diagnosticMaxSeverity : null;
@@ -888,7 +902,7 @@ export default function AssetStatus() {
             case "vehicleHealth": {
                 const hasDevice = !!row?.deviceSerial;
                 if (!hasDevice) {
-                    return <VehicleHealthCell label="단말 필요" />;
+                    return <VehicleHealthCell label="단말 필요" onClick={openInstallModal} />;
                 }
                 const dcount = getDiagnosticCount(row);
                 if (dcount === 0) {
@@ -1222,6 +1236,21 @@ export default function AssetStatus() {
                 ariaLabel="Create Rental"
             >
                 <RentalForm initial={rentalFormInitial} onSubmit={handleRentalCreateSubmit} formId="asset-rental-create" />
+            </Modal>
+
+            {/* Device installation application modal */}
+            <Modal
+                isOpen={installModalOpen}
+                onClose={closeInstallModal}
+                title="단말 장착 신청"
+                ariaLabel="단말 장착 신청"
+                showFooter={true}
+                cancelText="닫기"
+            >
+                <div className="space-y-2">
+                    <p>신청 양식 개발 예정입니다.</p>
+                    <p className="text-sm text-gray-600">준비되는 대로 본 팝업에서 신청서를 작성하실 수 있습니다.</p>
+                </div>
             </Modal>
             {toast && (
                 <Toast
