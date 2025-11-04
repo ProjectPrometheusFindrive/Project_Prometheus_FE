@@ -8,7 +8,9 @@ export const ALLOWED_MIME_TYPES = [
   "image/webp",
   // Videos
   "video/mp4",
-  "video/x-msvideo", // avi
+  "video/x-msvideo", // avi (common)
+  "video/avi", // avi (some browsers)
+  "video/msvideo", // avi (legacy)
   "video/quicktime", // mov
   "video/mpeg",
 ];
@@ -25,7 +27,27 @@ export function isMimeAllowed(type) {
   return ALLOWED_MIME_TYPES.includes(type);
 }
 
+// Extension fallback for cases where browsers set non-standard or generic MIME types
+const ALLOWED_EXTENSIONS = new Set([
+  // Images
+  "png", "jpg", "jpeg", "ico", "webp", "gif",
+  // Documents
+  "pdf",
+  // Videos (blackbox)
+  "mp4", "avi", "mov", "mpeg", "mpg",
+]);
+
+export function isFileTypeAllowed(file) {
+  if (!file) return false;
+  const type = (file.type || "").toLowerCase();
+  if (!type || ALLOWED_MIME_TYPES.includes(type)) return true;
+  const name = String(file.name || "");
+  const idx = name.lastIndexOf(".");
+  const ext = idx >= 0 ? name.slice(idx + 1).toLowerCase() : "";
+  if (ext && ALLOWED_EXTENSIONS.has(ext)) return true;
+  return false;
+}
+
 export function chooseUploadMode(fileSize) {
   return fileSize <= SMALL_FILE_THRESHOLD_BYTES ? "signed-put" : "resumable";
 }
-

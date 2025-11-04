@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { fetchRentalById, fetchRentalAccidentDetail, updateRental } from "../api";
-import { ALLOWED_MIME_TYPES } from "../constants/uploads";
+import { isFileTypeAllowed } from "../constants/uploads";
 import { uploadOneCancelable } from "../utils/uploadHelpers";
 import { formatDisplayDate } from "../utils/date";
 import { emitToast } from "../utils/toast";
@@ -139,7 +139,7 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
 
     try {
       if (blackboxFile) {
-        const typeOk = !blackboxFile.type || ALLOWED_MIME_TYPES.includes(blackboxFile.type);
+        const typeOk = isFileTypeAllowed(blackboxFile);
         if (!typeOk) {
           emitToast("허용되지 않는 파일 형식입니다.", "warning");
           return;

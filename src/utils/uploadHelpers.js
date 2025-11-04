@@ -1,4 +1,4 @@
-import { ALLOWED_MIME_TYPES, chooseUploadMode } from "../constants/uploads";
+import { isFileTypeAllowed, chooseUploadMode } from "../constants/uploads";
 import { uploadViaSignedPut, uploadResumable } from "./uploads";
 import log from "./logger";
 
@@ -8,9 +8,9 @@ import log from "./logger";
  */
 export async function uploadOne(file, { folder, label, onProgress } = {}) {
   if (!file) return null;
-  const type = file.type || "";
-  if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-    log.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, type);
+  if (!isFileTypeAllowed(file)) {
+    const type = file.type || "";
+    log.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, { type, name: file.name });
     return null;
   }
   const mode = chooseUploadMode(file.size || 0);
@@ -35,9 +35,9 @@ export async function uploadOne(file, { folder, label, onProgress } = {}) {
  */
 export function uploadOneCancelable(file, { folder, label, onProgress } = {}) {
   if (!file) return { mode: "", cancel: null, promise: Promise.resolve(null) };
-  const type = file.type || "";
-  if (type && !ALLOWED_MIME_TYPES.includes(type)) {
-    log.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, type);
+  if (!isFileTypeAllowed(file)) {
+    const type = file.type || "";
+    log.warn(`[upload-ui] ${label || "file"} skipped: disallowed type`, { type, name: file.name });
     return { mode: "", cancel: null, promise: Promise.resolve(null) };
   }
   const mode = chooseUploadMode(file.size || 0);
