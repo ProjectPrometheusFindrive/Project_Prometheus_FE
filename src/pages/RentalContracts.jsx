@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
-import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, createRental, deleteRental } from "../api";
+import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, createRental, deleteRental, fetchAssets } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
@@ -72,6 +72,10 @@ export default function RentalContracts() {
         defaultColumns: DEFAULT_COLUMN_CONFIG,
     });
     const [toast, setToast] = useState(null);
+    const [installModalOpen, setInstallModalOpen] = useState(false);
+    const openInstallModal = () => setInstallModalOpen(true);
+    const closeInstallModal = () => setInstallModalOpen(false);
+    const [hasDeviceByPlate, setHasDeviceByPlate] = useState({});
     const {
         showAccidentModal,
         showAccidentInfoModal,
@@ -101,6 +105,32 @@ export default function RentalContracts() {
             } catch (e) {
                 console.error("Failed to load rentals", e);
                 if (mounted) setItems([]);
+            }
+        })();
+        return () => {
+            mounted = false;
+        };
+    }, []);
+
+    // Load assets to determine device installation by plate
+    useEffect(() => {
+        let mounted = true;
+        (async () => {
+            try {
+                const assets = await fetchAssets();
+                if (!mounted) return;
+                const map = {};
+                if (Array.isArray(assets)) {
+                    for (const a of assets) {
+                        const plate = a?.plate || a?.vehicleNumber || a?.number;
+                        if (!plate) continue;
+                        map[String(plate)] = !!(a?.deviceSerial);
+                    }
+                }
+                setHasDeviceByPlate(map);
+            } catch (e) {
+                console.warn("Failed to load assets for device mapping", e);
+                setHasDeviceByPlate({});
             }
         })();
         return () => {
@@ -146,6 +176,8 @@ export default function RentalContracts() {
                 const isLongTerm = (r.rentalDurationDays || 0) > 30;
                 const hasUnpaid = (r.unpaidAmount || 0) > 0;
 
+                const plate = r.plate;
+                const hasDevice = plate ? !!hasDeviceByPlate[String(plate)] : false;
                 return {
                     ...r,
                     isActive: status === "대여중",
@@ -158,9 +190,10 @@ export default function RentalContracts() {
                     engineOn: r.engineStatus === "on",
                     restartBlocked: Boolean(r.restartBlocked),
                     memo: r.memo || "",
+                    hasDevice,
                 };
             });
-    }, [items]);
+    }, [items, hasDeviceByPlate]);
 
     const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rentalId");
 
@@ -511,9 +544,36 @@ export default function RentalContracts() {
                 return <RentalAmountCell row={row} />;
             case "contractStatus":
                 return getContractStatusBadge(row.contractStatus);
-            case "engineStatus":
+            case "engineStatus": {
+                if (!row?.hasDevice) {
+                    return (
+                        <button
+                            type="button"
+                            className="badge badge--default badge--clickable badge--compact"
+                            onClick={openInstallModal}
+                            title="단말 장착 신청"
+                            aria-label="단말 장착 신청"
+                        >
+                            단말 필요
+                        </button>
+                    );
+                }
                 return <StatusBadge type={row.engineOn ? "on" : "off"}>{row.engineOn ? "ON" : "OFF"}</StatusBadge>;
+            }
             case "restartBlocked": {
+                if (!row?.hasDevice) {
+                    return (
+                        <button
+                            type="button"
+                            className="badge badge--default badge--clickable badge--compact"
+                            onClick={openInstallModal}
+                            title="단말 장착 신청"
+                            aria-label="단말 장착 신청"
+                        >
+                            단말 필요
+                        </button>
+                    );
+                }
                 const isBlocked = Boolean(row.restartBlocked);
                 const identifier = row.plate || row.renterName || row.rentalId || "계약";
                 return (
@@ -654,6 +714,20 @@ export default function RentalContracts() {
                 <RentalForm onSubmit={handleCreateSubmit} formId="rental-create" onClose={() => setShowCreate(false)} />
             </Modal>
 
+            <Modal
+                isOpen={installModalOpen}
+                onClose={closeInstallModal}
+                title="단말 장착 신청"
+                ariaLabel="단말 장착 신청"
+                showFooter={true}
+                cancelText="닫기"
+            >
+                <div className="space-y-2">
+                    <p>신청 양식 개발 예정입니다.</p>
+                    <p className="text-sm text-gray-600">준비되는 대로 본 팝업에서 신청서를 작성하실 수 있습니다.</p>
+                </div>
+            </Modal>
+
             <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title="계약 상세 정보" showFooter={false} ariaLabel="Contract Details">
                 {selectedContract && (
                     <div style={{ padding: "20px" }}>
@@ -766,21 +840,59 @@ export default function RentalContracts() {
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <div>
                                         <strong>엔진 상태:</strong>
-                                        <StatusBadge
-                                            style={{
-                                                backgroundColor: selectedContract.engineOn ? "#4caf50" : "#f44336",
-                                                color: "white",
-                                                marginLeft: "8px",
-                                            }}
-                                        >
-                                            {selectedContract.engineOn ? "ON" : "OFF"}
-                                        </StatusBadge>
+                                        {(() => {
+                                            const hasDevice = !!(selectedContract?.plate && hasDeviceByPlate[String(selectedContract.plate)]);
+                                            if (!hasDevice) {
+                                                return (
+                                                    <button
+                                                        type="button"
+                                                        className="badge badge--default badge--clickable badge--compact"
+                                                        onClick={openInstallModal}
+                                                        style={{ marginLeft: "8px" }}
+                                                        title="단말 장착 신청"
+                                                        aria-label="단말 장착 신청"
+                                                    >
+                                                        단말 필요
+                                                    </button>
+                                                );
+                                            }
+                                            return (
+                                                <StatusBadge
+                                                    style={{
+                                                        backgroundColor: selectedContract.engineOn ? "#4caf50" : "#f44336",
+                                                        color: "white",
+                                                        marginLeft: "8px",
+                                                    }}
+                                                >
+                                                    {selectedContract.engineOn ? "ON" : "OFF"}
+                                                </StatusBadge>
+                                            );
+                                        })()}
                                     </div>
                                     <div>
                                         <strong>재시동 금지:</strong>
-                                        <StatusBadge variant={selectedContract.restartBlocked ? "badge--restart-blocked" : "badge--restart-allowed"} style={{ marginLeft: "8px" }}>
-                                            {selectedContract.restartBlocked ? "차단" : "허용"}
-                                        </StatusBadge>
+                                        {(() => {
+                                            const hasDevice = !!(selectedContract?.plate && hasDeviceByPlate[String(selectedContract.plate)]);
+                                            if (!hasDevice) {
+                                                return (
+                                                    <button
+                                                        type="button"
+                                                        className="badge badge--default badge--clickable badge--compact"
+                                                        onClick={openInstallModal}
+                                                        style={{ marginLeft: "8px" }}
+                                                        title="단말 장착 신청"
+                                                        aria-label="단말 장착 신청"
+                                                    >
+                                                        단말 필요
+                                                    </button>
+                                                );
+                                            }
+                                            return (
+                                                <StatusBadge variant={selectedContract.restartBlocked ? "badge--restart-blocked" : "badge--restart-allowed"} style={{ marginLeft: "8px" }}>
+                                                    {selectedContract.restartBlocked ? "차단" : "허용"}
+                                                </StatusBadge>
+                                            );
+                                        })()}
                                     </div>
                                     <div>
                                         <strong>위치:</strong> {
