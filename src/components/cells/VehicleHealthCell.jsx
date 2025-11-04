@@ -5,6 +5,7 @@ const CLASS_BY_LABEL = {
   정상: "badge--normal",
   관심필요: "badge--overdue",
   심각: "badge--maintenance",
+  "단말 필요": "badge--default",
 };
 
 const VehicleHealthCell = React.memo(function VehicleHealthCell({ label, onClick }) {
@@ -24,4 +25,3 @@ const VehicleHealthCell = React.memo(function VehicleHealthCell({ label, onClick
 });
 
 export default VehicleHealthCell;
-

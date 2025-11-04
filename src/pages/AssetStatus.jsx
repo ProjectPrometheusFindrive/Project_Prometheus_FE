@@ -810,12 +810,20 @@ export default function AssetStatus() {
                 const status = hasDevice ? "연결됨" : "미연결";
                 return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
             case "severity": {
+                const hasDevice = !!row?.deviceSerial;
+                if (!hasDevice) {
+                    return <span className="badge badge--default">단말 필요</span>;
+                }
+                // Compute severity: if there are no diagnostics, show 정상
                 const fromField = typeof row?.diagnosticMaxSeverity === "number" ? row.diagnosticMaxSeverity : null;
                 let max = fromField;
                 if (max == null) {
                     const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
-                    if (arr.length === 0) return "-";
+                    if (arr.length === 0) return <span className="badge badge--normal">정상</span>;
                     max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+                }
+                if (Number(max) === 0) {
+                    return <span className="badge badge--normal">정상</span>;
                 }
                 return <SeverityBadge value={max} />;
             }
@@ -878,7 +886,22 @@ export default function AssetStatus() {
             }
 
             case "vehicleHealth": {
-                const label = row.diagnosticStatus || "-";
+                const hasDevice = !!row?.deviceSerial;
+                if (!hasDevice) {
+                    return <VehicleHealthCell label="단말 필요" />;
+                }
+                const dcount = getDiagnosticCount(row);
+                if (dcount === 0) {
+                    return <VehicleHealthCell label="정상" onClick={() => openDiagnosticModal(row)} />;
+                }
+                // Prefer backend-provided status if available; otherwise derive from max severity
+                const provided = row.diagnosticStatus;
+                if (provided) {
+                    return <VehicleHealthCell label={provided} onClick={() => openDiagnosticModal(row)} />;
+                }
+                const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+                const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+                const label = max > 7 ? "심각" : "관심필요";
                 return <VehicleHealthCell label={label} onClick={() => openDiagnosticModal(row)} />;
             }
             case "diagnosticCodes":
