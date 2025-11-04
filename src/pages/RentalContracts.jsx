@@ -378,7 +378,8 @@ export default function RentalContracts() {
                 return Promise.resolve();
             }
             const apiKey = import.meta.env.VITE_KAKAO_MAP_API_KEY;
-            const src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services&autoload=false`;
+            // Load with drawing lib as well to avoid conflicts when other components expect it
+            const src = `//dapi.kakao.com/v2/maps/sdk.js?appkey=${apiKey}&libraries=services,drawing&autoload=false`;
             return new Promise((resolve, reject) => {
                 const existing = document.querySelector(`script[src="${src}"]`) || document.querySelector("script[src*='dapi.kakao.com']");
                 if (existing) {

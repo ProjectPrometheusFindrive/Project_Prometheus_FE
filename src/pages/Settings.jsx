@@ -215,7 +215,7 @@ export default function Settings() {
         const memoPolygons = React.useMemo(() => [points], [points]);
         const onChange = React.useCallback((newPoints) => handlePointsChange(idx, newPoints), [idx, handlePointsChange]);
         return (
-            <KakaoMap polygons={memoPolygons} height="300px" editable={true} onPolygonChange={onChange} />
+            <KakaoMap polygons={memoPolygons} height="420px" editable={true} onPolygonChange={onChange} />
         );
     };
 
@@ -612,8 +612,8 @@ export default function Settings() {
                                             <div
                                                 style={{
                                                     display: "grid",
-                                                    gridTemplateColumns: "repeat(auto-fit, minmax(400px, 1fr))",
-                                                    gap: 12,
+                                                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                                                    gap: 16,
                                                 }}
                                             >
                                                 {displayItems.map((item, idx) => (
