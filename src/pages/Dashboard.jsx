@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import Gauge from "../components/Gauge";
+import Modal from "../components/Modal";
 import { fetchDashboardData } from "../api";
 import useApprovalQueryEffects from "../hooks/useApprovalQueryEffects";
 import StatusDonut from "../components/charts/StatusDonut";
@@ -55,6 +56,11 @@ export default function Dashboard() {
         { key: "sales", label: "사업운영점수", value: 85, delta: +4, color: "#f59e0b" },
     ];
 
+    const [installModalOpen, setInstallModalOpen] = useState(false);
+
+    const openInstallModal = () => setInstallModalOpen(true);
+    const closeInstallModal = () => setInstallModalOpen(false);
+
     return (
         <div className="page space-y-4">
             <h1 className="text-2xl font-semibold text-gray-900">홈</h1>
@@ -81,18 +87,43 @@ export default function Dashboard() {
                         <section className="card gauge-card text-center bg-white border border-gray-100 rounded-xl shadow-sm p-4" key={s.key}>
                             <div className="gauge-title font-semibold text-gray-800">
                                 {s.label}
-                                {import.meta.env?.DEV && <span className="gauge-sub block text-sm text-gray-500">(샘플 지표)</span>}
                             </div>
-                            <Gauge value={s.value} label="" color={s.color} size={240} />
-                            <div className="gauge-footer flex items-center justify-center gap-2 mt-0" aria-live="polite">
-                                <span className="gauge-value text-2xl font-bold">{s.value}</span>
-                                <span className={`gauge-delta ${s.delta >= 0 ? "up" : "down"} text-sm`}>
-                                    {s.delta >= 0 ? "+" : "-"} {Math.abs(s.delta)}p {s.delta >= 0 ? "상승" : "하락"}
-                                </span>
+                            <div className="gauge-disabled-area">
+                                <div className="gauge-blur-target">
+                                    <Gauge value={s.value} label="" color={s.color} size={240} />
+                                    <div className="gauge-footer flex items-center justify-center gap-2 mt-0" aria-live="polite">
+                                        <span className="gauge-value text-2xl font-bold">{s.value}</span>
+                                        <span className={`gauge-delta ${s.delta >= 0 ? "up" : "down"} text-sm`}>
+                                            {s.delta >= 0 ? "+" : "-"} {Math.abs(s.delta)}p {s.delta >= 0 ? "상승" : "하락"}
+                                        </span>
+                                    </div>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="gauge-overlay-notice"
+                                    onClick={openInstallModal}
+                                    aria-label="기능 사용을 위해 단말장착이 필요합니다. 클릭하여 신청"
+                                    title="기능 사용을 위해 단말장착이 필요합니다."
+                                >
+                                    기능 사용을 위해 단말장착이 필요합니다.
+                                </button>
                             </div>
                         </section>
                     ))}
                 </div>
+                <Modal
+                    isOpen={installModalOpen}
+                    onClose={closeInstallModal}
+                    title="단말 장착 신청"
+                    ariaLabel="단말 장착 신청"
+                    showFooter={true}
+                    cancelText="닫기"
+                >
+                    <div className="space-y-2">
+                        <p>신청 양식 개발 예정입니다.</p>
+                        <p className="text-sm text-gray-600">준비되는 대로 본 팝업에서 신청서를 작성하실 수 있습니다.</p>
+                    </div>
+                </Modal>
             </div>
         </div>
     );
