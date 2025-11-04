@@ -669,7 +669,8 @@ export const authApi = {
     },
 
     async signup(userData) {
-        // userData: { userId, password, name, phone, email, position, company, bizRegNo, bizCertUrl }
+        // userData: { userId, password, name, phone, email, position, company, bizRegNo, bizCertUrl, role }
+        // role: 'admin' | 'member' (pass-through from client selection)
         // Primary: /auth/register (preferred)
         let resp = await apiRequest(API_ENDPOINTS.AUTH_SIGNUP, {
             method: 'POST',
