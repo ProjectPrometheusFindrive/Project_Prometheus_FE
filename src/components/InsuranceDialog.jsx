@@ -33,11 +33,9 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   const companyId = (auth?.user?.companyId || companyInfo?.companyId || "ci");
   const ocrFolderBase = `company/${companyId}/docs`;
   const hasExisting = !!(asset?.insuranceExpiryDate || asset?.insuranceCompany || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0));
-  const [step, setStep] = useState((readOnly || hasExisting) ? "details" : "upload");
 
   useEffect(() => {
-    // If toggled to read-only or when asset has existing insurance, show details step
-    if (readOnly || hasExisting) setStep("details");
+    // Keep read-only state in sync
     setIsReadOnly(!!readOnly);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [readOnly, asset?.id]);
@@ -124,8 +122,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   const handleUploadAndOcr = async () => {
     const docs = toArray(form.insuranceDoc);
     if (docs.length === 0) {
-      // allow proceed even if no file (manual entry)
-      setStep("details");
+      // allow manual entry without upload
       return;
     }
     setBusy({ status: "uploading", message: "업로드 중...", percent: 0 });
@@ -177,7 +174,6 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
       }
     } finally {
       setBusy({ status: "idle", message: "", percent: 0 });
-      setStep("details");
     }
   };
 
@@ -275,36 +271,9 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   return (
     <div className="asset-dialog">
       <div className="asset-dialog__body">
-        {/* Step 1: Upload & OCR (new registration) */}
-        {(!isReadOnly && step === "upload") && (
-          <div className="asset-doc mb-3">
-            <div className="asset-doc__title">Step 1 · 보험증권 업로드 (자동 채움)</div>
-            <div className="mb-3">
-              <input
-                type="file"
-                accept="image/*,application/pdf"
-                capture="environment"
-                multiple
-                onChange={onFile}
-                className="mb-2"
-              />
-            </div>
-            {Array.isArray(form.insuranceDoc) ? (
-              <FilesPreviewCarousel files={form.insuranceDoc} />
-            ) : (
-              <FilePreview file={form.insuranceDoc} />
-            )}
-            {(busy.status === "uploading" || busy.status === "ocr") && (
-              <div className="w-full mt-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? '자동 채움 처리 중...' : undefined)} /></div>
-            )}
-          </div>
-        )}
-
-        {/* Step 2: Details */}
-        {(step === "details") && (
           <>
             <div className="asset-doc mb-3">
-              <div className="asset-doc__title">{isReadOnly ? "보험증권" : "Step 2 · 세부 정보 확인/수정"}</div>
+              <div className="asset-doc__title">{isReadOnly ? "보험증권" : "보험증권"}</div>
               {/* Existing saved docs (read-only or when editing with previous history) */}
               {(() => {
                 // Prefer insuranceDocList [{name, objectName}]
@@ -320,10 +289,10 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                 ) : null;
               })()}
 
-              {/* Allow OCR upload also in edit mode */}
+              {/* OCR 업로드 (상단에서 바로 실행) */}
               {!isReadOnly && (
                 <div className="mt-3">
-                  <div className="font-semibold mb-1.5">보험증권 자동 채움 업로드</div>
+                  <div className="font-semibold mb-1.5">보험증권 업로드 (자동 채움)</div>
                   <input
                     type="file"
                     accept="image/*,application/pdf"
@@ -355,6 +324,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               )}
             </div>
 
+            <div className="asset-doc__title mb-1.5">세부 정보</div>
             <div className="asset-info grid-info">
               {infoRow(
                 "보험사명",
@@ -433,17 +403,10 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
               </div>
             )}
           </>
-        )}
       </div>
 
       <div className="asset-dialog__footer flex justify-end gap-2">
-        {!isReadOnly && step === "upload" && (
-          <>
-            <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")}>건너뛰기</button>
-            <button type="button" className="form-button" onClick={handleUploadAndOcr}>다음</button>
-          </>
-        )}
-        {!isReadOnly && step === "details" && (
+        {!isReadOnly && (
           <button type="button" className="form-button" onClick={handleSave} disabled={uploadState.status === 'uploading'}>
             {(asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) ? '저장' : '등록'}
           </button>

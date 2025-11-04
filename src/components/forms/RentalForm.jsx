@@ -44,7 +44,6 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
     const [preUploaded, setPreUploaded] = useState({ contract: [], license: [] });
     const [ocrSuggest, setOcrSuggest] = useState({});
     const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0 });
-    const [step, setStep] = useState((readOnly || hasInitial) ? "details" : "upload");
     const auth = useAuth();
     const { companyInfo } = useCompany();
     const companyId = (auth?.user?.companyId || companyInfo?.companyId || "ci");
@@ -269,8 +268,7 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
         const licenses = toArray(form.driverLicenseFile);
         // Upload into allowed prefix
         if (contracts.length === 0 && licenses.length === 0) {
-            // allow proceed but encourage upload
-            setStep('details');
+            // allow manual entry without upload
             return;
         }
         setBusy({ status: 'uploading', message: '업로드 중...', percent: 0 });
@@ -325,7 +323,6 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
             setOcrSuggest(suggestions);
         } finally {
             setBusy({ status: 'idle', message: '', percent: 0 });
-            setStep('details');
         }
     };
 
@@ -383,27 +380,19 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                 )}
             </div>
             <div className="asset-dialog__footer flex justify-end gap-2">
-        <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
-          업로드 및 자동 채움
-        </button>
-        <button type="button" className="form-button form-button--muted" onClick={() => setStep("details")} disabled={busy.status !== "idle"}>
-          자동 채움 없이 진행
-        </button>
-        {typeof onClose === "function" && (
-          <button type="button" className="form-button" onClick={onClose}>닫기</button>
-        )}
-      </div>
+                <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
+                    업로드 및 자동 채움
+                </button>
+            </div>
 
         </>
     );
 
     return (
         <FormGrid id={formId} onSubmit={handleSubmit}>
-            {!readOnly && (step === 'upload') && (
+            {!readOnly && (
                 <UploadStep />
             )}
-            {/* 세부 항목 (Step 2) */}
-            {readOnly || step === 'details' ? (
             <>
             {/* 차량번호를 최상단 드롭다운으로 변경 */}
             <FormField
@@ -649,26 +638,16 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
 
             {!readOnly && showSubmit && (
                 <FormActions>
-                    {!readOnly && step === 'details' && (
-                        <>
-                            <button type="button" className="form-button form-button--muted" onClick={() => setStep('upload')}>
-                                이전
-                            </button>
-                            <button type="submit" className="form-button">
-                                저장
-                            </button>
-                            {typeof onClose === 'function' && (
-                                <button type="button" className="form-button" onClick={onClose}>
-                                    닫기
-                                </button>
-                            )}
-                        </>
-                    )}
+                    <>
+                        <button type="submit" className="form-button">저장</button>
+                        {typeof onClose === 'function' && (
+                            <button type="button" className="form-button" onClick={onClose}>닫기</button>
+                        )}
+                    </>
                 </FormActions>
             )}
 
             </>
-            ) : null}
         </FormGrid>
     );
 }

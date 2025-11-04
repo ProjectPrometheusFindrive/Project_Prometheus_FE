@@ -645,7 +645,151 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             {infoRow("차량가액", asset.vehicleValue || "")}
           </div>
           </>
-        ) : (step === "upload" ? UploadStep : DetailsStep)}
+        ) : (
+          <>
+            <div className="asset-docs-section mb-4">
+              {docBoxEdit("원리금 상환 계획표", "insuranceDoc")}
+              {docBoxEdit("자동차 등록증", "registrationDoc")}
+            </div>
+            <div className="min-h-[26px] mt-1">
+              <UploadProgress status={busy.status} percent={busy.percent} label={busy.label} variant="bar" />
+            </div>
+            <div className="asset-dialog__footer flex justify-end gap-2" style={{ marginTop: 8 }}>
+              <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
+                업로드 및 자동 채움
+              </button>
+            </div>
+
+            <div className="asset-info grid-info">
+              {infoRow(
+                "제조사",
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <input id="asset-make" name="make" className="form-input flex-1 min-w-0" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+                  <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} showLabel={false} maxWidth={200} />
+                </div>
+              )}
+              {infoRow(
+                "차종",
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <input id="asset-model" name="model" className="form-input flex-1 min-w-0" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
+                  <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} showLabel={false} maxWidth={200} />
+                </div>
+              )}
+              {infoRow(
+                "연식",
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <select id="asset-year" name="year" className="form-input flex-1 min-w-0" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+                    {(() => {
+                      const CURRENT_YEAR = new Date().getFullYear();
+                      const YEAR_START = 1990;
+                      const options = [{ value: "", label: "선택" }].concat(
+                        Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
+                          const y = CURRENT_YEAR - i;
+                          return { value: String(y), label: String(y) };
+                        })
+                      );
+                      return options.map((opt) => (
+                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                      ));
+                    })()}
+                  </select>
+                  <OcrSuggestionPicker items={(fieldSuggestions.year || []).map((it) => ({ ...it, value: String(it.value) }))} onApply={applySuggestion("year")} showLabel={false} maxWidth={140} />
+                </div>
+              )}
+              {infoRow(
+                "연료 타입",
+                (() => {
+                  const base = ["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"];
+                  const suggestedRaw = (fieldSuggestions.fuelType || [])
+                    .map((it) => String(it.value || "").trim())
+                    .filter(Boolean);
+                  const suggestedNormalized = new Set(suggestedRaw.map((s) => normalizeFuelLabel(s)));
+                  const ordered = base.slice();
+                  const highlightStyle = { backgroundColor: "#e3f2fd", color: "#1e3a8a" };
+                  const selectedValue = normalizeFuelLabel(form.fuelType);
+                  return (
+                    <div className="flex items-center gap-2 flex-nowrap">
+                      <select
+                        id="asset-fuelType"
+                        name="fuelType"
+                        className="form-input"
+                        value={selectedValue}
+                        onChange={(e) => setForm((p) => ({ ...p, fuelType: normalizeFuelLabel(e.target.value) }))}
+                      >
+                        {ordered.map((v, i) => {
+                          const label = v || "선택";
+                          const normalized = normalizeFuelLabel(v);
+                          const isSuggested = v && suggestedNormalized.has(normalized);
+                          return (
+                            <option
+                              key={v ? v : `_empty_${i}`}
+                              value={v}
+                              data-suggested={isSuggested ? "true" : undefined}
+                              style={isSuggested ? highlightStyle : undefined}
+                            >
+                              {label}
+                            </option>
+                          );
+                        })}
+                      </select>
+                      <OcrSuggestionPicker items={fieldSuggestions.fuelType || []} onApply={() => { /* no auto-apply for fuel */ }} showLabel={false} maxWidth={140} />
+                    </div>
+                  );
+                })()
+              )}
+              {infoRow(
+                "차량번호",
+                <div className="flex items-center gap-2 w-full flex-wrap">
+                  <input id="asset-plate" name="plate"
+                    className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
+                    value={form.plate}
+                    onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
+                    onBlur={(e) => {
+                      const v = normalizeKoreanPlate(e.target.value);
+                      if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
+                    }}
+                    aria-invalid={isPlateInvalid ? true : undefined}
+                    placeholder="예: 28가2345"
+                  />
+                  {isPlateInvalid && (
+                    <span aria-live="polite" className="text-red-700 text-[12px]">올바르지 않은 형식</span>
+                  )}
+                  <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} showLabel={false} maxWidth={200} />
+                </div>
+              )}
+              {infoRow(
+                "차대번호(VIN)",
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <input id="asset-vin" name="vin" className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+                  <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
+                </div>
+              )}
+              {infoRow(
+                "차량가액(원)",
+                <div className="flex items-center gap-2 flex-nowrap w-full">
+                  <input id="asset-vehicleValue" name="vehicleValue"
+                    className="form-input flex-1"
+                    type="text"
+                    value={form.vehicleValue}
+                    onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
+                    inputMode="numeric"
+                    maxLength={20}
+                    placeholder="예: 25,000,000"
+                  />
+                  <OcrSuggestionPicker
+                    items={fieldSuggestions.vehicleValue || []}
+                    onApply={(val) => {
+                      const raw = val == null ? "" : String(val);
+                      setForm((p) => ({ ...p, vehicleValue: formatCurrency(raw) }));
+                    }}
+                    showLabel={false}
+                    maxWidth={200}
+                  />
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
           <div className="mt-4">
@@ -659,11 +803,12 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
       </div>
 
-      {isEdit && (
-        <div className="asset-dialog__footer">
-          <button type="button" className="form-button" onClick={onClose}>닫기</button>
-        </div>
-      )}
+      <div className="asset-dialog__footer">
+        {!isEdit && (
+          <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
+        )}
+        <button type="button" className="form-button" onClick={onClose}>닫기</button>
+      </div>
       <DocumentViewer
         isOpen={viewer.open}
         onClose={() => setViewer((v) => ({ ...v, open: false }))}
