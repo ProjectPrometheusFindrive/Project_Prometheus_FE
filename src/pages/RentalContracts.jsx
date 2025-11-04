@@ -76,6 +76,17 @@ export default function RentalContracts() {
     const openInstallModal = () => setInstallModalOpen(true);
     const closeInstallModal = () => setInstallModalOpen(false);
     const [hasDeviceByPlate, setHasDeviceByPlate] = useState({});
+
+    const normalizePlate = (p) => (p ? String(p).replace(/\s|-/g, "").toUpperCase() : "");
+    const computeHasDevice = (r, plateMap) => {
+        const norm = normalizePlate(r?.plate);
+        const mapHit = norm ? !!plateMap[norm] : false;
+        const engineKnown = r?.engineStatus != null && String(r.engineStatus).length > 0;
+        const loc = r?.currentLocation;
+        const locKnown = loc && typeof loc.lat === "number" && typeof loc.lng === "number";
+        const anyTelematics = engineKnown || locKnown || !!r?.engineOn;
+        return mapHit || anyTelematics;
+    };
     const {
         showAccidentModal,
         showAccidentInfoModal,
@@ -122,9 +133,10 @@ export default function RentalContracts() {
                 const map = {};
                 if (Array.isArray(assets)) {
                     for (const a of assets) {
-                        const plate = a?.plate || a?.vehicleNumber || a?.number;
+                        const plateRaw = a?.plate || a?.vehicleNumber || a?.number;
+                        const plate = normalizePlate(plateRaw);
                         if (!plate) continue;
-                        map[String(plate)] = !!(a?.deviceSerial);
+                        map[plate] = !!(a?.deviceSerial);
                     }
                 }
                 setHasDeviceByPlate(map);
@@ -176,8 +188,7 @@ export default function RentalContracts() {
                 const isLongTerm = (r.rentalDurationDays || 0) > 30;
                 const hasUnpaid = (r.unpaidAmount || 0) > 0;
 
-                const plate = r.plate;
-                const hasDevice = plate ? !!hasDeviceByPlate[String(plate)] : false;
+                const hasDevice = computeHasDevice(r, hasDeviceByPlate);
                 return {
                     ...r,
                     isActive: status === "대여중",
@@ -841,7 +852,7 @@ export default function RentalContracts() {
                                     <div>
                                         <strong>엔진 상태:</strong>
                                         {(() => {
-                                            const hasDevice = !!(selectedContract?.plate && hasDeviceByPlate[String(selectedContract.plate)]);
+                                            const hasDevice = computeHasDevice(selectedContract, hasDeviceByPlate);
                                             if (!hasDevice) {
                                                 return (
                                                     <button
@@ -872,7 +883,7 @@ export default function RentalContracts() {
                                     <div>
                                         <strong>재시동 금지:</strong>
                                         {(() => {
-                                            const hasDevice = !!(selectedContract?.plate && hasDeviceByPlate[String(selectedContract.plate)]);
+                                            const hasDevice = computeHasDevice(selectedContract, hasDeviceByPlate);
                                             if (!hasDevice) {
                                                 return (
                                                     <button
