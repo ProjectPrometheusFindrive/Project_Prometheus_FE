@@ -5,6 +5,7 @@ import { signup } from "../api";
 import { typedStorage } from "../utils/storage";
 import useFormState from "../hooks/useFormState";
 import Modal from "../components/Modal";
+import { ROLES } from "../constants/auth";
 
 
 export default function SignUp() {
@@ -76,7 +77,7 @@ export default function SignUp() {
       if (!v.email) out.email = "개인이메일을 입력해주세요.";
       else if (!validateEmail(v.email)) out.email = "올바른 개인이메일 형식을 입력해주세요.";
 
-      if (!v.position) out.position = "직위를 입력해주세요.";
+      if (!v.position) out.position = "직위를 선택해주세요.";
       if (!String(v.company || "").trim()) out.company = "소속회사를 입력해주세요.";
 
       // 사업자등록번호(bizRegNo): 하이픈 허용, 숫자 10자리 필요
@@ -143,6 +144,8 @@ export default function SignUp() {
         company: form.company,
         // BE accepts hyphens; normalize to digits is optional. Send as-is (server normalizes).
         bizRegNo: form.bizRegNo,
+        // Map position to role: 대표 -> admin, 직원 -> member
+        role: form.position === "대표" ? ROLES.ADMIN : ROLES.MEMBER,
       };
 
       await signup(userData);
@@ -178,7 +181,7 @@ export default function SignUp() {
       : { text: "개인이메일을 입력해 주세요.", color: touched.email ? (errors.email ? "#b71c1c" : "#999") : "#999" },
     position: form.position
       ? { text: "확인했어요.", color: "#177245" }
-      : { text: "직위를 입력해 주세요.", color: touched.position ? (errors.position ? "#b71c1c" : "#999") : "#999" },
+      : { text: "직위를 선택해 주세요.", color: touched.position ? (errors.position ? "#b71c1c" : "#999") : "#999" },
     company: (form.company || "").trim().length > 0
       ? { text: "확인했어요.", color: "#177245" }
       : { text: "회사명을 입력해 주세요.", color: touched.company ? (errors.company ? "#b71c1c" : "#999") : "#999" },
@@ -219,7 +222,7 @@ export default function SignUp() {
         { label: "이메일 형식", ok: validateEmail(form.email) },
       ],
       position: [
-        { label: "직위 입력", ok: has(form.position) },
+        { label: "직위 선택", ok: has(form.position) },
       ],
       company: [
         { label: "회사명 입력", ok: (form.company || "").trim().length > 0 },
@@ -286,9 +289,33 @@ export default function SignUp() {
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "100px 1fr", alignItems: "flex-start", gap: "8px" }}>
-            <label className="login-label" htmlFor="su-pos" style={{ marginBottom: 0, paddingTop: "8px" }}>직위</label>
+            <label id="position-group" className="login-label" htmlFor="su-pos-representative" style={{ marginBottom: 0, paddingTop: "8px" }}>직위</label>
             <div className="input-with-hint">
-              <input id="su-pos" name="position" type="text" className="login-input" value={form.position} onChange={onChange} placeholder="직위를 입력하세요" required style={{ minWidth: 0, fontSize: "14px", padding: "8px 12px" }} />
+              <div role="group" aria-labelledby="position-group" style={{ display: "flex", alignItems: "center", gap: "16px", padding: "8px 0" }}>
+                <label htmlFor="su-pos-representative" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer", color: "#333" }}>
+                  <input
+                    id="su-pos-representative"
+                    type="radio"
+                    name="position"
+                    value="대표"
+                    required
+                    checked={form.position === "대표"}
+                    onChange={onChange}
+                  />
+                  <span>대표</span>
+                </label>
+                <label htmlFor="su-pos-staff" style={{ display: "inline-flex", alignItems: "center", gap: "6px", cursor: "pointer", color: "#333" }}>
+                  <input
+                    id="su-pos-staff"
+                    type="radio"
+                    name="position"
+                    value="직원"
+                    checked={form.position === "직원"}
+                    onChange={onChange}
+                  />
+                  <span>직원</span>
+                </label>
+              </div>
               <div className="input-hint" style={{ color: fieldHints.position.color }}>{fieldHints.position.text}</div>
             </div>
           </div>
