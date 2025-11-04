@@ -628,7 +628,7 @@ export default function RentalContracts() {
                         onCancel={handleMemoCancel}
                         onOpenHistory={(id) => {
                             const label = row.plate || row.renterName || id;
-                            setMemoHistoryTarget({ id, label });
+                            setMemoHistoryTarget({ id, label, memo: row.memo });
                             setShowMemoHistoryModal(true);
                         }}
                         maxWidth={150}
@@ -1216,6 +1216,7 @@ export default function RentalContracts() {
                 entityType="rental"
                 entityId={memoHistoryTarget?.id}
                 title={memoHistoryTarget ? `메모 히스토리 - ${memoHistoryTarget.label}` : undefined}
+                currentMemo={memoHistoryTarget?.memo}
             />
             {toast && (
                 <Toast

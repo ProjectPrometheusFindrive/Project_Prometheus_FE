@@ -936,7 +936,7 @@ export default function AssetStatus() {
                         onCancel={handleMemoCancel}
                         onOpenHistory={(id) => {
                             const plate = row.plate || id;
-                            setMemoHistoryTarget({ id, plate });
+                            setMemoHistoryTarget({ id, plate, memo: row.memo });
                             setShowMemoHistoryModal(true);
                         }}
                         maxWidth={150}
@@ -1117,6 +1117,7 @@ export default function AssetStatus() {
                 entityType="asset"
                 entityId={memoHistoryTarget?.id}
                 title={memoHistoryTarget ? `메모 히스토리 - ${memoHistoryTarget.plate}` : undefined}
+                currentMemo={memoHistoryTarget?.memo}
             />
 
             <Table wrapRef={tableWrapRef} columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." stickyHeader />

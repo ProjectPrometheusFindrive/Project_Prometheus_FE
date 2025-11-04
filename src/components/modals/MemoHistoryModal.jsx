@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import Modal from "../Modal";
 import { fetchAssetMemoHistory, fetchRentalMemoHistory } from "../../api";
 import { formatYyMmDdHhMmSs } from "../../utils/datetime";
+import { typedStorage } from "../../utils/storage";
 
-export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId, title }) {
+export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId, title, currentMemo }) {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -32,7 +33,17 @@ export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId
             const tb = b?.changedAt ? new Date(b.changedAt).getTime() : 0;
             return tb - ta;
           });
-          setItems(sorted);
+
+          // Include the most recent memo (current value) at top if missing
+          const latestText = typeof currentMemo === "string" ? currentMemo.trim() : "";
+          if (latestText && (sorted.length === 0 || String(sorted[0]?.memo || "").trim() !== latestText)) {
+            const info = typedStorage.auth.getUserInfo() || {};
+            const name = (info && typeof info.name === "string" && info.name.trim()) ? info.name.trim() : "-";
+            const nowIso = new Date().toISOString();
+            setItems([{ changedBy: name, memo: latestText, changedAt: nowIso }, ...sorted]);
+          } else {
+            setItems(sorted);
+          }
         }
       } catch (e) {
         if (!ignore) setError("메모 히스토리를 불러오지 못했습니다.");
@@ -42,7 +53,7 @@ export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId
     }
     load();
     return () => { ignore = true; };
-  }, [isOpen, entityType, entityId]);
+  }, [isOpen, entityType, entityId, currentMemo]);
 
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={headerTitle} showFooter={false}>
@@ -60,11 +71,12 @@ export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId
           <div>
             {items.map((h, idx) => (
               <div key={`${h.changedAt || idx}-${idx}`} className="py-2 px-1 border-b border-gray-200">
-                <div className="flex items-baseline gap-2">
+                <div className="flex items-center gap-2">
                   <span className="font-semibold">{h.changedBy || "-"}</span>
+                  <span className="text-gray-400">-</span>
                   <span className="whitespace-pre-wrap">{h.memo || ""}</span>
+                  <span className="text-[12px] text-gray-500">· {formatYyMmDdHhMmSs(h.changedAt)}</span>
                 </div>
-                <div className="text-[12px] text-gray-500 mt-0.5">{formatYyMmDdHhMmSs(h.changedAt)}</div>
               </div>
             ))}
           </div>

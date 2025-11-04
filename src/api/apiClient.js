@@ -305,10 +305,20 @@ export const assetsApi = {
                 message: 'Invalid asset ID'
             });
         }
-        
+        // Include updatedBy on memo updates
+        let bodyPayload = assetData || {};
+        try {
+            if (bodyPayload && Object.prototype.hasOwnProperty.call(bodyPayload, 'memo')) {
+                const info = typedStorage.auth.getUserInfo() || {};
+                if (info && typeof info.name === 'string' && info.name.trim()) {
+                    bodyPayload = { ...bodyPayload, updatedBy: info.name.trim() };
+                }
+            }
+        } catch {}
+
         return await apiRequest(API_ENDPOINTS.ASSET_BY_ID(id), {
             method: 'PUT',
-            body: JSON.stringify(assetData)
+            body: JSON.stringify(bodyPayload)
         });
     },
     
@@ -470,7 +480,16 @@ export const rentalsApi = {
             });
         }
         const rid = sanitizeId(id);
-        const payload = toCamelRentalPayload(rentalData);
+        let payload = toCamelRentalPayload(rentalData);
+        // Include updatedBy on memo updates
+        try {
+            if (payload && Object.prototype.hasOwnProperty.call(payload, 'memo')) {
+                const info = typedStorage.auth.getUserInfo() || {};
+                if (info && typeof info.name === 'string' && info.name.trim()) {
+                    payload = { ...payload, updatedBy: info.name.trim() };
+                }
+            }
+        } catch {}
         return await apiRequest(API_ENDPOINTS.RENTAL_BY_ID(rid), {
             method: 'PUT',
             body: JSON.stringify(payload)
