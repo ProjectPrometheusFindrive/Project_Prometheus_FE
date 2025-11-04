@@ -20,6 +20,9 @@ const Modal = ({
 }) => {
   const containerRef = useRef(null);
   const previousActiveElementRef = useRef(null);
+  // Keep latest onClose without retriggering effects on every render
+  const onCloseRef = useRef(onClose);
+  useEffect(() => { onCloseRef.current = onClose; }, [onClose]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -29,7 +32,7 @@ const Modal = ({
 
     const onKey = (e) => {
       if (e.key === "Escape") {
-        try { onClose && onClose(); } catch {}
+        try { onCloseRef.current && onCloseRef.current(); } catch {}
       }
     };
     document.addEventListener("keydown", onKey);
@@ -50,7 +53,7 @@ const Modal = ({
         } catch {}
       }, 0);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
