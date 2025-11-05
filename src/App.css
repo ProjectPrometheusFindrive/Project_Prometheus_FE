@@ -205,6 +205,14 @@
     color: #d0d0d0;
 }
 
+/* Completed contract row highlighting */
+.asset-table tbody tr.is-completed {
+    background: #e9f8ee; /* match completed badge tone */
+}
+.asset-table tbody tr.is-completed:hover {
+    background: #def3e6; /* slightly stronger on hover */
+}
+
 .table-wrap--sticky {
     position: relative;
     --table-sticky-extra-offset: 0px;
@@ -2309,6 +2317,10 @@ html {
 /* Row hover contrast in dark */
 [data-theme='dark'] .asset-table tbody tr:hover,
 [data-theme='dark'] .members-table tbody tr:hover { background: #111827; color: #e5e7eb; }
+
+/* Completed contract row highlighting (dark mode) */
+[data-theme='dark'] .asset-table tbody tr.is-completed { background: #0f2e23; }
+[data-theme='dark'] .asset-table tbody tr.is-completed:hover { background: #0d261d; }
 
 /* Asset doc/preview and history blocks */
 [data-theme='dark'] .asset-doc { background: #0b1220; border-color: #1f2937; }

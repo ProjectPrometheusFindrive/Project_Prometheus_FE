@@ -164,46 +164,48 @@ export default function RentalContracts() {
 
     const rows = useMemo(() => {
         const now = new Date();
-        return items
-            .filter((r) => {
-                // 완료 제외
-                const status = computeContractStatus(r, now);
-                if (status === "완료") return false;
 
-                // 문제 상태는 항상 표시
-                if (status === "반납지연" || status === "도난의심" || status === "사고접수") return true;
+        const isOpenContract = (r) => {
+            const status = computeContractStatus(r, now);
+            if (status === "완료") return false; // 열린 계약에서 제외
+            // 문제 상태는 항상 표시
+            if (status === "반납지연" || status === "도난의심" || status === "사고접수") return true;
+            // 진행/예약 상태만 표시
+            const isFuture = !!(toDate(r?.rentalPeriod?.start) && now < toDate(r.rentalPeriod.start));
+            const isActive = !!(toDate(r?.rentalPeriod?.start) && toDate(r?.rentalPeriod?.end) && now >= toDate(r.rentalPeriod.start) && now <= toDate(r.rentalPeriod.end));
+            return isActive || isFuture;
+        };
 
-                // 진행/예약 상태만 표시
-                const isFuture = !!(toDate(r?.rentalPeriod?.start) && now < toDate(r.rentalPeriod.start));
-                const isActive = !!(toDate(r?.rentalPeriod?.start) && toDate(r?.rentalPeriod?.end) && now >= toDate(r.rentalPeriod.start) && now <= toDate(r.rentalPeriod.end));
-                return isActive || isFuture;
-            })
-            .map((r) => {
-                const now = new Date();
-                const end = toDate(r?.rentalPeriod?.end);
-                const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
-                const status = computeContractStatus(r, now);
+        const enrich = (r) => {
+            const end = toDate(r?.rentalPeriod?.end);
+            const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
+            const status = computeContractStatus(r, now);
+            const isLongTerm = (r.rentalDurationDays || 0) > 30;
+            const hasUnpaid = (r.unpaidAmount || 0) > 0;
+            const hasDevice = computeHasDevice(r, hasDeviceByPlate);
+            return {
+                ...r,
+                isActive: status === "대여중",
+                isOverdue: status === "반납지연",
+                isStolen: status === "도난의심",
+                overdueDays,
+                contractStatus: status,
+                isLongTerm,
+                hasUnpaid,
+                engineOn: r.engineStatus === "on",
+                restartBlocked: Boolean(r.restartBlocked),
+                memo: r.memo || "",
+                hasDevice,
+            };
+        };
 
-                // 대여금액 관련 정보
-                const isLongTerm = (r.rentalDurationDays || 0) > 30;
-                const hasUnpaid = (r.unpaidAmount || 0) > 0;
+        const openRows = items.filter(isOpenContract).map(enrich);
+        const completedRows = items
+            .filter((r) => computeContractStatus(r, now) === "완료")
+            .map(enrich);
 
-                const hasDevice = computeHasDevice(r, hasDeviceByPlate);
-                return {
-                    ...r,
-                    isActive: status === "대여중",
-                    isOverdue: status === "반납지연",
-                    isStolen: status === "도난의심",
-                    overdueDays,
-                    contractStatus: status,
-                    isLongTerm,
-                    hasUnpaid,
-                    engineOn: r.engineStatus === "on",
-                    restartBlocked: Boolean(r.restartBlocked),
-                    memo: r.memo || "",
-                    hasDevice,
-                };
-            });
+        // 열린 계약 위, 완료 계약 아래로 정렬
+        return [...openRows, ...completedRows];
     }, [items, hasDeviceByPlate]);
 
     const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rentalId");
@@ -663,6 +665,7 @@ export default function RentalContracts() {
             사고접수: "accident",
             반납지연: "overdue",
             도난의심: "suspicious",
+            완료: "completed",
         };
         const badgeType = statusMap[status] || "default";
         return <StatusBadge type={badgeType}>{status}</StatusBadge>;
@@ -715,6 +718,7 @@ export default function RentalContracts() {
                     rowIdKey="rentalId"
                     columns={dynamicColumns}
                     data={rows}
+                    rowClassName={(row) => (row.contractStatus === "완료" ? "is-completed" : undefined)}
                     selection={{ selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected }}
                     emptyMessage="조건에 맞는 계약이 없습니다."
                     stickyHeader
