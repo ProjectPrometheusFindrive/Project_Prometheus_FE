@@ -14,6 +14,9 @@ import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 import Table from "../components/Table";
+import useTableFilters from "../hooks/useTableFilters";
+import { applyColumnFilters } from "../utils/filtering";
+import { TABLE_COLUMN_FILTERS_ENABLED } from "../constants/featureFlags";
 import useDebouncedValue from "../hooks/useDebouncedValue";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES } from "../constants/auth";
@@ -408,20 +411,10 @@ export default function AssetStatus() {
 
     // no-op: removed debug logs
 
-    const debouncedQ = useDebouncedValue(q, 250);
-    const filtered = useMemo(() => {
-        const term = debouncedQ.trim().toLowerCase();
-        return rows.filter((a) => {
-            const matchesTerm = term
-                ? [a.plate, a.vehicleType, a.insuranceInfo, a.registrationDate, a.registrationStatus, a.installer, a.deviceSerial, a.id, a.memo].filter(Boolean).join(" ").toLowerCase().includes(term)
-                : true;
-            const matchesStatus = status === "all" ? true : a.registrationStatus === status;
-            return matchesTerm && matchesStatus;
-        });
-    }, [debouncedQ, status, rows]);
+    const tableFilterState = useTableFilters({ storageKey: "asset-table-filters" });
+    const { filters: columnFilters, setFilter: setColumnFilter, clearAll: clearAllColumnFilters } = tableFilterState;
 
-    const selection = useTableSelection(filtered, "id");
-    const { selected, selectedCount, clearSelection } = selection;
+    const debouncedQ = useDebouncedValue(q, 250);
 
     const handleDeleteSelected = async () => {
         if (selectedCount === 0) return;
@@ -970,6 +963,12 @@ export default function AssetStatus() {
                       key: column.key,
                       label: column.label,
                       style: { textAlign: "center" },
+                      filterType: "select",
+                      filterAccessor: (row) => (!!row.deviceSerial ? "연결됨" : "없음"),
+                      filterOptions: [
+                        { value: "연결됨", label: "연결됨" },
+                        { value: "없음", label: "없음" },
+                      ],
                       render: (row) => {
                           const hasDevice = !!row.deviceSerial;
                           if (hasDevice) {
@@ -1004,12 +1003,112 @@ export default function AssetStatus() {
                       label: column.label,
                       style: { textAlign: "center" },
                       sortAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
+                      filterType: "select",
+                      filterAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
                       render: (row) => renderCellContent(column, row),
                   }
                 : {
                       key: column.key,
                       label: column.label,
                       style: { textAlign: column.key === "memo" ? "left" : "center" },
+                      // Filter meta per column
+                      ...(column.key === "plate" ? { filterType: "text" } : null),
+                      ...(column.key === "vehicleType" ? {
+                        filterType: "custom",
+                        getFilterOptions: (rows) => {
+                          const typeSet = new Set();
+                          const yearSet = new Set();
+                          for (const r of rows || []) {
+                            if (r?.vehicleType) typeSet.add(String(r.vehicleType));
+                            const y = r?.year != null ? String(r.year) : null;
+                            if (y) yearSet.add(y);
+                          }
+                          const types = Array.from(typeSet).sort((a,b)=>a.localeCompare(b));
+                          const years = Array.from(yearSet).sort((a,b)=>Number(a)-Number(b));
+                          return { types, years };
+                        },
+                        filterPredicate: (row, f) => {
+                          if (!f || f.type !== 'custom') return true;
+                          const t = f.cat || null;
+                          const y = f.year || null;
+                          if (!t && !y) return true;
+                          const okType = t ? String(row?.vehicleType || '') === String(t) : true;
+                          const okYear = y ? String(row?.year || '') === String(y) : true;
+                          return okType && okYear;
+                        },
+                        renderCustomFilter: ({ value, onChange, options }) => {
+                          const val = value && value.type === 'custom' ? value : { type: 'custom', cat: null, year: null };
+                          const types = Array.isArray(options?.types) ? options.types : [];
+                          const years = Array.isArray(options?.years) ? options.years : [];
+                          return (
+                            <div className="space-y-2">
+                              <div>
+                                <div className="filter-label" style={{ marginBottom: 4 }}>차량 종류</div>
+                                <div className="filter-options">
+                                  {types.map((t) => (
+                                    <label key={t} className="filter-option">
+                                      <input type="radio" name="veh-type" checked={val.cat === t} onChange={() => onChange({ type: 'custom', cat: t, year: val.year })} />
+                                      <span>{t}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="filter-label" style={{ marginBottom: 4 }}>연식</div>
+                                <div className="filter-options">
+                                  {years.map((y) => (
+                                    <label key={y} className="filter-option">
+                                      <input type="radio" name="veh-year" checked={val.year === y} onChange={() => onChange({ type: 'custom', cat: val.cat, year: y })} />
+                                      <span>{y}</span>
+                                    </label>
+                                  ))}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        },
+                      } : null),
+                      ...(column.key === "registrationDate" ? { filterType: "date-range" } : null),
+                      ...(column.key === "insuranceExpiryDate" ? { filterType: "date-range" } : null),
+                      ...(column.key === "vehicleHealth" ? {
+                        filterType: "select",
+                        filterAccessor: (row) => {
+                          const hasDevice = !!row?.deviceSerial;
+                          if (!hasDevice) return "단말 필요";
+                          const dcount = getDiagnosticCount(row);
+                          if (dcount === 0) return "정상";
+                          const provided = row.diagnosticStatus;
+                          if (provided) return provided;
+                          const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+                          const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+                          return max > 7 ? "심각" : "관심필요";
+                        },
+                        filterOptions: ["정상", "관심필요", "심각", "단말 필요"].map((x) => ({ value: x, label: x })),
+                        // Single-select only; no AND concept
+                        filterAllowAnd: false,
+                      } : null),
+                      ...(column.key === "severity" ? {
+                        filterType: "number-range",
+                        filterAccessor: (row) => {
+                          const fromField = typeof row?.diagnosticMaxSeverity === "number" ? row.diagnosticMaxSeverity : null;
+                          let max = fromField;
+                          if (max == null) {
+                            const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+                            if (arr.length === 0) return 0;
+                            max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+                          }
+                          return Number(max) || 0;
+                        },
+                      } : null),
+                      ...(column.key === "managementStage" ? {
+                        filterType: "multi-select",
+                        filterOptions: MANAGEMENT_STAGE_OPTIONS.map((o) => ({ value: o.value, label: o.label || o.value })),
+                        // OR only per requirement
+                        filterAllowAnd: false,
+                        // Render as toggle-style badges (multi-select)
+                        filterOptionStyle: 'toggle',
+                      } : null),
+                      ...(column.key === "memo" ? { filterType: "text" } : null),
                       render: (row) => renderCellContent(column, row),
                   }
         ), [
@@ -1021,6 +1120,23 @@ export default function AssetStatus() {
             editingMemo,
             memoText,
         ]);
+
+    // Apply column filters + global search/status after columns are defined
+    const filtered = useMemo(() => {
+        const cols = dynamicColumns;
+        const afterColumn = applyColumnFilters(rows, columnFilters, cols);
+        const term = debouncedQ.trim().toLowerCase();
+        return afterColumn.filter((a) => {
+            const matchesTerm = term
+                ? [a.plate, a.vehicleType, a.insuranceInfo, a.registrationDate, a.registrationStatus, a.installer, a.deviceSerial, a.id, a.memo].filter(Boolean).join(" ").toLowerCase().includes(term)
+                : true;
+            const matchesStatus = status === "all" ? true : a.registrationStatus === status;
+            return matchesTerm && matchesStatus;
+        });
+    }, [rows, dynamicColumns, columnFilters, debouncedQ, status]);
+
+    const selection = useTableSelection(filtered, "id");
+    const { selected, selectedCount, clearSelection } = selection;
 
     return (
         <div className="page space-y-4">
@@ -1060,6 +1176,9 @@ export default function AssetStatus() {
                             />
                         )}
                     </div>
+                    <button type="button" className="form-button form-button--neutral" onClick={clearAllColumnFilters} title="모든 컬럼 필터 초기화">
+                        필터 초기화
+                    </button>
                 </div>
             </div>
 
@@ -1120,7 +1239,19 @@ export default function AssetStatus() {
                 currentMemo={memoHistoryTarget?.memo}
             />
 
-            <Table wrapRef={tableWrapRef} columns={dynamicColumns} data={filtered} selection={selection} emptyMessage="조건에 맞는 차량 자산이 없습니다." stickyHeader />
+            <Table
+                wrapRef={tableWrapRef}
+                columns={dynamicColumns}
+                data={filtered}
+                selection={selection}
+                emptyMessage="조건에 맞는 차량 자산이 없습니다."
+                stickyHeader
+                enableColumnFilters={TABLE_COLUMN_FILTERS_ENABLED}
+                filters={columnFilters}
+                onFiltersChange={(next) => {
+                    tableFilterState.setFilters(next);
+                }}
+            />
 
             {/* inline panel removed */}
             <Modal
