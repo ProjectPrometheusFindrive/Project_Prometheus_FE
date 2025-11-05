@@ -1014,59 +1014,8 @@ export default function AssetStatus() {
                       // Filter meta per column
                       ...(column.key === "plate" ? { filterType: "text" } : null),
                       ...(column.key === "vehicleType" ? {
-                        filterType: "custom",
-                        getFilterOptions: (rows) => {
-                          const typeSet = new Set();
-                          const yearSet = new Set();
-                          for (const r of rows || []) {
-                            if (r?.vehicleType) typeSet.add(String(r.vehicleType));
-                            const y = r?.year != null ? String(r.year) : null;
-                            if (y) yearSet.add(y);
-                          }
-                          const types = Array.from(typeSet).sort((a,b)=>a.localeCompare(b));
-                          const years = Array.from(yearSet).sort((a,b)=>Number(a)-Number(b));
-                          return { types, years };
-                        },
-                        filterPredicate: (row, f) => {
-                          if (!f || f.type !== 'custom') return true;
-                          const t = f.cat || null;
-                          const y = f.year || null;
-                          if (!t && !y) return true;
-                          const okType = t ? String(row?.vehicleType || '') === String(t) : true;
-                          const okYear = y ? String(row?.year || '') === String(y) : true;
-                          return okType && okYear;
-                        },
-                        renderCustomFilter: ({ value, onChange, options }) => {
-                          const val = value && value.type === 'custom' ? value : { type: 'custom', cat: null, year: null };
-                          const types = Array.isArray(options?.types) ? options.types : [];
-                          const years = Array.isArray(options?.years) ? options.years : [];
-                          return (
-                            <div className="space-y-2">
-                              <div>
-                                <div className="filter-label" style={{ marginBottom: 4 }}>차량 종류</div>
-                                <div className="filter-options">
-                                  {types.map((t) => (
-                                    <label key={t} className="filter-option">
-                                      <input type="radio" name="veh-type" checked={val.cat === t} onChange={() => onChange({ type: 'custom', cat: t, year: val.year })} />
-                                      <span>{t}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                              </div>
-                              <div>
-                                <div className="filter-label" style={{ marginBottom: 4 }}>연식</div>
-                                <div className="filter-options">
-                                  {years.map((y) => (
-                                    <label key={y} className="filter-option">
-                                      <input type="radio" name="veh-year" checked={val.year === y} onChange={() => onChange({ type: 'custom', cat: val.cat, year: y })} />
-                                      <span>{y}</span>
-                                    </label>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          );
-                        },
+                        filterType: "multi-select",
+                        // options will be derived automatically from data
                       } : null),
                       ...(column.key === "registrationDate" ? { filterType: "date-range" } : null),
                       ...(column.key === "insuranceExpiryDate" ? { filterType: "date-range" } : null),

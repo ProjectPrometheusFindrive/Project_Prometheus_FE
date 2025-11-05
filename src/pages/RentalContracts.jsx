@@ -513,7 +513,7 @@ export default function RentalContracts() {
               filterAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
             } : null),
             ...(col.key === "plate" ? { filterType: "text" } : null),
-            ...(col.key === "vehicleType" ? { filterType: "select" } : null),
+            ...(col.key === "vehicleType" ? { filterType: "multi-select" } : null),
             ...(col.key === "renterName" ? { filterType: "text" } : null),
             ...(col.key === "rentalPeriod" ? {
               filterType: "date-range",
