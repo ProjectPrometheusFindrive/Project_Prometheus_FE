@@ -1015,6 +1015,7 @@ export default function AssetStatus() {
                       ...(column.key === "plate" ? { filterType: "text" } : null),
                       ...(column.key === "vehicleType" ? {
                         filterType: "multi-select",
+                        filterAllowAnd: false,
                         getFilterOptions: () => {
                           const set = new Set();
                           for (const r of rows || []) {

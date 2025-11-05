@@ -515,6 +515,7 @@ export default function RentalContracts() {
             ...(col.key === "plate" ? { filterType: "text" } : null),
             ...(col.key === "vehicleType" ? {
               filterType: "multi-select",
+              filterAllowAnd: false,
               getFilterOptions: () => {
                 const set = new Set();
                 for (const r of rows || []) {
