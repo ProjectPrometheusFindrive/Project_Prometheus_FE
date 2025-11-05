@@ -5,6 +5,9 @@ import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
 import Table from "../components/Table";
+import useTableFilters from "../hooks/useTableFilters";
+import { applyColumnFilters } from "../utils/filtering";
+import { TABLE_COLUMN_FILTERS_ENABLED } from "../constants/featureFlags";
 import AccidentInfoModal from "../components/modals/AccidentInfoModal";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/badges/StatusBadge";
@@ -207,6 +210,9 @@ export default function RentalContracts() {
         // 열린 계약 위, 완료 계약 아래로 정렬
         return [...openRows, ...completedRows];
     }, [items, hasDeviceByPlate]);
+
+    const tableFilterState = useTableFilters({ storageKey: "rental-table-filters" });
+    const { filters: columnFilters } = tableFilterState;
 
     const { selected, toggleSelect, toggleSelectAllVisible, selectedCount, allVisibleSelected, clearSelection } = useTableSelection(rows, "rentalId");
 
@@ -501,6 +507,70 @@ export default function RentalContracts() {
                         return row?.[col.key] ?? "";
                 }
             },
+            // Filter meta and accessors per column
+            ...(col.key === "company" ? {
+              filterType: "select",
+              filterAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
+            } : null),
+            ...(col.key === "plate" ? { filterType: "text" } : null),
+            ...(col.key === "vehicleType" ? { filterType: "select" } : null),
+            ...(col.key === "renterName" ? { filterType: "text" } : null),
+            ...(col.key === "rentalPeriod" ? {
+              filterType: "date-range",
+              // 기준: end
+              filterAccessor: (row) => row?.rentalPeriod?.end || "",
+            } : null),
+            ...(col.key === "rentalAmount" ? {
+              filterType: "number-range",
+              filterAccessor: (row) => {
+                const v = row?.rentalAmount;
+                if (typeof v === "number") return v;
+                if (typeof v === "string") {
+                  const n = Number(v.replace(/[^0-9.-]/g, ""));
+                  return Number.isNaN(n) ? null : n;
+                }
+                return null;
+              },
+            } : null),
+            ...(col.key === "contractStatus" ? {
+              filterType: "multi-select",
+              filterAccessor: (row) => computeContractStatus(row),
+              filterOptions: [
+                { value: "대여중", label: "대여중" },
+                { value: "예약 중", label: "예약 중" },
+                { value: "반납지연", label: "반납지연" },
+                { value: "도난의심", label: "도난의심" },
+                { value: "사고접수", label: "사고접수" },
+                { value: "완료", label: "완료" },
+              ],
+              // OR only, hide AND toggle
+              filterAllowAnd: false,
+              // Render as toggle-style buttons (radio look, multi-select behavior)
+              filterOptionStyle: 'toggle',
+            } : null),
+            ...(col.key === "engineStatus" ? {
+              filterType: "select",
+              filterAccessor: (row) => {
+                if (!row?.hasDevice) return "단말 필요";
+                return row?.engineOn ? "ON" : "OFF";
+              },
+              filterOptions: [
+                { value: "ON", label: "ON" },
+                { value: "OFF", label: "OFF" },
+                { value: "단말 필요", label: "단말 필요" },
+              ],
+            } : null),
+            ...(col.key === "restartBlocked" ? {
+              filterType: "boolean",
+              filterAccessor: (row) => Boolean(row?.restartBlocked),
+              filterTriState: false,
+            } : null),
+            ...(col.key === "accident" ? {
+              filterType: "boolean",
+              filterAccessor: (row) => Boolean(row?.accidentReported),
+              filterTriState: false,
+            } : null),
+            ...(col.key === "memo" ? { filterType: "text" } : null),
         })), [
             columnsForRender,
             // Ensure closures used by renderers are always fresh
@@ -510,6 +580,12 @@ export default function RentalContracts() {
             handlePlateClick,
             handleOpenAccidentModal,
         ]);
+
+    // Apply column filters after dynamicColumns are available
+    const filteredRows = useMemo(
+        () => applyColumnFilters(rows, columnFilters, dynamicColumns),
+        [rows, columnFilters, dynamicColumns]
+    );
 
     // 드래그&드롭 이벤트 핸들러들
     const handleDragStart = (e, index) => {
@@ -711,18 +787,24 @@ export default function RentalContracts() {
                             />
                         )}
                         </div>
+                        <button type="button" className="form-button form-button--neutral" onClick={tableFilterState.clearAll} title="모든 컬럼 필터 초기화">
+                            필터 초기화
+                        </button>
                     </div>
                 </div>
 
                 <Table
                     rowIdKey="rentalId"
                     columns={dynamicColumns}
-                    data={rows}
+                    data={filteredRows}
                     rowClassName={(row) => (row.contractStatus === "완료" ? "is-completed" : undefined)}
                     selection={{ selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected }}
                     emptyMessage="조건에 맞는 계약이 없습니다."
                     stickyHeader
                     className="rentals-table"
+                    enableColumnFilters={TABLE_COLUMN_FILTERS_ENABLED}
+                    filters={columnFilters}
+                    onFiltersChange={(next) => tableFilterState.setFilters(next)}
                 />
             </div>
 
@@ -827,7 +909,7 @@ export default function RentalContracts() {
                                 <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>계약 정보</h3>
                                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
                                     <div>
-                                        <strong>계약 상태:</strong> {getContractStatusBadge(selectedContract.accidentReported ? "사고접수" : selectedContract.contractStatus)}
+                                        <strong>계약 상태:</strong> {getContractStatusBadge(computeContractStatus(selectedContract))}
                                     </div>
                                     <div>
                                         <strong>대여 시작:</strong> {formatDateTime(selectedContract.rentalPeriod?.start)}
