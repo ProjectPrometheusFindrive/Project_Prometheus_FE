@@ -1015,7 +1015,15 @@ export default function AssetStatus() {
                       ...(column.key === "plate" ? { filterType: "text" } : null),
                       ...(column.key === "vehicleType" ? {
                         filterType: "multi-select",
-                        // options will be derived automatically from data
+                        getFilterOptions: () => {
+                          const set = new Set();
+                          for (const r of rows || []) {
+                            if (r?.vehicleType) set.add(String(r.vehicleType));
+                          }
+                          return Array.from(set)
+                            .sort((a,b)=>String(a).localeCompare(String(b)))
+                            .map((v) => ({ value: v, label: v }));
+                        },
                       } : null),
                       ...(column.key === "registrationDate" ? { filterType: "date-range" } : null),
                       ...(column.key === "insuranceExpiryDate" ? { filterType: "date-range" } : null),
@@ -1068,6 +1076,7 @@ export default function AssetStatus() {
             rentalsByVin,
             editingMemo,
             memoText,
+            rows,
         ]);
 
     // Apply column filters + global search/status after columns are defined

@@ -513,7 +513,18 @@ export default function RentalContracts() {
               filterAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
             } : null),
             ...(col.key === "plate" ? { filterType: "text" } : null),
-            ...(col.key === "vehicleType" ? { filterType: "multi-select" } : null),
+            ...(col.key === "vehicleType" ? {
+              filterType: "multi-select",
+              getFilterOptions: () => {
+                const set = new Set();
+                for (const r of rows || []) {
+                  if (r?.vehicleType) set.add(String(r.vehicleType));
+                }
+                return Array.from(set)
+                  .sort((a,b)=>String(a).localeCompare(String(b)))
+                  .map((v) => ({ value: v, label: v }));
+              },
+            } : null),
             ...(col.key === "renterName" ? { filterType: "text" } : null),
             ...(col.key === "rentalPeriod" ? {
               filterType: "date-range",
