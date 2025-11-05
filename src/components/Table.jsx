@@ -201,7 +201,16 @@ export default function Table({
                             const activeFilter = (filters && filters[col.key]) || null;
                             const countFilterChips = (f) => {
                                 if (!f) return 0;
-                                if (f.type === 'custom') return (f.cat ? 1 : 0) + (f.year ? 1 : 0);
+                                if (f.type === 'custom') {
+                                    let cnt = 0;
+                                    for (const [k, v] of Object.entries(f)) {
+                                        if (k === 'type') continue;
+                                        if (Array.isArray(v)) cnt += v.length;
+                                        else if (typeof v === 'string') cnt += v.trim() ? 1 : 0;
+                                        else if (v != null) cnt += 1;
+                                    }
+                                    return cnt;
+                                }
                                 if (Array.isArray(f.values)) return f.values.length;
                                 if (typeof f.value === 'string') return f.value.trim() ? 1 : 0;
                                 if (f.value === true || f.value === false) return 1;

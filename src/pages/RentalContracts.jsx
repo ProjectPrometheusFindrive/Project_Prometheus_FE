@@ -533,15 +533,53 @@ export default function RentalContracts() {
               filterAccessor: (row) => row?.rentalPeriod?.end || "",
             } : null),
             ...(col.key === "rentalAmount" ? {
-              filterType: "number-range",
-              filterAccessor: (row) => {
-                const v = row?.rentalAmount;
-                if (typeof v === "number") return v;
-                if (typeof v === "string") {
-                  const n = Number(v.replace(/[^0-9.-]/g, ""));
-                  return Number.isNaN(n) ? null : n;
-                }
-                return null;
+              filterType: "custom",
+              // Apply number range AND (optional) duration classification
+              filterPredicate: (row, f) => {
+                if (!f || f.type !== 'custom') return true;
+                const getAmount = (r) => {
+                  const v = r?.rentalAmount;
+                  if (typeof v === 'number') return v;
+                  if (typeof v === 'string') {
+                    const n = Number(v.replace(/[^0-9.-]/g, ''));
+                    return Number.isNaN(n) ? null : n;
+                  }
+                  return null;
+                };
+                const amt = getAmount(row);
+                if (f.min != null && f.min !== '' && (amt == null || amt < Number(f.min))) return false;
+                if (f.max != null && f.max !== '' && (amt == null || amt > Number(f.max))) return false;
+                const sel = Array.isArray(f.durations) ? f.durations : [];
+                if (sel.length === 0) return true;
+                const isLong = Boolean(row?.isLongTerm);
+                const matchShort = sel.includes('short') && !isLong;
+                const matchLong = sel.includes('long') && isLong;
+                return matchShort || matchLong;
+              },
+              renderCustomFilter: ({ value, onChange }) => {
+                const val = value && value.type === 'custom' ? value : { type: 'custom', min: '', max: '', durations: [] };
+                const has = (k) => Array.isArray(val.durations) && val.durations.includes(k);
+                const toggle = (k) => {
+                  const curr = Array.isArray(val.durations) ? val.durations : [];
+                  const next = has(k) ? curr.filter((x) => x !== k) : [...curr, k];
+                  onChange({ ...val, durations: next });
+                };
+                return (
+                  <div className="space-y-2">
+                    <div className="filter-row">
+                      <input type="number" className="filter-input" placeholder="최소 금액" value={val.min ?? ''} onChange={(e) => onChange({ ...val, min: e.target.value })} />
+                      <span className="filter-sep">~</span>
+                      <input type="number" className="filter-input" placeholder="최대 금액" value={val.max ?? ''} onChange={(e) => onChange({ ...val, max: e.target.value })} />
+                    </div>
+                    <div>
+                      <div className="filter-label" style={{ marginBottom: 4 }}>기간</div>
+                      <div className="filter-toggle-group" role="group" aria-label="기간 선택">
+                        <button type="button" className={`filter-toggle${has('short') ? ' is-active' : ''}`} aria-pressed={has('short')} onClick={() => toggle('short')}>단기</button>
+                        <button type="button" className={`filter-toggle${has('long') ? ' is-active' : ''}`} aria-pressed={has('long')} onClick={() => toggle('long')}>장기</button>
+                      </div>
+                    </div>
+                  </div>
+                );
               },
             } : null),
             ...(col.key === "contractStatus" ? {
