@@ -16,7 +16,7 @@ describe('Table', () => {
   ];
   const columns = [
     { key: 'select', label: '선택' },
-    { key: 'name', label: '이름' },
+    { key: 'name', label: '이름', filterType: 'text' },
     { key: 'value', label: '값', sortable: true },
   ];
 
@@ -33,6 +33,19 @@ describe('Table', () => {
     expect(bodyRows[0].textContent).toContain('Alpha');
   });
 
+  it('opens filter popover when clicking header label', () => {
+    const filters = {};
+    const onFiltersChange = () => {};
+    const { container } = render(
+      <Table columns={columns} data={rows} enableColumnFilters filters={filters} onFiltersChange={onFiltersChange} />
+    );
+    const labelBtn = screen.getByRole('button', { name: '이름' });
+    // open
+    labelBtn.click();
+    const dlg = container.querySelector('.filter-popover');
+    expect(dlg).toBeTruthy();
+  });
+
   it('selects all rows via header checkbox', () => {
     render(<TableWithSelection rows={rows} columns={columns} />);
     const headerCheckbox = screen.getByRole('checkbox', { name: '현재 목록 전체 선택' });
@@ -43,4 +56,3 @@ describe('Table', () => {
     expect(rowChecks[2]).toBeChecked();
   });
 });
-

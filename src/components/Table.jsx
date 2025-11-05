@@ -1,6 +1,7 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { safeDate } from "../utils/date";
 import { DIMENSIONS } from "../constants";
+import ColumnFilterPopover from "./filters/ColumnFilterPopover";
 
 export default function Table({
     columns,
@@ -15,6 +16,10 @@ export default function Table({
     rowClassName,
     rowIdKey = "id", // 기본값은 "id", 커스텀 가능
     wrapRef,
+    enableColumnFilters = false,
+    filters,
+    onFiltersChange,
+    renderFilterContent,
     ...props
 }) {
     const { selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected } = selection || {};
@@ -34,6 +39,18 @@ export default function Table({
                   typeof stickyOffset === "number" ? `${stickyOffset}px` : stickyOffset || "0px",
           }
         : undefined;
+
+    // Column filter popover state
+    const [openFilterKey, setOpenFilterKey] = useState(null);
+    const [openFilterAlignRight, setOpenFilterAlignRight] = useState(false);
+    const headerRefs = useRef({});
+    const closeFilters = useCallback(() => setOpenFilterKey(null), []);
+
+    useEffect(() => {
+        const onEsc = (e) => { if (e.key === 'Escape') closeFilters(); };
+        document.addEventListener('keydown', onEsc);
+        return () => document.removeEventListener('keydown', onEsc);
+    }, [closeFilters]);
 
     // Sorting state and helpers
     const [sortKey, setSortKey] = useState(() => (initialSort && initialSort.key) || null);
@@ -123,6 +140,43 @@ export default function Table({
         setSortDir((prev) => (prev === "asc" ? "desc" : "asc"));
     }, [sortKey]);
 
+    const getFilterOptions = useCallback((col) => {
+        // Prefer explicit options provider when present
+        if (Array.isArray(col?.filterOptions)) return col.filterOptions;
+        if (typeof col?.getFilterOptions === "function") {
+            try { return col.getFilterOptions(sortedData); } catch { /* noop */ }
+        }
+        // Derive unique values from current data
+        const set = new Set();
+        for (const row of sortedData) {
+            const v = getCellValue(row, col);
+            if (v == null || v === "") continue;
+            set.add(v);
+        }
+        return Array.from(set).map((v) => ({ value: v, label: String(v) }));
+    }, [sortedData, getCellValue]);
+
+    const handleFilterChange = useCallback((key, nextVal) => {
+        if (typeof onFiltersChange !== "function") return;
+        const prev = filters || {};
+        const next = { ...prev };
+        const isEmpty = (v) => {
+            if (v == null) return true;
+            const t = v.type;
+            if (t === 'text') return !(v.value && String(v.value).trim());
+            if (t === 'select') return !Array.isArray(v.values) || v.values.length === 0;
+            if (t === 'multi-select') return !Array.isArray(v.values) || v.values.length === 0;
+            if (t === 'number-range') return (v.min == null || v.min === '') && (v.max == null || v.max === '');
+            if (t === 'date-range') return !(v.from) && !(v.to);
+            if (t === 'boolean') return v.value === undefined; // null(true for unknown) and booleans are active
+            if (t === 'custom') return !(v.cat) && !(v.year);
+            return false;
+        };
+        if (isEmpty(nextVal)) delete next[key];
+        else next[key] = nextVal;
+        onFiltersChange(next);
+    }, [filters, onFiltersChange]);
+
     return (
         <div ref={wrapRef} className={wrapClassNames.filter(Boolean).join(" ")} style={stickyStyle}>
             <table className={tableClassNames.filter(Boolean).join(" ")} {...props}>
@@ -142,9 +196,52 @@ export default function Table({
                             const sortable = col.sortable !== false && col.key !== "select";
                             const isActive = sortKey === col.key && !!sortDir;
                             const ariaSort = isActive ? (sortDir === "asc" ? "ascending" : "descending") : "none";
+                            const filterable = enableColumnFilters && col.key !== "select" && col.filterType;
+                            const isFilterOpen = openFilterKey === col.key;
+                            const activeFilter = (filters && filters[col.key]) || null;
+                            const countFilterChips = (f) => {
+                                if (!f) return 0;
+                                if (f.type === 'custom') return (f.cat ? 1 : 0) + (f.year ? 1 : 0);
+                                if (Array.isArray(f.values)) return f.values.length;
+                                if (typeof f.value === 'string') return f.value.trim() ? 1 : 0;
+                                if (f.value === true || f.value === false) return 1;
+                                if (f.min != null || f.max != null || f.from || f.to) return 1;
+                                return 0;
+                            };
+                            const filterCount = countFilterChips(activeFilter);
                             return (
-                                <th key={col.key} style={col.style} aria-sort={ariaSort} className={[sortable ? "th-sortable" : undefined, (col.style && col.style.textAlign === 'right') ? 'text-right' : (col.style && col.style.textAlign === 'center') ? 'text-center' : undefined].filter(Boolean).join(' ')}>
-                                    <span className="th-label">{col.label}</span>
+                                <th key={col.key} style={col.style} aria-sort={ariaSort} className={[sortable ? "th-sortable" : undefined, filterable && filterCount > 0 ? "th-filtered" : undefined, (col.style && col.style.textAlign === 'right') ? 'text-right' : (col.style && col.style.textAlign === 'center') ? 'text-center' : undefined].filter(Boolean).join(' ')}>
+                                    <button
+                                            type="button"
+                                            ref={(el) => { headerRefs.current[col.key] = el; }}
+                                            className="th-label"
+                                            aria-haspopup={filterable ? "dialog" : undefined}
+                                            aria-expanded={filterable ? (isFilterOpen ? "true" : "false") : undefined}
+                                        onMouseDown={(e) => { e.stopPropagation(); }}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (!filterable) return;
+                                            const nextKey = openFilterKey === col.key ? null : col.key;
+                                            setOpenFilterKey(nextKey);
+                                            if (nextKey) {
+                                                try {
+                                                    const el = headerRefs.current[col.key];
+                                                    const rect = el ? el.getBoundingClientRect() : null;
+                                                    const vw = window.innerWidth || document.documentElement.clientWidth || 1024;
+                                                    const maxW = 320; // match CSS max-width
+                                                    const margin = 8;
+                                                    const willOverflow = rect ? (rect.right + maxW + margin > vw) : false;
+                                                    setOpenFilterAlignRight(!!willOverflow);
+                                                } catch {
+                                                    setOpenFilterAlignRight(false);
+                                                }
+                                            }
+                                        }}
+                                            title={filterable ? `${col.label} 필터 열기` : undefined}
+                                        >
+                                            {col.label}
+                                            {filterable && !!filterCount && <span className="filter-badge" aria-label="활성 필터 수">{filterCount}</span>}
+                                        </button>
                                     {sortable && (
                                         <button
                                             type="button"
@@ -160,6 +257,22 @@ export default function Table({
                                             <span className="tri up">▲</span>
                                             <span className="tri down">▼</span>
                                         </button>
+                                    )}
+                                    {filterable && isFilterOpen && (
+                                        renderFilterContent ? (
+                                            renderFilterContent(col, activeFilter, (next) => handleFilterChange(col.key, next))
+                                        ) : (
+                                            <ColumnFilterPopover
+                                                column={col}
+                                                value={activeFilter || { type: col.filterType }}
+                                                onChange={(next) => handleFilterChange(col.key, next)}
+                                                onClear={() => handleFilterChange(col.key, null)}
+                                                options={getFilterOptions(col)}
+                                                anchorRef={{ current: headerRefs.current[col.key] }}
+                                                onRequestClose={() => setOpenFilterKey(null)}
+                                                alignRight={openFilterAlignRight}
+                                            />
+                                        )
                                     )}
                                 </th>
                             );

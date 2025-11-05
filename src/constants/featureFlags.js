@@ -16,8 +16,9 @@ function toBool(v) {
 }
 
 export const MTY_ENABLED = toBool(import.meta.env.VITE_MTY_ENABLED);
+export const TABLE_COLUMN_FILTERS_ENABLED = true; // enabled by default
 
 export default {
   MTY_ENABLED,
+  TABLE_COLUMN_FILTERS_ENABLED,
 };
-
