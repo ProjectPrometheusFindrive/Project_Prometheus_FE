@@ -132,7 +132,15 @@ export function applyColumnFilters(rows = [], filters = {}, columns = []) {
           if (f.value === null && col?.filterTriState === false) return true;
           return false;
         }
-        if (type === 'custom') return !(f.cat) && !(f.year);
+        if (type === 'custom') {
+          for (const [k, val] of Object.entries(f)) {
+            if (k === 'type') continue;
+            if (Array.isArray(val)) { if (val.length > 0) return false; else continue; }
+            if (typeof val === 'string') { if (val.trim() !== '') return false; else continue; }
+            if (val != null) return false;
+          }
+          return true;
+        }
         return false;
       })();
       if (empty) return null;

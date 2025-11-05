@@ -169,7 +169,16 @@ export default function Table({
             if (t === 'number-range') return (v.min == null || v.min === '') && (v.max == null || v.max === '');
             if (t === 'date-range') return !(v.from) && !(v.to);
             if (t === 'boolean') return v.value === undefined; // null(true for unknown) and booleans are active
-            if (t === 'custom') return !(v.cat) && !(v.year);
+            if (t === 'custom') {
+                // Consider any non-empty field (excluding 'type') as active
+                for (const [k, val] of Object.entries(v)) {
+                    if (k === 'type') continue;
+                    if (Array.isArray(val)) { if (val.length > 0) return false; else continue; }
+                    if (typeof val === 'string') { if (val.trim() !== '') return false; else continue; }
+                    if (val != null) return false;
+                }
+                return true;
+            }
             return false;
         };
         if (isEmpty(nextVal)) delete next[key];
