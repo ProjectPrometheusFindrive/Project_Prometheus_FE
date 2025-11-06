@@ -10,7 +10,8 @@ import {
     uploadsApi,
     authApi,
     ocrApi,
-    membersApi
+    membersApi,
+    faxApi
 } from './apiClient';
 import { API_STATUS, API_ERRORS, createOperationResult } from './apiTypes';
 
@@ -319,6 +320,13 @@ export async function requestResumableSession({ fileName, contentType, folder })
 // OCR
 export async function ocrExtract(requestBody) {
     const response = await ocrApi.extract(requestBody);
+    return extractData(response);
+}
+
+// Fax
+export async function sendFax(body) {
+    // body should include: receiverNum, receiverName?, title?, files (array), ttlSeconds?
+    const response = await faxApi.send(body || {});
     return extractData(response);
 }
 

@@ -638,6 +638,26 @@ export const uploadsApi = {
     }
 };
 
+// Fax API methods
+export const faxApi = {
+    /**
+     * Send a fax via backend integration
+     * body: {
+     *   receiverNum: string,
+     *   receiverName?: string,
+     *   title?: string,
+     *   files: (string | { objectName: string, fileName?: string })[],
+     *   ttlSeconds?: number
+     * }
+     */
+    async send(body) {
+        return await apiRequest(API_ENDPOINTS.FAX_SEND, {
+            method: 'POST',
+            body: JSON.stringify(body || {})
+        });
+    }
+};
+
 // OCR API methods
 export const ocrApi = {
     /**

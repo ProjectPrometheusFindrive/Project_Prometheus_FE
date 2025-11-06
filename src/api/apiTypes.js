@@ -68,7 +68,10 @@ export const API_ENDPOINTS = {
     UPLOAD_RESUMABLE: '/uploads/resumable',
 
     // OCR
-    OCR_EXTRACT: '/ocr/extract'
+    OCR_EXTRACT: '/ocr/extract',
+
+    // Fax
+    FAX_SEND: '/fax/send'
 };
 
 // Response status enum

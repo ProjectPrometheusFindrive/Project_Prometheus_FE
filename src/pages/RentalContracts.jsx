@@ -9,6 +9,7 @@ import useTableFilters from "../hooks/useTableFilters";
 import { applyColumnFilters } from "../utils/filtering";
 import { TABLE_COLUMN_FILTERS_ENABLED } from "../constants/featureFlags";
 import AccidentInfoModal from "../components/modals/AccidentInfoModal";
+import FaxSendPanel from "../components/FaxSendPanel";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/badges/StatusBadge";
 import KakaoMap from "../components/KakaoMap";
@@ -1246,6 +1247,12 @@ export default function RentalContracts() {
                                         최근 등록된 사고 시각: {accidentTarget.accidentReport.accidentDisplayTime}
                                     </div>
                                 )}
+
+                                {/* FAX 보내기 (placed below rental info, right column) */}
+                                <div className="mt-4">
+                                    <h3 className="m-0 text-base text-gray-800 dark:text-gray-100 mb-2">FAX 보내기</h3>
+                                    <FaxSendPanel rentalId={accidentTarget.rentalId} defaultTitle={"사고 접수 서류"} compact />
+                                </div>
                             </div>
                         </div>
                         <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>

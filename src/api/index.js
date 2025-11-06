@@ -49,6 +49,7 @@ export const {
   // Upload helpers
   requestUploadSign,
   requestResumableSession,
+  sendFax,
 
   // Auth
   login,
