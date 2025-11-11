@@ -2487,3 +2487,75 @@ html {
 [data-theme='dark'] .quick-actions__label {
     color: #9ca3af;
 }
+[data-theme='light'] .markdown-body table,
+[data-theme='dark'] .markdown-body table {
+  width: 100%;
+  border-collapse: collapse;
+}
+[data-theme='light'] .markdown-body,
+[data-theme='dark'] .markdown-body {
+  font-size: 0.875rem; /* ~14px */
+  line-height: 1.45;
+}
+[data-theme='light'] .markdown-body h1,
+[data-theme='light'] .markdown-body h2,
+[data-theme='light'] .markdown-body h3,
+[data-theme='light'] .markdown-body h4,
+[data-theme='light'] .markdown-body h5,
+[data-theme='light'] .markdown-body h6,
+[data-theme='dark'] .markdown-body h1,
+[data-theme='dark'] .markdown-body h2,
+[data-theme='dark'] .markdown-body h3,
+[data-theme='dark'] .markdown-body h4,
+[data-theme='dark'] .markdown-body h5,
+[data-theme='dark'] .markdown-body h6 {
+  font-size: 1em; /* keep headings compact inside terms */
+  margin: 0 0 0.5rem 0;
+}
+[data-theme='light'] .markdown-body th,
+[data-theme='light'] .markdown-body td,
+[data-theme='dark'] .markdown-body th,
+[data-theme='dark'] .markdown-body td {
+  border: 1px solid #e5e7eb; /* gray-200 */
+  padding: 6px 8px;
+}
+[data-theme='light'] .markdown-body thead th,
+[data-theme='dark'] .markdown-body thead th {
+  background: #f9fafb; /* gray-50 */
+  font-weight: 600;
+}
+[data-theme='light'] .markdown-body p,
+[data-theme='dark'] .markdown-body p {
+  margin: 0 0 0.5rem 0;
+}
+[data-theme='light'] .markdown-body ul,
+[data-theme='light'] .markdown-body ol,
+[data-theme='dark'] .markdown-body ul,
+[data-theme='dark'] .markdown-body ol {
+  margin: 0 0 0.5rem 1.25rem;
+}
+[data-theme='light'] .markdown-body code,
+[data-theme='dark'] .markdown-body code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  background: #f3f4f6; /* gray-100 */
+  border-radius: 4px;
+  padding: 1px 4px;
+  font-size: 0.85em;
+}
+[data-theme='light'] .markdown-body a,
+[data-theme='dark'] .markdown-body a {
+  color: #2563eb; /* blue-600 */
+  text-decoration: underline;
+}
+[data-theme='light'] .markdown-body blockquote,
+[data-theme='dark'] .markdown-body blockquote {
+  color: #374151; /* gray-700 */
+}
+[data-theme='light'] .markdown-body pre,
+[data-theme='dark'] .markdown-body pre {
+  background: #f9fafb; /* gray-50 */
+  border: 1px solid #e5e7eb; /* gray-200 */
+  border-radius: 6px;
+  padding: 8px;
+  overflow-x: auto;
+}
