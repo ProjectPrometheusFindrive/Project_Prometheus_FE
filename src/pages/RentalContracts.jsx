@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
-import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, createRental, deleteRental, fetchAssets } from "../api";
+import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, createRental, deleteRental, fetchAssets, fetchRentalLocation } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
@@ -345,27 +345,37 @@ export default function RentalContracts() {
 
     const handleShowLocation = async () => {
         if (!selectedContract) return;
-        // Prefer using location already included in rental detail payload
-        const preloadedLoc =
-            selectedContract.currentLocation ||
-            selectedContract.location ||
-            selectedContract.rentalLocation ||
-            selectedContract.returnLocation ||
-            (selectedContract.lat && selectedContract.lng ? { lat: selectedContract.lat, lng: selectedContract.lng } : null);
 
-        if (preloadedLoc && typeof preloadedLoc.lat === "number" && typeof preloadedLoc.lng === "number") {
+        setIsLoadingLocation(true);
+        try {
+            // Fetch current location with tracking data from API
+            const locationData = await fetchRentalLocation(selectedContract.rentalId, {
+                trail: true,  // 궤적 데이터 포함
+                limit: 100,   // 최대 100개의 포인트
+            });
+
+            if (!locationData) {
+                emitToast("현재 위치 정보를 가져올 수 없습니다.", "warning");
+                return;
+            }
+
+            // Update selected contract with location data
             setSelectedContract((prev) => ({
                 ...prev,
-                currentLocation: preloadedLoc,
-                logRecord: Array.isArray(prev?.logRecord) ? prev.logRecord : [],
+                currentLocation: locationData.currentLocation || locationData.location || null,
+                logRecord: locationData.logRecord || locationData.track || locationData.trail || [],
+                locationUpdatedAt: locationData.locationUpdatedAt || locationData.updatedAt || null,
+                engineOn: locationData.engineOn ?? prev.engineOn,
             }));
+
             setShowDetail(false);
             setShowLocationMap(true);
-            return;
+        } catch (error) {
+            console.error("Failed to fetch rental location", error);
+            emitToast("현재 위치 정보를 불러오는 중 오류가 발생했습니다.", "error");
+        } finally {
+            setIsLoadingLocation(false);
         }
-
-        // Fallback: no preloaded location available
-        emitToast("현재 위치 정보가 계약 데이터에 없습니다.", "warning");
     };
 
     const handleBackToDetail = () => {
