@@ -80,6 +80,13 @@ export default function RentalContracts() {
     const openInstallModal = () => setInstallModalOpen(true);
     const closeInstallModal = () => setInstallModalOpen(false);
     const [hasDeviceByPlate, setHasDeviceByPlate] = useState({});
+    const selectedContractTrackingData = selectedContract?.logRecord || [];
+    const hasSelectedTrackingData = Array.isArray(selectedContractTrackingData) && selectedContractTrackingData.length > 0;
+    const speedLegendItems = [
+        { key: "slow", label: "저속 <30", color: "#4CAF50", bg: "rgba(76, 175, 80, 0.14)" },
+        { key: "mid", label: "중속 30-100", color: "#FFC107", bg: "rgba(255, 193, 7, 0.18)" },
+        { key: "fast", label: "고속 >100", color: "#F44336", bg: "rgba(244, 67, 54, 0.14)" },
+    ];
 
     const normalizePlate = (p) => (p ? String(p).replace(/\s|-/g, "").toUpperCase() : "");
     const computeHasDevice = (r, plateMap) => {
@@ -1309,49 +1316,77 @@ export default function RentalContracts() {
                         </div>
 
                         {/* 지도 영역 */}
-                        {selectedContract.currentLocation ? (
-                            <div style={{ position: "relative", height: "400px" }}>
-                                <KakaoMap
-                                    latitude={selectedContract.currentLocation.lat}
-                                    longitude={selectedContract.currentLocation.lng}
-                                    vehicleNumber={selectedContract.plate}
-                                    lastUpdateTime={selectedContract.locationUpdatedAt || "업데이트 시간 없음"}
-                                    markerTitle={`${selectedContract.plate} (${selectedContract.vehicleType})`}
-                                    width="100%"
-                                    height="100%"
-                                    renterName={selectedContract.renterName}
-                                    engineOn={selectedContract.engineOn}
-                                    isOnline={!!selectedContract.currentLocation}
-                                    trackingData={selectedContract.logRecord || []}
-                                    onAddressResolved={(addr) => {
-                                        setSelectedContract((prev) => {
-                                            if (!prev) return prev;
-                                            const cl = prev.currentLocation || {};
-                                            if (cl.address === addr) return prev;
-                                            return { ...prev, currentLocation: { ...cl, address: addr } };
-                                        });
-                                    }}
-                                />
-                            </div>
-                        ) : (
+                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                            {hasSelectedTrackingData && (
+                                <div className="flex flex-wrap items-center gap-3 px-3 py-2 rounded-full shadow-sm bg-white/95 dark:bg-slate-800/95 text-slate-900 dark:text-slate-100">
+                                    <span className="font-semibold text-[12px] whitespace-nowrap">속도 범례</span>
+                                    {speedLegendItems.map((item) => (
+                                        <div
+                                            key={item.key}
+                                            className="flex items-center gap-2 text-[12px] leading-tight px-2.5 py-1 rounded-full"
+                                            style={{ backgroundColor: item.bg, boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)" }}
+                                        >
+                                            <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: item.color }} />
+                                            <span className="whitespace-nowrap" style={{ color: item.color }}>{item.label}</span>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
                             <div
                                 style={{
-                                    width: "100%",
-                                    height: "400px",
-                                    backgroundColor: "var(--location-placeholder-bg, #f8f9fa)",
-                                    borderRadius: "8px",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    border: "2px dashed var(--location-placeholder-border, #dee2e6)",
+                                    position: "relative",
+                                    height: "420px",
+                                    borderRadius: "10px",
+                                    overflow: "hidden",
+                                    border: "1px solid #e5e7eb",
+                                    backgroundColor: "var(--location-map-bg, #f8f9fa)",
                                 }}
                             >
-                                <FaMapMarkerAlt size={48} style={{ marginBottom: "16px", color: "var(--location-placeholder-icon, #adb5bd)" }} />
-                                <div style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--location-placeholder-title, #6c757d)", marginBottom: "8px" }}>위치 정보 없음</div>
-                                <div style={{ fontSize: "0.9rem", color: "var(--location-placeholder-subtext, #adb5bd)" }}>현재 차량의 위치 정보를 받을 수 없습니다.</div>
+                                {selectedContract.currentLocation ? (
+                                    <KakaoMap
+                                        latitude={selectedContract.currentLocation.lat}
+                                        longitude={selectedContract.currentLocation.lng}
+                                        vehicleNumber={selectedContract.plate}
+                                        lastUpdateTime={selectedContract.locationUpdatedAt || "업데이트 시간 없음"}
+                                        markerTitle={`${selectedContract.plate} (${selectedContract.vehicleType})`}
+                                        width="100%"
+                                        height="100%"
+                                        renterName={selectedContract.renterName}
+                                        engineOn={selectedContract.engineOn}
+                                        isOnline={!!selectedContract.currentLocation}
+                                        trackingData={selectedContractTrackingData}
+                                        showSpeedLegend={false}
+                                        showStatusOverlay={false}
+                                        onAddressResolved={(addr) => {
+                                            setSelectedContract((prev) => {
+                                                if (!prev) return prev;
+                                                const cl = prev.currentLocation || {};
+                                                if (cl.address === addr) return prev;
+                                                return { ...prev, currentLocation: { ...cl, address: addr } };
+                                            });
+                                        }}
+                                    />
+                                ) : (
+                                    <div
+                                        style={{
+                                            width: "100%",
+                                            height: "100%",
+                                            backgroundColor: "var(--location-placeholder-bg, #f8f9fa)",
+                                            borderRadius: "10px",
+                                            display: "flex",
+                                            flexDirection: "column",
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            border: "2px dashed var(--location-placeholder-border, #dee2e6)",
+                                        }}
+                                    >
+                                        <FaMapMarkerAlt size={48} style={{ marginBottom: "16px", color: "var(--location-placeholder-icon, #adb5bd)" }} />
+                                        <div style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--location-placeholder-title, #6c757d)", marginBottom: "8px" }}>위치 정보 없음</div>
+                                        <div style={{ fontSize: "0.9rem", color: "var(--location-placeholder-subtext, #adb5bd)" }}>현재 차량의 위치 정보를 받을 수 없습니다.</div>
+                                    </div>
+                                )}
                             </div>
-                        )}
+                        </div>
                     </div>
                 )}
             </Modal>

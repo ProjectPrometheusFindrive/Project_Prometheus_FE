@@ -39,6 +39,8 @@ const KakaoMap = ({
     editable = false, // 폴리곤 편집 가능 여부
     onPolygonChange = null, // 폴리곤 변경 콜백
     onAddressResolved = null, // 역지오코딩된 주소 콜백
+    showSpeedLegend = true,
+    showStatusOverlay = true,
 }) => {
     const mapContainer = useRef(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -476,29 +478,31 @@ const KakaoMap = ({
         return <div>{error}</div>;
     }
 
+    const hasTrackingData = Array.isArray(trackingData) && trackingData.length > 0;
+
     return (
         <div className="relative" style={{ width, height }}>
             {/* 속도 범례 */}
-            {trackingData && trackingData.length > 0 && (
-                <div className="absolute top-2.5 right-2.5 z-10 bg-white/95 p-3 rounded-lg shadow-md text-[11px] min-w-[120px]" style={{ color: "#111827" }}>
-                    <div className="font-bold mb-2">속도 범례</div>
-                    <div className="flex flex-col gap-1">
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-3 h-[3px] bg-[#4CAF50]"></div>
-                            <span>저속 (30km/h 미만)</span>
+            {showSpeedLegend && hasTrackingData && (
+                <div className="absolute bottom-3 left-3 z-20 flex items-center gap-3 px-3 py-1.5 rounded-full shadow-md bg-white/95 dark:bg-slate-800/95 border border-white/70 dark:border-slate-700 text-[11px] text-slate-900 dark:text-slate-100 leading-tight backdrop-blur-sm">
+                    <span className="font-bold whitespace-nowrap">속도</span>
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                            <div className="w-4 h-[3px] rounded-full bg-[#4CAF50]" />
+                            <span>저속 &lt;30</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-3 h-[3px] bg-[#FFC107]"></div>
-                            <span>중속 (30-100km/h)</span>
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                            <div className="w-4 h-[3px] rounded-full bg-[#FFC107]" />
+                            <span>중속 30-100</span>
                         </div>
-                        <div className="flex items-center gap-1.5">
-                            <div className="w-3 h-[3px] bg-[#F44336]"></div>
-                            <span>고속 (100km/h 초과)</span>
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                            <div className="w-4 h-[3px] rounded-full bg-[#F44336]" />
+                            <span>고속 &gt;100</span>
                         </div>
                     </div>
                 </div>
             )}
-            {(renterName || typeof engineOn !== "undefined") && (
+            {showStatusOverlay && (renterName || typeof engineOn !== "undefined" || typeof isOnline !== "undefined") && (
                 <div className="absolute top-2.5 left-2.5 z-10 bg-white/90 p-2.5 rounded-lg shadow text-[12px] flex flex-col gap-1.5" style={{ color: "#111827" }}>
                     {renterName && <div className="font-bold">대여자: {renterName}</div>}
                     {typeof engineOn !== "undefined" && (
@@ -554,6 +558,7 @@ const KakaoMapMemo = React.memo(KakaoMap, (prev, next) => {
     if (prev.latitude !== next.latitude || prev.longitude !== next.longitude) return false;
     if (prev.vehicleNumber !== next.vehicleNumber || prev.lastUpdateTime !== next.lastUpdateTime) return false;
     if (prev.editable !== next.editable) return false;
+    if (prev.showSpeedLegend !== next.showSpeedLegend || prev.showStatusOverlay !== next.showStatusOverlay) return false;
     if (!equalPolygons(prev.polygons, next.polygons)) return false;
     const prevTD = Array.isArray(prev.trackingData) ? prev.trackingData.length : 0;
     const nextTD = Array.isArray(next.trackingData) ? next.trackingData.length : 0;
