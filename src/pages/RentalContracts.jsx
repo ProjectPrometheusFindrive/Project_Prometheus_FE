@@ -1319,7 +1319,7 @@ export default function RentalContracts() {
                         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                             {hasSelectedTrackingData && (
                                 <div className="flex flex-wrap items-center gap-3 px-3 py-2 rounded-full shadow-sm bg-white/95 dark:bg-slate-800/95 text-slate-900 dark:text-slate-100">
-                                    <span className="font-semibold text-[12px] whitespace-nowrap">속도 범례</span>
+                                    <span className="font-semibold text-[12px] whitespace-nowrap">속도 범례:&nbsp;&nbsp;&nbsp; </span>
                                     {speedLegendItems.map((item) => (
                                         <div
                                             key={item.key}
@@ -1327,7 +1327,9 @@ export default function RentalContracts() {
                                             style={{ backgroundColor: item.bg, boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)" }}
                                         >
                                             <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: item.color }} />
+                                            <span> &nbsp;&nbsp;&nbsp; </span>
                                             <span className="whitespace-nowrap" style={{ color: item.color }}>{item.label}</span>
+                                            <span> &nbsp;&nbsp;&nbsp; </span>
                                         </div>
                                     ))}
                                 </div>
