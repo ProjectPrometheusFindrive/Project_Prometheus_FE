@@ -382,23 +382,9 @@ export default function RentalContracts() {
         return latest;
     };
 
-
-    const handleShowLocation = async () => {
-        if (!selectedContract) return;
-
-        setIsLoadingLocation(true);
-        try {
-            // Fetch current location with tracking data from API
-            const locationData = await fetchRentalLocation(selectedContract.rentalId, {
-                trail: true,  // 궤적 데이터 포함
-                limit: 100,   // 최대 100개의 포인트
-            });
-
-            if (!locationData) {
-                emitToast("현재 위치 정보를 가져올 수 없습니다.", "warning");
-                return;
-            }
-
+    const applyLocationData = (locationData) => {
+        setSelectedContract((prev) => {
+            if (!prev) return prev;
             const logRecord = locationData.logRecord || locationData.track || locationData.trail || [];
             const latestTrail = findLatestLogLocation(logRecord);
             const normalizedCurrent = (() => {
@@ -421,28 +407,67 @@ export default function RentalContracts() {
                 locationData.updatedAt ||
                 latestTrail?.rawTime ||
                 null;
-            const resolvedAddress = locationData.currentLocation?.address || locationData.location?.address;
+            const resolvedAddress = locationData.currentLocation?.address || locationData.location?.address || prev?.currentLocation?.address;
 
-            // Update selected contract with location data
-            setSelectedContract((prev) => ({
+            return {
                 ...prev,
                 currentLocation: (() => {
                     const base = normalizedCurrent ?? prev?.currentLocation ?? null;
                     if (!base) return base;
-                    // Preserve any address we already know (from API or previous geocoding)
-                    const address = resolvedAddress || prev?.currentLocation?.address || base.address;
+                    const address = resolvedAddress || base.address;
                     return address ? { ...base, address } : base;
                 })(),
                 logRecord,
                 locationUpdatedAt: updatedAt ?? prev?.locationUpdatedAt ?? null,
                 engineOn: locationData.engineOn ?? prev.engineOn,
-            }));
+            };
+        });
+    };
 
+
+    const handleShowLocation = async () => {
+        if (!selectedContract) return;
+
+        setIsLoadingLocation(true);
+        try {
+            // Fetch current location with tracking data from API
+            const locationData = await fetchRentalLocation(selectedContract.rentalId, {
+                trail: true,  // 궤적 데이터 포함
+                limit: 100,   // 최대 100개의 포인트
+            });
+
+            if (!locationData) {
+                emitToast("현재 위치 정보를 가져올 수 없습니다.", "warning");
+                return;
+            }
+
+            applyLocationData(locationData);
             setShowDetail(false);
             setShowLocationMap(true);
         } catch (error) {
             console.error("Failed to fetch rental location", error);
             emitToast("현재 위치 정보를 불러오는 중 오류가 발생했습니다.", "error");
+        } finally {
+            setIsLoadingLocation(false);
+        }
+    };
+
+    const handleLoadMoreTrail = async () => {
+        if (!selectedContract) return;
+        setIsLoadingLocation(true);
+        try {
+            const locationData = await fetchRentalLocation(selectedContract.rentalId, {
+                trail: true,
+                limit: 1000,
+            });
+            if (!locationData) {
+                emitToast("추가 이동 경로를 가져올 수 없습니다.", "warning");
+                return;
+            }
+            applyLocationData(locationData);
+        } catch (error) {
+            console.error("Failed to fetch extended trail", error);
+            emitToast("추가 이동 경로 요청 중 오류가 발생했습니다.", "error");
         } finally {
             setIsLoadingLocation(false);
         }
@@ -1411,6 +1436,14 @@ export default function RentalContracts() {
                                             <span> &nbsp;&nbsp;&nbsp; </span>
                                         </div>
                                     ))}
+                                    <button
+                                        type="button"
+                                        onClick={handleLoadMoreTrail}
+                                        disabled={isLoadingLocation}
+                                        className="ml-auto text-[12px] px-3 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-60"
+                                    >
+                                        이동경로 더보기
+                                    </button>
                                 </div>
                             )}
                             <div
