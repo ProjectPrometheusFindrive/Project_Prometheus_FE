@@ -71,7 +71,10 @@ export const API_ENDPOINTS = {
     OCR_EXTRACT: '/ocr/extract',
 
     // Fax
-    FAX_SEND: '/fax/send'
+    FAX_SEND: '/fax/send',
+
+    // Terminal install requests (public)
+    TERMINAL_REQUESTS: '/terminal-requests'
 };
 
 // Response status enum
@@ -91,7 +94,9 @@ export const API_ERRORS = {
     VALIDATION_ERROR: 'VALIDATION_ERROR',
     SERVER_ERROR: 'SERVER_ERROR',
     APPROVAL_PENDING: 'APPROVAL_PENDING',
-    APPROVAL_REJECTED: 'APPROVAL_REJECTED'
+    APPROVAL_REJECTED: 'APPROVAL_REJECTED',
+    EMAIL_NOT_CONFIGURED: 'EMAIL_NOT_CONFIGURED',
+    EMAIL_FAILED: 'EMAIL_FAILED'
 };
 
 // Standard API response wrapper
@@ -107,18 +112,30 @@ export function createApiResponse(data, status = API_STATUS.SUCCESS, error = nul
 // Error handler for API calls
 export function handleApiError(error, endpoint = 'unknown') {
     console.error(`API Error at ${endpoint}:`, error);
+    const statusCode = typeof error?.status === 'number'
+        ? error.status
+        : (typeof error?.statusCode === 'number' ? error.statusCode : undefined);
+    const details = Array.isArray(error?.details)
+        ? error.details
+        : (Array.isArray(error?.data?.details)
+            ? error.data.details
+            : (Array.isArray(error?.data?.error?.details) ? error.data.error.details : undefined));
     
     if (!navigator.onLine) {
         return createApiResponse(null, API_STATUS.ERROR, {
             type: API_ERRORS.NETWORK_ERROR,
-            message: 'Network connection unavailable'
+            message: 'Network connection unavailable',
+            status: statusCode,
+            details
         });
     }
     
     if (error.status === 404) {
         return createApiResponse(null, API_STATUS.ERROR, {
             type: API_ERRORS.NOT_FOUND,
-            message: 'Resource not found'
+            message: 'Resource not found',
+            status: statusCode,
+            details
         });
     }
 
@@ -133,7 +150,9 @@ export function handleApiError(error, endpoint = 'unknown') {
         }
         return createApiResponse(null, API_STATUS.ERROR, {
             type: errType || API_ERRORS.FORBIDDEN,
-            message
+            message,
+            status: statusCode,
+            details
         });
     }
     
@@ -148,27 +167,35 @@ export function handleApiError(error, endpoint = 'unknown') {
         }
         return createApiResponse(null, API_STATUS.ERROR, {
             type: errType || API_ERRORS.UNAUTHORIZED,
-            message
+            message,
+            status: statusCode,
+            details
         });
     }
     
     if (error.status === 409) {
         return createApiResponse(null, API_STATUS.ERROR, {
             type: API_ERRORS.CONFLICT,
-            message: '이미 존재하는 아이디입니다.'
+            message: '이미 존재하는 아이디입니다.',
+            status: statusCode,
+            details
         });
     }
     
     if (error.status >= 400 && error.status < 500) {
         return createApiResponse(null, API_STATUS.ERROR, {
             type: API_ERRORS.VALIDATION_ERROR,
-            message: error.message || 'Request validation failed'
+            message: error.message || 'Request validation failed',
+            status: statusCode,
+            details
         });
     }
     
     return createApiResponse(null, API_STATUS.ERROR, {
         type: API_ERRORS.SERVER_ERROR,
-        message: error.message || 'Server error occurred'
+        message: error.message || 'Server error occurred',
+        status: statusCode,
+        details
     });
 }
 

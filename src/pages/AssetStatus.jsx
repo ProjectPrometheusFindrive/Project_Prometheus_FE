@@ -28,6 +28,7 @@ import { formatDateShort } from "../utils/date";
 import { getManagementStage, withManagementStage, getDiagnosticCount } from "../utils/managementStage";
 import { FaCog } from "react-icons/fa";
 import MemoHistoryModal from "../components/modals/MemoHistoryModal";
+import TerminalRequestModal from "../components/modals/TerminalRequestModal";
 import { MemoCell, AssetManagementStageCell, VehicleHealthCell, CompanyCell, PlateCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import useInsuranceModal from "../hooks/useInsuranceModal";
@@ -1330,19 +1331,7 @@ export default function AssetStatus() {
             </Modal>
 
             {/* Device installation application modal */}
-            <Modal
-                isOpen={installModalOpen}
-                onClose={closeInstallModal}
-                title="단말 장착 신청"
-                ariaLabel="단말 장착 신청"
-                showFooter={true}
-                cancelText="닫기"
-            >
-                <div className="space-y-2">
-                    <p>신청 양식 개발 예정입니다.</p>
-                    <p className="text-sm text-gray-600">준비되는 대로 본 팝업에서 신청서를 작성하실 수 있습니다.</p>
-                </div>
-            </Modal>
+            <TerminalRequestModal isOpen={installModalOpen} onClose={closeInstallModal} />
             {toast && (
                 <Toast
                     message={toast.message}

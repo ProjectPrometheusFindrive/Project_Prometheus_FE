@@ -29,6 +29,12 @@ npm run preview  # 빌드 미리보기
   - 응답: `{ status, docType, ocrSuggestions: { <docType>: { fields:[{name,value,confidence}], source } }, savedObjectName? }`
 - 자산 등록(등록증)·계약 등록(계약서/면허)에서 업로드 후 OCR → 폼 자동 채움 → 사용자 확인 저장의 2단계 흐름을 지원합니다.
 
+## 단말 장착 신청 연동
+- 엔드포인트: `POST /terminal-requests` (`VITE_API_BASE_URL` 기준, 공개 엔드포인트)
+- 요청 필드: `companyName`, `managerName`, `managerPhone`, `expectedVehicleCount`(number), `targetVehicle`, `preferredRegion`, `expectedStartDate`, `needsRestartBlock`(boolean) — snake_case도 허용
+- 성공 응답: `{ status: "success", data: { recipients: [...], submitted: {...} } }`
+- 오류: `400 VALIDATION_ERROR` 시 `details` 배열 제공, `503 EMAIL_NOT_CONFIGURED`, `502/503 EMAIL_FAILED`(메일 재시도/문의 필요)
+
 ## 폴더 구조(요약)
 ```
 src/

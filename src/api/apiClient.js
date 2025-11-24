@@ -546,6 +546,16 @@ export const dashboardApi = {
     }
 };
 
+// Terminal install request API (public endpoint)
+export const terminalRequestsApi = {
+    async create(requestData) {
+        return await apiRequest(API_ENDPOINTS.TERMINAL_REQUESTS, {
+            method: 'POST',
+            body: JSON.stringify(requestData)
+        });
+    }
+};
+
 // Geofences API methods
 export const geofencesApi = {
     async fetchAll() {

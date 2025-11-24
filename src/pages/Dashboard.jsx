@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import Gauge from "../components/Gauge";
-import Modal from "../components/Modal";
 import { fetchDashboardData } from "../api";
 import useApprovalQueryEffects from "../hooks/useApprovalQueryEffects";
 import StatusDonut from "../components/charts/StatusDonut";
+import TerminalRequestModal from "../components/modals/TerminalRequestModal";
 
 const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
 
@@ -111,19 +111,10 @@ export default function Dashboard() {
                         </section>
                     ))}
                 </div>
-                <Modal
+                <TerminalRequestModal
                     isOpen={installModalOpen}
                     onClose={closeInstallModal}
-                    title="단말 장착 신청"
-                    ariaLabel="단말 장착 신청"
-                    showFooter={true}
-                    cancelText="닫기"
-                >
-                    <div className="space-y-2">
-                        <p>신청 양식 개발 예정입니다.</p>
-                        <p className="text-sm text-gray-600">준비되는 대로 본 팝업에서 신청서를 작성하실 수 있습니다.</p>
-                    </div>
-                </Modal>
+                />
             </div>
         </div>
     );

@@ -18,6 +18,7 @@ import VideoIcon from "../components/VideoIcon";
 import UploadProgress from "../components/UploadProgress";
 import { FiAlertTriangle } from "react-icons/fi";
 import MemoHistoryModal from "../components/modals/MemoHistoryModal";
+import TerminalRequestModal from "../components/modals/TerminalRequestModal";
 import { MemoCell, CompanyCell, PlateCell, RentalPeriodCell, RentalAmountCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import { computeContractStatus, toDate } from "../utils/contracts";
@@ -880,19 +881,7 @@ export default function RentalContracts() {
                 <RentalForm onSubmit={handleCreateSubmit} formId="rental-create" onClose={() => setShowCreate(false)} />
             </Modal>
 
-            <Modal
-                isOpen={installModalOpen}
-                onClose={closeInstallModal}
-                title="단말 장착 신청"
-                ariaLabel="단말 장착 신청"
-                showFooter={true}
-                cancelText="닫기"
-            >
-                <div className="space-y-2">
-                    <p>신청 양식 개발 예정입니다.</p>
-                    <p className="text-sm text-gray-600">준비되는 대로 본 팝업에서 신청서를 작성하실 수 있습니다.</p>
-                </div>
-            </Modal>
+            <TerminalRequestModal isOpen={installModalOpen} onClose={closeInstallModal} />
 
             <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title="계약 상세 정보" showFooter={false} ariaLabel="Contract Details">
                 {selectedContract && (

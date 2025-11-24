@@ -11,7 +11,8 @@ import {
     authApi,
     ocrApi,
     membersApi,
-    faxApi
+    faxApi,
+    terminalRequestsApi
 } from './apiClient';
 import { API_STATUS, API_ERRORS, createOperationResult } from './apiTypes';
 
@@ -245,6 +246,42 @@ export async function resolveVehicleRentals(vin) {
 export async function fetchDashboardData() {
     const response = await dashboardApi.fetchData();
     return extractData(response);
+}
+
+// Terminal installation request (public)
+export async function submitTerminalRequest(data) {
+    try {
+        const response = await terminalRequestsApi.create(data);
+        if (response.status === API_STATUS.SUCCESS) {
+            return createOperationResult(true, extractData(response));
+        }
+        const err = response.error || {};
+        const detailList = Array.isArray(err.details)
+            ? err.details
+            : (response.data && Array.isArray(response.data.details) ? response.data.details : []);
+        return {
+            ok: false,
+            data: null,
+            error: {
+                message: err.message || '단말 장착 신청에 실패했습니다.',
+                type: err.type,
+                status: err.status,
+                details: detailList
+            }
+        };
+    } catch (e) {
+        const detailList = Array.isArray(e?.details) ? e.details : [];
+        return {
+            ok: false,
+            data: null,
+            error: {
+                message: e?.message || '단말 장착 신청에 실패했습니다.',
+                type: e?.type,
+                status: e?.status,
+                details: detailList
+            }
+        };
+    }
 }
 
 // Geofences/Settings
