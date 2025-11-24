@@ -528,8 +528,8 @@ export default function RentalContracts() {
                     });
                 };
 
-                // Try with (lat, lng), then (lng, lat); fall back to region code if address fails
-                geocoder.coord2Address(lat, lng, (result, status) => {
+                // Only try with x=lng, y=lat; fall back to region code if address fails
+                geocoder.coord2Address(lng, lat, (result, status) => {
                     if (cancelled) return;
                     if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
                         const addr = result[0].address?.address_name || "";
@@ -538,37 +538,17 @@ export default function RentalContracts() {
                             return;
                         }
                     }
-                    geocoder.coord2Address(lng, lat, (altResult, altStatus) => {
+                    // Region-level fallback
+                    geocoder.coord2RegionCode(lng, lat, (regionResult, regionStatus) => {
                         if (cancelled) return;
-                        if (altStatus === window.kakao.maps.services.Status.OK && altResult && altResult[0]) {
-                            const addr = altResult[0].address?.address_name || "";
+                        if (regionStatus === window.kakao.maps.services.Status.OK && regionResult && regionResult[0]) {
+                            const addr = regionResult[0].address_name || "";
                             if (addr) {
                                 applyAddress(addr);
                                 return;
                             }
                         }
-                        // Region-level fallback
-                        geocoder.coord2RegionCode(lat, lng, (regionResult, regionStatus) => {
-                            if (cancelled) return;
-                            if (regionStatus === window.kakao.maps.services.Status.OK && regionResult && regionResult[0]) {
-                                const addr = regionResult[0].address_name || "";
-                                if (addr) {
-                                    applyAddress(addr);
-                                    return;
-                                }
-                            }
-                            geocoder.coord2RegionCode(lng, lat, (regionResult2, regionStatus2) => {
-                                if (cancelled) return;
-                                if (regionStatus2 === window.kakao.maps.services.Status.OK && regionResult2 && regionResult2[0]) {
-                                    const addr = regionResult2[0].address_name || "";
-                                    if (addr) {
-                                        applyAddress(addr);
-                                        return;
-                                    }
-                                }
-                                applyAddress(null);
-                            });
-                        });
+                        applyAddress(null);
                     });
                 });
             } catch {

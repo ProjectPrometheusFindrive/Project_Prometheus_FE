@@ -464,14 +464,8 @@ const KakaoMap = ({
                     });
                 };
 
-                const tryFallbacks = () => {
+                tryAddress(lngNum, latNum, () => {
                     tryRegion(lngNum, latNum, () => onDone(null));
-                };
-
-                tryAddress(latNum, lngNum, () => {
-                    tryAddress(lngNum, latNum, () => {
-                        tryRegion(latNum, lngNum, tryFallbacks);
-                    });
                 });
             };
             if (Number.isFinite(lngNum) && Number.isFinite(latNum)) {
