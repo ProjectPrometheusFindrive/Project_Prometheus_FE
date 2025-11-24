@@ -83,6 +83,8 @@ export default function RentalContracts() {
     const [hasDeviceByPlate, setHasDeviceByPlate] = useState({});
     const selectedContractTrackingData = selectedContract?.logRecord || [];
     const hasSelectedTrackingData = Array.isArray(selectedContractTrackingData) && selectedContractTrackingData.length > 0;
+    const latestSelectedTracking = findLatestLogLocation(selectedContractTrackingData);
+    const mapLastUpdateTime = selectedContract?.locationUpdatedAt || latestSelectedTracking?.rawTime || "업데이트 시간 없음";
     const speedLegendItems = [
         { key: "slow", label: "저속 <30", color: "#4CAF50", bg: "rgba(76, 175, 80, 0.14)" },
         { key: "mid", label: "중속 30-100", color: "#FFC107", bg: "rgba(255, 193, 7, 0.18)" },
@@ -1461,7 +1463,7 @@ export default function RentalContracts() {
                                         latitude={selectedContract.currentLocation.lat}
                                         longitude={selectedContract.currentLocation.lng}
                                         vehicleNumber={selectedContract.plate}
-                                        lastUpdateTime={selectedContract.locationUpdatedAt || "업데이트 시간 없음"}
+                                        lastUpdateTime={mapLastUpdateTime}
                                         markerTitle={`${selectedContract.plate} (${selectedContract.vehicleType})`}
                                         width="100%"
                                         height="100%"
