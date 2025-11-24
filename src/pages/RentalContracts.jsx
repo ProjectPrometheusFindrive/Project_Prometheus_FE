@@ -56,6 +56,37 @@ const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, index) => String(in
 
 // Column merging is handled by useColumnSettings hook
 
+function findLatestLogLocation(logRecord = []) {
+    if (!Array.isArray(logRecord) || logRecord.length === 0) return null;
+    let latest = null;
+    let latestTs = -Infinity;
+    let latestIdx = -1;
+
+    for (let i = 0; i < logRecord.length; i++) {
+        const entry = logRecord[i];
+        const latRaw = entry?.lat ?? entry?.latitude;
+        const lngRaw = entry?.lng ?? entry?.longitude;
+        const lat = typeof latRaw === "string" ? Number(latRaw) : latRaw;
+        const lng = typeof lngRaw === "string" ? Number(lngRaw) : lngRaw;
+        if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
+        const rawTime = entry?.dateTime || entry?.datetime || entry?.timestamp || entry?.time;
+        const parsed = rawTime ? Date.parse(rawTime) : NaN;
+        if (Number.isFinite(parsed)) {
+            if (parsed > latestTs) {
+                latest = { lat, lng, raw: entry, rawTime };
+                latestTs = parsed;
+                latestIdx = i;
+            }
+        } else if (!Number.isFinite(latestTs) && i > latestIdx) {
+            // Fallback: if no valid timestamp has been found, pick the last valid lat/lng entry by order
+            latest = { lat, lng, raw: entry, rawTime };
+            latestIdx = i;
+        }
+    }
+
+    return latest;
+}
+
 export default function RentalContracts() {
     const confirm = useConfirm();
     const auth = useAuth();
@@ -87,8 +118,8 @@ export default function RentalContracts() {
     const mapLastUpdateTime = selectedContract?.locationUpdatedAt || latestSelectedTracking?.rawTime || "업데이트 시간 없음";
     const speedLegendItems = [
         { key: "slow", label: "저속 <30", color: "#4CAF50", bg: "rgba(76, 175, 80, 0.14)" },
-        { key: "mid", label: "중속 30-100", color: "#FFC107", bg: "rgba(255, 193, 7, 0.18)" },
-        { key: "fast", label: "고속 >100", color: "#F44336", bg: "rgba(244, 67, 54, 0.14)" },
+        { key: "mid", label: "중속 30-80", color: "#FFC107", bg: "rgba(255, 193, 7, 0.18)" },
+        { key: "fast", label: "고속 >80", color: "#F44336", bg: "rgba(244, 67, 54, 0.14)" },
     ];
 
     const normalizePlate = (p) => (p ? String(p).replace(/\s|-/g, "").toUpperCase() : "");
