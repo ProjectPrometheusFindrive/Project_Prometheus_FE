@@ -438,44 +438,53 @@ const KakaoMap = ({
         if (geocoder) {
             const lngNum = Number(longitude);
             const latNum = Number(latitude);
-            const tryGeocode = (x, y, onDone) => {
-                geocoder.coord2Address(x, y, (result, status) => {
-                    if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
-                        const resolved = result[0].address?.address_name || "";
-                        onDone(resolved || null);
-                    } else {
-                        onDone(null);
-                    }
+            const resolveAddress = (onDone) => {
+                const tryAddress = (x, y, next) => {
+                    geocoder.coord2Address(x, y, (result, status) => {
+                        if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
+                            const resolved = result[0].address?.address_name || "";
+                            if (resolved) {
+                                onDone(resolved);
+                                return;
+                            }
+                        }
+                        next();
+                    });
+                };
+                const tryRegion = (x, y, next) => {
+                    geocoder.coord2RegionCode(x, y, (result, status) => {
+                        if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
+                            const resolved = result[0].address_name || "";
+                            if (resolved) {
+                                onDone(resolved);
+                                return;
+                            }
+                        }
+                        next();
+                    });
+                };
+
+                const tryFallbacks = () => {
+                    tryRegion(lngNum, latNum, () => onDone(null));
+                };
+
+                tryAddress(latNum, lngNum, () => {
+                    tryAddress(lngNum, latNum, () => {
+                        tryRegion(latNum, lngNum, tryFallbacks);
+                    });
                 });
             };
             if (Number.isFinite(lngNum) && Number.isFinite(latNum)) {
-                // Try with (lat, lng) first per request, then fallback to (lng, lat)
-                tryGeocode(latNum, lngNum, (resolved) => {
-                    if (!resolved) {
-                        tryGeocode(lngNum, latNum, (resolvedSwapped) => {
-                            const finalAddr = resolvedSwapped || null;
-                            if (infoWindowRef.current) {
-                                infoWindowRef.current.close();
-                                infoWindowRef.current = buildInfoWindow(finalAddr || "주소 확인 실패");
-                                infoWindowRef.current.open(map, vehicleMarkerRef.current);
-                            }
-                            if (finalAddr && typeof onAddressResolved === "function") {
-                                try {
-                                    onAddressResolved(finalAddr);
-                                } catch {}
-                            }
-                        });
-                    } else {
-                        if (infoWindowRef.current) {
-                            infoWindowRef.current.close();
-                            infoWindowRef.current = buildInfoWindow(resolved || "주소 확인 실패");
-                            infoWindowRef.current.open(map, vehicleMarkerRef.current);
-                        }
-                        if (resolved && typeof onAddressResolved === "function") {
-                            try {
-                                onAddressResolved(resolved);
-                            } catch {}
-                        }
+                resolveAddress((resolved) => {
+                    if (infoWindowRef.current) {
+                        infoWindowRef.current.close();
+                        infoWindowRef.current = buildInfoWindow(resolved || "주소 확인 실패");
+                        infoWindowRef.current.open(map, vehicleMarkerRef.current);
+                    }
+                    if (resolved && typeof onAddressResolved === "function") {
+                        try {
+                            onAddressResolved(resolved);
+                        } catch {}
                     }
                 });
             }
