@@ -382,62 +382,32 @@ export default function RentalContracts() {
     };
     const handleMemoCancel = () => onMemoCancel();
 
-    
-
-    const findLatestLogLocation = (logRecord = []) => {
-        if (!Array.isArray(logRecord) || logRecord.length === 0) return null;
-        let latest = null;
-        let latestTs = -Infinity;
-        let latestIdx = -1;
-
-        for (let i = 0; i < logRecord.length; i++) {
-            const entry = logRecord[i];
-            const latRaw = entry?.lat ?? entry?.latitude;
-            const lngRaw = entry?.lng ?? entry?.longitude;
-            const lat = typeof latRaw === "string" ? Number(latRaw) : latRaw;
-            const lng = typeof lngRaw === "string" ? Number(lngRaw) : lngRaw;
-            if (!Number.isFinite(lat) || !Number.isFinite(lng)) continue;
-            const rawTime = entry?.dateTime || entry?.datetime || entry?.timestamp || entry?.time;
-            const parsed = rawTime ? Date.parse(rawTime) : NaN;
-            if (Number.isFinite(parsed)) {
-                if (parsed > latestTs) {
-                    latest = { lat, lng, raw: entry, rawTime };
-                    latestTs = parsed;
-                    latestIdx = i;
-                }
-            } else if (!Number.isFinite(latestTs) && i > latestIdx) {
-                // Fallback: if no valid timestamp has been found, pick the last valid lat/lng entry by order
-                latest = { lat, lng, raw: entry, rawTime };
-                latestIdx = i;
-            }
-        }
-
-        return latest;
-    };
-
     const applyLocationData = (locationData) => {
         setSelectedContract((prev) => {
             if (!prev) return prev;
             const logRecord = locationData.logRecord || locationData.track || locationData.trail || [];
             const latestTrail = findLatestLogLocation(logRecord);
             const normalizedCurrent = (() => {
+                const loc = locationData.currentLocation || locationData.location || prev.currentLocation || null;
+                if (loc) {
+                    const latRaw = loc.lat ?? loc.latitude;
+                    const lngRaw = loc.lng ?? loc.longitude;
+                    const lat = typeof latRaw === "string" ? Number(latRaw) : latRaw;
+                    const lng = typeof lngRaw === "string" ? Number(lngRaw) : lngRaw;
+                    if (Number.isFinite(lat) && Number.isFinite(lng)) {
+                        return { ...loc, lat, lng };
+                    }
+                }
+                // Fallback: if API didn't give a current location, use latest trail point
                 if (latestTrail) {
                     return { lat: latestTrail.lat, lng: latestTrail.lng, source: "logRecord" };
-                }
-                const loc = locationData.currentLocation || locationData.location || null;
-                if (!loc) return null;
-                const latRaw = loc.lat ?? loc.latitude;
-                const lngRaw = loc.lng ?? loc.longitude;
-                const lat = typeof latRaw === "string" ? Number(latRaw) : latRaw;
-                const lng = typeof lngRaw === "string" ? Number(lngRaw) : lngRaw;
-                if (Number.isFinite(lat) && Number.isFinite(lng)) {
-                    return { ...loc, lat, lng };
                 }
                 return null;
             })();
             const updatedAt =
                 locationData.locationUpdatedAt ||
                 locationData.updatedAt ||
+                prev.locationUpdatedAt ||
                 latestTrail?.rawTime ||
                 null;
             const resolvedAddress = locationData.currentLocation?.address || locationData.location?.address || prev?.currentLocation?.address;
@@ -451,7 +421,7 @@ export default function RentalContracts() {
                     return address ? { ...base, address } : base;
                 })(),
                 logRecord,
-                locationUpdatedAt: updatedAt ?? prev?.locationUpdatedAt ?? null,
+                locationUpdatedAt: updatedAt,
                 engineOn: locationData.engineOn ?? prev.engineOn,
             };
         });
