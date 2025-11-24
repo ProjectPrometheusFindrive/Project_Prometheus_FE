@@ -229,6 +229,55 @@ const KakaoMap = ({
         return { vertexMarkers, midMarkers };
     };
 
+    const extendBoundsWithPath = (bounds, path) => {
+        if (!bounds || !path) return;
+        for (let i = 0; i < path.length; i++) {
+            bounds.extend(path[i]);
+        }
+    };
+
+    const extendBoundsWithTrackingPoints = (bounds) => {
+        if (!Array.isArray(trackingData)) return;
+        for (const point of trackingData) {
+            const lat = typeof point?.lat === "number" ? point.lat : point?.latitude;
+            const lng = typeof point?.lng === "number" ? point.lng : point?.longitude;
+            if (typeof lat === "number" && typeof lng === "number") {
+                bounds.extend(new window.kakao.maps.LatLng(lat, lng));
+            }
+        }
+    };
+
+    const fitMapToVisibleData = (map) => {
+        if (!map || !window.kakao?.maps) return;
+        const bounds = new window.kakao.maps.LatLngBounds();
+
+        overlaysRef.current.polygons.forEach((entry) => {
+            if (!entry?.polygon?.getPath) return;
+            const path = entry.polygon.getPath();
+            extendBoundsWithPath(bounds, path);
+        });
+
+        overlaysRef.current.polylines.forEach((pl) => {
+            if (!pl?.getPath) return;
+            const path = pl.getPath();
+            extendBoundsWithPath(bounds, path);
+        });
+
+        // If only a single tracking point exists, fall back to raw points so bounds still reflect the trail
+        if ((overlaysRef.current.polylines || []).length === 0) {
+            extendBoundsWithTrackingPoints(bounds);
+        }
+
+        if (vehicleMarkerRef.current?.getPosition) {
+            bounds.extend(vehicleMarkerRef.current.getPosition());
+        }
+
+        if (!bounds.isEmpty()) {
+            map.setBounds(bounds);
+            hasFittedBoundsRef.current = true;
+        }
+    };
+
     const drawOrUpdatePolygons = (map) => {
         if (!Array.isArray(polygons) || polygons.length === 0) {
             clearPolygons();
@@ -289,7 +338,10 @@ const KakaoMap = ({
 
     const drawOrUpdatePolylines = (map) => {
         clearPolylines();
-        if (!trackingData || trackingData.length < 2) return;
+        if (!trackingData || trackingData.length < 2) {
+            fitMapToVisibleData(map);
+            return;
+        }
         const segments = processTrackingData(trackingData);
         const list = [];
         for (const segment of segments) {
@@ -308,6 +360,7 @@ const KakaoMap = ({
             list.push(polyline);
         }
         overlaysRef.current.polylines = list;
+        fitMapToVisibleData(map);
     };
 
     const initOrGetGeocoder = () => {
@@ -416,17 +469,7 @@ const KakaoMap = ({
                 drawOrUpdatePolygons(map);
                 drawOrUpdatePolylines(map);
                 createOrUpdateVehicleMarker(map);
-                // Fit once
-                const bounds = new window.kakao.maps.LatLngBounds();
-                overlaysRef.current.polygons.forEach((entry) => {
-                    const path = entry.polygon.getPath();
-                    for (let i = 0; i < path.length; i++) bounds.extend(path[i]);
-                });
-                if (vehicleMarkerRef.current) bounds.extend(vehicleMarkerRef.current.getPosition());
-                if (!bounds.isEmpty()) {
-                    map.setBounds(bounds);
-                    hasFittedBoundsRef.current = true;
-                }
+                fitMapToVisibleData(map);
                 setIsLoading(false);
                 setError(null);
             } catch (err) {
