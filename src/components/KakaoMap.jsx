@@ -436,21 +436,30 @@ const KakaoMap = ({
 
         const geocoder = initOrGetGeocoder();
         if (geocoder) {
-            geocoder.coord2Address(longitude, latitude, (result, status) => {
-                if (status === window.kakao.maps.services.Status.OK && result[0]) {
-                    const resolved = result[0].address.address_name;
-                    if (infoWindowRef.current) {
+            const x = Number(longitude);
+            const y = Number(latitude);
+            if (Number.isFinite(x) && Number.isFinite(y)) {
+                geocoder.coord2Address(x, y, (result, status) => {
+                    if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
+                        const resolved = result[0].address?.address_name || "";
+                        if (infoWindowRef.current) {
+                            infoWindowRef.current.close();
+                            infoWindowRef.current = buildInfoWindow(resolved || "주소 확인 실패");
+                            infoWindowRef.current.open(map, vehicleMarkerRef.current);
+                        }
+                        if (resolved && typeof onAddressResolved === "function") {
+                            try {
+                                onAddressResolved(resolved);
+                            } catch {}
+                        }
+                    } else if (infoWindowRef.current) {
+                        // Fallback text so it doesn't stay in loading state
                         infoWindowRef.current.close();
-                        infoWindowRef.current = buildInfoWindow(resolved);
+                        infoWindowRef.current = buildInfoWindow("주소 확인 실패");
                         infoWindowRef.current.open(map, vehicleMarkerRef.current);
                     }
-                    if (typeof onAddressResolved === "function") {
-                        try {
-                            onAddressResolved(resolved);
-                        } catch {}
-                    }
-                }
-            });
+                });
+            }
         }
     };
 

@@ -457,7 +457,9 @@ export default function RentalContracts() {
     useEffect(() => {
         if (!showDetail) return;
         const cl = selectedContract?.currentLocation;
-        if (!cl || typeof cl.lat !== "number" || typeof cl.lng !== "number" || cl.address) return;
+        const lat = Number(cl?.lat);
+        const lng = Number(cl?.lng);
+        if (!cl || !Number.isFinite(lat) || !Number.isFinite(lng) || cl.address) return;
 
         let cancelled = false;
         let loaded = false;
@@ -509,7 +511,7 @@ export default function RentalContracts() {
                 loaded = true;
                 if (cancelled || !window.kakao?.maps?.services?.Geocoder) return;
                 const geocoder = new window.kakao.maps.services.Geocoder();
-                geocoder.coord2Address(cl.lng, cl.lat, (result, status) => {
+                geocoder.coord2Address(lng, lat, (result, status) => {
                     if (cancelled) return;
                     if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
                         const addr = result[0].address?.address_name || "";
@@ -521,6 +523,13 @@ export default function RentalContracts() {
                                 return { ...prev, currentLocation: { ...(prev.currentLocation || {}), address: addr } };
                             });
                         }
+                    } else {
+                        // Set a fallback to avoid infinite "주소 확인 중..."
+                        setSelectedContract((prev) => {
+                            if (!prev?.currentLocation) return prev;
+                            if (prev.currentLocation.address) return prev;
+                            return { ...prev, currentLocation: { ...prev.currentLocation, address: "주소 확인 실패" } };
+                        });
                     }
                 });
             } catch {
