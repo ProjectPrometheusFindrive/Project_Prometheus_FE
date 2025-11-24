@@ -1,7 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { FiHome, FiFileText, FiInfo, FiUsers } from "react-icons/fi";
-import { FaCar } from "react-icons/fa";
+import { TbCar } from "react-icons/tb";
 import { typedStorage } from "../utils/storage";
 import { useAuth } from "../contexts/AuthContext";
 import { ROLES, isRoleAtLeast } from "../constants/auth";
@@ -23,7 +23,7 @@ export default function NavigationBar() {
             </NavLink>
 
             <NavLink to="/assets" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="자산" title="자산">
-                <FaCar className="navigation-bar__icon" aria-hidden />
+                <TbCar className="navigation-bar__icon" aria-hidden />
                 <span className="navigation-bar__label" role="tooltip">
                     자산
                 </span>
