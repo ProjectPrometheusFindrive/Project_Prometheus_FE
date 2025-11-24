@@ -70,8 +70,8 @@ const KakaoMap = ({
     // 속도에 따른 색상 계산 (3단계)
     const getSpeedColor = (speed) => {
         if (speed < 30) return "#4CAF50"; // 저속 - 초록 (30km/h 미만)
-        if (speed <= 100) return "#FFC107"; // 중속 - 노랑 (30-100km/h)
-        return "#F44336"; // 고속 - 빨강 (100km/h 초과)
+        if (speed <= 80) return "#FFC107"; // 중속 - 노랑 (30-80km/h)
+        return "#F44336"; // 고속 - 빨강 (80km/h 초과)
     };
 
     // 경로 데이터 처리 및 그룹화
