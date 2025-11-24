@@ -436,12 +436,36 @@ const KakaoMap = ({
 
         const geocoder = initOrGetGeocoder();
         if (geocoder) {
-            const x = Number(longitude);
-            const y = Number(latitude);
-            if (Number.isFinite(x) && Number.isFinite(y)) {
+            const lngNum = Number(longitude);
+            const latNum = Number(latitude);
+            const tryGeocode = (x, y, onDone) => {
                 geocoder.coord2Address(x, y, (result, status) => {
                     if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
                         const resolved = result[0].address?.address_name || "";
+                        onDone(resolved || null);
+                    } else {
+                        onDone(null);
+                    }
+                });
+            };
+            if (Number.isFinite(lngNum) && Number.isFinite(latNum)) {
+                tryGeocode(lngNum, latNum, (resolved) => {
+                    if (!resolved && Number.isFinite(latNum) && Number.isFinite(lngNum)) {
+                        // Retry with swapped order if first attempt failed
+                        tryGeocode(latNum, lngNum, (resolvedSwapped) => {
+                            const finalAddr = resolvedSwapped || null;
+                            if (infoWindowRef.current) {
+                                infoWindowRef.current.close();
+                                infoWindowRef.current = buildInfoWindow(finalAddr || "주소 확인 실패");
+                                infoWindowRef.current.open(map, vehicleMarkerRef.current);
+                            }
+                            if (finalAddr && typeof onAddressResolved === "function") {
+                                try {
+                                    onAddressResolved(finalAddr);
+                                } catch {}
+                            }
+                        });
+                    } else {
                         if (infoWindowRef.current) {
                             infoWindowRef.current.close();
                             infoWindowRef.current = buildInfoWindow(resolved || "주소 확인 실패");
@@ -452,11 +476,6 @@ const KakaoMap = ({
                                 onAddressResolved(resolved);
                             } catch {}
                         }
-                    } else if (infoWindowRef.current) {
-                        // Fallback text so it doesn't stay in loading state
-                        infoWindowRef.current.close();
-                        infoWindowRef.current = buildInfoWindow("주소 확인 실패");
-                        infoWindowRef.current.open(map, vehicleMarkerRef.current);
                     }
                 });
             }

@@ -511,26 +511,44 @@ export default function RentalContracts() {
                 loaded = true;
                 if (cancelled || !window.kakao?.maps?.services?.Geocoder) return;
                 const geocoder = new window.kakao.maps.services.Geocoder();
-                geocoder.coord2Address(lng, lat, (result, status) => {
-                    if (cancelled) return;
-                    if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
-                        const addr = result[0].address?.address_name || "";
-                        if (addr) {
-                            setSelectedContract((prev) => {
-                                if (!prev) return prev;
-                                const prevAddr = prev.currentLocation?.address;
-                                if (prevAddr === addr) return prev;
-                                return { ...prev, currentLocation: { ...(prev.currentLocation || {}), address: addr } };
-                            });
-                        }
-                    } else {
-                        // Set a fallback to avoid infinite "주소 확인 중..."
+                const applyAddress = (addr) => {
+                    if (!addr) {
                         setSelectedContract((prev) => {
                             if (!prev?.currentLocation) return prev;
                             if (prev.currentLocation.address) return prev;
                             return { ...prev, currentLocation: { ...prev.currentLocation, address: "주소 확인 실패" } };
                         });
+                        return;
                     }
+                    setSelectedContract((prev) => {
+                        if (!prev) return prev;
+                        const prevAddr = prev.currentLocation?.address;
+                        if (prevAddr === addr) return prev;
+                        return { ...prev, currentLocation: { ...(prev.currentLocation || {}), address: addr } };
+                    });
+                };
+
+                geocoder.coord2Address(lng, lat, (result, status) => {
+                    if (cancelled) return;
+                    if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
+                        const addr = result[0].address?.address_name || "";
+                        if (addr) {
+                            applyAddress(addr);
+                            return;
+                        }
+                    }
+                    // Retry with swapped order if first attempt failed
+                    geocoder.coord2Address(lat, lng, (altResult, altStatus) => {
+                        if (cancelled) return;
+                        if (altStatus === window.kakao.maps.services.Status.OK && altResult && altResult[0]) {
+                            const addr = altResult[0].address?.address_name || "";
+                            if (addr) {
+                                applyAddress(addr);
+                                return;
+                            }
+                        }
+                        applyAddress(null);
+                    });
                 });
             } catch {
                 // ignore background geocoding errors
