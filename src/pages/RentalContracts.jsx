@@ -528,7 +528,8 @@ export default function RentalContracts() {
                     });
                 };
 
-                geocoder.coord2Address(lng, lat, (result, status) => {
+                // Try with (lat, lng) first per request, then fallback to (lng, lat)
+                geocoder.coord2Address(lat, lng, (result, status) => {
                     if (cancelled) return;
                     if (status === window.kakao.maps.services.Status.OK && result && result[0]) {
                         const addr = result[0].address?.address_name || "";
@@ -538,7 +539,7 @@ export default function RentalContracts() {
                         }
                     }
                     // Retry with swapped order if first attempt failed
-                    geocoder.coord2Address(lat, lng, (altResult, altStatus) => {
+                    geocoder.coord2Address(lng, lat, (altResult, altStatus) => {
                         if (cancelled) return;
                         if (altStatus === window.kakao.maps.services.Status.OK && altResult && altResult[0]) {
                             const addr = altResult[0].address?.address_name || "";

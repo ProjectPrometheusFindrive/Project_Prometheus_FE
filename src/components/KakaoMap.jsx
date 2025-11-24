@@ -449,10 +449,10 @@ const KakaoMap = ({
                 });
             };
             if (Number.isFinite(lngNum) && Number.isFinite(latNum)) {
-                tryGeocode(lngNum, latNum, (resolved) => {
-                    if (!resolved && Number.isFinite(latNum) && Number.isFinite(lngNum)) {
-                        // Retry with swapped order if first attempt failed
-                        tryGeocode(latNum, lngNum, (resolvedSwapped) => {
+                // Try with (lat, lng) first per request, then fallback to (lng, lat)
+                tryGeocode(latNum, lngNum, (resolved) => {
+                    if (!resolved) {
+                        tryGeocode(lngNum, latNum, (resolvedSwapped) => {
                             const finalAddr = resolvedSwapped || null;
                             if (infoWindowRef.current) {
                                 infoWindowRef.current.close();
