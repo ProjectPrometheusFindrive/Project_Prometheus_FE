@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import carIcon from "../assets/car.svg";
 
 // Precompute small edit-handle marker images once per module
 const VERTEX_SVG_BASE64 =
@@ -19,6 +18,16 @@ const MIDPOINT_SVG_BASE64 =
         `\
 <svg width=\"6\" height=\"6\" viewBox=\"0 0 6 6\" xmlns=\"http://www.w3.org/2000/svg\">\
   <circle cx=\"3\" cy=\"3\" r=\"3\" fill=\"#ff6b6b\" stroke=\"#ffffff\" stroke-width=\"1\"/>\
+</svg>`
+      )
+    : "");
+const LOCATION_SVG_BASE64 =
+  "data:image/svg+xml;base64," +
+  (typeof btoa === "function"
+    ? btoa(
+        `\
+<svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\" xmlns=\"http://www.w3.org/2000/svg\">\
+  <circle cx=\"9\" cy=\"9\" r=\"7\" fill=\"white\" stroke=\"#0B57D0\" stroke-width=\"2\"/>\
 </svg>`
       )
     : "");
@@ -376,9 +385,9 @@ const KakaoMap = ({
         const pos = new window.kakao.maps.LatLng(latitude, longitude);
         if (!vehicleMarkerRef.current) {
             const markerImage = new window.kakao.maps.MarkerImage(
-                carIcon,
-                new window.kakao.maps.Size(30, 20),
-                { offset: new window.kakao.maps.Point(10, 7.5) }
+                LOCATION_SVG_BASE64,
+                new window.kakao.maps.Size(18, 18),
+                { offset: new window.kakao.maps.Point(9, 9) }
             );
             vehicleMarkerRef.current = new window.kakao.maps.Marker({ position: pos, image: markerImage });
             vehicleMarkerRef.current.setMap(map);
