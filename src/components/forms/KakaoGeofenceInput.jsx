@@ -193,7 +193,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                 drawingMode: [window.kakao.maps.drawing.OverlayType.POLYGON],
                 guideTooltip: ["draw", "drag", "edit"],
                 polygonOptions: {
-                    strokeWeight: 3,
+                    strokeWeight: 4,
                     strokeColor: "#0066ff",
                     strokeOpacity: 0.8,
                     strokeStyle: "solid",
@@ -429,7 +429,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                             polygonPaths.forEach((path) => {
                                 const polygon = new window.kakao.maps.Polygon({
                                     path: path,
-                                    strokeWeight: 3,
+                                    strokeWeight: 4,
                                     strokeColor: "#0066ff",
                                     strokeOpacity: 0.8,
                                     strokeStyle: "solid",
@@ -445,7 +445,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                         polygonPaths.forEach((path) => {
                             const polygon = new window.kakao.maps.Polygon({
                                 path: path,
-                                strokeWeight: 3,
+                                strokeWeight: 4,
                                 strokeColor: "#0066ff",
                                 strokeOpacity: 0.8,
                                 strokeStyle: "solid",

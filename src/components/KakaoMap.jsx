@@ -32,6 +32,11 @@ const LOCATION_SVG_BASE64 =
       )
     : "");
 
+const TRACK_ARROW_INTERVAL = 5;
+// Show direction arrows only when sufficiently zoomed-in
+// (Kakao map level: smaller number => more zoomed-in)
+const TRACK_ARROW_MAX_LEVEL = 4;
+
 const KakaoMap = ({
     latitude,
     longitude,
@@ -307,7 +312,7 @@ const KakaoMap = ({
             if (!entry) {
                 const polygon = new window.kakao.maps.Polygon({
                     path,
-                    strokeWeight: 3,
+                    strokeWeight: 4,
                     strokeColor: editable ? "#ff6b6b" : "#0b57d0",
                     strokeOpacity: 0.8,
                     strokeStyle: "solid",
@@ -345,31 +350,41 @@ const KakaoMap = ({
         overlaysRef.current.polygons = results.filter(Boolean);
     };
 
-    const drawOrUpdatePolylines = (map) => {
+    const drawOrUpdatePolylines = (map, options = {}) => {
+        const { skipFit } = options || {};
         clearPolylines();
         if (!trackingData || trackingData.length < 2) {
-            fitMapToVisibleData(map);
+            if (!skipFit) {
+                fitMapToVisibleData(map);
+            }
             return;
         }
         const segments = processTrackingData(trackingData);
         const list = [];
-        for (const segment of segments) {
+        const level = typeof map?.getLevel === "function" ? map.getLevel() : null;
+        const arrowsEnabled = typeof level === "number" ? level <= TRACK_ARROW_MAX_LEVEL : true;
+        for (let i = 0; i < segments.length; i++) {
+            const segment = segments[i];
             const path = [
                 new window.kakao.maps.LatLng(segment.start.lat, segment.start.lng),
                 new window.kakao.maps.LatLng(segment.end.lat, segment.end.lng),
             ];
+            const shouldShowArrow = arrowsEnabled && i % TRACK_ARROW_INTERVAL === 0;
             const polyline = new window.kakao.maps.Polyline({
                 path,
-                strokeWeight: 5,
+                strokeWeight: 4,
                 strokeColor: segment.color,
                 strokeOpacity: 0.8,
                 strokeStyle: "solid",
+                endArrow: shouldShowArrow,
             });
             polyline.setMap(map);
             list.push(polyline);
         }
         overlaysRef.current.polylines = list;
-        fitMapToVisibleData(map);
+        if (!skipFit) {
+            fitMapToVisibleData(map);
+        }
     };
 
     const initOrGetGeocoder = () => {
@@ -548,6 +563,21 @@ const KakaoMap = ({
         if (!mapRef.current || !isScriptLoaded) return;
         drawOrUpdatePolylines(mapRef.current);
     }, [trackingData, isScriptLoaded]);
+
+    // Redraw polylines on zoom change to adjust arrow visibility
+    useEffect(() => {
+        if (!mapRef.current || !isScriptLoaded || !window.kakao?.maps?.event) return;
+        const map = mapRef.current;
+        const handler = () => {
+            drawOrUpdatePolylines(map, { skipFit: true });
+        };
+        window.kakao.maps.event.addListener(map, "zoom_changed", handler);
+        return () => {
+            try {
+                window.kakao.maps.event.removeListener(map, "zoom_changed", handler);
+            } catch {}
+        };
+    }, [isScriptLoaded, trackingData]);
 
     // Update vehicle marker and optionally center on change
     useEffect(() => {

@@ -53,6 +53,9 @@ const DEFAULT_COLUMN_CONFIG = [
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
 const MINUTE_SECOND_OPTIONS = Array.from({ length: 60 }, (_, index) => String(index).padStart(2, "0"));
+const TRAIL_INITIAL_LIMIT = 100;
+const TRAIL_INCREMENT = 100;
+const TRAIL_MAX_LIMIT = 1000;
 
 // Column merging is handled by useColumnSettings hook
 
@@ -87,6 +90,42 @@ function findLatestLogLocation(logRecord = []) {
     return latest;
 }
 
+function extractLogDateKey(entry) {
+    const rawTime = entry?.dateTime || entry?.datetime || entry?.timestamp || entry?.time;
+    if (!rawTime) return null;
+    const s = String(rawTime);
+    // 1단계: Date.parse로 UTC 기준 시각을 파싱한 뒤, 서울 기준(KST, UTC+9)으로 날짜를 구분
+    // ISO 8601 형식으로 변환 (공백을 T로 치환)
+    const isoString = s.replace(/^(\d{4}-\d{2}-\d{2}) /, '$1T');
+    const ms = Date.parse(isoString);
+    if (Number.isFinite(ms)) {
+        const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+        const kst = new Date(ms + KST_OFFSET_MS);
+        const year = kst.getUTCFullYear();
+        const month = String(kst.getUTCMonth() + 1).padStart(2, "0");
+        const day = String(kst.getUTCDate()).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    // 2단계: 파싱이 안 되면 문자열에서 날짜 패턴(YYYY-MM-DD / YYYY.MM.DD / YYYY/MM/DD) 추출
+    const match = s.match(/(\d{4})[.\-\/](\d{1,2})[.\-\/](\d{1,2})/);
+    if (match) {
+        const year = match[1];
+        const month = String(match[2]).padStart(2, "0");
+        const day = String(match[3]).padStart(2, "0");
+        return `${year}-${month}-${day}`;
+    }
+    return null;
+}
+
+function formatTrackingDateLabel(key) {
+    if (!key || typeof key !== "string") return key;
+    const parts = key.split("-");
+    if (parts.length !== 3) return key;
+    const month = parseInt(parts[1], 10);
+    const day = parseInt(parts[2], 10);
+    return `${month}월 ${day}일`;
+}
+
 export default function RentalContracts() {
     const confirm = useConfirm();
     const auth = useAuth();
@@ -96,6 +135,8 @@ export default function RentalContracts() {
     const [showDetail, setShowDetail] = useState(false);
     const [showLocationMap, setShowLocationMap] = useState(false);
     const [isLoadingLocation, setIsLoadingLocation] = useState(false);
+    const [trailLimit, setTrailLimit] = useState(TRAIL_INITIAL_LIMIT);
+    const [trackingDateFilters, setTrackingDateFilters] = useState([]);
     const [selectedContract, setSelectedContract] = useState(null);
     const { editingId: editingMemo, memoText, onEdit: onMemoEdit, onChange: onMemoChange, onCancel: onMemoCancel } = useMemoEditor();
     const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
@@ -113,7 +154,69 @@ export default function RentalContracts() {
     const closeInstallModal = () => setInstallModalOpen(false);
     const [hasDeviceByPlate, setHasDeviceByPlate] = useState({});
     const selectedContractTrackingData = selectedContract?.logRecord || [];
-    const hasSelectedTrackingData = Array.isArray(selectedContractTrackingData) && selectedContractTrackingData.length > 0;
+    const trackingDateKeys = useMemo(() => {
+        if (!Array.isArray(selectedContractTrackingData) || selectedContractTrackingData.length === 0) return [];
+        const map = new Map();
+        for (const entry of selectedContractTrackingData) {
+            const key = extractLogDateKey(entry);
+            if (!key) continue;
+            if (!map.has(key)) map.set(key, true);
+        }
+        return Array.from(map.keys()).sort();
+    }, [selectedContractTrackingData]);
+    const filteredTrackingData = useMemo(() => {
+        if (!Array.isArray(selectedContractTrackingData) || selectedContractTrackingData.length === 0) {
+            console.log('[filteredTrackingData] No tracking data');
+            return [];
+        }
+        if (!Array.isArray(trackingDateFilters) || trackingDateFilters.length === 0) {
+            console.log('[filteredTrackingData] No filters selected, showing nothing');
+            return [];
+        }
+        const allowed = new Set(trackingDateFilters);
+        const filtered = selectedContractTrackingData.filter((entry) => {
+            const key = extractLogDateKey(entry);
+            return key && allowed.has(key);
+        });
+        console.log('[filteredTrackingData]', {
+            totalEntries: selectedContractTrackingData.length,
+            activeFilters: Array.from(trackingDateFilters),
+            filteredCount: filtered.length,
+            timeRange: (() => {
+                if (filtered.length === 0) return null;
+                // 시간 기준으로 정렬
+                const sorted = [...filtered].sort((a, b) => {
+                    const timeA = a?.dateTime || a?.datetime || a?.timestamp || a?.time || '';
+                    const timeB = b?.dateTime || b?.datetime || b?.timestamp || b?.time || '';
+                    return timeA.localeCompare(timeB);
+                });
+                const first = sorted[0];
+                const last = sorted[sorted.length - 1];
+
+                const formatWithTimezones = (entry, label) => {
+                    const rawTime = entry?.dateTime || entry?.datetime || entry?.timestamp || entry?.time;
+                    if (!rawTime) return null;
+                    const isoString = String(rawTime).replace(/^(\d{4}-\d{2}-\d{2}) /, '$1T');
+                    const utcDate = new Date(isoString);
+                    const kstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
+                    return {
+                        label,
+                        raw: rawTime,
+                        utc: utcDate.toISOString(),
+                        kst: kstDate.toISOString().replace('Z', '+09:00'),
+                        dateKey: extractLogDateKey(entry)
+                    };
+                };
+
+                return {
+                    earliest: formatWithTimezones(first, 'EARLIEST'),
+                    latest: formatWithTimezones(last, 'LATEST')
+                };
+            })()
+        });
+        return filtered;
+    }, [selectedContractTrackingData, trackingDateFilters]);
+    const hasSelectedTrackingData = Array.isArray(filteredTrackingData) && filteredTrackingData.length > 0;
     const latestSelectedTracking = findLatestLogLocation(selectedContractTrackingData);
     const mapLastUpdateTime = selectedContract?.locationUpdatedAt || latestSelectedTracking?.rawTime || "업데이트 시간 없음";
     const speedLegendItems = [
@@ -431,12 +534,13 @@ export default function RentalContracts() {
     const handleShowLocation = async () => {
         if (!selectedContract) return;
 
+        const initialLimit = TRAIL_INITIAL_LIMIT;
         setIsLoadingLocation(true);
         try {
             // Fetch current location with tracking data from API
             const locationData = await fetchRentalLocation(selectedContract.rentalId, {
                 trail: true,  // 궤적 데이터 포함
-                limit: 100,   // 최대 100개의 포인트
+                limit: initialLimit,   // 최대 100개의 포인트
             });
 
             if (!locationData) {
@@ -445,6 +549,7 @@ export default function RentalContracts() {
             }
 
             applyLocationData(locationData);
+            setTrailLimit(initialLimit);
             setShowDetail(false);
             setShowLocationMap(true);
         } catch (error) {
@@ -457,17 +562,27 @@ export default function RentalContracts() {
 
     const handleLoadMoreTrail = async () => {
         if (!selectedContract) return;
+        const currentLimit = trailLimit || TRAIL_INITIAL_LIMIT;
+        if (currentLimit >= TRAIL_MAX_LIMIT) {
+            emitToast("이동 경로를 최대로 불러왔습니다.", "info");
+            return;
+        }
+        const nextLimit = Math.min(currentLimit + TRAIL_INCREMENT, TRAIL_MAX_LIMIT);
         setIsLoadingLocation(true);
         try {
             const locationData = await fetchRentalLocation(selectedContract.rentalId, {
                 trail: true,
-                limit: 1000,
+                limit: nextLimit,
             });
             if (!locationData) {
                 emitToast("추가 이동 경로를 가져올 수 없습니다.", "warning");
                 return;
             }
             applyLocationData(locationData);
+            setTrailLimit(nextLimit);
+            if (nextLimit === TRAIL_MAX_LIMIT) {
+                emitToast("이동 경로를 최대로 불러왔습니다.", "info");
+            }
         } catch (error) {
             console.error("Failed to fetch extended trail", error);
             emitToast("추가 이동 경로 요청 중 오류가 발생했습니다.", "error");
@@ -480,6 +595,17 @@ export default function RentalContracts() {
         setShowLocationMap(false);
         setShowDetail(true);
     };
+
+    // Auto-select all dates when location map opens
+    useEffect(() => {
+        if (showLocationMap && trackingDateKeys.length > 0) {
+            console.log('[Auto-select dates]', { trackingDateKeys, currentFilters: trackingDateFilters });
+            // Only auto-select if no filters are currently set
+            if (trackingDateFilters.length === 0) {
+                setTrackingDateFilters(trackingDateKeys);
+            }
+        }
+    }, [showLocationMap, trackingDateKeys]);
 
     // Background reverse-geocoding to populate currentLocation.address on detail open
     useEffect(() => {
@@ -1424,29 +1550,71 @@ export default function RentalContracts() {
 
                         {/* 지도 영역 */}
                         <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                            {hasSelectedTrackingData && (
+                            {trackingDateKeys.length > 0 && (
                                 <div className="flex flex-wrap items-center gap-3 px-3 py-2 rounded-full shadow-sm bg-white/95 dark:bg-slate-800/95 text-slate-900 dark:text-slate-100">
-                                    <span className="font-semibold text-[12px] whitespace-nowrap">속도 범례:&nbsp;&nbsp;&nbsp; </span>
-                                    {speedLegendItems.map((item) => (
-                                        <div
-                                            key={item.key}
-                                            className="flex items-center gap-2 text-[12px] leading-tight px-2.5 py-1 rounded-full"
-                                            style={{ backgroundColor: item.bg, boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)" }}
+                                    {hasSelectedTrackingData && (
+                                        <>
+                                            <span className="font-semibold text-[12px] whitespace-nowrap">속도 범례:&nbsp;&nbsp;&nbsp; </span>
+                                            {speedLegendItems.map((item) => (
+                                                <div
+                                                    key={item.key}
+                                                    className="flex items-center gap-2 text-[12px] leading-tight px-2.5 py-1 rounded-full"
+                                                    style={{ backgroundColor: item.bg, boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)" }}
+                                                >
+                                                    <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: item.color }} />
+                                                    <span> &nbsp;&nbsp;&nbsp; </span>
+                                                    <span className="whitespace-nowrap" style={{ color: item.color }}>{item.label}</span>
+                                                    <span> &nbsp;&nbsp;&nbsp; </span>
+                                                </div>
+                                            ))}
+                                        </>
+                                    )}
+                                    <div className="ml-auto flex items-center gap-2">
+                                        {trackingDateKeys.length > 1 && (
+                                            <div className="flex items-center gap-1 text-[12px]">
+                                                <span className="font-semibold whitespace-nowrap mr-1">일자:</span>
+                                                {trackingDateKeys.map((key) => {
+                                                    const isActive = Array.isArray(trackingDateFilters) && trackingDateFilters.includes(key);
+                                                    return (
+                                                        <button
+                                                            key={key}
+                                                            type="button"
+                                                            onClick={() => {
+                                                                console.log('[DateButton Click]', { clickedDate: key, label: formatTrackingDateLabel(key) });
+                                                                setTrackingDateFilters((prev) => {
+                                                                    const base = Array.isArray(prev) ? prev : [];
+                                                                    const wasActive = base.includes(key);
+                                                                    const nextFilters = wasActive
+                                                                        ? base.filter((k) => k !== key)
+                                                                        : [...base, key];
+                                                                    console.log('[DateButton Update]', {
+                                                                        clickedDate: key,
+                                                                        action: wasActive ? 'REMOVED' : 'ADDED',
+                                                                        prevFilters: base,
+                                                                        nextFilters
+                                                                    });
+                                                                    return nextFilters;
+                                                                });
+                                                            }}
+                                                            className={`text-[12px] px-3 py-1 rounded-full border-0 ${
+                                                                isActive ? "bg-slate-900 text-white shadow-sm" : "bg-white/80 text-slate-700 hover:bg-slate-50"
+                                                            }`}
+                                                        >
+                                                            {formatTrackingDateLabel(key)}
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        <button
+                                            type="button"
+                                            onClick={handleLoadMoreTrail}
+                                            disabled={isLoadingLocation}
+                                            className="border-0 text-[12px] px-3 py-1 rounded-full bg-white hover:bg-slate-50"
                                         >
-                                            <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: item.color }} />
-                                            <span> &nbsp;&nbsp;&nbsp; </span>
-                                            <span className="whitespace-nowrap" style={{ color: item.color }}>{item.label}</span>
-                                            <span> &nbsp;&nbsp;&nbsp; </span>
-                                        </div>
-                                    ))}
-                                    <button
-                                        type="button"
-                                        onClick={handleLoadMoreTrail}
-                                        disabled={isLoadingLocation}
-                                        className="ml-auto text-[12px] px-3 py-1 rounded-full border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-60"
-                                    >
-                                        이동경로 더보기
-                                    </button>
+                                            이동경로 더보기
+                                        </button>
+                                    </div>
                                 </div>
                             )}
                             <div
@@ -1471,7 +1639,7 @@ export default function RentalContracts() {
                                         renterName={selectedContract.renterName}
                                         engineOn={selectedContract.engineOn}
                                         isOnline={!!selectedContract.currentLocation}
-                                        trackingData={selectedContractTrackingData}
+                                        trackingData={filteredTrackingData}
                                         showSpeedLegend={false}
                                         showStatusOverlay={false}
                                         onAddressResolved={(addr) => {
