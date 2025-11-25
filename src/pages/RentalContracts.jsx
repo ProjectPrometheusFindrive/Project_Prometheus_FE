@@ -220,9 +220,9 @@ export default function RentalContracts() {
     const latestSelectedTracking = findLatestLogLocation(selectedContractTrackingData);
     const mapLastUpdateTime = selectedContract?.locationUpdatedAt || latestSelectedTracking?.rawTime || "업데이트 시간 없음";
     const speedLegendItems = [
-        { key: "slow", label: "저속 <30", color: "#4CAF50", bg: "rgba(76, 175, 80, 0.14)" },
-        { key: "mid", label: "중속 30-80", color: "#FFC107", bg: "rgba(255, 193, 7, 0.18)" },
-        { key: "fast", label: "고속 >80", color: "#F44336", bg: "rgba(244, 67, 54, 0.14)" },
+        { key: "slow", label: "저속 <30", color: "#43A047", bg: "rgba(67, 160, 71, 0.16)" },
+        { key: "mid", label: "중속 30-80", color: "#1E88E5", bg: "rgba(30, 136, 229, 0.16)" },
+        { key: "fast", label: "고속 >80", color: "#E53935", bg: "rgba(229, 57, 53, 0.14)" },
     ];
 
     const normalizePlate = (p) => (p ? String(p).replace(/\s|-/g, "").toUpperCase() : "");
