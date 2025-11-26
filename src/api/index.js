@@ -68,4 +68,7 @@ export const {
   withdrawMember,
   restoreMember,
   submitTerminalRequest,
+
+  // Revenue
+  fetchRevenueData,
 } = api;

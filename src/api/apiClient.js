@@ -851,3 +851,17 @@ export const membersApi = {
         });
     }
 };
+
+/**
+ * Revenue API
+ * Handles revenue and payment statistics
+ */
+export const revenueApi = {
+    /**
+     * Fetch revenue data including weekly, monthly, yearly stats and payment methods
+     * @returns {Promise<Object>} Response with revenue statistics
+     */
+    async fetchData() {
+        return await apiRequest(API_ENDPOINTS.REVENUE);
+    }
+};

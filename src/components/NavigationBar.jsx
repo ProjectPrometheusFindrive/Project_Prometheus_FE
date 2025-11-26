@@ -36,6 +36,13 @@ export default function NavigationBar() {
                 </span>
             </NavLink>
 
+            <NavLink to="/revenue" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="매출" title="매출">
+                <span className="navigation-bar__icon" aria-hidden style={{ fontWeight: 600, fontSize: '1.25rem' }}>₩</span>
+                <span className="navigation-bar__label" role="tooltip">
+                    매출
+                </span>
+            </NavLink>
+
             {canManageMembers && (
                 <NavLink to="/members" className={({ isActive }) => `navigation-bar__link ${isActive ? "is-active" : ""}`} aria-label="회원 관리" title="회원 관리">
                     <FiUsers className="navigation-bar__icon" aria-hidden />

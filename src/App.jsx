@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
 import Detail from "./pages/Detail";
 import MemberManagement from "./pages/MemberManagement";
+import Revenue from "./pages/Revenue";
 import AppLayout from "./components/AppLayout";
 import RequireAuth from "./components/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
@@ -147,6 +148,11 @@ function App() {
               <Route path="/members" element={
                 <ErrorBoundary>
                   <MemberManagement />
+                </ErrorBoundary>
+              } />
+              <Route path="/revenue" element={
+                <ErrorBoundary>
+                  <Revenue />
                 </ErrorBoundary>
               } />
             </Route>

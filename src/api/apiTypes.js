@@ -74,7 +74,10 @@ export const API_ENDPOINTS = {
     FAX_SEND: '/fax/send',
 
     // Terminal install requests (public)
-    TERMINAL_REQUESTS: '/terminal-requests'
+    TERMINAL_REQUESTS: '/terminal-requests',
+
+    // Revenue
+    REVENUE: '/revenue'
 };
 
 // Response status enum

@@ -12,7 +12,8 @@ import {
     ocrApi,
     membersApi,
     faxApi,
-    terminalRequestsApi
+    terminalRequestsApi,
+    revenueApi
 } from './apiClient';
 import { API_STATUS, API_ERRORS, createOperationResult } from './apiTypes';
 
@@ -481,4 +482,18 @@ export async function withdrawMember(userId) {
 export async function restoreMember(userId) {
     // Backend uses the same approve endpoint for reactivation
     return await approveMember(userId);
+}
+
+// Revenue
+/**
+ * Fetch revenue data including weekly, monthly, yearly stats and payment methods
+ * @returns {Promise<Object>} Revenue data with structure:
+ *   - week: { revenue: number, unpaid: number }
+ *   - month: { revenue: number, unpaid: number }
+ *   - year: { revenue: number, unpaid: number }
+ *   - paymentMethods: Array<{ name: string, amount: number, count: number }>
+ */
+export async function fetchRevenueData() {
+    const response = await revenueApi.fetchData();
+    return extractData(response);
 }
