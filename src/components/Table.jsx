@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
+﻿import React, { useMemo, useState, useCallback, useRef, useEffect } from "react";
 import { safeDate } from "../utils/date";
 import { DIMENSIONS } from "../constants";
 import ColumnFilterPopover from "./filters/ColumnFilterPopover";
@@ -9,13 +9,12 @@ export default function Table({
     selection,
     onRowClick,
     className = "",
-    emptyMessage = "데이터가 없습니다.",
+    emptyMessage = "?곗씠?곌? ?놁뒿?덈떎.",
     stickyHeader = false,
     stickyOffset = 0,
     initialSort,
     rowClassName,
-    rowIdKey = "id", // 기본값은 "id", 커스텀 가능
-    wrapRef,
+    rowIdKey = "id", // 湲곕낯媛믪? "id", 而ㅼ뒪? 媛??    wrapRef,
     enableColumnFilters = false,
     filters,
     onFiltersChange,
@@ -195,7 +194,7 @@ export default function Table({
                             <th style={{ width: DIMENSIONS.ICON_SIZE_LG }} className="text-center">
                                 <input
                                     type="checkbox"
-                                    aria-label="현재 목록 전체 선택"
+                                    aria-label="?꾩옱 紐⑸줉 ?꾩껜 ?좏깮"
                                     checked={allVisibleSelected}
                                     onChange={toggleSelectAllVisible}
                                 />
@@ -255,10 +254,10 @@ export default function Table({
                                                 }
                                             }
                                         }}
-                                            title={filterable ? `${col.label} 필터 열기` : undefined}
+                                            title={filterable ? `${col.label} ?꾪꽣 ?닿린` : undefined}
                                         >
                                             {col.label}
-                                            {filterable && !!filterCount && <span className="filter-badge" aria-label="활성 필터 수">{filterCount}</span>}
+                                            {filterable && !!filterCount && <span className="filter-badge" aria-label="?쒖꽦 ?꾪꽣 ??>{filterCount}</span>}
                                         </button>
                                     {sortable && (
                                         <button
@@ -268,8 +267,8 @@ export default function Table({
                                                 sortKey === col.key && sortDir ? "active" : "",
                                                 sortKey === col.key && sortDir ? `dir-${sortDir}` : "",
                                             ].filter(Boolean).join(" ")}
-                                            title={`${col.label} 정렬 토글`}
-                                            aria-label={`${col.label} 정렬 토글 (오름차순/내림차순)`}
+                                            title={`${col.label} ?뺣젹 ?좉?`}
+                                            aria-label={`${col.label} ?뺣젹 ?좉? (?ㅻ쫫李⑥닚/?대┝李⑥닚)`}
                                             onClick={() => handleSortToggle(col.key, col)}
                                         >
                                             <span className="sort-icon" aria-hidden="true">
@@ -324,7 +323,7 @@ export default function Table({
                                     <td className="text-center">
                                         <input
                                             type="checkbox"
-                                            aria-label={`선택: ${row.plate || rowId}`}
+                                            aria-label={`?좏깮: ${row.plate || rowId}`}
                                             checked={selected?.has ? selected.has(rowId) : false}
                                             onChange={() => toggleSelect && toggleSelect(rowId)}
                                         />
