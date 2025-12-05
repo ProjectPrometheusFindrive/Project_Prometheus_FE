@@ -2813,16 +2813,6 @@ html {
 }
 
 /* === Asset status (자산등록관리) page tweaks to match Figma toolbar labels === */
-.asset-status-page .page > h1 {
-    position: relative;
-    color: transparent;
-}
-.asset-status-page .page > h1::before {
-    content: "자산등록관리";
-    position: absolute;
-    inset: 0;
-    color: #111827; /* text-gray-900 */
-}
 
 .asset-status-page .table-toolbar .flex.gap-3 {
     display: flex;
