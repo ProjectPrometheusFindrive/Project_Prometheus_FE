@@ -272,8 +272,11 @@ export default function Table({
                                             aria-label={`${col.label} 정렬 토글 (오름차순/내림차순)`}
                                             onClick={() => handleSortToggle(col.key, col)}
                                         >
-                                            <span className="tri up">▲</span>
-                                            <span className="tri down">▼</span>
+                                            <span className="sort-icon" aria-hidden="true">
+                                                <svg viewBox="0 0 18 12" width="18" height="12" focusable="false">
+                                                    <path d="M1.8 2.2 9 9.8 16.2 2.2 14.6 0.5 9 6.1 3.4 0.5 1.8 2.2Z" fill="currentColor" />
+                                                </svg>
+                                            </span>
                                         </button>
                                     )}
                                     {filterable && isFilterOpen && (
@@ -300,11 +303,22 @@ export default function Table({
                 <tbody>
                     {sortedData.map((row, index) => {
                         const rowId = row[rowIdKey] || index;
+                        const isSelectedRow = hasSelection && selected?.has && selected.has(rowId);
+                        const baseRowClass =
+                            typeof rowClassName === "function"
+                                ? rowClassName(row, index)
+                                : rowClassName;
+                        const rowClassNames = [
+                            baseRowClass,
+                            isSelectedRow ? "row-selected" : null,
+                        ]
+                            .filter(Boolean)
+                            .join(" ") || undefined;
                         return (
                             <tr
                                 key={rowId}
                                 onClick={onRowClick ? () => onRowClick(row) : undefined}
-                                className={typeof rowClassName === "function" ? rowClassName(row, index) : undefined}
+                                className={rowClassNames}
                             >
                                 {hasSelection && (
                                     <td className="text-center">

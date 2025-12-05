@@ -47,8 +47,8 @@ const DEFAULT_ASSET_COLUMNS = [
   { key: "vehicleType", label: "차종", visible: true, required: false },
   { key: "registrationDate", label: "차량등록일", visible: true, required: false },
   { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
-  { key: "deviceStatus", label: "단말 상태", visible: true, required: false },
-  { key: "vehicleHealth", label: "차량 상태", visible: true, required: false },
+  { key: "deviceStatus", label: "단말상태", visible: true, required: false },
+  { key: "vehicleHealth", label: "상태", visible: true, required: false },
   { key: "severity", label: "심각도", visible: true, required: false },
   { key: "managementStage", label: "관리상태", visible: true, required: false },
   { key: "memo", label: "메모", visible: true, required: false },
@@ -419,7 +419,7 @@ export default function AssetStatus() {
 
     const handleDeleteSelected = async () => {
         if (selectedCount === 0) return;
-        const ok = await confirm({ title: "선택 삭제", message: "선택한 항목을 삭제하시겠습니까?", confirmText: "삭제", cancelText: "취소" });
+        const ok = await confirm({ title: "선택삭제", message: "선택한 자산을 삭제하시겠습니까?", confirmText: "삭제", cancelText: "취소" });
         if (!ok) return;
         const ids = Array.from(selected);
         try {
@@ -800,7 +800,7 @@ export default function AssetStatus() {
                 }
                 return (
                     <button type="button" className="badge badge--default badge--clickable" onClick={() => openInsuranceModal(row)} title="보험 등록">
-                        보험 등록
+                        보험등록
                     </button>
                 );
             case "deviceStatus":
@@ -818,7 +818,7 @@ export default function AssetStatus() {
                             title="단말 장착 신청"
                             aria-label="단말 장착 신청"
                         >
-                            단말 필요
+                            단말필요
                         </button>
                     );
                 }
@@ -896,7 +896,7 @@ export default function AssetStatus() {
             case "vehicleHealth": {
                 const hasDevice = !!row?.deviceSerial;
                 if (!hasDevice) {
-                    return <VehicleHealthCell label="단말 필요" onClick={openInstallModal} />;
+                    return <VehicleHealthCell label="단말필요" onClick={openInstallModal} />;
                 }
                 const dcount = getDiagnosticCount(row);
                 if (dcount === 0) {
@@ -993,7 +993,7 @@ export default function AssetStatus() {
                                   title="단말 등록"
                                   aria-label={`${row.plate || row.id || "자산"} 단말 등록`}
                               >
-                                  단말 등록
+                                  단말등록
                               </button>
                           );
                       },
@@ -1033,7 +1033,7 @@ export default function AssetStatus() {
                         filterType: "select",
                         filterAccessor: (row) => {
                           const hasDevice = !!row?.deviceSerial;
-                          if (!hasDevice) return "단말 필요";
+                          if (!hasDevice) return "단말필요";
                           const dcount = getDiagnosticCount(row);
                           if (dcount === 0) return "정상";
                           const provided = row.diagnosticStatus;
@@ -1042,7 +1042,7 @@ export default function AssetStatus() {
                           const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
                           return max > 7 ? "심각" : "관심필요";
                         },
-                        filterOptions: ["정상", "관심필요", "심각", "단말 필요"].map((x) => ({ value: x, label: x })),
+                        filterOptions: ["정상", "관심필요", "심각", "단말필요"].map((x) => ({ value: x, label: x })),
                         // Single-select only; no AND concept
                         filterAllowAnd: false,
                       } : null),
@@ -1099,7 +1099,7 @@ export default function AssetStatus() {
     const { selected, selectedCount, clearSelection } = selection;
 
     return (
-        <div className="page space-y-4">
+        <div className="page page--data space-y-4">
             <h1 className="text-2xl font-semibold text-gray-900">자산 등록/관리</h1>
 
             <div className="table-toolbar">

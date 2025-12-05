@@ -1,76 +1,200 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
-
+import React, { useMemo, useState } from "react";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
 function useThemeDark() {
-  const get = () => (typeof document !== 'undefined' && document.documentElement.getAttribute('data-theme') === 'dark');
-  const [isDark, setIsDark] = useState(get);
-  React.useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const el = document.documentElement;
-    const obs = new MutationObserver(() => setIsDark(get()));
-    obs.observe(el, { attributes: true, attributeFilter: ['data-theme'] });
-    return () => obs.disconnect();
-  }, []);
-  return isDark;
+    const get = () =>
+        typeof document !== "undefined" &&
+        document.documentElement.getAttribute("data-theme") === "dark";
+    const [isDark, setIsDark] = useState(get);
+    React.useEffect(() => {
+        if (typeof document === "undefined") return;
+        const el = document.documentElement;
+        const obs = new MutationObserver(() => setIsDark(get()));
+        obs.observe(el, { attributes: true, attributeFilter: ["data-theme"] });
+        return () => obs.disconnect();
+    }, []);
+    return isDark;
 }
 
 export default function StatusDonut({
-
-  data = [],
-  colors = [],
-  innerRadius = "40%",
-  outerRadius = "78%",
-  unit = "",
-  colorOffset = 0,
-  margin = { top: 10, right: 8, bottom: 28, left: 8 },
+    data = [],
+    colors = [],
+    innerRadius = "40%",
+    outerRadius = "78%",
+    unit = "",
+    colorOffset = 0,
+    margin = { top: 10, right: 8, bottom: 28, left: 8 },
+    centerLabel = "TOTAL",
+    showLegend = false
 }) {
-  const isDark = useThemeDark();
-  const CenterTotal = ({ data, x, y }) => {
-    const total = useMemo(() => (Array.isArray(data) ? data.reduce((s, it) => s + (it?.value || 0), 0) : 0), [data]);
-    return (
-      <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" className="recharts-text recharts-label">
-        <tspan x={x} dy="-0.5em" fontSize="32" fontWeight="700" fill={isDark ? "#e5e7eb" : "#333"}>{total}</tspan>
-      </text>
-    );
-  };
+    const isDark = useThemeDark();
 
-  const RAD = Math.PI / 180;
-  const label = ({ cx, cy, midAngle, innerRadius: ir, outerRadius: or, value, payload }) => {
-    const radius = ir + (or - ir) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * RAD);
-    const y = cy + radius * Math.sin(-midAngle * RAD);
-    const display = payload && payload.rawValue != null ? payload.rawValue : value;
-    return (
-      <text x={x} y={y} fill="#fff" textAnchor="middle" dominantBaseline="central" fontSize={14} fontWeight={600} className="pointer-events-none">
-        {display}
-      </text>
-    );
-  };
+    const CenterTotal = ({ data, x, y }) => {
+        const total = useMemo(
+            () =>
+                Array.isArray(data)
+                    ? data.reduce((s, it) => s + (it?.value || 0), 0)
+                    : 0,
+            [data]
+        );
 
-  return (
-    <ResponsiveContainer width="100%" height="100%">
-      <PieChart margin={margin}>
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          cx="50%"
-          cy="50%"
-          innerRadius={innerRadius}
-          outerRadius={outerRadius}
-          paddingAngle={2}
-          label={label}
-          labelLine={false}
+        const labelColor = isDark ? "#9CA3AF" : "#888888";
+        const valueColor = isDark ? "#E5E7EB" : "#1C1C1C";
+
+        return (
+            <g className="status-donut__center-label">
+                <text
+                    x={x}
+                    y={y}
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    fontSize="32"
+                    fontWeight="800"
+                    letterSpacing="0"
+                    fill={valueColor}
+                    style={{ lineHeight: "40px" }}
+                >
+                    {total}
+                </text>
+                {centerLabel && (
+                    <text
+                        x={x}
+                        y={y}
+                        dy="-24"
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fontSize="12"
+                        fontWeight="400"
+                        letterSpacing="-0.4"
+                        fill={labelColor}
+                        style={{ lineHeight: "18px" }}
+                    >
+                        {centerLabel}
+                    </text>
+                )}
+            </g>
+        );
+    };
+
+    const RAD = Math.PI / 180;
+    const label = ({
+        cx,
+        cy,
+        midAngle,
+        innerRadius: ir,
+        outerRadius: or,
+        value,
+        payload
+    }) => {
+        const radius = ir + (or - ir) * 0.5;
+        const x = cx + radius * Math.cos(-midAngle * RAD);
+        const y = cy + radius * Math.sin(-midAngle * RAD);
+        const display = payload && payload.rawValue != null ? payload.rawValue : value;
+        return (
+            <text
+                x={x}
+                y={y}
+                fill="#FFFFFF"
+                textAnchor="middle"
+                dominantBaseline="central"
+                fontSize={18}
+                fontWeight={700}
+                className="pointer-events-none"
+            >
+                {display}
+            </text>
+        );
+    };
+
+    const chart = (
+        <ResponsiveContainer width="100%" height="100%">
+            <PieChart margin={margin}>
+                <Pie
+                    data={data}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={innerRadius}
+                    outerRadius={outerRadius}
+                    paddingAngle={0.1}
+                    label={label}
+                    labelLine={false}
+                >
+                    {(data || []).map((_, i) => (
+                        <Cell
+                            key={`cell-${i}`}
+                            fill={colors[(i + colorOffset) % (colors.length || 1)]}
+                            stroke={isDark ? "#0B1220" : "#FFFFFF"}
+                            strokeWidth={isDark ? 0 : 1}
+                        />
+                    ))}
+                </Pie>
+                <CenterTotal data={data} x="50%" y="50%" />
+                <Tooltip />
+            </PieChart>
+        </ResponsiveContainer>
+    );
+
+    if (!showLegend) {
+        return chart;
+    }
+
+    return (
+        <div
+            className="status-donut"
+            style={{
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 32,
+                height: "100%"
+            }}
         >
-          {(data || []).map((_, i) => (
-            <Cell key={`cell-${i}`} fill={colors[(i + colorOffset) % (colors.length || 1)]} stroke={isDark ? '#0b1220' : '#fff'} strokeWidth={isDark ? 0 : 1} />
-          ))}
-        </Pie>
-        <CenterTotal data={data} x="50%" y="50%" />
-        <Tooltip />
-        <Legend verticalAlign="bottom" height={24} />
-      </PieChart>
-    </ResponsiveContainer>
-  );
+            <div
+                className="status-donut__chart"
+                style={{
+                    width: 320,
+                    height: 320,
+                    maxWidth: "100%",
+                    flexShrink: 0
+                }}
+            >
+                {chart}
+            </div>
+            {Array.isArray(data) && data.length > 0 && (
+                <div className="dashboard-legend">
+                    {data.map((item, index) => {
+                        const color =
+                            colors[(index + colorOffset) % (colors.length || 1)];
+                        const value =
+                            item && item.rawValue != null
+                                ? item.rawValue
+                                : item && item.value
+                                    ? item.value
+                                    : 0;
+                        return (
+                            <div
+                                className="dashboard-legend__item"
+                                key={item?.name || index}
+                            >
+                                <div className="dashboard-legend__label-wrap">
+                                    <span
+                                        className="dashboard-legend__dot"
+                                        style={{ backgroundColor: color }}
+                                    />
+                                    <span className="dashboard-legend__label">
+                                        {item?.name}
+                                    </span>
+                                </div>
+                                <span className="dashboard-legend__value">
+                                    {value}
+                                </span>
+                            </div>
+                        );
+                    })}
+                </div>
+            )}
+        </div>
+    );
 }

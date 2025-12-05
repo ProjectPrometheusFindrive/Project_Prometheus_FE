@@ -1063,7 +1063,7 @@ export default function RentalContracts() {
     // getRentalAmountBadges moved to RentalAmountCell component
 
     return (
-        <div className="page space-y-4">
+        <div className="page page--data space-y-4">
             <h1 className="text-2xl font-semibold text-gray-900">계약 등록/관리</h1>
             <div className="page-scroll space-y-4">
                 <div className="table-toolbar">

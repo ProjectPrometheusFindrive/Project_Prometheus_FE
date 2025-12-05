@@ -553,7 +553,7 @@ function MemberManagement() {
 
     if (!canManageMembers) {
         return (
-            <div className="page member-management-page space-y-4">
+            <div className="page page--data member-management-page space-y-4">
                 <div className="page-scroll space-y-4">
                     <div className="error-message">
                         접근 권한이 없습니다. 관리자 권한이 필요합니다.
@@ -565,7 +565,7 @@ function MemberManagement() {
 
     return (
         <ErrorBoundary>
-            <div className="page member-management-page space-y-4">
+            <div className="page page--data member-management-page space-y-4">
                 <h1 className="text-2xl font-semibold text-gray-900">회원 관리</h1>
                 <div className="page-scroll space-y-4">
                     {(errorAll || errorPending) && (

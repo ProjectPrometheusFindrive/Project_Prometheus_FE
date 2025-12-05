@@ -169,8 +169,9 @@ export default function ColumnFilterPopover({
                             setSelected([v]);
                           }
                         }}
+                        className="filter-option__control"
                       />
-                      <span>{label}</span>
+                      <span className="filter-option__label">{label}</span>
                     </label>
                   );
                 })}

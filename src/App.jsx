@@ -8,7 +8,7 @@ import SignUp from "./pages/SignUp";
 import TermsAgreement from "./pages/TermsAgreement";
 import ForgotPassword from "./pages/ForgotPassword";
 import Settings from "./pages/Settings";
-import AssetStatus from "./pages/AssetStatus";
+import AssetStatusPage from "./pages/AssetStatusPage";
 import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
 import Detail from "./pages/Detail";
@@ -131,7 +131,7 @@ function App() {
               } />
               <Route path="/assets" element={
                 <ErrorBoundary>
-                  <AssetStatus />
+                  <AssetStatusPage />
                 </ErrorBoundary>
               } />
               <Route path="/rentals" element={<Navigate to="/rentals/table" replace />} />

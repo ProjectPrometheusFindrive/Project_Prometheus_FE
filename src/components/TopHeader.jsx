@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiLogOut } from "react-icons/fi";
+import { FiSettings, FiChevronDown } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
 import { useAuth } from "../contexts/AuthContext";
-// Default logo served from public root
-const defaultLogo = "/PPFD.png";
 import CiUploadModal from "./modals/CiUploadModal";
 import ThemeToggle from "./ThemeToggle";
 import { useCompany } from "../contexts/CompanyContext";
@@ -12,6 +10,7 @@ import { uploadOne } from "../utils/uploadHelpers";
 import GCSImage from "./GCSImage";
 import { emitToast } from "../utils/toast";
 import log from "../utils/logger";
+import NavigationBar from "./NavigationBar";
 
 export default function TopHeader() {
     const navigate = useNavigate();
@@ -19,42 +18,27 @@ export default function TopHeader() {
     const { companyInfo, updateCompanyInfo, loading } = useCompany();
     const [uploading, setUploading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
-    // Get user info from storage
+    // 사용자 / 회사 정보
     const userInfo = typedStorage.auth.getUserInfo();
-    const userName = (auth?.user?.name) || userInfo?.name || "관리자";
-    const userRoleRaw = (auth?.user?.role) || userInfo?.role || "member";
-    const userRole = String(userRoleRaw || "member");
-    const roleLabel = (function(){
-        if (userRole === 'super_admin') return '전체 관리자';
-        if (userRole === 'admin') return '관리자';
-        return '멤버';
-    })();
-    // Display company name strictly from company profile for consistency
-    const companyName = loading ? "" : ((companyInfo && companyInfo.name) || "");
+    const userName = auth?.user?.name || userInfo?.name || "관리자";
+    const companyNameRaw = companyInfo?.name || auth?.user?.company || userInfo?.company;
+    const companyName = loading ? "" : (companyNameRaw || "");
 
-    function handleLogout() {
-        auth.logout();
-        navigate("/", { replace: true });
-    }
+    const hasLogoPath = !!(companyInfo && companyInfo.logoPath);
+    const hasLogoDataUrl = !!(companyInfo && companyInfo.logoDataUrl);
+    const baseForInitial = (companyName || "").trim();
+    const avatarInitial = baseForInitial ? baseForInitial.charAt(0) : "?";
 
-    function onUploadClick() {
-        setIsModalOpen(true);
-    }
-
-    function handleModalClose() {
-        setIsModalOpen(false);
-    }
-
-    async function handleModalSubmit(file, previewUrl) {
+    async function handleModalSubmit(file) {
         if (!file || (file.type && !String(file.type).startsWith("image/"))) {
-            emitToast("이미지 파일을 선택해 주세요.", "warning");
+            emitToast("이미지 파일을 선택해주세요.", "warning");
             return;
         }
 
         setUploading(true);
         try {
-            // Use canonical companyId for uploads: company/{companyId}/docs
             const companyId = auth?.user?.companyId || companyInfo?.companyId || "ci";
             const folder = `company/${companyId}/docs`;
             log.debug("[upload-ui] logo upload start");
@@ -62,113 +46,149 @@ export default function TopHeader() {
             const res = await uploadOne(file, { folder, label: "logo" });
             log.debug("[upload-ui] uploadOne result:", res);
             log.debug("[upload-ui] updating company logo objectName:", res?.objectName || "(none)");
-            // Persist preferred field: logoPath (objectName). Clear legacy data URL.
             updateCompanyInfo({ logoPath: res?.objectName || "", logoDataUrl: "" });
             setIsModalOpen(false);
         } catch (err) {
             log.error("Failed to save logo:", err);
-            emitToast("업로드 실패: " + (err?.message || String(err)), "error");
+            emitToast("로고 저장 실패: " + (err?.message || String(err)), "error");
         } finally {
             log.debug("[upload-ui] logo upload complete");
             setUploading(false);
         }
     }
 
+    function handleLogout() {
+        auth.logout();
+        navigate("/", { replace: true });
+    }
+
+    function openLogoModal() {
+        setIsProfileMenuOpen(false);
+        setIsModalOpen(true);
+    }
+
     return (
         <header className="top-header bg-white shadow-sm" role="banner">
-            <div className="top-header__left">
-                {companyInfo?.logoPath ? (
-                    <GCSImage
-                        objectName={companyInfo.logoPath}
-                        alt="Company Logo"
-                        className="top-header__logo"
-                        title={uploading ? "업로드 중..." : "로고 업로드"}
-                        aria-label={uploading ? "로고 업로드 중" : "회사 로고 변경하기"}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => !uploading && onUploadClick()}
-                        onKeyDown={(e) => {
-                            if (uploading) return;
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                onUploadClick();
-                            }
-                        }}
-                    />
-                ) : (
-                    <img
-                        src={companyInfo?.logoDataUrl || defaultLogo}
-                        alt="Company Logo"
-                        className="top-header__logo"
-                        title={uploading ? "업로드 중..." : "로고 업로드"}
-                        aria-label={uploading ? "로고 업로드 중" : "회사 로고 변경하기"}
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => !uploading && onUploadClick()}
-                        onKeyDown={(e) => {
-                            if (uploading) return;
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                onUploadClick();
-                            }
-                        }}
-                        onError={(e) => {
-                            e.target.src = defaultLogo;
-                        }}
-                    />
-                )}
+            {/* Left: 브랜드 로고 + 서비스명 */}
+            <div
+                className="top-header__left"
+                onClick={() => navigate("/dashboard")}
+            >
                 <div
                     className="top-header__service-name"
                     role="link"
                     tabIndex={0}
                     title="대시보드로 이동"
                     aria-label="Findrive 대시보드로 이동"
-                    onClick={() => navigate("/dashboard")}
                     onKeyDown={(e) => {
-                        if (e.key === 'Enter' || e.key === ' ') {
+                        if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
                             navigate("/dashboard");
                         }
                     }}
                 >
                     <span className="top-header__service-name--findrive">Findrive</span>
-                    {companyName && (
-                        <>
-                            <span className="top-header__service-name--separator"> · </span>
-                            <span className="top-header__service-name--company">{companyName}</span>
-                        </>
+                </div>
+            </div>
+
+            {/* Center: GNB */}
+            <NavigationBar />
+
+            {/* Right: 설정 / 테마 / 프로필 */}
+            <div className="top-header__right">
+                <button
+                    type="button"
+                    className="top-header__icon-button"
+                    aria-label="환경 설정"
+                    title="환경 설정"
+                    onClick={() => navigate("/settings")}
+                >
+                    <FiSettings aria-hidden className="top-header__icon" />
+                </button>
+
+                <ThemeToggle />
+
+                {/* Profile (thumb_img + 이름/회사, 드롭다운) */}
+                <div className="top-header__profile-wrapper">
+                    <button
+                        type="button"
+                        className="top-header__profile-btn"
+                        aria-haspopup="menu"
+                        aria-expanded={isProfileMenuOpen}
+                        onClick={() => setIsProfileMenuOpen((open) => !open)}
+                    >
+                        <div className="top-header__profile-thumb">
+                            <span className="top-header__profile-bar" aria-hidden="true" />
+                            <div className="top-header__profile-avatar">
+                                {hasLogoPath ? (
+                                    <GCSImage
+                                        objectName={companyInfo.logoPath}
+                                        alt="Company CI"
+                                        className="top-header__profile-avatar-img"
+                                    />
+                                ) : hasLogoDataUrl ? (
+                                    <img
+                                        src={companyInfo.logoDataUrl}
+                                        alt="Company CI"
+                                        className="top-header__profile-avatar-img"
+                                    />
+                                ) : (
+                                    <span className="top-header__profile-avatar-initial">
+                                        {avatarInitial}
+                                    </span>
+                                )}
+                            </div>
+                        </div>
+                        <div className="top-header__profile-text">
+                            <span className="top-header__profile-name">{userName}</span>
+                            {companyName && (
+                                <span className="top-header__profile-company">{companyName}</span>
+                            )}
+                        </div>
+                        <FiChevronDown aria-hidden className="top-header__profile-chevron" />
+                    </button>
+
+                    {isProfileMenuOpen && (
+                        <div
+                            className="top-header__profile-menu"
+                            role="menu"
+                            aria-label="사용자 메뉴"
+                        >
+                            <button
+                                type="button"
+                                className="top-header__profile-menu-item"
+                                role="menuitem"
+                                onClick={openLogoModal}
+                            >
+                                로고관리
+                            </button>
+                            <button
+                                type="button"
+                                className="top-header__profile-menu-item"
+                                role="menuitem"
+                                onClick={() => {
+                                    setIsProfileMenuOpen(false);
+                                    navigate("/settings");
+                                }}
+                            >
+                                회사정보설정
+                            </button>
+                            <button
+                                type="button"
+                                className="top-header__profile-menu-item top-header__profile-menu-item--danger"
+                                role="menuitem"
+                                onClick={handleLogout}
+                            >
+                                로그아웃
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>
 
-            <div className="top-header__right">
-                <div className="top-header__user" aria-label={`사용자 ${userName}, 역할 ${roleLabel}`}>
-                    <span className="top-header__user-id">{userName}</span>
-                    <span className="top-header__user-separator" aria-hidden>·</span>
-                    <span
-                        className={`top-header__user-role role-${userRole}`}
-                        title={`역할: ${roleLabel}`}
-                        aria-label={`현재 사용자 역할: ${roleLabel}`}
-                    >
-                        {roleLabel}
-                    </span>
-                </div>
-                <ThemeToggle />
-                <button
-                    type="button"
-                    className="top-header__logout-btn"
-                    aria-label="로그아웃"
-                    title="로그아웃"
-                    onClick={handleLogout}
-                >
-                    <FiLogOut className="top-header__icon" aria-hidden />
-                    로그아웃
-                </button>
-            </div>
-
             <CiUploadModal
                 isOpen={isModalOpen}
-                onClose={handleModalClose}
+                onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
                 title="회사 로고 업로드"
             />
