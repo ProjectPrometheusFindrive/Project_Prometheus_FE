@@ -231,29 +231,6 @@ body {
 .asset-table thead th .th-label__text {
     letter-spacing: -0.02em;
 }
-/* Figma-style filter icon: three horizontal bars */
-.asset-table thead th .th-label::after {
-    content: "";
-    width: 14px;
-    height: 14px;
-    margin-left: 2px;
-    border-radius: 3px;
-    background-image:
-        linear-gradient(#cbd5e1, #cbd5e1),
-        linear-gradient(#cbd5e1, #cbd5e1),
-        linear-gradient(#cbd5e1, #cbd5e1);
-    background-size: 80% 1.2px, 80% 1.2px, 80% 1.2px;
-    background-position: 10% 25%, 10% 50%, 10% 75%;
-    background-repeat: no-repeat;
-    opacity: 0.7;
-}
-.asset-table thead th.th-filtered .th-label::after {
-    background-image:
-        linear-gradient(#006cec, #006cec),
-        linear-gradient(#006cec, #006cec),
-        linear-gradient(#006cec, #006cec);
-    opacity: 1;
-}
 .asset-table thead th .sort-toggle {
     border: 0;
     background: transparent;
@@ -266,21 +243,18 @@ body {
     vertical-align: middle;
 }
 .asset-table thead th .sort-toggle .sort-icon {
-    width: 18px;
-    height: 12px;
+    width: 20px;
+    height: 20px;
     display: inline-flex;
     color: #1c1c1c;
     opacity: 0.3;
-    transition: transform 0.16s ease, opacity 0.16s ease, color 0.16s ease;
+    transition: opacity 0.16s ease, color 0.16s ease;
 }
 .asset-table thead th .sort-toggle:hover .sort-icon {
     opacity: 0.6;
 }
 .asset-table thead th .sort-toggle.active .sort-icon {
     opacity: 1;
-}
-.asset-table thead th .sort-toggle.dir-asc .sort-icon {
-    transform: rotate(180deg);
 }
 
 /* Active filtered header style */
@@ -973,7 +947,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: flex-start;
-    gap: 30px;
+    gap: 0;
     width: 100%;
     height: var(--app-header-height);
     padding: 15px 60px;
@@ -985,11 +959,16 @@ body {
     z-index: 1000;
 }
 
+.top-header__right {
+    margin-left: auto;
+}
+
 .top-header__left {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 0;
     flex: 0 0 auto;
+    margin-right: 30px;
 }
 
 .top-header__logo {
@@ -1162,12 +1141,14 @@ body {
 
 /* Top navigation bar */
 .navigation-bar {
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: 30px;
+    padding: 6px 16px;
     margin-left: 0;
-    flex: 1 1 auto;
+    flex: 0 0 auto;
     height: 100%;
+    justify-content: flex-start;
 }
 
 .navigation-bar__info {
@@ -1175,18 +1156,21 @@ body {
 }
 
 .navigation-bar__link {
-    display: inline-flex;
+    display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     height: auto;
-    padding: 6px 16px;
-    color: rgba(136, 136, 136, 0.88);
+    padding: 0;
+    color: #888888;
     text-decoration: none;
     background: transparent;
     border: none;
+    font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
     font-size: 16px;
     font-weight: 600;
     cursor: pointer;
+    transition: color 0.2s ease;
 }
 
 .navigation-bar__link:hover {
