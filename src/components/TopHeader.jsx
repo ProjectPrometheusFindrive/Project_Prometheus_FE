@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiSettings, FiChevronDown } from "react-icons/fi";
+import { FiChevronDown } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
 import { useAuth } from "../contexts/AuthContext";
 import CiUploadModal from "./modals/CiUploadModal";
@@ -103,7 +103,14 @@ export default function TopHeader() {
                     title="환경 설정"
                     onClick={() => navigate("/settings")}
                 >
-                    <FiSettings aria-hidden className="top-header__icon" />
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="10" cy="10" r="2.5" stroke="currentColor" strokeWidth="1.3" fill="none"/>
+                        <path d="M10 2.5 L10.8 4.2 L12.7 4.5 L11.4 5.8 L11.6 7.7 L10 6.8 L8.4 7.7 L8.6 5.8 L7.3 4.5 L9.2 4.2 Z" fill="currentColor"/>
+                        <path d="M10 17.5 L10.8 15.8 L12.7 15.5 L11.4 14.2 L11.6 12.3 L10 13.2 L8.4 12.3 L8.6 14.2 L7.3 15.5 L9.2 15.8 Z" fill="currentColor"/>
+                        <path d="M17.5 10 L15.8 9.2 L15.5 7.3 L14.2 8.6 L12.3 8.4 L13.2 10 L12.3 11.6 L14.2 11.4 L15.5 12.7 L15.8 10.8 Z" fill="currentColor"/>
+                        <path d="M2.5 10 L4.2 9.2 L4.5 7.3 L5.8 8.6 L7.7 8.4 L6.8 10 L7.7 11.6 L5.8 11.4 L4.5 12.7 L4.2 10.8 Z" fill="currentColor"/>
+                        <circle cx="10" cy="10" r="7.5" stroke="currentColor" strokeWidth="1.3" fill="none"/>
+                    </svg>
                 </button>
 
                 <ThemeToggle />
