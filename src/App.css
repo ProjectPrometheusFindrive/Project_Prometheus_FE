@@ -477,10 +477,36 @@ body {
     position: relative;
     --table-sticky-extra-offset: 0px;
     /* Make the table area its own scroll container so only rows scroll */
-    overflow: auto; /* both axes when needed */
-    max-height: 100%;
+    overflow: auto;
+    max-height: calc(100vh - 250px); /* 뷰포트 높이에서 헤더/툴바 공간 제외 */
     min-height: 0;
     flex: 1 1 auto;
+    /* 스크롤바가 border-radius 영역을 피하도록 padding 추가 */
+    padding-right: 2px;
+}
+
+/* border-radius 내부로 스크롤바를 제한 */
+.table-wrap--sticky::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+.table-wrap--sticky::-webkit-scrollbar-track {
+    background: transparent;
+    margin-top: 14px; /* 상단 border-radius만큼 여백 */
+    margin-bottom: 14px; /* 하단 border-radius만큼 여백 */
+}
+
+.table-wrap--sticky::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+}
+
+.table-wrap--sticky::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.3);
+    background-clip: padding-box;
 }
 
 .asset-table--sticky thead th {
