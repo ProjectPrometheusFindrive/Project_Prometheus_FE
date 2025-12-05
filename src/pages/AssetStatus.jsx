@@ -793,30 +793,153 @@ export default function AssetStatus() {
             case "insuranceExpiryDate":
                 if (row.insuranceExpiryDate) {
                     return (
-                        <button type="button" className="simple-button" onClick={() => openInsuranceModalReadOnly(row)} title="보험 정보 보기">
-                            {formatDateShort(row.insuranceExpiryDate)}
-                        </button>
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                            <button
+                                type="button"
+                                onClick={() => openInsuranceModalReadOnly(row)}
+                                title="보험 정보 보기"
+                                style={{
+                                    textAlign: 'center',
+                                    color: '#006CEC',
+                                    fontSize: '14px',
+                                    fontFamily: 'Pretendard',
+                                    fontWeight: 500,
+                                    lineHeight: '24px',
+                                    wordWrap: 'break-word',
+                                    border: 'none',
+                                    background: 'transparent',
+                                    cursor: 'pointer',
+                                    padding: 0
+                                }}
+                            >
+                                {formatDateShort(row.insuranceExpiryDate)}
+                            </button>
+                        </div>
                     );
                 }
                 return (
-                    <button type="button" className="badge badge--default badge--clickable" onClick={() => openInsuranceModal(row)} title="보험 등록">
+                    <button
+                        type="button"
+                        onClick={() => openInsuranceModal(row)}
+                        title="보험 등록"
+                        style={{
+                            paddingTop: '2px',
+                            paddingBottom: '2px',
+                            paddingLeft: '11px',
+                            paddingRight: '12px',
+                            background: 'rgba(0, 0, 0, 0.05)',
+                            borderRadius: '100px',
+                            outline: '1px rgba(0, 0, 0, 0.02) solid',
+                            outlineOffset: '-1px',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '10px',
+                            display: 'inline-flex',
+                            textAlign: 'center',
+                            color: '#1C1C1C',
+                            fontSize: '14px',
+                            fontFamily: 'Pretendard',
+                            fontWeight: 500,
+                            lineHeight: '24px',
+                            wordWrap: 'break-word',
+                            border: 'none',
+                            cursor: 'pointer'
+                        }}
+                    >
                         보험등록
                     </button>
                 );
             case "deviceStatus":
                 const hasDevice = row.deviceSerial;
-                const status = hasDevice ? "연결됨" : "미연결";
-                return <span className={`badge ${hasDevice ? "badge--on" : "badge--off"}`}>{status}</span>;
+                if (!hasDevice) {
+                    return (
+                        <button
+                            type="button"
+                            style={{
+                                paddingTop: '2px',
+                                paddingBottom: '2px',
+                                paddingLeft: '11px',
+                                paddingRight: '12px',
+                                background: 'rgba(235, 74, 69, 0.15)',
+                                borderRadius: '100px',
+                                outline: '1px rgba(0, 0, 0, 0.02) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#EB4A45',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                wordWrap: 'break-word',
+                                border: 'none',
+                                cursor: 'default'
+                            }}
+                        >
+                            연결불량
+                        </button>
+                    );
+                }
+                return (
+                    <span style={{
+                        paddingLeft: '14px',
+                        paddingRight: '14px',
+                        paddingTop: '2px',
+                        paddingBottom: '2px',
+                        background: 'rgba(26.22, 129.17, 255, 0.05)',
+                        borderRadius: '100px',
+                        outline: '1px rgba(0, 0, 0, 0.02) solid',
+                        outlineOffset: '-1px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '10px',
+                        display: 'inline-flex',
+                        textAlign: 'center',
+                        color: '#006CEC',
+                        fontSize: '14px',
+                        fontFamily: 'Pretendard',
+                        fontWeight: 500,
+                        lineHeight: '24px',
+                        wordWrap: 'break-word'
+                    }}>
+                        연결됨
+                    </span>
+                );
             case "severity": {
                 const hasDevice = !!row?.deviceSerial;
                 if (!hasDevice) {
                     return (
                         <button
                             type="button"
-                            className="badge badge--default badge--clickable"
                             onClick={openInstallModal}
                             title="단말 장착 신청"
                             aria-label="단말 장착 신청"
+                            style={{
+                                paddingTop: '2px',
+                                paddingBottom: '2px',
+                                paddingLeft: '11px',
+                                paddingRight: '12px',
+                                background: 'rgba(0, 0, 0, 0.05)',
+                                borderRadius: '100px',
+                                outline: '1px rgba(0, 0, 0, 0.02) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#1C1C1C',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                wordWrap: 'break-word',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
                         >
                             단말필요
                         </button>
@@ -827,11 +950,61 @@ export default function AssetStatus() {
                 let max = fromField;
                 if (max == null) {
                     const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
-                    if (arr.length === 0) return <span className="badge badge--normal">정상</span>;
+                    if (arr.length === 0) {
+                        return (
+                            <span style={{
+                                paddingLeft: '14px',
+                                paddingRight: '14px',
+                                paddingTop: '2px',
+                                paddingBottom: '2px',
+                                background: 'rgba(26.22, 129.17, 255, 0.05)',
+                                borderRadius: '100px',
+                                outline: '1px rgba(0, 0, 0, 0.02) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#006CEC',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                wordWrap: 'break-word'
+                            }}>
+                                정상
+                            </span>
+                        );
+                    }
                     max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
                 }
                 if (Number(max) === 0) {
-                    return <span className="badge badge--normal">정상</span>;
+                    return (
+                        <span style={{
+                            paddingLeft: '14px',
+                            paddingRight: '14px',
+                            paddingTop: '2px',
+                            paddingBottom: '2px',
+                            background: 'rgba(26.22, 129.17, 255, 0.05)',
+                            borderRadius: '100px',
+                            outline: '1px rgba(0, 0, 0, 0.02) solid',
+                            outlineOffset: '-1px',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: '10px',
+                            display: 'inline-flex',
+                            textAlign: 'center',
+                            color: '#006CEC',
+                            fontSize: '14px',
+                            fontFamily: 'Pretendard',
+                            fontWeight: 500,
+                            lineHeight: '24px',
+                            wordWrap: 'break-word'
+                        }}>
+                            정상
+                        </span>
+                    );
                 }
                 return <SeverityBadge value={max} />;
             }
@@ -976,10 +1149,32 @@ export default function AssetStatus() {
                               return (
                                   <button
                                       type="button"
-                                      className="badge badge--on badge--clickable"
                                       onClick={() => openDeviceModal(row, true)}
                                       title="단말 정보 보기"
                                       aria-label={`${row.plate || row.id || "자산"} 단말 정보 보기`}
+                                      style={{
+                                          paddingLeft: '14px',
+                                          paddingRight: '14px',
+                                          paddingTop: '2px',
+                                          paddingBottom: '2px',
+                                          background: 'rgba(26.22, 129.17, 255, 0.05)',
+                                          borderRadius: '100px',
+                                          outline: '1px rgba(0, 0, 0, 0.02) solid',
+                                          outlineOffset: '-1px',
+                                          justifyContent: 'center',
+                                          alignItems: 'center',
+                                          gap: '10px',
+                                          display: 'inline-flex',
+                                          textAlign: 'center',
+                                          color: '#006CEC',
+                                          fontSize: '14px',
+                                          fontFamily: 'Pretendard',
+                                          fontWeight: 500,
+                                          lineHeight: '24px',
+                                          wordWrap: 'break-word',
+                                          border: 'none',
+                                          cursor: 'pointer'
+                                      }}
                                   >
                                       연결됨
                                   </button>
@@ -988,10 +1183,32 @@ export default function AssetStatus() {
                           return (
                               <button
                                   type="button"
-                                  className="badge badge--default badge--clickable"
                                   onClick={() => openDeviceModal(row, false)}
                                   title="단말 등록"
                                   aria-label={`${row.plate || row.id || "자산"} 단말 등록`}
+                                  style={{
+                                      paddingTop: '2px',
+                                      paddingBottom: '2px',
+                                      paddingLeft: '11px',
+                                      paddingRight: '12px',
+                                      background: 'rgba(0, 0, 0, 0.05)',
+                                      borderRadius: '100px',
+                                      outline: '1px rgba(0, 0, 0, 0.02) solid',
+                                      outlineOffset: '-1px',
+                                      justifyContent: 'center',
+                                      alignItems: 'center',
+                                      gap: '10px',
+                                      display: 'inline-flex',
+                                      textAlign: 'center',
+                                      color: '#1C1C1C',
+                                      fontSize: '14px',
+                                      fontFamily: 'Pretendard',
+                                      fontWeight: 500,
+                                      lineHeight: '24px',
+                                      wordWrap: 'break-word',
+                                      border: 'none',
+                                      cursor: 'pointer'
+                                  }}
                               >
                                   단말등록
                               </button>
@@ -1011,7 +1228,7 @@ export default function AssetStatus() {
                 : {
                       key: column.key,
                       label: column.label,
-                      style: { textAlign: column.key === "memo" ? "left" : "center" },
+                      style: { textAlign: "center" },
                       // Filter meta per column
                       ...(column.key === "plate" ? { filterType: "text" } : null),
                       ...(column.key === "vehicleType" ? {
