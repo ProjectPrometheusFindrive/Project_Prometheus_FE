@@ -566,64 +566,233 @@ function MemberManagement() {
     return (
         <ErrorBoundary>
             <div className="page page--data member-management-page space-y-4">
-                <h1 className="text-2xl font-semibold text-gray-900">회원 관리</h1>
-                <div className="page-scroll space-y-4">
-                    {(errorAll || errorPending) && (
-                        <div className="error-banner">{errorAll || errorPending}</div>
-                    )}
+                <h1 className="text-2xl font-semibold text-gray-900">회원관리</h1>
+                {(errorAll || errorPending) && (
+                    <div className="error-banner">{errorAll || errorPending}</div>
+                )}
 
-                        <div className="table-toolbar">
-                            <div className="flex-1"></div>
-                            <div className="flex gap-3">
+                <div className="table-toolbar">
+                    <div className="flex-1"></div>
+                    <div className="flex gap-3">
+                        <button
+                            type="button"
+                            onClick={() => { loadPendingMembers(); loadAllMembers(); }}
+                            disabled={batchWorking || loadingAll || loadingPending}
+                            className="toolbar-button"
+                            style={{
+                                paddingLeft: '14px',
+                                paddingRight: '14px',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                                borderRadius: '6px',
+                                outline: '1px rgba(0, 0, 0, 0.10) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#1C1C1C',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: (batchWorking || loadingAll || loadingPending) ? 'not-allowed' : 'pointer',
+                                opacity: (batchWorking || loadingAll || loadingPending) ? 0.5 : 1,
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!batchWorking && !loadingAll && !loadingPending) {
+                                    e.currentTarget.style.background = '#006CEC';
+                                    e.currentTarget.style.color = 'white';
+                                    e.currentTarget.style.outline = 'none';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!batchWorking && !loadingAll && !loadingPending) {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = '#1C1C1C';
+                                    e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
+                                }
+                            }}
+                        >
+                            {(loadingAll || loadingPending) ? '로딩 중...' : '새로고침'}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleBulkApprove}
+                            disabled={batchWorking || selectedPendingCount === 0}
+                            className="toolbar-button"
+                            style={{
+                                paddingLeft: '14px',
+                                paddingRight: '14px',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                                borderRadius: '6px',
+                                outline: '1px rgba(0, 0, 0, 0.10) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#1C1C1C',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: (batchWorking || selectedPendingCount === 0) ? 'not-allowed' : 'pointer',
+                                opacity: (batchWorking || selectedPendingCount === 0) ? 0.5 : 1,
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!batchWorking && selectedPendingCount > 0) {
+                                    e.currentTarget.style.background = '#006CEC';
+                                    e.currentTarget.style.color = 'white';
+                                    e.currentTarget.style.outline = 'none';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!batchWorking && selectedPendingCount > 0) {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = '#1C1C1C';
+                                    e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
+                                }
+                            }}
+                        >
+                            일괄승인
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleBulkWithdraw}
+                            disabled={batchWorking || selectedWithdrawEligibleCount === 0}
+                            className="toolbar-button"
+                            style={{
+                                paddingLeft: '14px',
+                                paddingRight: '14px',
+                                paddingTop: '4px',
+                                paddingBottom: '4px',
+                                borderRadius: '6px',
+                                outline: '1px rgba(0, 0, 0, 0.10) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#1C1C1C',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                background: 'transparent',
+                                border: 'none',
+                                cursor: (batchWorking || selectedWithdrawEligibleCount === 0) ? 'not-allowed' : 'pointer',
+                                opacity: (batchWorking || selectedWithdrawEligibleCount === 0) ? 0.5 : 1,
+                                transition: 'all 0.2s'
+                            }}
+                            onMouseEnter={(e) => {
+                                if (!batchWorking && selectedWithdrawEligibleCount > 0) {
+                                    e.currentTarget.style.background = '#006CEC';
+                                    e.currentTarget.style.color = 'white';
+                                    e.currentTarget.style.outline = 'none';
+                                }
+                            }}
+                            onMouseLeave={(e) => {
+                                if (!batchWorking && selectedWithdrawEligibleCount > 0) {
+                                    e.currentTarget.style.background = 'transparent';
+                                    e.currentTarget.style.color = '#1C1C1C';
+                                    e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
+                                }
+                            }}
+                        >
+                            일괄탈퇴
+                        </button>
+                        {isSuperAdmin && (
+                            <>
+                                <select
+                                    className="form-input"
+                                    aria-label="일괄 역할 선택"
+                                    value={batchRole}
+                                    onChange={(e) => setBatchRole(e.target.value)}
+                                    disabled={batchWorking}
+                                    style={{
+                                        paddingLeft: '14px',
+                                        paddingRight: '14px',
+                                        paddingTop: '4px',
+                                        paddingBottom: '4px',
+                                        borderRadius: '6px',
+                                        outline: '1px rgba(0, 0, 0, 0.10) solid',
+                                        outlineOffset: '-1px',
+                                        fontSize: '14px',
+                                        fontFamily: 'Pretendard',
+                                        fontWeight: 500,
+                                        lineHeight: '24px',
+                                        color: '#1C1C1C',
+                                        border: 'none',
+                                        background: 'white'
+                                    }}
+                                >
+                                    <option value="">역할 선택</option>
+                                    <option value={ROLES.ADMIN}>admin</option>
+                                    <option value={ROLES.MEMBER}>member</option>
+                                </select>
                                 <button
                                     type="button"
-                                    className="form-button form-button--neutral"
-                                    onClick={() => { loadPendingMembers(); loadAllMembers(); }}
-                                    disabled={batchWorking || loadingAll || loadingPending}
+                                    onClick={handleBulkRoleChange}
+                                    disabled={batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0}
+                                    className="toolbar-button"
+                                    style={{
+                                        paddingLeft: '14px',
+                                        paddingRight: '14px',
+                                        paddingTop: '4px',
+                                        paddingBottom: '4px',
+                                        borderRadius: '6px',
+                                        outline: '1px rgba(0, 0, 0, 0.10) solid',
+                                        outlineOffset: '-1px',
+                                        justifyContent: 'center',
+                                        alignItems: 'center',
+                                        gap: '10px',
+                                        display: 'inline-flex',
+                                        textAlign: 'center',
+                                        color: '#1C1C1C',
+                                        fontSize: '14px',
+                                        fontFamily: 'Pretendard',
+                                        fontWeight: 500,
+                                        lineHeight: '24px',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        cursor: (batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0) ? 'not-allowed' : 'pointer',
+                                        opacity: (batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0) ? 0.5 : 1,
+                                        transition: 'all 0.2s'
+                                    }}
+                                    onMouseEnter={(e) => {
+                                        if (!batchWorking && batchRole && selectedRoleChangeEligibleCount > 0) {
+                                            e.currentTarget.style.background = '#006CEC';
+                                            e.currentTarget.style.color = 'white';
+                                            e.currentTarget.style.outline = 'none';
+                                        }
+                                    }}
+                                    onMouseLeave={(e) => {
+                                        if (!batchWorking && batchRole && selectedRoleChangeEligibleCount > 0) {
+                                            e.currentTarget.style.background = 'transparent';
+                                            e.currentTarget.style.color = '#1C1C1C';
+                                            e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
+                                        }
+                                    }}
                                 >
-                                    {(loadingAll || loadingPending) ? '로딩 중...' : '새로고침'}
+                                    일괄역할변경
                                 </button>
-                                <button
-                                    type="button"
-                                    className="form-button"
-                                    onClick={handleBulkApprove}
-                                    disabled={batchWorking || selectedPendingCount === 0}
-                                >
-                                    일괄 승인
-                                </button>
-                                <button
-                                    type="button"
-                                    className="form-button form-button--danger"
-                                    onClick={handleBulkWithdraw}
-                                    disabled={batchWorking || selectedWithdrawEligibleCount === 0}
-                                >
-                                    일괄 탈퇴
-                                </button>
-                                {isSuperAdmin && (
-                                    <>
-                                        <select
-                                            className="form-input"
-                                            aria-label="일괄 역할 선택"
-                                            value={batchRole}
-                                            onChange={(e) => setBatchRole(e.target.value)}
-                                            disabled={batchWorking}
-                                        >
-                                            <option value="">역할 선택</option>
-                                            <option value={ROLES.ADMIN}>admin</option>
-                                            <option value={ROLES.MEMBER}>member</option>
-                                        </select>
-                                        <button
-                                            type="button"
-                                            className="form-button"
-                                            onClick={handleBulkRoleChange}
-                                            disabled={batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0}
-                                        >
-                                            일괄 역할 변경
-                                        </button>
-                                    </>
-                                )}
-                            </div>
-                        </div>
+                            </>
+                        )}
+                    </div>
+                </div>
+
+                <div className="page-scroll space-y-4">
                         {((loadingAll || loadingPending) && unifiedRows.length === 0) ? (
                             <div className="loading-state">
                                 <div className="spinner"></div>
