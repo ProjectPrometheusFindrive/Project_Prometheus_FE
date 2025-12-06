@@ -1279,10 +1279,8 @@ export default function AssetStatus() {
                       ...(column.key === "managementStage" ? {
                         filterType: "multi-select",
                         filterOptions: MANAGEMENT_STAGE_OPTIONS.map((o) => ({ value: o.value, label: o.label || o.value })),
-                        // OR only per requirement
                         filterAllowAnd: false,
-                        // Render as toggle-style badges (multi-select)
-                        filterOptionStyle: 'toggle',
+                        filterHideHeader: true,
                       } : null),
                       ...(column.key === "memo" ? { filterType: "text" } : null),
                       render: (row) => renderCellContent(column, row),

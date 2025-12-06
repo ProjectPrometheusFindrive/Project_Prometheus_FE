@@ -13,6 +13,12 @@ export default function ColumnFilterPopover({
 }) {
   const type = column?.filterType;
   const containerRef = useRef(null);
+  const isMulti = type === "multi-select";
+  const isManagementStageFilter = column?.key === "managementStage";
+  const popoverClassNames = ["filter-popover"];
+  if (alignRight) popoverClassNames.push("align-right");
+  if (isManagementStageFilter) popoverClassNames.push("filter-popover--management-stage");
+  const popoverClassName = popoverClassNames.join(" ");
 
   // Close on outside click
   useEffect(() => {
@@ -87,22 +93,59 @@ export default function ColumnFilterPopover({
     }
   }, [column?.key]);
 
-  const isMulti = type === "multi-select";
   const optionStyle = column?.filterOptionStyle || 'default';
   const sortedOptions = useMemo(() => {
+    if (isManagementStageFilter) {
+      // 관리상태 필터는 Figma 정의 순서를 유지
+      return Array.isArray(options) ? options : [];
+    }
     if (!Array.isArray(options)) return [];
     return [...options].sort((a, b) => String(a?.label ?? a?.value ?? "").localeCompare(String(b?.label ?? b?.value ?? "")));
-  }, [options]);
+  }, [options, isManagementStageFilter]);
 
   const thStyle = column?.label || "필터";
 
   return (
-    <div ref={containerRef} className={`filter-popover${alignRight ? ' align-right' : ''}`} role="dialog" aria-label={`${thStyle} 필터`}>
-      <div className="filter-popover__header">
-        <div className="filter-popover__title">{thStyle}</div>
-        <button type="button" className="filter-popover__clear" onClick={onClear} aria-label="필터 초기화">초기화</button>
-      </div>
+    <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>
+      {!column?.filterHideHeader && (
+        <div className="filter-popover__header">
+          <div className="filter-popover__title">{thStyle}</div>
+          <button
+            type="button"
+            className="filter-popover__clear"
+            onClick={() => {
+              // Clear external filter state and reset local state
+              if (type === "text") setText("");
+              if (type === "number-range") { setMin(""); setMax(""); }
+              if (type === "date-range") { setFrom(""); setTo(""); }
+              if (type === "boolean") setBoolVal(null);
+              if (type === "select" || type === "multi-select") setSelected([]);
+              onClear && onClear();
+            }}
+            aria-label="필터 초기화"
+          >
+            초기화
+          </button>
+        </div>
+      )}
       <div className="filter-popover__content">
+        {isManagementStageFilter && (type === "select" || type === "multi-select") && (
+          <>
+            <button
+              type="button"
+              className="filter-management-clear"
+              onClick={() => {
+                setSelected([]);
+                onClear && onClear();
+              }}
+              aria-label="관리상태 선택 해제"
+            >
+              <span aria-hidden="true" className="filter-management-clear__checkbox" />
+              <span className="filter-management-clear__label">선택해제</span>
+            </button>
+            <div className="filter-management-divider" />
+          </>
+        )}
         {type === "text" && (
           <input
             type="text"
