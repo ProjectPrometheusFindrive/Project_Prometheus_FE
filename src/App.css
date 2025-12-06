@@ -188,6 +188,10 @@ body {
     text-align: right;
 }
 
+.asset-table thead {
+    background: #f5faff; /* Ensure background covers entire header row including scrollbar area */
+}
+
 .asset-table thead th {
     background: #f5faff;
     font-weight: 700;
