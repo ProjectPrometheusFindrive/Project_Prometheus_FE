@@ -576,8 +576,16 @@ body {
 
 .table-wrap--sticky::-webkit-scrollbar-track {
     background: transparent;
+}
+
+.table-wrap--sticky::-webkit-scrollbar-track:vertical {
     margin-top: 14px; /* 상단 border-radius만큼 여백 */
     margin-bottom: 14px; /* 하단 border-radius만큼 여백 */
+}
+
+.table-wrap--sticky::-webkit-scrollbar-track:horizontal {
+    margin-left: 14px; /* 좌측 border-radius만큼 여백 */
+    margin-right: 14px; /* 우측 border-radius만큼 여백 */
 }
 
 .table-wrap--sticky::-webkit-scrollbar-thumb {
