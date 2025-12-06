@@ -158,12 +158,14 @@ body {
     background: #ffffff;
     border: 1px solid #dcdde4;
     box-shadow: 0 12px 26px rgba(12, 26, 75, 0.07);
+    min-height: 600px; /* Ensure table header remains visible even when empty */
 }
 
 .asset-table {
     width: 100%;
     border-collapse: collapse;
     background: #fff;
+    table-layout: fixed; /* Fix column widths to prevent layout shifts */
 }
 
 .asset-table th,
@@ -173,6 +175,16 @@ body {
     text-align: left;
     white-space: nowrap;
     color: #1c1c1c;
+}
+
+.asset-table th.text-center,
+.asset-table td.text-center {
+    text-align: center;
+}
+
+.asset-table th.text-right,
+.asset-table td.text-right {
+    text-align: right;
 }
 
 .asset-table thead th {
@@ -545,7 +557,7 @@ body {
     /* Make the table area its own scroll container so only rows scroll */
     overflow: auto;
     max-height: calc(100vh - 250px); /* 뷰포트 높이에서 헤더/툴바 공간 제외 */
-    min-height: 0;
+    min-height: 600px; /* Ensure table header remains visible even when empty */
     flex: 1 1 auto;
     /* 스크롤바가 border-radius 영역을 피하도록 padding 추가 */
     padding-right: 2px;
@@ -1332,6 +1344,70 @@ body {
     font-size: 0.9rem;
 }
 
+/* Upload-style asset docs (자산등록 팝업 전용) */
+.asset-doc.asset-doc--upload {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
+.asset-doc--upload .asset-doc__title {
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #1c1c1c;
+}
+
+.asset-doc--upload .asset-doc__box {
+    height: 198px;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #fafafa;
+    padding: 8px;
+}
+
+.asset-doc--upload .asset-doc__placeholder {
+    color: #888888;
+    font-size: 12px;
+    line-height: 12px;
+    text-align: center;
+}
+
+.asset-doc__upload-row {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 5px 20px;
+    border-radius: 6px;
+    border: 1px solid #c3c4c8;
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.asset-doc__upload-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    color: #1c1c1c;
+    font-size: 14px;
+    font-weight: 500;
+}
+
+.asset-doc__upload-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    border: 1px solid #1c1c1c;
+}
+
+.asset-doc__upload-count {
+    font-size: 14px;
+    color: #888888;
+    font-weight: 500;
+}
+
 .asset-info {
     grid-template-columns: 140px 1fr;
 }
@@ -1374,6 +1450,24 @@ body {
     display: flex;
     justify-content: flex-end;
     gap: 8px;
+}
+
+/* Two-column asset form layout for create mode */
+.asset-dialog--create .asset-info.grid-info {
+    /* hide legacy single-column block */
+    display: none;
+}
+
+.asset-dialog--create .asset-info.grid-info.asset-info--two-col {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 230px) 100px minmax(0, 230px);
+    column-gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .asset-dialog--create .asset-info.grid-info.asset-info--two-col {
+        grid-template-columns: 100px minmax(0, 230px);
+    }
 }
 
 .asset-history__item {
