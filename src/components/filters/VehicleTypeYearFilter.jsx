@@ -116,13 +116,6 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
 
     setSelections(nextSelections);
     const payload = buildFilterPayload(nextSelections);
-    if (import.meta.env.DEV) {
-      console.log("[VehicleTypeYearFilter] toggleVehicleType", {
-        type,
-        nextSelections,
-        payload,
-      });
-    }
     if (!payload) {
       onChange && onChange(null);
     } else {
@@ -148,14 +141,6 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
 
     setSelections(nextSelections);
     const payload = buildFilterPayload(nextSelections);
-    if (import.meta.env.DEV) {
-      console.log("[VehicleTypeYearFilter] toggleYear", {
-        type,
-        year,
-        nextSelections,
-        payload,
-      });
-    }
     if (!payload) {
       onChange && onChange(null);
     } else {

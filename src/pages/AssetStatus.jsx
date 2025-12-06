@@ -1290,21 +1290,9 @@ export default function AssetStatus() {
                           const vehicleTypes = filterValue.vehicleTypes;
                           if (Object.keys(vehicleTypes).length === 0) return true;
 
-                          const { baseType, yearKey, fullLabel } = parseVehicleTypeAndYear(row);
+                          const { baseType, yearKey } = parseVehicleTypeAndYear(row);
                           const yearsForType = baseType ? vehicleTypes[baseType] : null;
                           const match = !!(yearsForType && yearsForType.includes(yearKey));
-
-                          if (import.meta.env.DEV) {
-                            console.log("[AssetStatus][vehicleTypeFilter] predicate", {
-                              rowPlate: row?.plate,
-                              fullLabel,
-                              baseType,
-                              yearKey,
-                              selectedTypes: vehicleTypes,
-                              match,
-                            });
-                          }
-
                           return match;
                         },
                         renderCustomFilter: ({ value, onChange, close }) => (
