@@ -35,20 +35,21 @@ import { VehicleTypeText } from "../components/cells";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import useAccidentReport from "../hooks/useAccidentReport";
 import { emitToast } from "../utils/toast";
+import VehicleTypeYearFilter from "../components/filters/VehicleTypeYearFilter";
 
 
 const DEFAULT_COLUMN_CONFIG = [
-    { key: "select", label: "선택", visible: true, required: true, width: 36 },
-    { key: "plate", label: "차량번호", visible: true, required: true },
-    { key: "vehicleType", label: "차종", visible: true, required: false },
-    { key: "renterName", label: "예약자명", visible: true, required: false },
-    { key: "rentalPeriod", label: "예약기간", visible: true, required: false },
-    { key: "rentalAmount", label: "대여금액", visible: true, required: false },
-    { key: "contractStatus", label: "계약 상태", visible: true, required: false },
-    { key: "engineStatus", label: "엔진 상태", visible: true, required: false },
-    { key: "restartBlocked", label: "재시동 금지", visible: true, required: false },
+    { key: "select", label: "선택", visible: true, required: true, width: 60 },
+    { key: "plate", label: "차량번호", visible: true, required: true, width: 120 },
+    { key: "vehicleType", label: "차종", visible: true, required: false, width: 100 },
+    { key: "renterName", label: "예약자명", visible: true, required: false, width: 100 },
+    { key: "rentalPeriod", label: "예약기간", visible: true, required: false, width: 180 },
+    { key: "rentalAmount", label: "대여금액", visible: true, required: false, width: 130 },
+    { key: "contractStatus", label: "계약 상태", visible: true, required: false, width: 110 },
+    { key: "engineStatus", label: "엔진 상태", visible: true, required: false, width: 100 },
+    { key: "restartBlocked", label: "재시동 금지", visible: true, required: false, width: 110 },
     { key: "accident", label: "사고 등록", visible: true, required: false, width: 100 },
-    { key: "memo", label: "메모", visible: true, required: false },
+    { key: "memo", label: "메모", visible: true, required: false, width: 250 },
 ];
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
@@ -58,6 +59,34 @@ const TRAIL_INCREMENT = 100;
 const TRAIL_MAX_LIMIT = 1000;
 
 // Column merging is handled by useColumnSettings hook
+
+// vehicleType 문자열과 year 필드를 기반으로 차종/연식 파싱
+const parseVehicleTypeAndYear = (row) => {
+    const rawType = row?.vehicleType;
+    const fullLabel = rawType ? String(rawType) : "";
+
+    // 기본값
+    let baseType = fullLabel;
+    let yearKey = "";
+
+    if (fullLabel) {
+        // 끝부분의 숫자(연식) 추출: "그랜저 23년형", "그랜저 2023", "그랜저 23" 등 대응
+        const match = fullLabel.match(/(\d{2,4})\D*$/);
+        if (match) {
+            const digits = match[1]; // "23" 또는 "2023"
+            baseType = fullLabel.slice(0, match.index).trim();
+            yearKey = digits.length === 4 ? digits.slice(2) : digits;
+        }
+    }
+
+    const yearValue = row?.year;
+    if (!yearKey && yearValue != null && yearValue !== "") {
+        const s = String(yearValue);
+        yearKey = s.length === 4 ? s.slice(2) : s;
+    }
+
+    return { baseType, yearKey, fullLabel };
+};
 
 function findLatestLogLocation(logRecord = []) {
     if (!Array.isArray(logRecord) || logRecord.length === 0) return null;
@@ -739,9 +768,9 @@ export default function RentalContracts() {
         .map((col) => ({
             ...col,
             style: {
-                ...(col.style || {}),
-                textAlign: col.key === "memo" ? "left" : (col.style?.textAlign || "center"),
-                maxWidth: col.key === "memo" ? "150px" : col.style?.maxWidth,
+                textAlign: col.key === "memo" ? "left" : "center",
+                ...(col.width ? { width: `${col.width}px`, minWidth: `${col.width}px` } : {}),
+                ...(col.key === "memo" ? { maxWidth: "150px" } : {}),
             },
             render: (row) => renderCellContent(col, row),
             sortAccessor: (row) => {
@@ -777,17 +806,28 @@ export default function RentalContracts() {
             } : null),
             ...(col.key === "plate" ? { filterType: "text" } : null),
             ...(col.key === "vehicleType" ? {
-              filterType: "multi-select",
+              filterType: "select",
+              filterHideHeader: true,
               filterAllowAnd: false,
-              getFilterOptions: () => {
-                const set = new Set();
-                for (const r of rows || []) {
-                  if (r?.vehicleType) set.add(String(r.vehicleType));
-                }
-                return Array.from(set)
-                  .sort((a,b)=>String(a).localeCompare(String(b)))
-                  .map((v) => ({ value: v, label: v }));
+              filterOptions: [], // Prevent auto-generation of options
+              filterPredicate: (row, filterValue) => {
+                if (!filterValue || !filterValue.vehicleTypes) return true;
+                const vehicleTypes = filterValue.vehicleTypes;
+                if (Object.keys(vehicleTypes).length === 0) return true;
+
+                const { baseType, yearKey } = parseVehicleTypeAndYear(row);
+                const yearsForType = baseType ? vehicleTypes[baseType] : null;
+                const match = !!(yearsForType && yearsForType.includes(yearKey));
+                return match;
               },
+              renderCustomFilter: ({ value, onChange, close }) => (
+                <VehicleTypeYearFilter
+                  value={value}
+                  onChange={onChange}
+                  onClear={() => onChange(null)}
+                  rows={rows}
+                />
+              ),
             } : null),
             ...(col.key === "renterName" ? { filterType: "text" } : null),
             ...(col.key === "rentalPeriod" ? {
@@ -856,10 +896,8 @@ export default function RentalContracts() {
                 { value: "사고접수", label: "사고접수" },
                 { value: "완료", label: "완료" },
               ],
-              // OR only, hide AND toggle
               filterAllowAnd: false,
-              // Render as toggle-style buttons (radio look, multi-select behavior)
-              filterOptionStyle: 'toggle',
+              filterHideHeader: true,
             } : null),
             ...(col.key === "engineStatus" ? {
               filterType: "select",
@@ -886,6 +924,7 @@ export default function RentalContracts() {
             ...(col.key === "memo" ? { filterType: "text" } : null),
         })), [
             columnsForRender,
+            rows, // needed for VehicleTypeYearFilter
             // Ensure closures used by renderers are always fresh
             editingMemo,
             memoText,
@@ -952,12 +991,34 @@ export default function RentalContracts() {
                     return (
                         <button
                             type="button"
-                            className="badge badge--default badge--clickable badge--compact"
                             onClick={openInstallModal}
                             title="단말 장착 신청"
                             aria-label="단말 장착 신청"
+                            style={{
+                                paddingTop: '2px',
+                                paddingBottom: '2px',
+                                paddingLeft: '11px',
+                                paddingRight: '12px',
+                                background: 'rgba(0, 0, 0, 0.05)',
+                                borderRadius: '100px',
+                                outline: '1px rgba(0, 0, 0, 0.02) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#1C1C1C',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                wordWrap: 'break-word',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
                         >
-                            단말 필요
+                            단말필요
                         </button>
                     );
                 }
@@ -968,12 +1029,34 @@ export default function RentalContracts() {
                     return (
                         <button
                             type="button"
-                            className="badge badge--default badge--clickable badge--compact"
                             onClick={openInstallModal}
                             title="단말 장착 신청"
                             aria-label="단말 장착 신청"
+                            style={{
+                                paddingTop: '2px',
+                                paddingBottom: '2px',
+                                paddingLeft: '11px',
+                                paddingRight: '12px',
+                                background: 'rgba(0, 0, 0, 0.05)',
+                                borderRadius: '100px',
+                                outline: '1px rgba(0, 0, 0, 0.02) solid',
+                                outlineOffset: '-1px',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                gap: '10px',
+                                display: 'inline-flex',
+                                textAlign: 'center',
+                                color: '#1C1C1C',
+                                fontSize: '14px',
+                                fontFamily: 'Pretendard',
+                                fontWeight: 500,
+                                lineHeight: '24px',
+                                wordWrap: 'break-word',
+                                border: 'none',
+                                cursor: 'pointer'
+                            }}
                         >
-                            단말 필요
+                            단말필요
                         </button>
                     );
                 }
