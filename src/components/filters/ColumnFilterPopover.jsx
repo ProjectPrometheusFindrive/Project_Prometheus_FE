@@ -15,9 +15,11 @@ export default function ColumnFilterPopover({
   const containerRef = useRef(null);
   const isMulti = type === "multi-select";
   const isManagementStageFilter = column?.key === "managementStage";
+  const isVehicleHealthFilter = column?.key === "vehicleHealth";
   const popoverClassNames = ["filter-popover"];
   if (alignRight) popoverClassNames.push("align-right");
   if (isManagementStageFilter) popoverClassNames.push("filter-popover--management-stage");
+  if (isVehicleHealthFilter) popoverClassNames.push("filter-popover--vehicle-health");
   const popoverClassName = popoverClassNames.join(" ");
 
   // Close on outside click
@@ -104,6 +106,28 @@ export default function ColumnFilterPopover({
   }, [options, isManagementStageFilter]);
 
   const thStyle = column?.label || "필터";
+
+  // Vehicle health filter uses completely custom rendering without wrapper
+  if (isVehicleHealthFilter && typeof column?.renderCustomFilter === 'function') {
+    return (
+      <div
+        ref={containerRef}
+        className={popoverClassName}
+        style={{
+          width: '130px',
+          minWidth: '130px',
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          boxShadow: 'none'
+        }}
+        role="dialog"
+        aria-label={`${thStyle} 필터`}
+      >
+        {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>

@@ -39,19 +39,20 @@ import { VehicleTypeText } from "../components/cells";
 import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import { emitToast } from "../utils/toast";
 import SeverityBadge from "../components/badges/SeverityBadge";
+import VehicleStatusFilterDropdown from "../components/filters/VehicleStatusFilterDropdown";
 
 // Column defaults for AssetStatus table
 const DEFAULT_ASSET_COLUMNS = [
-  { key: "select", label: "선택", visible: true, required: true, width: 36 },
-  { key: "plate", label: "차량번호", visible: true, required: true },
-  { key: "vehicleType", label: "차종", visible: true, required: false },
-  { key: "registrationDate", label: "차량등록일", visible: true, required: false },
-  { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
-  { key: "deviceStatus", label: "단말상태", visible: true, required: false },
-  { key: "vehicleHealth", label: "차량상태", visible: true, required: false },
-  { key: "severity", label: "심각도", visible: true, required: false },
-  { key: "managementStage", label: "관리상태", visible: true, required: false },
-  { key: "memo", label: "메모", visible: true, required: false },
+  { key: "select", label: "선택", visible: true, required: true, width: 60 },
+  { key: "plate", label: "차량번호", visible: true, required: true, width: 120 },
+  { key: "vehicleType", label: "차종", visible: true, required: false, width: 100 },
+  { key: "registrationDate", label: "차량등록일", visible: true, required: false, width: 120 },
+  { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false, width: 120 },
+  { key: "deviceStatus", label: "단말상태", visible: true, required: false, width: 110 },
+  { key: "vehicleHealth", label: "차량상태", visible: true, required: false, width: 110 },
+  { key: "severity", label: "심각도", visible: true, required: false, width: 100 },
+  { key: "managementStage", label: "관리상태", visible: true, required: false, width: 130 },
+  { key: "memo", label: "메모", visible: true, required: false, width: 200 },
 ];
 
 // 진단 코드 유틸: 배열 기반만 사용
@@ -1122,7 +1123,7 @@ export default function AssetStatus() {
         const hasCompany = base.some((c) => c.key === "company");
         if (!hasCompany) {
             const plateIdx = base.findIndex((c) => c.key === "plate");
-            const colDef = { key: "company", label: "회사" };
+            const colDef = { key: "company", label: "회사", width: 120 };
             if (plateIdx >= 0) base.splice(plateIdx, 0, colDef);
             else base.unshift(colDef);
         }
@@ -1136,7 +1137,10 @@ export default function AssetStatus() {
                 ? {
                       key: column.key,
                       label: column.label,
-                      style: { textAlign: "center" },
+                      style: {
+                          textAlign: "center",
+                          ...(column.width ? { width: `${column.width}px`, minWidth: `${column.width}px` } : {})
+                      },
                       filterType: "select",
                       filterAccessor: (row) => (!!row.deviceSerial ? "연결됨" : "없음"),
                       filterOptions: [
@@ -1219,7 +1223,10 @@ export default function AssetStatus() {
                 ? {
                       key: column.key,
                       label: column.label,
-                      style: { textAlign: "center" },
+                      style: {
+                          textAlign: "center",
+                          ...(column.width ? { width: `${column.width}px`, minWidth: `${column.width}px` } : {})
+                      },
                       sortAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
                       filterType: "select",
                       filterAccessor: (row) => row?.companyName || row?.company || row?.companyId || "",
@@ -1228,7 +1235,10 @@ export default function AssetStatus() {
                 : {
                       key: column.key,
                       label: column.label,
-                      style: { textAlign: "center" },
+                      style: {
+                          textAlign: "center",
+                          ...(column.width ? { width: `${column.width}px`, minWidth: `${column.width}px` } : {})
+                      },
                       // Filter meta per column
                       ...(column.key === "plate" ? { filterType: "text" } : null),
                       ...(column.key === "vehicleType" ? {
@@ -1259,9 +1269,15 @@ export default function AssetStatus() {
                           const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
                           return max > 7 ? "심각" : "관심필요";
                         },
-                        filterOptions: ["정상", "관심필요", "심각", "단말필요"].map((x) => ({ value: x, label: x })),
-                        // Single-select only; no AND concept
                         filterAllowAnd: false,
+                        renderCustomFilter: ({ value, onChange, close }) => (
+                          <VehicleStatusFilterDropdown
+                            value={value}
+                            onChange={onChange}
+                            onClear={() => onChange(null)}
+                            onRequestClose={close}
+                          />
+                        ),
                       } : null),
                       ...(column.key === "severity" ? {
                         filterType: "number-range",
