@@ -7,12 +7,12 @@ export const STATUS_OPTIONS = [
 ];
 
 export const MANAGEMENT_STAGE_OPTIONS = [
-    { value: "대여중", label: "대여중" },
     { value: "대여가능", label: "대여가능" },
+    { value: "대여중", label: "대여중" },
+    { value: "수리/점검 완료", label: "수리/점검완료" },
+    { value: "수리/점검 중", label: "수리/점검중" },
     { value: "예약중", label: "예약중" },
-    { value: "입고 대상", label: "입고 대상" },
-    { value: "수리/점검 중", label: "수리/점검 중" },
-    { value: "수리/점검 완료", label: "수리/점검 완료" }
+    { value: "입고 대상", label: "입고대상" }
 ];
 
 export const ISSUE_TYPE_OPTIONS = [

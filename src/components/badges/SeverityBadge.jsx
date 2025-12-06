@@ -5,8 +5,19 @@ export default function SeverityBadge({ value }) {
   const v = Number(value);
   if (Number.isNaN(v)) return <>-</>;
   return (
-    <span className="badge" title={`심각도 ${v.toFixed(1)} / 10`}>
-      {v.toFixed(1)} / 10
+    <span
+      title={`심각도 ${v.toFixed(1)} / 10`}
+      style={{
+        textAlign: 'center',
+        color: '#1C1C1C',
+        fontSize: '14px',
+        fontFamily: 'Pretendard',
+        fontWeight: 500,
+        lineHeight: '27px',
+        wordWrap: 'break-word'
+      }}
+    >
+      {v.toFixed(1)}
     </span>
   );
 }

@@ -13,6 +13,18 @@ export default function ColumnFilterPopover({
 }) {
   const type = column?.filterType;
   const containerRef = useRef(null);
+  const isMulti = type === "multi-select";
+  const isManagementStageFilter = column?.key === "managementStage";
+  const isVehicleHealthFilter = column?.key === "vehicleHealth";
+  const isDeviceStatusFilter = column?.key === "deviceStatus";
+  const isVehicleTypeFilter = column?.key === "vehicleType";
+  const popoverClassNames = ["filter-popover"];
+  if (alignRight) popoverClassNames.push("align-right");
+  if (isManagementStageFilter) popoverClassNames.push("filter-popover--management-stage");
+  if (isVehicleHealthFilter) popoverClassNames.push("filter-popover--vehicle-health");
+  if (isDeviceStatusFilter) popoverClassNames.push("filter-popover--device-status");
+  if (isVehicleTypeFilter) popoverClassNames.push("filter-popover--vehicle-type");
+  const popoverClassName = popoverClassNames.join(" ");
 
   // Close on outside click
   useEffect(() => {
@@ -71,9 +83,12 @@ export default function ColumnFilterPopover({
   const [op, setOp] = useState(() => (column?.filterAllowAnd === false ? "OR" : (value?.op || column?.filterOp || "OR")));
 
   useEffect(() => {
+    // Vehicle type 필터는 custom payload를 사용하므로
+    // 공통 select/multi-select 동기화 로직에서 제외한다.
+    if (isVehicleTypeFilter) return;
     if (type !== "select" && type !== "multi-select") return;
     onChange && onChange({ type: type, values: selected, op });
-  }, [selected, op]);
+  }, [selected, op, isVehicleTypeFilter]);
 
   useEffect(() => {
     // keep internal state in sync when column or external value changes
@@ -81,28 +96,123 @@ export default function ColumnFilterPopover({
     if (type === "number-range") { setMin(value?.min ?? ""); setMax(value?.max ?? ""); }
     if (type === "date-range") { setFrom(value?.from ?? ""); setTo(value?.to ?? ""); }
     if (type === "boolean") setBoolVal(value?.value ?? null);
-    if (type === "select" || type === "multi-select") {
+    if ((type === "select" || type === "multi-select") && !isVehicleTypeFilter) {
       setSelected(Array.isArray(value?.values) ? value.values : []);
       setOp(column?.filterAllowAnd === false ? "OR" : (value?.op || column?.filterOp || "OR"));
     }
-  }, [column?.key]);
+  }, [column?.key, isVehicleTypeFilter]);
 
-  const isMulti = type === "multi-select";
   const optionStyle = column?.filterOptionStyle || 'default';
   const sortedOptions = useMemo(() => {
+    if (isManagementStageFilter) {
+      // 관리상태 필터는 Figma 정의 순서를 유지
+      return Array.isArray(options) ? options : [];
+    }
     if (!Array.isArray(options)) return [];
     return [...options].sort((a, b) => String(a?.label ?? a?.value ?? "").localeCompare(String(b?.label ?? b?.value ?? "")));
-  }, [options]);
+  }, [options, isManagementStageFilter]);
 
   const thStyle = column?.label || "필터";
 
-  return (
-    <div ref={containerRef} className={`filter-popover${alignRight ? ' align-right' : ''}`} role="dialog" aria-label={`${thStyle} 필터`}>
-      <div className="filter-popover__header">
-        <div className="filter-popover__title">{thStyle}</div>
-        <button type="button" className="filter-popover__clear" onClick={onClear} aria-label="필터 초기화">초기화</button>
+  // Vehicle health filter uses completely custom rendering without wrapper
+  if (isVehicleHealthFilter && typeof column?.renderCustomFilter === 'function') {
+    return (
+      <div
+        ref={containerRef}
+        className={popoverClassName}
+        style={{
+          width: '130px',
+          minWidth: '130px',
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          boxShadow: 'none'
+        }}
+        role="dialog"
+        aria-label={`${thStyle} 필터`}
+      >
+        {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
       </div>
+    );
+  }
+
+  // Device status filter uses completely custom rendering without wrapper
+  if (isDeviceStatusFilter && typeof column?.renderCustomFilter === 'function') {
+    return (
+      <div
+        ref={containerRef}
+        className={popoverClassName}
+        style={{
+          width: '130px',
+          minWidth: '130px',
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          boxShadow: 'none'
+        }}
+        role="dialog"
+        aria-label={`${thStyle} 필터`}
+      >
+        {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
+      </div>
+    );
+  }
+
+  // Vehicle type filter uses standard popover wrapper with custom body (see content section)
+  if (false && isVehicleTypeFilter && typeof column?.renderCustomFilter === 'function') {
+    return (
+      <div
+        ref={containerRef}
+        className={popoverClassName}
+        role="dialog"
+        aria-label={`${thStyle} 필터`}
+      >
+        {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
+      </div>
+    );
+  }
+
+  return (
+    <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>
+      {!column?.filterHideHeader && (
+        <div className="filter-popover__header">
+          <div className="filter-popover__title">{thStyle}</div>
+          <button
+            type="button"
+            className="filter-popover__clear"
+            onClick={() => {
+              // Clear external filter state and reset local state
+              if (type === "text") setText("");
+              if (type === "number-range") { setMin(""); setMax(""); }
+              if (type === "date-range") { setFrom(""); setTo(""); }
+              if (type === "boolean") setBoolVal(null);
+              if (type === "select" || type === "multi-select") setSelected([]);
+              onClear && onClear();
+            }}
+            aria-label="필터 초기화"
+          >
+            초기화
+          </button>
+        </div>
+      )}
       <div className="filter-popover__content">
+        {isManagementStageFilter && (type === "select" || type === "multi-select") && (
+          <>
+            <button
+              type="button"
+              className="filter-management-clear"
+              onClick={() => {
+                setSelected([]);
+                onClear && onClear();
+              }}
+              aria-label="관리상태 선택 해제"
+            >
+              <span aria-hidden="true" className="filter-management-clear__checkbox" />
+              <span className="filter-management-clear__label">선택해제</span>
+            </button>
+            <div className="filter-management-divider" />
+          </>
+        )}
         {type === "text" && (
           <input
             type="text"
@@ -113,7 +223,7 @@ export default function ColumnFilterPopover({
           />
         )}
 
-        {(type === "select" || type === "multi-select") && (
+        {(type === "select" || type === "multi-select") && !isVehicleTypeFilter && (
           <>
             {isMulti && column?.filterAllowAnd !== false && (
               <div className="filter-row">
@@ -169,8 +279,9 @@ export default function ColumnFilterPopover({
                             setSelected([v]);
                           }
                         }}
+                        className="filter-option__control"
                       />
-                      <span>{label}</span>
+                      <span className="filter-option__label">{label}</span>
                     </label>
                   );
                 })}
@@ -214,6 +325,12 @@ export default function ColumnFilterPopover({
             <input type="date" className="filter-input" value={from || ""} onChange={(e) => setFrom(e.target.value)} />
             <span className="filter-sep">~</span>
             <input type="date" className="filter-input" value={to || ""} onChange={(e) => setTo(e.target.value)} />
+          </div>
+        )}
+
+        {isVehicleTypeFilter && typeof column?.renderCustomFilter === 'function' && (
+          <div className="filter-custom">
+            {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
           </div>
         )}
 

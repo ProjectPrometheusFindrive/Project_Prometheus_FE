@@ -402,29 +402,47 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     );
   };
 
-  const docBoxEdit = (title, key, accept = "image/*,application/pdf") => (
-    <div className="asset-doc">
-      <div className="asset-doc__title">{title}</div>
-      <div className="mb-3">
-        <input
-          id={`asset-${key}`}
-          name={key}
-          type="file"
-          accept={accept}
-          multiple
-          onChange={onFile(key)}
-          required={requireDocs}
-        />
-      </div>
-      {Array.isArray(form[key]) ? (
-        <div>
-          <FilesPreviewCarousel files={form[key]} />
+  const docBoxEdit = (title, key, accept = "image/*,application/pdf") => {
+    const value = form[key];
+    const files = Array.isArray(value) ? value.filter(Boolean) : (value ? [value] : []);
+    const count = files.length;
+
+    return (
+      <div className="asset-doc asset-doc--upload">
+        <div className="asset-doc__title">{title}</div>
+        <div className="asset-doc__box">
+          {count === 0 ? (
+            <div className="asset-doc__placeholder">
+              파일을 선택하면 미리보기가 표시됩니다.
+            </div>
+          ) : Array.isArray(value) ? (
+            <FilesPreviewCarousel files={value} className="asset-doc__carousel" />
+          ) : (
+            <FilePreview file={value} />
+          )}
         </div>
-      ) : (
-        <FilePreview file={form[key]} />
-      )}
-    </div>
-  );
+        <div className="asset-doc__upload-row">
+          <label className="asset-doc__upload-button" htmlFor={`asset-${key}`}>
+            <span className="asset-doc__upload-icon" aria-hidden="true" />
+            <span className="asset-doc__upload-label">파일 및 사진 추가</span>
+            <input
+              id={`asset-${key}`}
+              name={key}
+              type="file"
+              accept={accept}
+              multiple
+              onChange={onFile(key)}
+              required={requireDocs}
+              className="sr-only"
+            />
+          </label>
+          <div className="asset-doc__upload-count">
+            {count > 0 ? `${count}개 선택됨` : "선택된 파일 없음"}
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   const handleSave = async () => {
     if (isPlateInvalid) {
@@ -612,7 +630,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
   );
 
   return (
-    <div className="asset-dialog">
+    <div className={`asset-dialog ${isEdit ? "asset-dialog--edit" : "asset-dialog--create"}`}>
       <div className="asset-dialog__body">
         {isEdit ? (
           <>
@@ -788,6 +806,136 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
                 </div>
               )}
             </div>
+            {!isEdit && (
+              <div className="asset-info grid-info asset-info--two-col">
+                {infoRow(
+                  "제조사",
+                  <div className="flex items-center gap-2 flex-nowrap">
+                    <input id="asset-make" name="make" className="form-input flex-1 min-w-0" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
+                    <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} showLabel={false} maxWidth={200} />
+                  </div>
+                )}
+                {infoRow(
+                  "차량번호",
+                  <div className="flex items-center gap-2 w-full flex-wrap">
+                    <input id="asset-plate" name="plate"
+                      className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
+                      value={form.plate}
+                      onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
+                      onBlur={(e) => {
+                        const v = normalizeKoreanPlate(e.target.value);
+                        if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
+                      }}
+                      aria-invalid={isPlateInvalid ? true : undefined}
+                      placeholder="예: 234가6789"
+                    />
+                    {isPlateInvalid && (
+                      <span aria-live="polite" className="text-red-700 text-[12px]">올바른 차량번호 형식이 아닙니다.</span>
+                    )}
+                    <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} showLabel={false} maxWidth={200} />
+                  </div>
+                )}
+                {infoRow(
+                  "차종",
+                  <div className="flex items-center gap-2 flex-nowrap">
+                    <input id="asset-model" name="model" className="form-input flex-1 min-w-0" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: SONATA" />
+                    <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} showLabel={false} maxWidth={200} />
+                  </div>
+                )}
+                {infoRow(
+                  "차대번호 (VIN)",
+                  <div className="flex items-center gap-2 flex-nowrap">
+                    <input id="asset-vin" name="vin" className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHDH41EX6U123456" />
+                    <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
+                  </div>
+                )}
+                {infoRow(
+                  "연식",
+                  <div className="flex items-center gap-2 flex-nowrap">
+                    <select id="asset-year" name="year" className="form-input flex-1 min-w-0" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
+                      {(() => {
+                        const CURRENT_YEAR = new Date().getFullYear();
+                        const YEAR_START = 1990;
+                        const options = [{ value: "", label: "선택" }].concat(
+                          Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
+                            const y = CURRENT_YEAR - i;
+                            return { value: String(y), label: String(y) };
+                          })
+                        );
+                        return options.map((opt) => (
+                          <option key={opt.value} value={opt.value}>{opt.label}</option>
+                        ));
+                      })()}
+                    </select>
+                    <OcrSuggestionPicker items={(fieldSuggestions.year || []).map((it) => ({ ...it, value: String(it.value) }))} onApply={applySuggestion("year")} showLabel={false} maxWidth={140} />
+                  </div>
+                )}
+                {infoRow(
+                  "차량가액 (원)",
+                  <div className="flex items-center gap-2 flex-nowrap w-full">
+                    <input id="asset-vehicleValue" name="vehicleValue"
+                      className="form-input flex-1"
+                      type="text"
+                      value={form.vehicleValue}
+                      onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
+                      inputMode="numeric"
+                      maxLength={20}
+                      placeholder="예: 12,000,000"
+                    />
+                    <OcrSuggestionPicker
+                      items={fieldSuggestions.vehicleValue || []}
+                      onApply={(val) => {
+                        const raw = val == null ? "" : String(val);
+                        setForm((p) => ({ ...p, vehicleValue: formatCurrency(raw) }));
+                      }}
+                      showLabel={false}
+                      maxWidth={200}
+                    />
+                  </div>
+                )}
+                {infoRow(
+                  "연료타입",
+                  (() => {
+                    const base = ["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"];
+                    const suggestedRaw = (fieldSuggestions.fuelType || [])
+                      .map((it) => String(it.value || "").trim())
+                      .filter(Boolean);
+                    const suggestedNormalized = new Set(suggestedRaw.map((s) => normalizeFuelLabel(s)));
+                    const ordered = base.slice();
+                    const highlightStyle = { backgroundColor: "#e3f2fd", color: "#1e3a8a" };
+                    const selectedValue = normalizeFuelLabel(form.fuelType);
+                    return (
+                      <div className="flex items-center gap-2 flex-nowrap">
+                        <select
+                          id="asset-fuelType"
+                          name="fuelType"
+                          className="form-input"
+                          value={selectedValue}
+                          onChange={(e) => setForm((p) => ({ ...p, fuelType: normalizeFuelLabel(e.target.value) }))}
+                        >
+                          {ordered.map((v, i) => {
+                            const label = v || "선택";
+                            const normalized = normalizeFuelLabel(v);
+                            const isSuggested = v && suggestedNormalized.has(normalized);
+                            return (
+                              <option
+                                key={v ? v : `_empty_${i}`}
+                                value={v}
+                                data-suggested={isSuggested ? "true" : undefined}
+                                style={isSuggested ? highlightStyle : undefined}
+                              >
+                                {label}
+                              </option>
+                            );
+                          })}
+                        </select>
+                        <OcrSuggestionPicker items={fieldSuggestions.fuelType || []} onApply={() => { /* no auto-apply for fuel */ }} showLabel={false} maxWidth={140} />
+                      </div>
+                    );
+                  })()
+                )}
+              </div>
+            )}
           </>
         )}
 

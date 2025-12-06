@@ -5,37 +5,41 @@ import useApprovalQueryEffects from "../hooks/useApprovalQueryEffects";
 import StatusDonut from "../components/charts/StatusDonut";
 import TerminalRequestModal from "../components/modals/TerminalRequestModal";
 
-const COLORS = ["#2563eb", "#f59e0b", "#ef4444", "#10b981", "#6366f1"]; // blue, amber, red, green, indigo
-
-// Donut chart moved to components/charts/StatusDonut
+// Colors aligned with Figma asset status donut
+const ASSET_COLORS = ["#1D4693", "#1A53EF", "#3690FF", "#78B5FF", "#A9D0FF"];
+const CONTRACT_COLORS = ["#22C55E", "#4ADE80", "#86EFAC"]; // green shades
 
 export default function Dashboard() {
-    // Routing handled in approval hook
-    // Label rendering handled inside StatusDonut
+    const [vehicleStatus, setVehicleStatus] = useState([]);
+    const [bizStatusLabeled, setBizStatusLabeled] = useState([]);
 
-    const [vehicleStatus, setVehicleStatus] = useState([]); // 자산 관리상태 분포
-    const [bizStatusLabeled, setBizStatusLabeled] = useState([]); // 계약 상태 분포
-
-    // Handle approval query params and cross-page signals
     useApprovalQueryEffects();
 
     useEffect(() => {
         let mounted = true;
+
         (async () => {
             try {
-                // Dashboard BFF: summary 섹션만 요청(기본값)
                 const payload = await fetchDashboardData();
                 if (!mounted) return;
                 const summary = payload && payload.summary ? payload.summary : {};
 
-                // 1) 자산 현황: 서버 집계 사용
+                // 자산 현황
                 const stageCounts = summary.managementStageCounts || {};
-                const stageDist = Object.entries(stageCounts).map(([name, value]) => ({ name, value: Number(value) || 0, rawValue: Number(value) || 0 }));
+                const stageDist = Object.entries(stageCounts).map(([name, value]) => ({
+                    name,
+                    value: Number(value) || 0,
+                    rawValue: Number(value) || 0
+                }));
                 setVehicleStatus(stageDist.filter((d) => (d?.value ?? 0) > 0));
 
-                // 2) 계약 현황: 서버 집계 사용 (완료 제외 가정)
+                // 계약 현황
                 const contractCounts = summary.contractStatusCounts || {};
-                const contractDist = Object.entries(contractCounts).map(([name, value]) => ({ name, value: Number(value) || 0, rawValue: Number(value) || 0 }));
+                const contractDist = Object.entries(contractCounts).map(([name, value]) => ({
+                    name,
+                    value: Number(value) || 0,
+                    rawValue: Number(value) || 0
+                }));
                 setBizStatusLabeled(contractDist.filter((d) => (d?.value ?? 0) > 0));
             } catch (e) {
                 console.error("Failed to fetch dashboard data", e);
@@ -45,15 +49,16 @@ export default function Dashboard() {
                 }
             }
         })();
+
         return () => {
             mounted = false;
         };
     }, []);
 
     const scores = [
-        { key: "safe", label: "안전운전점수", value: 79, delta: +2, color: "#25cdebff" },
-        { key: "fleet", label: "차량관리점수", value: 62, delta: -14, color: "#10b981" },
-        { key: "sales", label: "사업운영점수", value: 85, delta: +4, color: "#f59e0b" },
+        { key: "safe", label: "안전운전점수", value: 35, delta: +10, color: "#FBBF24" },
+        { key: "fleet", label: "차량관리점수", value: 35, delta: -10, color: "#EF4444" },
+        { key: "sales", label: "사업운영점수", value: 35, delta: -10, color: "#A855F7" },
     ];
 
     const [installModalOpen, setInstallModalOpen] = useState(false);
@@ -62,55 +67,96 @@ export default function Dashboard() {
     const closeInstallModal = () => setInstallModalOpen(false);
 
     return (
-        <div className="page space-y-4">
-            <h1 className="text-2xl font-semibold text-gray-900">홈</h1>
-
-            <div className="page-scroll space-y-4">
-                <div className="dashboard-grid gap-4">
-                    <section className="card chart-card bg-white border border-gray-100 rounded-xl shadow-sm p-4">
-                        <h2 className="section-title text-lg font-semibold text-gray-800">자산 현황</h2>
-                        <div className="chart-wrap flex items-center justify-center">
-                            <StatusDonut data={vehicleStatus} colors={COLORS} innerRadius="40%" outerRadius="78%" unit="대" colorOffset={0} />
+        <div className="page">
+            <div className="page-scroll" style={{ padding: "30px 60px" }}>
+                {/* 상단: 자산 현황 / 계약 현황 */}
+                <div className="dashboard-row dashboard-row--top">
+                    <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }}>
+                        <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>자산 현황</h2>
+                        <div className="flex items-center" style={{ height: "320px" }}>
+                            <div className="flex-1 flex items-center justify-center" style={{ minWidth: "260px", height: "100%" }}>
+                                <StatusDonut
+                                    data={vehicleStatus}
+                                    colors={ASSET_COLORS}
+                                    innerRadius="45%"
+                                    outerRadius="95%"
+                                    unit="대"
+                                    colorOffset={0}
+                                    centerLabel="TOTAL" showLegend
+                                />
+                            </div>
                         </div>
                     </section>
 
-                    <section className="card chart-card bg-white border border-gray-100 rounded-xl shadow-sm p-4">
-                        <h2 className="section-title text-lg font-semibold text-gray-800">계약 현황</h2>
-                        <div className="chart-wrap flex items-center justify-center">
-                            <StatusDonut data={bizStatusLabeled} colors={COLORS} innerRadius="48%" outerRadius="78%" unit="건" colorOffset={1} />
+                    <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }}>
+                        <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>계약 현황</h2>
+                        <div className="flex items-center" style={{ height: "320px" }}>
+                            <div className="flex-1 flex items-center justify-center" style={{ minWidth: "260px", height: "100%" }}>
+                                <StatusDonut
+                                    data={bizStatusLabeled}
+                                    colors={CONTRACT_COLORS}
+                                    innerRadius="45%"
+                                    outerRadius="95%"
+                                    unit="건"
+                                    colorOffset={0}
+                                    centerLabel="TOTAL" showLegend
+                                />
+                            </div>
                         </div>
                     </section>
                 </div>
 
-                <div className="dashboard-grid dashboard-grid--gauges gap-4">
+                {/* 하단: 점수 3개 카드 */}
+                <div className="dashboard-row dashboard-row--bottom">
                     {scores.map((s) => (
-                        <section className="card gauge-card text-center bg-white border border-gray-100 rounded-xl shadow-sm p-4" key={s.key}>
-                            <div className="gauge-title font-semibold text-gray-800">
-                                {s.label}
-                            </div>
+                        <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }} key={s.key}>
+                            <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>{s.label}</h2>
                             <div className="gauge-disabled-area">
                                 <div className="gauge-blur-target">
-                                    <Gauge value={s.value} label="" color={s.color} size={240} />
-                                    <div className="gauge-footer flex items-center justify-center gap-2 mt-0" aria-live="polite">
-                                        <span className="gauge-value text-2xl font-bold">{s.value}</span>
-                                        <span className={`gauge-delta ${s.delta >= 0 ? "up" : "down"} text-sm`}>
-                                            {s.delta >= 0 ? "+" : "-"} {Math.abs(s.delta)}p {s.delta >= 0 ? "상승" : "하락"}
-                                        </span>
+                                    <div className="flex flex-col items-center">
+                                        <Gauge value={s.value} label="" color={s.color} size={240} />
+                                        <div className="mt-4 text-center">
+                                            <div className="text-xs text-gray-500 mb-2">전 주 대비</div>
+                                            <div
+                                                className={`inline-flex items-center gap-1 px-4 py-1 rounded-md text-sm font-medium ${
+                                                    s.delta >= 0
+                                                        ? "bg-blue-50 text-blue-600"
+                                                        : "bg-red-50 text-red-600"
+                                                }`}
+                                            >
+                                                <svg
+                                                    width="8"
+                                                    height="11"
+                                                    viewBox="0 0 8 11"
+                                                    fill="none"
+                                                    style={{ transform: s.delta >= 0 ? "rotate(180deg)" : "none" }}
+                                                >
+                                                    <path
+                                                        d="M4 11L0.535898 0.5L7.4641 0.5L4 11Z"
+                                                        fill="currentColor"
+                                                    />
+                                                </svg>
+                                                <span>
+                                                    {Math.abs(s.delta)}점 {s.delta >= 0 ? "상승" : "하락"}
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <button
                                     type="button"
                                     className="gauge-overlay-notice"
                                     onClick={openInstallModal}
-                                    aria-label="기능 사용을 위해 단말장착이 필요합니다. 클릭하여 신청"
-                                    title="기능 사용을 위해 단말장착이 필요합니다."
+                                    aria-label="대시보드 점수 기능을 사용하려면 단말기 설치가 필요합니다. 설치 요청 창을 엽니다."
+                                    title="단말기 설치 요청"
                                 >
-                                    기능 사용을 위해 단말장착이 필요합니다.
+                                    단말기 설치 요청하기
                                 </button>
                             </div>
                         </section>
                     ))}
                 </div>
+
                 <TerminalRequestModal
                     isOpen={installModalOpen}
                     onClose={closeInstallModal}

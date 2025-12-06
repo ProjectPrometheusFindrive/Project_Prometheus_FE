@@ -9,9 +9,27 @@ const PlateCell = React.memo(function PlateCell({ plate, onClick, title }) {
         <button
             type="button"
             onClick={onClick}
-            className="simple-button"
             title={title}
             aria-label={title || `차량번호 ${plate || '미등록'} 상세보기`}
+            style={{
+                width: '100%',
+                height: '24px',
+                textAlign: 'center',
+                justifyContent: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                color: '#1C1C1C',
+                fontSize: '14px',
+                fontFamily: 'Pretendard',
+                fontWeight: 500,
+                lineHeight: '24px',
+                letterSpacing: '-0.2px',
+                wordWrap: 'break-word',
+                border: 'none',
+                background: 'transparent',
+                cursor: 'pointer',
+                padding: 0
+            }}
         >
             {plate || "-"}
         </button>
