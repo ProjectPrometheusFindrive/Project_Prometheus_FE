@@ -14,11 +14,17 @@ import {
 } from './apiTypes';
 import { typedStorage } from '../utils/storage';
 import { emitToast } from '../utils/toast';
+import { emitUnauthorized } from "../utils/authEvents";
 
 let unauthorizedGuard = false;
 function handleUnauthorized(message) {
     if (unauthorizedGuard) return;
     unauthorizedGuard = true;
+    try {
+        emitUnauthorized(message);
+    } catch {}
+    setTimeout(() => { unauthorizedGuard = false; }, 1500);
+    return;
     try {
         typedStorage.auth.logout();
     } catch {}

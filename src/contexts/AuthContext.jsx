@@ -3,6 +3,7 @@ import { getCurrentUser } from "../api";
 import { typedStorage } from "../utils/storage";
 import { emitToast } from "../utils/toast";
 import { getJwtPayload } from "../utils/jwt";
+import { onUnauthorized } from "../utils/authEvents";
 
 const AuthContext = createContext(null);
 
@@ -48,6 +49,32 @@ export function AuthProvider({ children }) {
     })();
     return () => { cancelled = true; };
   }, []);
+
+  // Global handler for 401/unauthorized events from the API client
+  useEffect(() => {
+    const unsubscribe = onUnauthorized((message) => {
+      try {
+        typedStorage.auth.logout();
+      } catch {}
+      setUser(null);
+      setStatus("unauthenticated");
+      try {
+        const fallback = "인증이 만료되었거나 무효화되었습니다. 다시 로그인해 주세요.";
+        const msg = message || fallback;
+        emitToast(msg, "error", 4000);
+      } catch {}
+      try {
+        // Using HashRouter; send to login route
+        if (typeof window !== "undefined") {
+          const dest = "#/";
+          if (window.location.hash !== dest) {
+            window.location.hash = dest;
+          }
+        }
+      } catch {}
+    });
+    return unsubscribe;
+  }, [setStatus, setUser]);
 
   // Expose helpers
   const api = useMemo(() => ({
