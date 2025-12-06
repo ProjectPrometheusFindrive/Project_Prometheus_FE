@@ -48,7 +48,7 @@ const DEFAULT_ASSET_COLUMNS = [
   { key: "registrationDate", label: "차량등록일", visible: true, required: false },
   { key: "insuranceExpiryDate", label: "보험만료일", visible: true, required: false },
   { key: "deviceStatus", label: "단말상태", visible: true, required: false },
-  { key: "vehicleHealth", label: "상태", visible: true, required: false },
+  { key: "vehicleHealth", label: "차량상태", visible: true, required: false },
   { key: "severity", label: "심각도", visible: true, required: false },
   { key: "managementStage", label: "관리상태", visible: true, required: false },
   { key: "memo", label: "메모", visible: true, required: false },
