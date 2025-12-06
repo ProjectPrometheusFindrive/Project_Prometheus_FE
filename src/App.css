@@ -163,6 +163,7 @@ body {
 
 .asset-table {
     width: 100%;
+    min-width: 1170px; /* Sum of all column widths to prevent compression */
     border-collapse: collapse;
     background: #fff;
     table-layout: fixed; /* Fix column widths to prevent layout shifts */

@@ -12,7 +12,7 @@ const PlateCell = React.memo(function PlateCell({ plate, onClick, title }) {
             title={title}
             aria-label={title || `차량번호 ${plate || '미등록'} 상세보기`}
             style={{
-                width: '71px',
+                width: '100%',
                 height: '24px',
                 textAlign: 'center',
                 justifyContent: 'center',
