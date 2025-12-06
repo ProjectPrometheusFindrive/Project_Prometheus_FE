@@ -4,6 +4,7 @@
 
 :root {
     --app-header-height: 60px;
+    --total-vertical-offset: 250px; /* header + page padding + toolbar + margins */
     /* Shared badge typography for consistent look */
     --badge-font-size: 0.8rem;
     --badge-font-weight: 400;
@@ -147,6 +148,9 @@ body {
     background: #f3f6ff;
 }
 @media (max-width: 1024px) {
+    :root {
+        --total-vertical-offset: 200px; /* Reduced spacing for smaller screens */
+    }
     .page--data {
         padding: 20px 16px 24px;
     }
@@ -157,7 +161,7 @@ body {
     background: #ffffff;
     border: 1px solid #dcdde4;
     box-shadow: 0 12px 26px rgba(12, 26, 75, 0.07);
-    min-height: 600px; /* Ensure table header remains visible even when empty */
+    min-height: min(600px, calc(100vh - var(--total-vertical-offset))); /* Ensure table header visible, but adapt to small viewports */
 }
 
 .table-wrap--scroll-x {
@@ -468,6 +472,204 @@ body {
 .filter-ops { display: inline-flex; gap: 10px; align-items: center; }
 .filter-input { width: 100%; border: 1px solid #ddd; border-radius: 4px; padding: 6px 8px; }
 .filter-sep { color: #999; }
+
+/* Date range filter styles (Figma design) */
+.date-range-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.date-range-filter__inputs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.date-input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
+
+.date-input {
+    width: 100%;
+    padding: 6px 10px;
+    padding-right: 34px; /* Space for calendar icon */
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 3px;
+    outline: 1px solid rgba(0, 0, 0, 0.05);
+    outline-offset: -1px;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
+    color: #1C1C1C;
+    background: white;
+    transition: outline-color 0.2s;
+}
+
+.date-input:focus {
+    outline-color: #006CEC;
+    border-color: #006CEC;
+}
+
+.date-input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 18px;
+    height: 18px;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.date-input__icon {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+    width: 18px;
+    height: 18px;
+    z-index: 1;
+}
+
+.date-range-separator {
+    color: #000000;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
+    flex-shrink: 0;
+}
+
+.date-range-filter__reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 2px 1px;
+    background: #F8F8F8;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.date-range-filter__reset:hover {
+    background: #ECECEC;
+}
+
+.date-range-filter__reset:active {
+    background: #E0E0E0;
+}
+
+.date-range-filter__reset svg {
+    width: 15px;
+    height: 14px;
+}
+
+/* Date range filter popover sizing */
+.filter-popover:has(.date-range-filter) {
+    min-width: auto;
+    max-width: none;
+    width: auto;
+    padding: 20px;
+}
+
+.filter-popover:has(.date-range-filter) .filter-popover__content {
+    padding: 0;
+}
+
+/* Text filter with reset button */
+.text-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.text-filter .filter-input {
+    flex: 1;
+}
+
+.text-filter__reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 2px 1px;
+    background: #F8F8F8;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.text-filter__reset:hover {
+    background: #ECECEC;
+}
+
+.text-filter__reset:active {
+    background: #E0E0E0;
+}
+
+.text-filter__reset svg {
+    width: 15px;
+    height: 14px;
+}
+
+/* Number range filter with reset button */
+.number-range-filter {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.number-range-filter__inputs {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1;
+}
+
+.number-range-filter__reset {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    padding: 2px 1px;
+    background: #F8F8F8;
+    border: none;
+    border-radius: 100px;
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 0.2s;
+}
+
+.number-range-filter__reset:hover {
+    background: #ECECEC;
+}
+
+.number-range-filter__reset:active {
+    background: #E0E0E0;
+}
+
+.number-range-filter__reset svg {
+    width: 15px;
+    height: 14px;
+}
 .filter-options {
     display: grid;
     grid-template-columns: 1fr;
@@ -644,8 +846,8 @@ body {
     --table-sticky-extra-offset: 0px;
     /* Make the table area its own scroll container so only rows scroll */
     overflow: auto;
-    max-height: calc(100vh - 250px); /* 뷰포트 높이에서 헤더/툴바 공간 제외 */
-    min-height: 600px; /* Ensure table header remains visible even when empty */
+    max-height: calc(100vh - var(--total-vertical-offset)); /* 뷰포트 높이에서 헤더/툴바 공간 제외 */
+    min-height: min(600px, calc(100vh - var(--total-vertical-offset))); /* Ensure table header visible, but adapt to small viewports */
     flex: 1 1 auto;
 }
 
