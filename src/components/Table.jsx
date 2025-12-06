@@ -25,11 +25,8 @@ export default function Table({
     const { selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected } = selection || {};
     const hasSelection = !!selection;
 
-    const wrapClassNames = ["table-wrap"];
     const tableClassNames = ["asset-table", className];
-
     if (stickyHeader) {
-        wrapClassNames.push("table-wrap--sticky");
         tableClassNames.push("asset-table--sticky");
     }
 
@@ -195,8 +192,8 @@ export default function Table({
         onFiltersChange(next);
     }, [filters, onFiltersChange]);
 
-    return (
-        <div ref={wrapRef} className={wrapClassNames.filter(Boolean).join(" ")} style={stickyStyle}>
+    const tableContent = (
+        <>
             <table className={tableClassNames.filter(Boolean).join(" ")} {...props}>
                 <thead>
                     <tr>
@@ -359,6 +356,22 @@ export default function Table({
                 </tbody>
             </table>
             {data.length === 0 && <div className="empty">{emptyMessage}</div>}
+        </>
+    );
+
+    if (stickyHeader) {
+        return (
+            <div ref={wrapRef} className="table-wrap--sticky" style={stickyStyle}>
+                <div className="table-wrap">
+                    {tableContent}
+                </div>
+            </div>
+        );
+    }
+
+    return (
+        <div ref={wrapRef} className="table-wrap table-wrap--scroll-x">
+            {tableContent}
         </div>
     );
 }

@@ -16,10 +16,14 @@ export default function ColumnFilterPopover({
   const isMulti = type === "multi-select";
   const isManagementStageFilter = column?.key === "managementStage";
   const isVehicleHealthFilter = column?.key === "vehicleHealth";
+  const isDeviceStatusFilter = column?.key === "deviceStatus";
+  const isVehicleTypeFilter = column?.key === "vehicleType";
   const popoverClassNames = ["filter-popover"];
   if (alignRight) popoverClassNames.push("align-right");
   if (isManagementStageFilter) popoverClassNames.push("filter-popover--management-stage");
   if (isVehicleHealthFilter) popoverClassNames.push("filter-popover--vehicle-health");
+  if (isDeviceStatusFilter) popoverClassNames.push("filter-popover--device-status");
+  if (isVehicleTypeFilter) popoverClassNames.push("filter-popover--vehicle-type");
   const popoverClassName = popoverClassNames.join(" ");
 
   // Close on outside click
@@ -129,6 +133,42 @@ export default function ColumnFilterPopover({
     );
   }
 
+  // Device status filter uses completely custom rendering without wrapper
+  if (isDeviceStatusFilter && typeof column?.renderCustomFilter === 'function') {
+    return (
+      <div
+        ref={containerRef}
+        className={popoverClassName}
+        style={{
+          width: '130px',
+          minWidth: '130px',
+          padding: 0,
+          background: 'transparent',
+          border: 'none',
+          boxShadow: 'none'
+        }}
+        role="dialog"
+        aria-label={`${thStyle} 필터`}
+      >
+        {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
+      </div>
+    );
+  }
+
+  // Vehicle type filter uses completely custom rendering
+  if (isVehicleTypeFilter && typeof column?.renderCustomFilter === 'function') {
+    return (
+      <div
+        ref={containerRef}
+        className={popoverClassName}
+        role="dialog"
+        aria-label={`${thStyle} 필터`}
+      >
+        {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
+      </div>
+    );
+  }
+
   return (
     <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>
       {!column?.filterHideHeader && (
@@ -180,7 +220,7 @@ export default function ColumnFilterPopover({
           />
         )}
 
-        {(type === "select" || type === "multi-select") && (
+        {(type === "select" || type === "multi-select") && !isVehicleTypeFilter && (
           <>
             {isMulti && column?.filterAllowAnd !== false && (
               <div className="filter-row">
@@ -282,6 +322,12 @@ export default function ColumnFilterPopover({
             <input type="date" className="filter-input" value={from || ""} onChange={(e) => setFrom(e.target.value)} />
             <span className="filter-sep">~</span>
             <input type="date" className="filter-input" value={to || ""} onChange={(e) => setTo(e.target.value)} />
+          </div>
+        )}
+
+        {isVehicleTypeFilter && typeof column?.renderCustomFilter === 'function' && (
+          <div className="filter-custom">
+            {column.renderCustomFilter({ value, onChange, options, close: onRequestClose })}
           </div>
         )}
 

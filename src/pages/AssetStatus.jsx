@@ -40,6 +40,8 @@ import ColumnSettingsMenu from "../components/ColumnSettingsMenu";
 import { emitToast } from "../utils/toast";
 import SeverityBadge from "../components/badges/SeverityBadge";
 import VehicleStatusFilterDropdown from "../components/filters/VehicleStatusFilterDropdown";
+import DeviceStatusFilterDropdown from "../components/filters/DeviceStatusFilterDropdown";
+import VehicleTypeYearFilter from "../components/filters/VehicleTypeYearFilter";
 
 // Column defaults for AssetStatus table
 const DEFAULT_ASSET_COLUMNS = [
@@ -52,7 +54,7 @@ const DEFAULT_ASSET_COLUMNS = [
   { key: "vehicleHealth", label: "차량상태", visible: true, required: false, width: 110 },
   { key: "severity", label: "심각도", visible: true, required: false, width: 100 },
   { key: "managementStage", label: "관리상태", visible: true, required: false, width: 130 },
-  { key: "memo", label: "메모", visible: true, required: false, width: 200 },
+  { key: "memo", label: "메모", visible: true, required: false, width: 250 },
 ];
 
 // 진단 코드 유틸: 배열 기반만 사용
@@ -1147,6 +1149,15 @@ export default function AssetStatus() {
                         { value: "연결됨", label: "연결됨" },
                         { value: "없음", label: "없음" },
                       ],
+                      filterHideHeader: true,
+                      renderCustomFilter: ({ value, onChange, close }) => (
+                        <DeviceStatusFilterDropdown
+                          value={value}
+                          onChange={onChange}
+                          onClear={() => onChange(null)}
+                          onRequestClose={close}
+                        />
+                      ),
                       render: (row) => {
                           const hasDevice = !!row.deviceSerial;
                           if (hasDevice) {
@@ -1242,17 +1253,32 @@ export default function AssetStatus() {
                       // Filter meta per column
                       ...(column.key === "plate" ? { filterType: "text" } : null),
                       ...(column.key === "vehicleType" ? {
-                        filterType: "multi-select",
+                        filterType: "select",
+                        filterHideHeader: true,
                         filterAllowAnd: false,
-                        getFilterOptions: () => {
-                          const set = new Set();
-                          for (const r of rows || []) {
-                            if (r?.vehicleType) set.add(String(r.vehicleType));
+                        filterOptions: [], // Prevent auto-generation of options
+                        filterAccessor: (row, filterValue) => {
+                          if (!filterValue || !filterValue.vehicleTypes) return true;
+                          const vehicleTypes = filterValue.vehicleTypes;
+                          if (Object.keys(vehicleTypes).length === 0) return true;
+
+                          const rowType = String(row?.vehicleType || "");
+                          const rowYear = String(row?.year || "");
+
+                          // 차종이 선택되어 있고, 해당 연식도 선택되어 있으면 표시
+                          if (vehicleTypes[rowType]) {
+                            return vehicleTypes[rowType].includes(rowYear);
                           }
-                          return Array.from(set)
-                            .sort((a,b)=>String(a).localeCompare(String(b)))
-                            .map((v) => ({ value: v, label: v }));
+                          return false;
                         },
+                        renderCustomFilter: ({ value, onChange, close }) => (
+                          <VehicleTypeYearFilter
+                            value={value}
+                            onChange={onChange}
+                            onClear={() => onChange(null)}
+                            rows={rows}
+                          />
+                        ),
                       } : null),
                       ...(column.key === "registrationDate" ? { filterType: "date-range" } : null),
                       ...(column.key === "insuranceExpiryDate" ? { filterType: "date-range" } : null),
