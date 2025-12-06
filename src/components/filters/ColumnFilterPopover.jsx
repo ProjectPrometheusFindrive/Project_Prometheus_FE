@@ -83,9 +83,12 @@ export default function ColumnFilterPopover({
   const [op, setOp] = useState(() => (column?.filterAllowAnd === false ? "OR" : (value?.op || column?.filterOp || "OR")));
 
   useEffect(() => {
+    // Vehicle type 필터는 custom payload를 사용하므로
+    // 공통 select/multi-select 동기화 로직에서 제외한다.
+    if (isVehicleTypeFilter) return;
     if (type !== "select" && type !== "multi-select") return;
     onChange && onChange({ type: type, values: selected, op });
-  }, [selected, op]);
+  }, [selected, op, isVehicleTypeFilter]);
 
   useEffect(() => {
     // keep internal state in sync when column or external value changes
@@ -93,11 +96,11 @@ export default function ColumnFilterPopover({
     if (type === "number-range") { setMin(value?.min ?? ""); setMax(value?.max ?? ""); }
     if (type === "date-range") { setFrom(value?.from ?? ""); setTo(value?.to ?? ""); }
     if (type === "boolean") setBoolVal(value?.value ?? null);
-    if (type === "select" || type === "multi-select") {
+    if ((type === "select" || type === "multi-select") && !isVehicleTypeFilter) {
       setSelected(Array.isArray(value?.values) ? value.values : []);
       setOp(column?.filterAllowAnd === false ? "OR" : (value?.op || column?.filterOp || "OR"));
     }
-  }, [column?.key]);
+  }, [column?.key, isVehicleTypeFilter]);
 
   const optionStyle = column?.filterOptionStyle || 'default';
   const sortedOptions = useMemo(() => {
@@ -155,8 +158,8 @@ export default function ColumnFilterPopover({
     );
   }
 
-  // Vehicle type filter uses completely custom rendering
-  if (isVehicleTypeFilter && typeof column?.renderCustomFilter === 'function') {
+  // Vehicle type filter uses standard popover wrapper with custom body (see content section)
+  if (false && isVehicleTypeFilter && typeof column?.renderCustomFilter === 'function') {
     return (
       <div
         ref={containerRef}

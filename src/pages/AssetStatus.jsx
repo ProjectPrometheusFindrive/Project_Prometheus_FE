@@ -1257,7 +1257,7 @@ export default function AssetStatus() {
                         filterHideHeader: true,
                         filterAllowAnd: false,
                         filterOptions: [], // Prevent auto-generation of options
-                        filterAccessor: (row, filterValue) => {
+                        filterPredicate: (row, filterValue) => {
                           if (!filterValue || !filterValue.vehicleTypes) return true;
                           const vehicleTypes = filterValue.vehicleTypes;
                           if (Object.keys(vehicleTypes).length === 0) return true;
