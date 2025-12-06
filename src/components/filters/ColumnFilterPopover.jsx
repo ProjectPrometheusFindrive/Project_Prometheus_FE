@@ -15,12 +15,14 @@ export default function ColumnFilterPopover({
   const containerRef = useRef(null);
   const isMulti = type === "multi-select";
   const isManagementStageFilter = column?.key === "managementStage";
+  const isContractStatusFilter = column?.key === "contractStatus";
   const isVehicleHealthFilter = column?.key === "vehicleHealth";
   const isDeviceStatusFilter = column?.key === "deviceStatus";
   const isVehicleTypeFilter = column?.key === "vehicleType";
   const popoverClassNames = ["filter-popover"];
   if (alignRight) popoverClassNames.push("align-right");
   if (isManagementStageFilter) popoverClassNames.push("filter-popover--management-stage");
+  if (isContractStatusFilter) popoverClassNames.push("filter-popover--contract-status");
   if (isVehicleHealthFilter) popoverClassNames.push("filter-popover--vehicle-health");
   if (isDeviceStatusFilter) popoverClassNames.push("filter-popover--device-status");
   if (isVehicleTypeFilter) popoverClassNames.push("filter-popover--vehicle-type");
@@ -104,13 +106,13 @@ export default function ColumnFilterPopover({
 
   const optionStyle = column?.filterOptionStyle || 'default';
   const sortedOptions = useMemo(() => {
-    if (isManagementStageFilter) {
-      // 관리상태 필터는 Figma 정의 순서를 유지
+    if (isManagementStageFilter || isContractStatusFilter) {
+      // 관리상태/계약상태 필터는 정의 순서를 유지
       return Array.isArray(options) ? options : [];
     }
     if (!Array.isArray(options)) return [];
     return [...options].sort((a, b) => String(a?.label ?? a?.value ?? "").localeCompare(String(b?.label ?? b?.value ?? "")));
-  }, [options, isManagementStageFilter]);
+  }, [options, isManagementStageFilter, isContractStatusFilter]);
 
   const thStyle = column?.label || "필터";
 
@@ -175,7 +177,7 @@ export default function ColumnFilterPopover({
   return (
     <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>
       <div className="filter-popover__content">
-        {isManagementStageFilter && (type === "select" || type === "multi-select") && (
+        {(isManagementStageFilter || isContractStatusFilter) && (type === "select" || type === "multi-select") && (
           <>
             <button
               type="button"
@@ -184,7 +186,7 @@ export default function ColumnFilterPopover({
                 setSelected([]);
                 onClear && onClear();
               }}
-              aria-label="관리상태 선택 해제"
+              aria-label={isManagementStageFilter ? "관리상태 선택 해제" : "계약상태 선택 해제"}
             >
               <span aria-hidden="true" className="filter-management-clear__checkbox" />
               <span className="filter-management-clear__label">선택해제</span>
