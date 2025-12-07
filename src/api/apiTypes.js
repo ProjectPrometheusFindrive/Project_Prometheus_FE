@@ -76,6 +76,9 @@ export const API_ENDPOINTS = {
     // Terminal install requests (public)
     TERMINAL_REQUESTS: '/terminal-requests',
 
+    // Support (customer support / help center)
+    SUPPORT_TICKETS: '/support/tickets',
+
     // Revenue
     REVENUE: '/revenue'
 };
