@@ -90,6 +90,34 @@ const severityNumber = (s) => {
     return 0;
 };
 
+// vehicleType 문자열과 year 필드를 기반으로 차종/연식 파싱
+const parseVehicleTypeAndYear = (row) => {
+    const rawType = row?.vehicleType;
+    const fullLabel = rawType ? String(rawType) : "";
+
+    // 기본값
+    let baseType = fullLabel;
+    let yearKey = "";
+
+    if (fullLabel) {
+        // 끝부분의 숫자(연식) 추출: "그랜저 23년형", "그랜저 2023", "그랜저 23" 등 대응
+        const match = fullLabel.match(/(\d{2,4})\D*$/);
+        if (match) {
+            const digits = match[1]; // "23" 또는 "2023"
+            baseType = fullLabel.slice(0, match.index).trim();
+            yearKey = digits.length === 4 ? digits.slice(2) : digits;
+        }
+    }
+
+    const yearValue = row?.year;
+    if (!yearKey && yearValue != null && yearValue !== "") {
+        const s = String(yearValue);
+        yearKey = s.length === 4 ? s.slice(2) : s;
+    }
+
+    return { baseType, yearKey, fullLabel };
+};
+
 const severityClass = (n) => (n <= 3 ? "low" : n <= 7 ? "medium" : "high");
 
 const MANAGEMENT_STAGE_SET = new Set(MANAGEMENT_STAGE_OPTIONS.map((opt) => opt.value));
@@ -1262,14 +1290,10 @@ export default function AssetStatus() {
                           const vehicleTypes = filterValue.vehicleTypes;
                           if (Object.keys(vehicleTypes).length === 0) return true;
 
-                          const rowType = String(row?.vehicleType || "");
-                          const rowYear = String(row?.year || "");
-
-                          // 차종이 선택되어 있고, 해당 연식도 선택되어 있으면 표시
-                          if (vehicleTypes[rowType]) {
-                            return vehicleTypes[rowType].includes(rowYear);
-                          }
-                          return false;
+                          const { baseType, yearKey } = parseVehicleTypeAndYear(row);
+                          const yearsForType = baseType ? vehicleTypes[baseType] : null;
+                          const match = !!(yearsForType && yearsForType.includes(yearKey));
+                          return match;
                         },
                         renderCustomFilter: ({ value, onChange, close }) => (
                           <VehicleTypeYearFilter

@@ -562,6 +562,16 @@ export const terminalRequestsApi = {
     }
 };
 
+// Support center API (tickets to super-admin / support)
+export const supportApi = {
+    async createTicket(payload) {
+        return await apiRequest(API_ENDPOINTS.SUPPORT_TICKETS, {
+            method: 'POST',
+            body: JSON.stringify(payload || {})
+        });
+    }
+};
+
 // Geofences API methods
 export const geofencesApi = {
     async fetchAll() {

@@ -69,6 +69,9 @@ export const {
   restoreMember,
   submitTerminalRequest,
 
+  // Support
+  createSupportTicket,
+
   // Revenue
   fetchRevenueData,
 } = api;

@@ -13,6 +13,7 @@ import {
     membersApi,
     faxApi,
     terminalRequestsApi,
+    supportApi,
     revenueApi
 } from './apiClient';
 import { API_STATUS, API_ERRORS, createOperationResult } from './apiTypes';
@@ -277,6 +278,42 @@ export async function submitTerminalRequest(data) {
             data: null,
             error: {
                 message: e?.message || '단말 장착 신청에 실패했습니다.',
+                type: e?.type,
+                status: e?.status,
+                details: detailList
+            }
+        };
+    }
+}
+
+// Support center (customer support tickets)
+export async function createSupportTicket(data) {
+    try {
+        const response = await supportApi.createTicket(data);
+        if (response.status === API_STATUS.SUCCESS) {
+            return createOperationResult(true, extractData(response));
+        }
+        const err = response.error || {};
+        const detailList = Array.isArray(err.details)
+            ? err.details
+            : (response.data && Array.isArray(response.data.details) ? response.data.details : []);
+        return {
+            ok: false,
+            data: null,
+            error: {
+                message: err.message || '문의 접수에 실패했습니다.',
+                type: err.type,
+                status: err.status,
+                details: detailList
+            }
+        };
+    } catch (e) {
+        const detailList = Array.isArray(e?.details) ? e.details : [];
+        return {
+            ok: false,
+            data: null,
+            error: {
+                message: e?.message || '문의 접수에 실패했습니다.',
                 type: e?.type,
                 status: e?.status,
                 details: detailList

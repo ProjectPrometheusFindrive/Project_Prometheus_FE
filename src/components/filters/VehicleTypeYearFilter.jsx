@@ -212,7 +212,7 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
                   onChange={() => toggleVehicleType(type)}
                 />
                 <span className="filter-option__label">{type}</span>
-                {years.length > 0 && (
+                {years.length > 0 && isSelected && (
                   <button
                     type="button"
                     className="year-expand-toggle"
@@ -223,7 +223,26 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
                     }}
                     aria-label={isExpanded ? "연식 목록 접기" : "연식 목록 펼치기"}
                   >
-                    {isExpanded ? "접기" : "펼치기"}
+                    <span
+                      className={`year-expand-toggle__icon${isExpanded ? " year-expand-toggle__icon--open" : ""}`}
+                      aria-hidden="true"
+                    >
+                      <svg
+                        width="7"
+                        height="4"
+                        viewBox="0 0 7 4"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden="true"
+                      >
+                        <path
+                          d="M0.5 0.5L3.5 3.5L6.5 0.5"
+                          stroke="#2D6536"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </span>
                   </button>
                 )}
               </label>
@@ -255,4 +274,3 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
     </div>
   );
 }
-
