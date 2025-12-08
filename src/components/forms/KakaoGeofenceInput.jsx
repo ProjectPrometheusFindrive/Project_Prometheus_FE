@@ -127,23 +127,13 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
 
         const initializeMap = () => {
             try {
+                // 기본 뷰: 남한 중앙을 기준으로 level 5
                 const mapOption = {
-                    center: new window.kakao.maps.LatLng(36.5, 127.9),
-                    level: 7,
+                    center: new window.kakao.maps.LatLng(36.3, 127.8),
+                    level: 13,
                 };
                 const newMap = new window.kakao.maps.Map(mapContainer.current, mapOption);
                 setMap(newMap);
-
-                // Default view: show entire South Korea when no initial polygons
-                try {
-                    const hasInitial = Array.isArray(value) && value.some((poly) => Array.isArray(poly) && poly.length > 0);
-                    if (!hasInitial) {
-                        const sw = new window.kakao.maps.LatLng(33.0, 124.0);
-                        const ne = new window.kakao.maps.LatLng(38.8, 132.0);
-                        const krBounds = new window.kakao.maps.LatLngBounds(sw, ne);
-                        newMap.setBounds(krBounds);
-                    }
-                } catch {}
             } catch (error) {
                 console.error("Failed to initialize Kakao map:", error);
             }
@@ -356,17 +346,13 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
                 clearExistingPolygons();
 
                 if (!value || !Array.isArray(value) || value.length === 0) {
-                    // No polygons: ensure DM is empty and reset to default KR bounds
+                    // No polygons: ensure DM is empty and keep current center/level
                     try {
                         clearExistingPolygons();
                         if (drawingManagerRef.current && !readOnly) {
                             try { drawingManagerRef.current.cancel(); } catch {}
                             try { drawingManagerRef.current.select(window.kakao.maps.drawing.OverlayType.POLYGON); } catch {}
                         }
-                        const sw = new window.kakao.maps.LatLng(33.0, 124.0);
-                        const ne = new window.kakao.maps.LatLng(38.8, 132.0);
-                        const krBounds = new window.kakao.maps.LatLngBounds(sw, ne);
-                        map.setBounds(krBounds);
                     } catch {}
                     return;
                 }
@@ -489,14 +475,25 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
 
     return (
         <div>
-            {!isMapsReady && <div className="mb-2 text-[12px] text-gray-500">카카오 지도를 로딩 중입니다...</div>}
+            {!isMapsReady && (
+                <div className="mb-2 text-[12px] text-gray-500">
+                    카카오 지도를 로딩 중입니다...
+                </div>
+            )}
             {!readOnly && isMapsReady && (
-                <div className="mb-2 text-[12px] text-gray-500">지도를 클릭해 점을 추가하고, 우클릭으로 폴리곤을 종료하세요.</div>
+                <div className="geofence-info-banner">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="16" x2="12" y2="12" />
+                        <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <span>지도를 클릭해 점을 추가하고, 마지막 점을 한 번 더 클릭하면 그리기가 종료됩니다.</span>
+                </div>
             )}
             <div
                 ref={mapContainer}
                 style={{ width: "100%", height: `${height}px`, cursor: !readOnly ? "crosshair" : "default" }}
-                className="border border-gray-300 rounded-lg"
+                className="border border-gray-300 mx-auto rounded-lg"
             />
         </div>
     );

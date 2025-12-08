@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import KakaoMap from "../components/KakaoMap";
 import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
-import CompanyLogoSection from "../components/CompanyLogoSection";
+import { useCompany } from "../contexts/CompanyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useConfirm } from "../contexts/ConfirmContext";
 import {
@@ -17,14 +17,57 @@ import {
 } from "../api";
 import { CountBadge, GeofenceBadge } from "../components/badges/StatusBadge";
 import DocumentViewer from "../components/DocumentViewer";
+import GCSImage from "../components/GCSImage";
+import DragDropUpload from "../components/DragDropUpload";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
 import { uploadOne } from "../utils/uploadHelpers";
 import { typedStorage } from "../utils/storage";
 import { emitToast } from "../utils/toast";
+import "./Settings.css";
+
+// Icons
+const BuildingIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M3 21h18M9 8h1M9 12h1M9 16h1M14 8h1M14 12h1M14 16h1M5 21V5a2 2 0 012-2h10a2 2 0 012 2v16"/>
+    </svg>
+);
+
+const DocumentIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+        <polyline points="14,2 14,8 20,8"/>
+        <line x1="16" y1="13" x2="8" y2="13"/>
+        <line x1="16" y1="17" x2="8" y2="17"/>
+        <polyline points="10,9 9,9 8,9"/>
+    </svg>
+);
+
+const MapPinIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+        <circle cx="12" cy="10" r="3"/>
+    </svg>
+);
+
+const UserIcon = () => (
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+    </svg>
+);
+
+const LogOutIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+    </svg>
+);
+
+const defaultLogoUrl = "/PPFD.png";
 
 export default function Settings() {
     const auth = useAuth();
     const confirm = useConfirm();
+    const { companyInfo, updateCompanyInfo } = useCompany();
     const [viewData, setViewData] = useState({ ...defaultCompanyInfo });
     const [editData, setEditData] = useState({ ...defaultCompanyInfo });
     const [editing, setEditing] = useState(false);
@@ -34,6 +77,8 @@ export default function Settings() {
     const [geofenceList, setGeofenceList] = useState([]);
     const [newGeofenceDraft, setNewGeofenceDraft] = useState({ geofences: [] });
     const [newGeofenceName, setNewGeofenceName] = useState("");
+    const [activeGeofenceTab, setActiveGeofenceTab] = useState("list"); // "list" | "add"
+    const [selectedGeofenceIdx, setSelectedGeofenceIdx] = useState(0);
 
     // Load company info, then load geofences from backend and migrate legacy data if needed
     useEffect(() => {
@@ -99,11 +144,18 @@ export default function Settings() {
                     }
                 }
 
-                if (mounted) {
-                    setViewData(base);
-                    setEditData(base);
-                    setGeofenceList(Array.isArray(serverGeofences) ? serverGeofences : []);
+            if (mounted) {
+                const list = Array.isArray(serverGeofences) ? serverGeofences : [];
+                setViewData(base);
+                setEditData(base);
+                setGeofenceList(list);
+                // 구역 목록이 있을 때는 1번(인덱스 0)을 기본 선택
+                if (list.length > 0) {
+                    setSelectedGeofenceIdx(0);
+                } else {
+                    setSelectedGeofenceIdx(null);
                 }
+            }
             } catch (e) {
                 console.error("Failed to load or migrate company info", e);
                 if (mounted) {
@@ -117,39 +169,13 @@ export default function Settings() {
         };
     }, []);
 
-    function startEdit() {
-        setEditData(viewData);
-        setEditing(true);
-    }
+    // Company logo upload
+    const handleLogoUploadSuccess = (objectName) => {
+        updateCompanyInfo({ logoPath: objectName, logoDataUrl: "" });
+    };
 
-    function cancelEdit() {
-        setEditData(viewData);
-        setEditing(false);
-    }
-
-    function onChange(field, value) {
-        setEditData((prev) => ({ ...prev, [field]: value }));
-    }
-
-    function onFileChange(field, file) {
-        if (!file) {
-            onChange(field, "");
-            return;
-        }
-        const reader = new FileReader();
-        reader.onload = () => {
-            onChange(field, reader.result);
-        };
-        reader.readAsDataURL(file);
-    }
-
-    async function saveCompany() {
-        await saveCompanyInfo(editData);
-        setViewData(editData);
-        setEditing(false);
-        setSaved(true);
-        setTimeout(() => setSaved(false), 1200);
-    }
+    const companyId = auth?.user?.companyId || companyInfo?.companyId || "";
+    const folder = companyId ? `company/${companyId}/docs` : "";
 
     // Geofence helpers
     const toItems = (arr) => {
@@ -165,7 +191,6 @@ export default function Settings() {
 
     const handlePointsChange = useCallback(
         (idx, newPoints) => {
-            // Update state immutably and keep a snapshot for save
             let listForSave = [];
             setGeofenceList((prev) => {
                 const next = Array.isArray(prev) ? [...prev] : [];
@@ -176,7 +201,6 @@ export default function Settings() {
                 return next;
             });
 
-            // Debounced auto-save for a single item
             if (autoSaveTimeoutRef.current) clearTimeout(autoSaveTimeoutRef.current);
             autoSaveTimeoutRef.current = setTimeout(async () => {
                 const item = listForSave[idx];
@@ -194,28 +218,20 @@ export default function Settings() {
                             next[idx] = { ...item, id: created?.name != null ? created.name : item.name };
                             return next;
                         });
-                    } else {
-                        // Sync id to name if name is identifier
-                        setGeofenceList((prev) => {
-                            const next = [...(prev || [])];
-                            next[idx] = { ...item, id: item.name };
-                            return next;
-                        });
                     }
                 } catch (err) {
                     console.error("Failed to auto-save geofence:", err);
                 }
             }, 800);
         },
-        [updateGeofence, createGeofence]
+        []
     );
 
-    // Stable wrapper to pass memoized polygons array and callback per item
     const GeofenceItemMap = ({ idx, points }) => {
         const memoPolygons = React.useMemo(() => [points], [points]);
-        const onChange = React.useCallback((newPoints) => handlePointsChange(idx, newPoints), [idx, handlePointsChange]);
+        const onChange = React.useCallback((newPoints) => handlePointsChange(idx, newPoints), [idx]);
         return (
-            <KakaoMap polygons={memoPolygons} height="420px" editable={true} onPolygonChange={onChange} />
+            <KakaoMap polygons={memoPolygons} height="100%" editable={true} onPolygonChange={onChange} />
         );
     };
 
@@ -227,6 +243,7 @@ export default function Settings() {
         }
         const next = (geofenceList || []).filter((_, i) => i !== idx);
         setGeofenceList(next);
+        if (selectedGeofenceIdx === idx) setSelectedGeofenceIdx(null);
     };
 
     const handleRenameOne = async (idx, name) => {
@@ -246,19 +263,7 @@ export default function Settings() {
                 ok = await updateGeofence(identifier, { name: updated.name, points: updated.points });
             }
             if (!identifier || ok === false) {
-                const created = await createGeofence({ name: updated.name, points: updated.points });
-                setGeofenceList((prevList) => {
-                    const next = [...(prevList || [])];
-                    next[idx] = { ...updated, id: created?.name != null ? created.name : updated.name };
-                    return next;
-                });
-            } else {
-                // If backend uses name as identifier, sync id to new name
-                setGeofenceList((prevList) => {
-                    const next = [...(prevList || [])];
-                    next[idx] = { ...updated, id: updated.name };
-                    return next;
-                });
+                await createGeofence({ name: updated.name, points: updated.points });
             }
         } catch (e) {
             console.error("Failed to rename geofence:", e);
@@ -268,9 +273,7 @@ export default function Settings() {
     const handleNewGeofenceSubmit = async (data) => {
         try {
             const polys = Array.isArray(data?.geofences) ? data.geofences : [];
-            if (polys.length === 0) {
-                return;
-            }
+            if (polys.length === 0) return;
 
             let newList = [...geofenceList];
 
@@ -298,10 +301,9 @@ export default function Settings() {
             }
 
             setGeofenceList(newList);
-
-            // Reset form
             setNewGeofenceDraft({ geofences: [] });
             setNewGeofenceName("");
+            setActiveGeofenceTab("list");
         } catch (e) {
             console.error("Error adding new geofence:", e);
         }
@@ -356,39 +358,20 @@ export default function Settings() {
         }
     };
 
-    const smallButtonStyle = {
-        padding: "4px 8px",
-        fontSize: "12px",
-        minWidth: "auto",
-        border: "none",
-        borderRadius: "4px",
-        cursor: "pointer",
-    };
-
-    const saveButtonStyle = {
-        ...smallButtonStyle,
-        backgroundColor: "#e9f8ee",
-        color: "#177245",
-    };
-
-    const deleteButtonStyle = {
-        ...smallButtonStyle,
-        backgroundColor: "#fdecef",
-        color: "#c62828",
-    };
-
-    // --- Business certificate upload (optional) ---
+    // --- Business certificate upload ---
     const [bizFile, setBizFile] = useState(null);
-    const [bizStatus, setBizStatus] = useState("idle"); // idle | uploading | success | error
+    const [bizStatus, setBizStatus] = useState("idle");
     const [bizError, setBizError] = useState("");
     const [bizProgress, setBizProgress] = useState(0);
     const [bizPreviewUrl, setBizPreviewUrl] = useState("");
-    const [bizPreviewKind, setBizPreviewKind] = useState(""); // image | pdf | unknown
+    const [bizPreviewKind, setBizPreviewKind] = useState("");
     const [bizViewerOpen, setBizViewerOpen] = useState(false);
+
     const onBizFileChange = (e) => {
         const f = e.target.files && e.target.files[0] ? e.target.files[0] : null;
         setBizFile(f);
     };
+
     const handleBizUpload = async (e) => {
         e.preventDefault();
         setBizError("");
@@ -401,30 +384,27 @@ export default function Settings() {
             setBizError("허용되지 않는 파일 형식입니다. (PDF/이미지)");
             return;
         }
-        // Use canonical companyId for folder rules; avoid display name here
-        const companyId = auth?.user?.companyId || viewData?.companyId || "";
         if (!companyId) {
-            setBizError("회사 식별 정보를 찾을 수 없습니다. 관리자에게 문의해 주세요.");
+            setBizError("회사 식별 정보를 찾을 수 없습니다.");
             return;
         }
         try {
             setBizStatus("uploading");
             setBizProgress(0);
-            const folder = `business-certificates/${companyId}`;
+            const bizFolder = `business-certificates/${companyId}`;
             const onProgress = (p) => setBizProgress(p?.percent || 0);
-            const result = await uploadOne(bizFile, { folder, label: "bizCert", onProgress });
+            const result = await uploadOne(bizFile, { folder: bizFolder, label: "bizCert", onProgress });
             const objectName = result?.objectName || "";
             if (!objectName) {
                 setBizStatus("error");
-                setBizError("업로드가 실패했습니다. 다시 시도해 주세요.");
+                setBizError("업로드가 실패했습니다.");
                 return;
             }
-            // Persist via company API (updateCompanyInfo triggers PUT)
             setViewData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
             setEditData((prev) => ({ ...prev, bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }));
-            // Save only changed fields to avoid backend validation on unrelated stale values
             try { await saveCompanyInfo({ bizCertDocGcsObjectName: objectName, bizCertDocName: bizFile.name }); } catch {}
             setBizStatus("success");
+            emitToast("사업자등록증이 업로드되었습니다.", "success");
         } catch (err) {
             console.error("[settings] biz cert upload error", err);
             setBizError(err?.message || "업로드 중 오류가 발생했습니다.");
@@ -432,7 +412,6 @@ export default function Settings() {
         }
     };
 
-    // Derive and load preview for existing uploaded business certificate
     useEffect(() => {
         let cancelled = false;
         (async () => {
@@ -463,136 +442,138 @@ export default function Settings() {
         return () => { cancelled = true; };
     }, [viewData?.bizCertDocGcsObjectName, viewData?.bizCertDocGcsObjectNames, viewData?.bizCertDocName]);
 
-    return (
-        <div className="page space-y-4">
-            <h1 className="text-2xl font-semibold text-gray-900">회사정보설정</h1>
-            <div className="page-scroll space-y-4">
-                {/* 로고 + 사업자등록증: 넓은 화면 가로 배치, 좁은 화면 세로 배치 */}
-                <div className="company-docs-split">
-                    {/* 회사 로고 섹션 */}
-                    <CompanyLogoSection />
+    const displayItems = toItems(geofenceList).filter((it) => Array.isArray(it.points) && it.points.length > 0);
 
-                    {/* 회사 서류(사업자등록증) 섹션 */}
-                    <div className="card">
-                        <div className="header-row" style={{ marginBottom: 10 }}>
-                            <div>
-                                <h2>사업자등록증</h2>
+    return (
+        <div className="settings-page">
+            {/* 페이지 타이틀 */}
+            <div className="settings-title-bar">
+                <h1>회사 설정</h1>
+            </div>
+
+            <div className="settings-content">
+                {/* 좌측: 회사 프로필 */}
+                <div className="settings-sidebar">
+                    {/* 회사 로고 카드 */}
+                    <div className="settings-card settings-card--profile">
+                        <div className="settings-logo-wrapper">
+                            {companyInfo?.logoPath ? (
+                                <GCSImage objectName={companyInfo.logoPath} alt="Company Logo" className="settings-logo" />
+                            ) : companyInfo?.logoDataUrl ? (
+                                <img src={companyInfo.logoDataUrl} alt="Company Logo" className="settings-logo" />
+                            ) : (
+                                <img src={defaultLogoUrl} alt="Default Logo" className="settings-logo" />
+                            )}
+                            <div className="settings-logo-overlay">
+                                {folder && (
+                                    <DragDropUpload
+                                        folder={folder}
+                                        accept="image/png,image/jpeg,image/jpg,image/webp"
+                                        multiple={false}
+                                        onUploadSuccess={handleLogoUploadSuccess}
+                                        onError={(e) => console.error(e)}
+                                    />
+                                )}
                             </div>
                         </div>
-                        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                            <div style={{ color: "#555" }}>
-                                현재 상태: {viewData?.bizCertDocName ? (
-                                    <strong>{viewData.bizCertDocName}</strong>
-                                ) : (
-                                    <span className="empty">미등록</span>
-                                )}
-                            </div>
-                            <form onSubmit={handleBizUpload}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                                    <input type="file" accept="application/pdf,image/*" onChange={onBizFileChange} className="form-input" />
-                                    <button className="form-button" type="submit" disabled={bizStatus === "uploading"}>
-                                        {bizStatus === "uploading" ? "업로드 중..." : "업로드/변경"}
-                                    </button>
-                                </div>
-                                {bizStatus === "uploading" && (
-                                    <div style={{ color: "#177245", fontSize: 13, marginTop: 6 }}>진행률: {bizProgress}%</div>
-                                )}
-                                {bizError && (
-                                    <div className="error-message" style={{ marginTop: 6 }}>{bizError}</div>
-                                )}
-                                {bizStatus === "success" && (
-                                    <div className="success-message" style={{ marginTop: 6, color: "#177245" }}>업로드가 완료되었습니다.</div>
-                                )}
-                            </form>
-
-                            {/* 업로드된 파일 미리보기 */}
-                            {bizPreviewUrl && (
-                                <div style={{ marginTop: 10 }}>
-                                    {bizPreviewKind === "image" && (
-                                        <div>
-                                            <img
-                                                src={bizPreviewUrl}
-                                                alt={viewData?.bizCertDocName || "사업자등록증"}
-                                                style={{ maxWidth: "100%", maxHeight: 260, objectFit: "contain", borderRadius: 6, boxShadow: "0 1px 6px rgba(0,0,0,0.08)" }}
-                                                onClick={() => setBizViewerOpen(true)}
-                                            />
-                                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
-                                                <button type="button" className="form-button" onClick={() => setBizViewerOpen(true)}>확대</button>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {bizPreviewKind === "pdf" && (
-                                        <div>
-                                            <iframe
-                                                src={bizPreviewUrl}
-                                                title={viewData?.bizCertDocName || "사업자등록증"}
-                                                style={{ width: "100%", height: 260, border: "none", background: "#fafafa", borderRadius: 6 }}
-                                            />
-                                            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 6 }}>
-                                                <button type="button" className="form-button" onClick={() => setBizViewerOpen(true)}>확대</button>
-                                            </div>
-                                        </div>
-                                    )}
-                                    {bizPreviewKind === "unknown" && (
-                                        <div style={{ color: "#777", fontSize: 13 }}>미리보기를 지원하지 않는 형식입니다.</div>
-                                    )}
-                                    <DocumentViewer
-                                        isOpen={bizViewerOpen}
-                                        onClose={() => setBizViewerOpen(false)}
-                                        src={bizPreviewUrl}
-                                        type={bizPreviewKind}
-                                        title={viewData?.bizCertDocName || "사업자등록증"}
-                                        allowDownload={true}
-                                        downloadName={viewData?.bizCertDocName || "business-certificate"}
-                                    />
-                                </div>
-                            )}
+                        <div className="settings-company-name">
+                            {companyInfo?.companyName || auth?.user?.companyName || "회사명"}
                         </div>
                     </div>
 
-                </div>
-
-                {/* 회사 정보 섹션 */}
-                <div>
-                        <div className="card">
-                            <div className="header-row" style={{ marginBottom: 10 }}>
-                                <div>
-                                    <h2>회사 정보</h2>
-                                </div>
+                    {/* 회사 정보 카드 */}
+                    <div className="settings-card">
+                        <div className="settings-card__header">
+                            <div className="settings-card__icon"><BuildingIcon /></div>
+                            <h3>회사 정보</h3>
+                        </div>
+                        <div className="settings-info-grid">
+                            <div className="settings-info-item">
+                                <span className="settings-info-label">대표자명</span>
+                                <span className="settings-info-value">{viewData.ceoName || "-"}</span>
                             </div>
-
-                            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <span className="form-label">대표자명</span>
-                                    <span>{viewData.ceoName || <span className="empty">-</span>}</span>
-                                </div>
-                                <span style={{ color: "#bbb" }}>|</span>
-                                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                                    <span className="form-label">사업자등록번호</span>
-                                    <span>{viewData.regNumber || <span className="empty">-</span>}</span>
-                                </div>
+                            <div className="settings-info-item">
+                                <span className="settings-info-label">사업자등록번호</span>
+                                <span className="settings-info-value">{viewData.regNumber || "-"}</span>
                             </div>
                         </div>
-                </div>
+                    </div>
 
-                {/* 지오펜스 설정 섹션 */}
-                <div>
-                        <div className="card">
-                            <div className="header-row" style={{ marginBottom: 10 }}>
-                                <div>
-                                    <h2>지오펜스 관리</h2>
-                                </div>
-                                <div>
-                                    {Array.isArray(geofenceList) && geofenceList.length > 0 ? (
-                                        <CountBadge count={geofenceList.length} label="개 저장됨" />
-                                    ) : (
-                                        <span className="empty">지오펜스 없음</span>
-                                    )}
+                    {/* 사업자등록증 카드 */}
+                    <div className="settings-card settings-card--biz">
+                        <div className="settings-card__header">
+                            <div className="settings-card__icon"><DocumentIcon /></div>
+                            <h3>사업자등록증</h3>
+                            {viewData?.bizCertDocName && (
+                                <span className="settings-badge settings-badge--success">등록됨</span>
+                            )}
+                        </div>
+
+                        {bizPreviewUrl && bizPreviewKind === "image" && (
+                            <div className="settings-biz-preview" onClick={() => setBizViewerOpen(true)}>
+                                <img src={bizPreviewUrl} alt="사업자등록증" />
+                                <div className="settings-biz-preview__overlay">
+                                    <span>클릭하여 확대</span>
                                 </div>
                             </div>
+                        )}
 
-                            <div style={{ marginBottom: 16 }}>
-                                <h3 style={{ margin: "0 0 8px", fontSize: "14px", fontWeight: "600" }}>신규 지오펜스 추가</h3>
+                        <form onSubmit={handleBizUpload} className="settings-upload-form">
+                            <label className="settings-file-input">
+                                <input type="file" accept="application/pdf,image/*" onChange={onBizFileChange} />
+                                <span>{bizFile ? bizFile.name : "파일 선택..."}</span>
+                            </label>
+                            <button type="submit" className="settings-btn settings-btn--primary" disabled={bizStatus === "uploading"}>
+                                {bizStatus === "uploading" ? `${bizProgress}%` : "업로드"}
+                            </button>
+                        </form>
+                        {bizError && <div className="settings-error">{bizError}</div>}
+                        {bizStatus === "success" && <div className="settings-success">업로드 완료!</div>}
+                    </div>
+
+                    {/* 계정 관리 카드 */}
+                    <div className="settings-card settings-card--danger">
+                        <div className="settings-card__header">
+                            <div className="settings-card__icon"><UserIcon /></div>
+                            <h3>계정 관리</h3>
+                        </div>
+                        <p className="settings-card__desc">
+                            계정을 비활성화하면 다시 로그인할 수 없습니다. 복원이 필요한 경우 관리자에게 문의하세요.
+                        </p>
+                        <button type="button" className="settings-btn settings-btn--danger" onClick={handleSelfWithdraw}>
+                            <LogOutIcon />
+                            회원 탈퇴
+                        </button>
+                    </div>
+                </div>
+
+                {/* 우측: 지오펜스 관리 */}
+                <div className="settings-main">
+                    <div className="settings-card settings-card--full">
+                        <div className="settings-card__header">
+                            <div className="settings-card__icon"><MapPinIcon /></div>
+                            <h3>지오펜스 관리</h3>
+                            <CountBadge count={displayItems.length} label="개 구역" />
+                        </div>
+
+                        {/* 탭 */}
+                        <div className="settings-tabs">
+                            <button
+                                className={`settings-tab ${activeGeofenceTab === "list" ? "settings-tab--active" : ""}`}
+                                onClick={() => setActiveGeofenceTab("list")}
+                            >
+                                구역 목록
+                            </button>
+                            <button
+                                className={`settings-tab ${activeGeofenceTab === "add" ? "settings-tab--active" : ""}`}
+                                onClick={() => setActiveGeofenceTab("add")}
+                            >
+                                + 새 구역 추가
+                            </button>
+                        </div>
+
+                        {activeGeofenceTab === "add" && (
+                            <div className="settings-geofence-add">
                                 <GeofenceGlobalForm
                                     initial={newGeofenceDraft}
                                     initialName={newGeofenceName}
@@ -601,114 +582,81 @@ export default function Settings() {
                                     onNameChange={(v) => setNewGeofenceName(v)}
                                 />
                             </div>
+                        )}
 
-                            <div>
-                                <h2>Geofence 목록</h2>
-                                {(() => {
-                                    const displayItems = toItems(geofenceList).filter((it) => Array.isArray(it.points) && it.points.length > 0);
-                                    if (!displayItems || displayItems.length === 0) return <div className="empty">No geofences</div>;
-                                    return (
-                                        <>
-                                            <div
-                                                style={{
-                                                    display: "grid",
-                                                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                                                    gap: 16,
-                                                }}
+                        {activeGeofenceTab === "list" && (
+                            <div className="settings-geofence-layout">
+                                {/* 지오펜스 리스트 */}
+                                <div className="settings-geofence-list">
+                                    {displayItems.length === 0 ? (
+                                        <div className="settings-empty">
+                                            <MapPinIcon />
+                                            <p>등록된 지오펜스가 없습니다</p>
+                                            <button
+                                                className="settings-btn settings-btn--primary"
+                                                onClick={() => setActiveGeofenceTab("add")}
                                             >
-                                                {displayItems.map((item, idx) => (
-                                                    <div key={idx}>
-                                                        <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 6 }}>
-                                                            <GeofenceBadge index={idx} />
-                                                            <input
-                                                                className="form-input"
-                                                                value={item.name || ""}
-                                                                onChange={(e) => handleRenameOne(idx, e.target.value)}
-                                                                style={{ flex: 1, minWidth: "80px" }}
-                                                            />
-                                                            <div style={{ display: "flex", gap: 4, flexShrink: 0 }}>
-                                                                <button
-                                                                    className="form-button"
-                                                                    type="button"
-                                                                    onClick={async (e) => {
-                                                                        const buttonEl = e.currentTarget;
-                                                                        const item = geofenceList[idx];
-                                                                        if (item) {
-                                                                            try {
-                                                                                const identifier = item.id != null ? item.id : item.name;
-                                                                                let ok = true;
-                                                                                if (identifier != null) {
-                                                                                    ok = await updateGeofence(identifier, { name: item.name, points: item.points });
-                                                                                }
-                                                                                if (!identifier || ok === false) {
-                                                                                    const created = await createGeofence({ name: item.name, points: item.points });
-                                                                                    setGeofenceList((prev) => {
-                                                                                        const next = [...(prev || [])];
-                                                                                        next[idx] = { ...item, id: created?.name != null ? created.name : item.name };
-                                                                                        return next;
-                                                                                    });
-                                                                                } else {
-                                                                                    // Sync id to name if necessary
-                                                                                    setGeofenceList((prev) => {
-                                                                                        const next = [...(prev || [])];
-                                                                                        next[idx] = { ...item, id: item.name };
-                                                                                        return next;
-                                                                                    });
-                                                                                }
-                                                                            } catch (err) {
-                                                                                console.error("Failed to save geofence:", err);
-                                                                            }
-                                                                        }
-                                                                        // Visual feedback
-                                                                        try {
-                                                                            buttonEl.textContent = "저장됨!";
-                                                                            buttonEl.style.background = "#4CAF50";
-                                                                            buttonEl.style.color = "white";
-                                                                            setTimeout(() => {
-                                                                                try {
-                                                                                    buttonEl.textContent = "저장";
-                                                                                    buttonEl.style.background = saveButtonStyle.backgroundColor;
-                                                                                    buttonEl.style.color = saveButtonStyle.color;
-                                                                                } catch {}
-                                                                            }, 1000);
-                                                                        } catch {}
-                                                                    }}
-                                                                    style={saveButtonStyle}
-                                                                >
-                                                                    저장
-                                                                </button>
-                                                                <button className="form-button" type="button" onClick={() => handleGeofenceDeleteOne(idx)} style={deleteButtonStyle}>
-                                                                    삭제
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                        <GeofenceItemMap idx={idx} points={item.points} />
-                                                    </div>
-                                                ))}
+                                                첫 구역 추가하기
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        displayItems.map((item, idx) => (
+                                            <div
+                                                key={idx}
+                                                className={`settings-geofence-item ${selectedGeofenceIdx === idx ? "settings-geofence-item--active" : ""}`}
+                                                onClick={() => setSelectedGeofenceIdx(idx)}
+                                            >
+                                                <div className="settings-geofence-item__header">
+                                                    <GeofenceBadge index={idx} />
+                                                    <input
+                                                        className="settings-geofence-name"
+                                                        value={item.name || ""}
+                                                        onChange={(e) => handleRenameOne(idx, e.target.value)}
+                                                        onClick={(e) => e.stopPropagation()}
+                                                    />
+                                                </div>
+                                                <div className="settings-geofence-item__actions">
+                                                    <button
+                                                        className="settings-btn settings-btn--sm settings-btn--danger-outline"
+                                                        onClick={(e) => { e.stopPropagation(); handleGeofenceDeleteOne(idx); }}
+                                                    >
+                                                        삭제
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </>
-                                    );
-                                })()}
-                            </div>
-                        </div>
-                </div>
+                                        ))
+                                    )}
+                                </div>
 
-                {/* 계정 관리: 회원 탈퇴 */}
-                <div className="content-section" style={{ marginTop: '16px' }}>
-                    <div className="info-box" style={{ backgroundColor: '#f8d7da', borderColor: '#f5c6cb', color: '#721c24' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
-                            <div>
-                                <strong>회원 탈퇴</strong>
-                                <div style={{ fontSize: '0.9rem', marginTop: '4px' }}>계정을 비활성화하고 로그아웃합니다. 필요 시 관리자에게 복원을 요청할 수 있습니다.</div>
+                                {/* 지오펜스 지도 */}
+                                <div className="settings-geofence-map">
+                                    {selectedGeofenceIdx !== null && displayItems[selectedGeofenceIdx] ? (
+                                        <GeofenceItemMap
+                                            idx={selectedGeofenceIdx}
+                                            points={displayItems[selectedGeofenceIdx].points}
+                                        />
+                                    ) : displayItems.length > 0 ? (
+                                        <div className="settings-map-placeholder">
+                                            <MapPinIcon />
+                                            <p>좌측에서 구역을 선택하세요</p>
+                                        </div>
+                                    ) : null}
+                                </div>
                             </div>
-                            <button type="button" className="form-button form-button--danger" onClick={handleSelfWithdraw}>
-                                회원 탈퇴
-                            </button>
-                        </div>
+                        )}
                     </div>
                 </div>
-
             </div>
+
+            <DocumentViewer
+                isOpen={bizViewerOpen}
+                onClose={() => setBizViewerOpen(false)}
+                src={bizPreviewUrl}
+                type={bizPreviewKind}
+                title={viewData?.bizCertDocName || "사업자등록증"}
+                allowDownload={true}
+                downloadName={viewData?.bizCertDocName || "business-certificate"}
+            />
         </div>
     );
 }

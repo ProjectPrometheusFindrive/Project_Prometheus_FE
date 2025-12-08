@@ -2,6 +2,7 @@ import React, { useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
 import SupportRequestForm from "../components/support/SupportRequestForm";
+import "./SupportCenter.css";
 
 // 아이콘 컴포넌트
 const HeadsetIcon = () => (
@@ -74,29 +75,10 @@ const FAQ_ITEMS = [
 // FAQ 아이템 컴포넌트
 function FAQItem({ question, answer, isOpen, onToggle }) {
   return (
-    <div style={{ borderBottom: '1px solid #f3f4f6' }}>
-      <button
-        type="button"
-        onClick={onToggle}
-        style={{
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '16px 4px',
-          textAlign: 'left',
-          background: 'transparent',
-          border: 'none',
-          cursor: 'pointer',
-          borderRadius: 8,
-        }}
-      >
-        <span style={{ fontSize: 14, fontWeight: 500, color: '#1f2937', paddingRight: 16 }}>
-          {question}
-        </span>
-        <span style={{ color: '#9ca3af', flexShrink: 0 }}>
-          <ChevronDownIcon isOpen={isOpen} />
-        </span>
+    <div className="support-faq-item">
+      <button type="button" onClick={onToggle} className="support-faq-question">
+        <span>{question}</span>
+        <ChevronDownIcon isOpen={isOpen} />
       </button>
       <div
         style={{
@@ -106,9 +88,7 @@ function FAQItem({ question, answer, isOpen, onToggle }) {
           opacity: isOpen ? 1 : 0,
         }}
       >
-        <p style={{ fontSize: 14, color: '#4b5563', paddingBottom: 16, paddingLeft: 4, paddingRight: 4, lineHeight: 1.6, margin: 0 }}>
-          {answer}
-        </p>
+        <p className="support-faq-answer">{answer}</p>
       </div>
     </div>
   );
@@ -146,29 +126,16 @@ function SupportCenter() {
 
   return (
     <div className="page page--data">
-      <div className="page-scroll" style={{ padding: "30px 60px" }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 24, alignItems: 'stretch' }}>
+      <div className="page-scroll support-page">
+        <div className="support-layout">
           {/* 좌측: 문의 양식 */}
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <section
-              style={{
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: 16,
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                overflow: 'hidden',
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-              }}
-            >
-              <div style={{ borderBottom: '1px solid #f3f4f6', background: '#fafafa', padding: '16px 24px' }}>
-                <h2 style={{ fontSize: 16, fontWeight: 600, color: '#111827', margin: 0 }}>문의 남기기</h2>
-                <p style={{ fontSize: 12, color: '#6b7280', marginTop: 4, marginBottom: 0 }}>
-                  서비스 이용, 장애 신고, 결제/정산, 계정/권한 등 운영 관련 문의를 남기면 담당자가 답변을 드립니다.
-                </p>
+          <div className="support-main">
+            <section className="support-form-card">
+              <div className="support-form-header">
+                <h2>문의 남기기</h2>
+                <p>서비스 이용, 장애 신고, 결제/정산, 계정/권한 등 운영 관련 문의를 남기면 담당자가 답변을 드립니다.</p>
               </div>
-              <div style={{ padding: 24 }}>
+              <div className="support-form-body">
                 <SupportRequestForm
                   companyName={meta.companyName}
                   companyId={meta.companyId}
@@ -183,112 +150,49 @@ function SupportCenter() {
           </div>
 
           {/* 우측: 사이드바 */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div className="support-sidebar">
             {/* 연락처 정보 카드 */}
-            <section
-              style={{
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: 16,
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                padding: 20,
-              }}
-            >
-              <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827', marginTop: 0, marginBottom: 16 }}>연락처 정보</h3>
+            <section className="support-card">
+              <h3>연락처 정보</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      width: 36,
-                      height: 36,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 8,
-                      background: '#eff6ff',
-                      color: '#2563eb',
-                      flexShrink: 0,
-                    }}
-                  >
+                <div className="support-contact-item">
+                  <div className="support-contact-icon support-contact-icon--email">
                     <MailIcon />
                   </div>
                   <div>
-                    <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>이메일</p>
-                    <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>support@prometheus.co.kr</p>
+                    <p className="support-contact-label">이메일</p>
+                    <p className="support-contact-value">prometheus.rok@gmail.com</p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      width: 36,
-                      height: 36,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 8,
-                      background: '#dcfce7',
-                      color: '#16a34a',
-                      flexShrink: 0,
-                    }}
-                  >
+                <div className="support-contact-item">
+                  <div className="support-contact-icon support-contact-icon--phone">
                     <PhoneIcon />
                   </div>
                   <div>
-                    <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>전화</p>
-                    <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>1588-0000</p>
+                    <p className="support-contact-label">전화</p>
+                    <p className="support-contact-value">1588-0000</p>
                   </div>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-                  <div
-                    style={{
-                      display: 'flex',
-                      width: 36,
-                      height: 36,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 8,
-                      background: '#f3e8ff',
-                      color: '#9333ea',
-                      flexShrink: 0,
-                    }}
-                  >
+                <div className="support-contact-item">
+                  <div className="support-contact-icon support-contact-icon--time">
                     <ClockIcon />
                   </div>
                   <div>
-                    <p style={{ fontSize: 12, color: '#6b7280', margin: 0 }}>운영 시간</p>
-                    <p style={{ fontSize: 14, fontWeight: 500, color: '#111827', margin: 0 }}>평일 09:00 ~ 18:00</p>
-                    <p style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, marginBottom: 0 }}>주말/공휴일 휴무</p>
+                    <p className="support-contact-label">운영 시간</p>
+                    <p className="support-contact-value">평일 09:00 ~ 18:00</p>
+                    <p className="support-contact-sub">주말/공휴일 휴무</p>
                   </div>
                 </div>
               </div>
             </section>
 
             {/* FAQ 섹션 */}
-            <section
-              style={{
-                background: 'white',
-                border: '1px solid #e5e7eb',
-                borderRadius: 16,
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                padding: 20,
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    width: 28,
-                    height: 28,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    borderRadius: 8,
-                    background: '#fef3c7',
-                    color: '#d97706',
-                  }}
-                >
+            <section className="support-card">
+              <div className="support-faq-header">
+                <div className="support-faq-icon">
                   <QuestionIcon />
                 </div>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: '#111827', margin: 0 }}>자주 묻는 질문</h3>
+                <h3 style={{ margin: 0 }}>자주 묻는 질문</h3>
               </div>
               <div>
                 {FAQ_ITEMS.map((item, index) => (
@@ -304,40 +208,16 @@ function SupportCenter() {
             </section>
 
             {/* 긴급 문의 안내 */}
-            <section
-              style={{
-                position: 'relative',
-                overflow: 'hidden',
-                borderRadius: 16,
-                background: 'linear-gradient(135deg, #f97316 0%, #ef4444 100%)',
-                padding: 20,
-                color: 'white',
-                boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-                flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-              }}
-            >
+            <section className="support-emergency">
               <div style={{ position: 'absolute', right: -24, top: -24, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
               <div style={{ position: 'absolute', left: -16, bottom: -16, width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
               <div style={{ position: 'relative', zIndex: 10 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, marginTop: 0, marginBottom: 8 }}>긴급 장애 신고</h3>
-                <p style={{ fontSize: 12, color: 'rgba(254, 215, 170, 1)', lineHeight: 1.5, marginBottom: 12, marginTop: 0 }}>
+                <h3>긴급 장애 신고</h3>
+                <p>
                   서비스 이용이 불가능한 긴급 상황 시<br />
                   아래 번호로 연락해주세요
                 </p>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    background: 'rgba(255,255,255,0.2)',
-                    borderRadius: 8,
-                    padding: '8px 12px',
-                    backdropFilter: 'blur(4px)',
-                  }}
-                >
+                <div className="support-emergency-phone">
                   <PhoneIcon />
                   <span style={{ fontWeight: 600 }}>1588-0000</span>
                 </div>

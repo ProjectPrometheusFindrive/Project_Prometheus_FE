@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { createSupportTicket } from "../../api";
 import { emitToast } from "../../utils/toast";
 import { digitsOnly, formatPhone11 } from "../../utils/formatters";
+import "../../pages/SupportCenter.css";
 
 const EMPTY_FORM = {
   category: "usage",
@@ -212,55 +213,11 @@ export default function SupportRequestForm({
     setSubmitting(false);
   };
 
-  const infoCardStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 8,
-    padding: '10px 12px',
-    borderRadius: 8,
-    background: 'white',
-    border: '1px solid #f3f4f6',
-  };
-
-  const infoLabelStyle = {
-    fontSize: 10,
-    color: '#9ca3af',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-    margin: 0,
-  };
-
-  const infoValueStyle = {
-    fontSize: 14,
-    fontWeight: 500,
-    color: '#111827',
-    margin: 0,
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap',
-  };
-
-  const errorMsgStyle = {
-    fontSize: 12,
-    color: '#dc2626',
-    marginTop: 6,
-    display: 'flex',
-    alignItems: 'center',
-    gap: 4,
-  };
-
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
       {/* 에러 메시지 */}
       {submitError && (
-        <div
-          style={{
-            borderRadius: 12,
-            border: '1px solid #fecaca',
-            background: '#fef2f2',
-            padding: 16,
-          }}
-        >
+        <div className="support-error-box">
           <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
             <div
               style={{
@@ -293,58 +250,40 @@ export default function SupportRequestForm({
       )}
 
       {/* 보내는 사람 정보 카드 */}
-      <div
-        style={{
-          borderRadius: 12,
-          border: '1px solid #e5e7eb',
-          background: 'linear-gradient(135deg, #f9fafb 0%, #ffffff 100%)',
-          padding: 16,
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
-          <div
-            style={{
-              display: 'flex',
-              width: 24,
-              height: 24,
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: 6,
-              background: '#e5e7eb',
-              color: '#4b5563',
-            }}
-          >
+      <div className="support-sender-card">
+        <div className="support-sender-header">
+          <div className="support-sender-icon">
             <UserIcon />
           </div>
-          <span style={{ fontSize: 14, fontWeight: 600, color: '#1f2937' }}>보내는 사람</span>
+          <span className="support-sender-title">보내는 사람</span>
         </div>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div style={infoCardStyle}>
-            <span style={{ color: '#6b7280' }}><UserIcon /></span>
+        <div className="support-sender-grid">
+          <div className="support-info-card">
+            <UserIcon />
             <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={infoLabelStyle}>이름</p>
-              <p style={infoValueStyle}>{requesterName || "-"}</p>
+              <p className="support-info-label">이름</p>
+              <p className="support-info-value">{requesterName || "-"}</p>
             </div>
           </div>
-          <div style={infoCardStyle}>
-            <span style={{ color: '#6b7280' }}><MailIcon /></span>
+          <div className="support-info-card">
+            <MailIcon />
             <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={infoLabelStyle}>이메일</p>
-              <p style={infoValueStyle}>{initialEmail || "-"}</p>
+              <p className="support-info-label">이메일</p>
+              <p className="support-info-value">{initialEmail || "-"}</p>
             </div>
           </div>
-          <div style={infoCardStyle}>
-            <span style={{ color: '#6b7280' }}><BuildingIcon /></span>
+          <div className="support-info-card">
+            <BuildingIcon />
             <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={infoLabelStyle}>회사</p>
-              <p style={infoValueStyle}>{companyName || "-"}</p>
+              <p className="support-info-label">회사</p>
+              <p className="support-info-value">{companyName || "-"}</p>
             </div>
           </div>
-          <div style={infoCardStyle}>
-            <span style={{ color: '#6b7280' }}><BriefcaseIcon /></span>
+          <div className="support-info-card">
+            <BriefcaseIcon />
             <div style={{ minWidth: 0, flex: 1 }}>
-              <p style={infoLabelStyle}>직책</p>
-              <p style={infoValueStyle}>{requesterPosition || "-"}</p>
+              <p className="support-info-label">직책</p>
+              <p className="support-info-value">{requesterPosition || "-"}</p>
             </div>
           </div>
         </div>
@@ -353,75 +292,54 @@ export default function SupportRequestForm({
       {/* 문의 양식 */}
       <form id={formId} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         {/* 문의 유형 + 제목 - 한 줄 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <label style={{ fontSize: 13, color: '#555', whiteSpace: 'nowrap', minWidth: 60 }} htmlFor="support-category">
+        <div className="support-form-row support-form-row--2col">
+          <div className="support-form-field">
+            <label className="support-form-label" style={{ minWidth: 60 }} htmlFor="support-category">
               문의 유형
             </label>
             <select
               id="support-category"
+              className="support-form-select"
               value={form.category}
               onChange={(e) => updateField("category", e.target.value)}
-              style={{
-                flex: 1,
-                padding: '8px 10px',
-                border: '1px solid #ddd',
-                borderRadius: 8,
-                fontSize: 14,
-                background: 'white',
-              }}
             >
               {categoryOptions.map((opt) => (
                 <option key={opt.value} value={opt.value}>{opt.label}</option>
               ))}
             </select>
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <label style={{ fontSize: 13, color: '#555', whiteSpace: 'nowrap', minWidth: 30 }} htmlFor="support-subject">
+          <div className="support-form-field">
+            <label className="support-form-label" style={{ minWidth: 30 }} htmlFor="support-subject">
               제목
             </label>
             <input
               id="support-subject"
+              className="support-form-input"
               type="text"
               value={form.subject}
               onChange={(e) => updateField("subject", e.target.value)}
               placeholder="예) 대시보드 접속 시 오류가 발생합니다"
               required
-              style={{
-                flex: 1,
-                padding: '8px 10px',
-                border: '1px solid #ddd',
-                borderRadius: 8,
-                fontSize: 14,
-              }}
             />
           </div>
         </div>
 
         {/* 내용 */}
         <div>
-          <label style={{ fontSize: 13, color: '#555', display: 'block', marginBottom: 6 }} htmlFor="support-message">
+          <label className="support-form-label" style={{ display: 'block', marginBottom: 6 }} htmlFor="support-message">
             내용
           </label>
           <textarea
             id="support-message"
+            className="support-form-textarea"
             value={form.message}
             onChange={(e) => updateField("message", e.target.value)}
             placeholder="문제가 발생한 화면, 상황, 발생 시간 등을 최대한 자세히 적어주세요."
             rows={8}
-            style={{
-              width: '100%',
-              padding: '10px 12px',
-              border: '1px solid #ddd',
-              borderRadius: 8,
-              fontSize: 14,
-              boxSizing: 'border-box',
-              resize: 'vertical',
-              height: 206,
-            }}
+            style={{ height: 206 }}
           />
           {fieldErrors.message && (
-            <div style={errorMsgStyle}>
+            <div className="support-field-error">
               <ErrorIconSmall />
               {fieldErrors.message}
             </div>
@@ -429,60 +347,40 @@ export default function SupportRequestForm({
         </div>
 
         {/* 회신 이메일 + 연락처 - 한 줄 */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <label style={{ fontSize: 13, color: '#555', whiteSpace: 'nowrap', minWidth: 70 }} htmlFor="support-reply-email">
-              회신 이메일
+        <div className="support-form-row support-form-row--equal">
+          <div className="support-form-field">
+            <label className="support-form-label" style={{ minWidth: 70 }} htmlFor="support-reply-email">
+              회신 받을 이메일
             </label>
             <input
               id="support-reply-email"
+              className="support-form-input"
               type="email"
               value={form.replyEmail}
               onChange={(e) => updateField("replyEmail", e.target.value)}
               placeholder="name@company.com"
               required
-              style={{
-                flex: 1,
-                padding: '8px 10px',
-                border: '1px solid #ddd',
-                borderRadius: 8,
-                fontSize: 14,
-              }}
             />
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <label style={{ fontSize: 13, color: '#555', whiteSpace: 'nowrap', minWidth: 70 }} htmlFor="support-reply-phone">
+          <div className="support-form-field">
+            <label className="support-form-label" style={{ minWidth: 70 }} htmlFor="support-reply-phone">
               연락처 (선택)
             </label>
             <input
               id="support-reply-phone"
+              className="support-form-input"
               type="text"
               value={form.replyPhone}
               onChange={(e) => handlePhoneChange(e.target.value)}
               placeholder="010-1234-5678"
-              style={{
-                flex: 1,
-                padding: '8px 10px',
-                border: '1px solid #ddd',
-                borderRadius: 8,
-                fontSize: 14,
-              }}
             />
           </div>
         </div>
       </form>
 
       {/* 하단 액션 영역 */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          paddingTop: 8,
-          borderTop: '1px solid #f3f4f6',
-        }}
-      >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 12, color: '#9ca3af' }}>
+      <div className="support-form-footer">
+        <div className="support-form-warning">
           <WarningIcon />
           <span>민감 정보(주민번호, 계좌번호 등)는 입력하지 마세요</span>
         </div>
@@ -490,21 +388,7 @@ export default function SupportRequestForm({
           type="submit"
           form={formId}
           disabled={submitting}
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 8,
-            padding: '10px 20px',
-            borderRadius: 12,
-            fontSize: 14,
-            fontWeight: 600,
-            border: 'none',
-            cursor: submitting ? 'not-allowed' : 'pointer',
-            transition: 'all 0.2s',
-            boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)',
-            background: submitting ? '#f3f4f6' : 'linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%)',
-            color: submitting ? '#9ca3af' : 'white',
-          }}
+          className="support-submit-btn"
         >
           {submitting ? (
             <>

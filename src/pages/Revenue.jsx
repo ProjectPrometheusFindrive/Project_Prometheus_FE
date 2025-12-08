@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { fetchRentalsSummary } from "../api";
+import "./Revenue.css";
 
 // 아이콘 컴포넌트
 const TrendUpIcon = () => (
@@ -204,54 +205,23 @@ export default function Revenue() {
             dateRange: weekTitle,
             amount: animatedValues.week,
             gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
-            bgColor: "#eff6ff",
-            iconBg: "#dbeafe",
-            textColor: "#1e40af",
-            icon: "week"
+            theme: "blue",
         },
         {
             period: "이번달",
             dateRange: monthTitle,
             amount: animatedValues.month,
             gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
-            bgColor: "#ecfdf5",
-            iconBg: "#d1fae5",
-            textColor: "#065f46",
-            icon: "month"
+            theme: "green",
         },
         {
             period: "올해",
             dateRange: yearTitle,
             amount: animatedValues.year,
             gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
-            bgColor: "#f5f3ff",
-            iconBg: "#ede9fe",
-            textColor: "#5b21b6",
-            icon: "year"
+            theme: "purple",
         }
     ];
-
-    const containerStyle = {
-        padding: "30px 60px",
-    };
-
-    const headerStyle = {
-        marginBottom: 32,
-    };
-
-    const titleStyle = {
-        fontSize: 24,
-        fontWeight: 700,
-        color: "#111827",
-        margin: 0,
-        marginBottom: 8,
-    };
-
-    const subtitleStyle = {
-        fontSize: 14,
-        color: "#6b7280",
-        margin: 0,
-    };
 
     // 총 매출 요약 카드
     const SummaryCard = () => (
@@ -353,91 +323,46 @@ export default function Revenue() {
     );
 
     // 개별 매출 카드
-    const RevenueCard = ({ period, dateRange, amount, gradient, bgColor, iconBg, textColor, icon, index }) => (
+    const RevenueCard = ({ period, dateRange, amount, gradient, theme, index }) => (
         <div
+            className={`revenue-card revenue-card--${theme}`}
             style={{
-                background: "white",
-                borderRadius: 16,
-                border: "1px solid #e5e7eb",
-                boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
-                overflow: "hidden",
-                transition: "all 0.3s ease",
                 animation: `slideUp 0.5s ease-out ${index * 0.1}s backwards`,
-            }}
-            onMouseEnter={(e) => {
-                e.currentTarget.style.transform = "translateY(-4px)";
-                e.currentTarget.style.boxShadow = "0 12px 24px -8px rgba(0, 0, 0, 0.15)";
-            }}
-            onMouseLeave={(e) => {
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "0 1px 3px 0 rgba(0, 0, 0, 0.1)";
             }}
         >
             {/* 상단 그라데이션 바 */}
             <div style={{ height: 4, background: gradient }} />
 
-            <div style={{ padding: 24 }}>
+            <div className="revenue-card__body">
                 {/* 헤더 */}
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                <div className="revenue-card__header">
                     <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                        <div
-                            style={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 10,
-                                background: iconBg,
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: textColor,
-                            }}
-                        >
+                        <div className="revenue-card__icon">
                             <ChartIcon />
                         </div>
                         <div>
-                            <h3 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: 0 }}>{period}</h3>
-                            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
-                                <span style={{ color: "#9ca3af" }}><CalendarIcon /></span>
-                                <span style={{ fontSize: 12, color: "#6b7280" }}>{dateRange}</span>
+                            <h3 className="revenue-card__title">{period}</h3>
+                            <div className="revenue-card__date">
+                                <CalendarIcon />
+                                <span>{dateRange}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 {/* 금액 */}
-                <div style={{ background: bgColor, borderRadius: 12, padding: 20, marginBottom: 16 }}>
-                    <p style={{ fontSize: 12, color: "#6b7280", margin: 0, marginBottom: 8, letterSpacing: "0.05em" }}>매출액</p>
+                <div className="revenue-card__amount-box">
+                    <p className="revenue-card__amount-label">매출액</p>
                     <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
-                        <span style={{ fontSize: 32, fontWeight: 800, color: textColor, letterSpacing: "-0.02em" }}>
-                            {formatCurrency(amount)}
-                        </span>
-                        <span style={{ fontSize: 16, fontWeight: 600, color: textColor, opacity: 0.7 }}>원</span>
+                        <span className="revenue-card__amount">{formatCurrency(amount)}</span>
+                        <span className="revenue-card__amount-unit">원</span>
                     </div>
                 </div>
 
                 {/* 하단 */}
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        paddingTop: 16,
-                        borderTop: "1px solid #f3f4f6",
-                    }}
-                >
-                    <span style={{ fontSize: 13, color: "#9ca3af" }}>미수금</span>
-                    <span
-                        style={{
-                            fontSize: 13,
-                            color: "#f59e0b",
-                            background: "#fef3c7",
-                            padding: "4px 10px",
-                            borderRadius: 6,
-                            fontWeight: 500,
-                        }}
-                    >
-                        지원 예정
-                    </span>
+                <div className="revenue-card__footer">
+                    <span className="revenue-card__footer-label">미수금</span>
+                    <span className="revenue-card__footer-badge">지원 예정</span>
                 </div>
             </div>
         </div>
@@ -489,11 +414,11 @@ export default function Revenue() {
                 }
             `}</style>
 
-            <div className="page-scroll" style={containerStyle}>
+            <div className="page-scroll revenue-page">
                 {/* 헤더 */}
-                <div style={headerStyle}>
-                    <h1 style={titleStyle}>매출 관리</h1>
-                    <p style={subtitleStyle}>기간별 매출 현황을 확인하세요</p>
+                <div className="revenue-header">
+                    <h1 className="revenue-title">매출 관리</h1>
+                    <p className="revenue-subtitle">기간별 매출 현황을 확인하세요</p>
                 </div>
 
                 {loading ? (
@@ -504,7 +429,7 @@ export default function Revenue() {
                         <SummaryCard />
 
                         {/* 기간별 매출 카드 */}
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 24 }}>
+                        <div className="revenue-cards">
                             {cards.map((card, index) => (
                                 <RevenueCard key={card.period} {...card} index={index} />
                             ))}

@@ -11,6 +11,7 @@ const PlateCell = React.memo(function PlateCell({ plate, onClick, title }) {
             onClick={onClick}
             title={title}
             aria-label={title || `차량번호 ${plate || '미등록'} 상세보기`}
+            className="plate-cell-button"
             style={{
                 width: '100%',
                 height: '24px',
