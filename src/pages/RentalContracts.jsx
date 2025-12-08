@@ -768,7 +768,7 @@ export default function RentalContracts() {
         .map((col) => ({
             ...col,
             style: {
-                textAlign: col.key === "memo" ? "left" : "center",
+                textAlign: "center",
                 ...(col.width ? { width: `${col.width}px`, minWidth: `${col.width}px` } : {}),
                 ...(col.key === "memo" ? { maxWidth: "150px" } : {}),
             },
