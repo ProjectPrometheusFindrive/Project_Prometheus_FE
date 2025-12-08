@@ -3102,6 +3102,14 @@ html {
 [data-theme='dark'] .badge--registered,
 [data-theme='dark'] .badge--off { background: #111827; color: #cbd5e1; }
 
+/* Table cell components: plate/company */
+[data-theme='dark'] .plate-cell-button {
+  color: #e5e7eb !important;
+}
+[data-theme='dark'] .company-cell__name {
+  color: #e5e7eb !important;
+}
+
 [data-theme='dark'] .badge--available,
 [data-theme='dark'] .badge--completed,
 [data-theme='dark'] .badge--on { background: #0f2e23; color: #86efac; }
