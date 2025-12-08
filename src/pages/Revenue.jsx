@@ -1,5 +1,31 @@
 import React, { useEffect, useState } from "react";
 import { fetchRentalsSummary } from "../api";
+import "./Revenue.css";
+
+// 아이콘 컴포넌트
+const TrendUpIcon = () => (
+    <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+    </svg>
+);
+
+const CalendarIcon = () => (
+    <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+    </svg>
+);
+
+const ChartIcon = () => (
+    <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+    </svg>
+);
+
+const CurrencyIcon = () => (
+    <svg style={{ width: 24, height: 24 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+    </svg>
+);
 
 export default function Revenue() {
     const [revenueData, setRevenueData] = useState({
@@ -151,30 +177,17 @@ export default function Revenue() {
     }, [loading, revenueData]);
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat('ko-KR', {
-            style: 'currency',
-            currency: 'KRW'
-        }).format(Math.round(amount));
+        return new Intl.NumberFormat('ko-KR').format(Math.round(amount));
     };
 
     const formatDate = (date) => {
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const day = String(date.getDate()).padStart(2, '0');
-        return `${month}.${day}.`;
+        return `${month}.${day}`;
     };
 
     const formatDateRange = (start, end) => {
-        const startMonth = start.getMonth();
-        const endMonth = end.getMonth();
-        const startStr = formatDate(start);
-
-        if (startMonth === endMonth) {
-            const endDay = String(end.getDate()).padStart(2, '0');
-            return `${startStr} ~ ${endDay}.`;
-        } else {
-            const endStr = formatDate(end);
-            return `${startStr} ~ ${endStr}`;
-        }
+        return `${formatDate(start)} ~ ${formatDate(end)}`;
     };
 
     const ranges = getDateRanges();
@@ -182,276 +195,324 @@ export default function Revenue() {
     const monthTitle = formatDateRange(ranges.month.start, ranges.month.end);
     const yearTitle = ranges.year.start.getFullYear().toString();
 
-    const RevenueCard = ({ period, dateRange, amount, index, accentColor }) => (
+    // 총 매출 계산
+    const totalRevenue = revenueData.year;
+
+    // 카드 설정
+    const cards = [
+        {
+            period: "이번주",
+            dateRange: weekTitle,
+            amount: animatedValues.week,
+            gradient: "linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%)",
+            bgColor: "#eff6ff",
+            iconBg: "#dbeafe",
+            textColor: "#1e40af",
+            icon: "week"
+        },
+        {
+            period: "이번달",
+            dateRange: monthTitle,
+            amount: animatedValues.month,
+            gradient: "linear-gradient(135deg, #10b981 0%, #059669 100%)",
+            bgColor: "#ecfdf5",
+            iconBg: "#d1fae5",
+            textColor: "#065f46",
+            icon: "month"
+        },
+        {
+            period: "올해",
+            dateRange: yearTitle,
+            amount: animatedValues.year,
+            gradient: "linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%)",
+            bgColor: "#f5f3ff",
+            iconBg: "#ede9fe",
+            textColor: "#5b21b6",
+            icon: "year"
+        }
+    ];
+
+    const containerStyle = {
+        padding: "30px 60px",
+    };
+
+    const headerStyle = {
+        marginBottom: 32,
+    };
+
+    const titleStyle = {
+        fontSize: 24,
+        fontWeight: 700,
+        color: "#111827",
+        margin: 0,
+        marginBottom: 8,
+    };
+
+    const subtitleStyle = {
+        fontSize: 14,
+        color: "#6b7280",
+        margin: 0,
+    };
+
+    // 총 매출 요약 카드
+    const SummaryCard = () => (
         <div
-            className="revenue-card"
             style={{
-                animationDelay: `${index * 100}ms`,
-                '--accent-color': accentColor
+                background: "linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #4c1d95 100%)",
+                borderRadius: 20,
+                padding: 32,
+                marginBottom: 32,
+                position: "relative",
+                overflow: "hidden",
+                boxShadow: "0 20px 40px -12px rgba(30, 58, 138, 0.35)",
             }}
         >
-            <div className="revenue-card-header">
-                <div className="revenue-period">{period}</div>
-                <div className="revenue-date">{dateRange}</div>
-            </div>
+            {/* 배경 장식 */}
+            <div style={{ position: "absolute", right: -40, top: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
+            <div style={{ position: "absolute", right: 60, bottom: -60, width: 150, height: 150, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
+            <div style={{ position: "absolute", left: "30%", top: -30, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.02)" }} />
 
-            <div className="revenue-amount-section">
-                <div className="revenue-label">매출</div>
-                <div className="revenue-amount">
-                    {formatCurrency(amount)}
+            <div style={{ position: "relative", zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                <div>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+                        <div
+                            style={{
+                                width: 48,
+                                height: 48,
+                                borderRadius: 14,
+                                background: "rgba(255,255,255,0.15)",
+                                backdropFilter: "blur(10px)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "white",
+                            }}
+                        >
+                            <CurrencyIcon />
+                        </div>
+                        <div>
+                            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, margin: 0, letterSpacing: "0.05em" }}>
+                                {new Date().getFullYear()}년 총 매출
+                            </p>
+                            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginTop: 2 }}>
+                                Annual Revenue
+                            </p>
+                        </div>
+                    </div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                        <span style={{ fontSize: 48, fontWeight: 800, color: "white", letterSpacing: "-0.02em", lineHeight: 1 }}>
+                            {formatCurrency(animatedValues.year)}
+                        </span>
+                        <span style={{ fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>원</span>
+                    </div>
+                </div>
+                <div
+                    style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "rgba(16, 185, 129, 0.2)",
+                        borderRadius: 20,
+                        padding: "8px 14px",
+                        color: "#34d399",
+                    }}
+                >
+                    <TrendUpIcon />
+                    <span style={{ fontSize: 13, fontWeight: 600 }}>운영 중</span>
                 </div>
             </div>
 
-            <div className="revenue-footer">
-                <div className="revenue-unpaid-label">미수금</div>
-                <div className="revenue-unpaid-status">지원 예정</div>
+            {/* 하단 통계 */}
+            <div
+                style={{
+                    marginTop: 28,
+                    paddingTop: 24,
+                    borderTop: "1px solid rgba(255,255,255,0.1)",
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: 24,
+                }}
+            >
+                <div>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginBottom: 4 }}>이번주 매출</p>
+                    <p style={{ color: "white", fontSize: 18, fontWeight: 700, margin: 0 }}>
+                        {formatCurrency(animatedValues.week)}원
+                    </p>
+                </div>
+                <div>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginBottom: 4 }}>이번달 매출</p>
+                    <p style={{ color: "white", fontSize: 18, fontWeight: 700, margin: 0 }}>
+                        {formatCurrency(animatedValues.month)}원
+                    </p>
+                </div>
+                <div>
+                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginBottom: 4 }}>미수금</p>
+                    <p style={{ color: "#fbbf24", fontSize: 18, fontWeight: 700, margin: 0 }}>지원 예정</p>
+                </div>
             </div>
+        </div>
+    );
 
-            <div className="revenue-card-decoration"></div>
+    // 개별 매출 카드
+    const RevenueCard = ({ period, dateRange, amount, gradient, bgColor, iconBg, textColor, icon, index }) => (
+        <div
+            style={{
+                background: "white",
+                borderRadius: 16,
+                border: "1px solid #e5e7eb",
+                boxShadow: "0 1px 3px 0 rgba(0, 0, 0, 0.1)",
+                overflow: "hidden",
+                transition: "all 0.3s ease",
+                animation: `slideUp 0.5s ease-out ${index * 0.1}s backwards`,
+            }}
+            onMouseEnter={(e) => {
+                e.currentTarget.style.transform = "translateY(-4px)";
+                e.currentTarget.style.boxShadow = "0 12px 24px -8px rgba(0, 0, 0, 0.15)";
+            }}
+            onMouseLeave={(e) => {
+                e.currentTarget.style.transform = "translateY(0)";
+                e.currentTarget.style.boxShadow = "0 1px 3px 0 rgba(0, 0, 0, 0.1)";
+            }}
+        >
+            {/* 상단 그라데이션 바 */}
+            <div style={{ height: 4, background: gradient }} />
+
+            <div style={{ padding: 24 }}>
+                {/* 헤더 */}
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 20 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+                        <div
+                            style={{
+                                width: 40,
+                                height: 40,
+                                borderRadius: 10,
+                                background: iconBg,
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: textColor,
+                            }}
+                        >
+                            <ChartIcon />
+                        </div>
+                        <div>
+                            <h3 style={{ fontSize: 18, fontWeight: 700, color: "#111827", margin: 0 }}>{period}</h3>
+                            <div style={{ display: "flex", alignItems: "center", gap: 4, marginTop: 2 }}>
+                                <span style={{ color: "#9ca3af" }}><CalendarIcon /></span>
+                                <span style={{ fontSize: 12, color: "#6b7280" }}>{dateRange}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* 금액 */}
+                <div style={{ background: bgColor, borderRadius: 12, padding: 20, marginBottom: 16 }}>
+                    <p style={{ fontSize: 12, color: "#6b7280", margin: 0, marginBottom: 8, letterSpacing: "0.05em" }}>매출액</p>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: 4 }}>
+                        <span style={{ fontSize: 32, fontWeight: 800, color: textColor, letterSpacing: "-0.02em" }}>
+                            {formatCurrency(amount)}
+                        </span>
+                        <span style={{ fontSize: 16, fontWeight: 600, color: textColor, opacity: 0.7 }}>원</span>
+                    </div>
+                </div>
+
+                {/* 하단 */}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        paddingTop: 16,
+                        borderTop: "1px solid #f3f4f6",
+                    }}
+                >
+                    <span style={{ fontSize: 13, color: "#9ca3af" }}>미수금</span>
+                    <span
+                        style={{
+                            fontSize: 13,
+                            color: "#f59e0b",
+                            background: "#fef3c7",
+                            padding: "4px 10px",
+                            borderRadius: 6,
+                            fontWeight: 500,
+                        }}
+                    >
+                        지원 예정
+                    </span>
+                </div>
+            </div>
+        </div>
+    );
+
+    // 로딩 스피너
+    const LoadingSpinner = () => (
+        <div
+            style={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
+                minHeight: 400,
+                gap: 16,
+            }}
+        >
+            <div
+                style={{
+                    width: 48,
+                    height: 48,
+                    border: "3px solid #e5e7eb",
+                    borderTopColor: "#3b82f6",
+                    borderRadius: "50%",
+                    animation: "spin 1s linear infinite",
+                }}
+            />
+            <p style={{ color: "#6b7280", fontSize: 14 }}>데이터를 불러오는 중...</p>
         </div>
     );
 
     return (
-        <>
+        <div className="page page--data">
             <style>{`
-                .revenue-container {
-                    --color-cream: #faf9f7;
-                    --color-ink: #1a1a1a;
-                    --color-gold: #d4a574;
-                    --color-gold-light: #e8c9a0;
-                    --color-border: #e5e3df;
-                    --color-muted: #6b6b6b;
-                }
-
-                .revenue-header {
-                    margin-bottom: 2rem;
-                    border-bottom: 2px solid var(--color-ink);
-                    padding-bottom: 1.5rem;
-                }
-
-                .revenue-title {
-                    font-size: 2rem;
-                    font-weight: 600;
-                    color: var(--color-ink);
-                    letter-spacing: -0.025em;
-                    margin-bottom: 0.5rem;
-                }
-
-                .revenue-subtitle {
-                    font-size: 0.875rem;
-                    color: var(--color-muted);
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                }
-
-                .revenue-grid {
-                    display: grid;
-                    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-                    gap: 2rem;
-                    margin-top: 2rem;
-                }
-
                 @keyframes slideUp {
                     from {
                         opacity: 0;
-                        transform: translateY(30px);
+                        transform: translateY(20px);
                     }
                     to {
                         opacity: 1;
                         transform: translateY(0);
                     }
                 }
-
-                .revenue-card {
-                    background: white;
-                    border: 1px solid var(--color-border);
-                    border-radius: 0;
-                    padding: 2rem;
-                    position: relative;
-                    overflow: hidden;
-                    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-                    animation: slideUp 0.6s cubic-bezier(0.4, 0, 0.2, 1) backwards;
-                }
-
-                .revenue-card::before {
-                    content: '';
-                    position: absolute;
-                    top: 0;
-                    left: 0;
-                    right: 0;
-                    height: 4px;
-                    background: linear-gradient(90deg, var(--accent-color), transparent);
-                    opacity: 0;
-                    transition: opacity 0.3s ease;
-                }
-
-                .revenue-card:hover {
-                    transform: translateY(-4px);
-                    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.08);
-                    border-color: var(--accent-color);
-                }
-
-                .revenue-card:hover::before {
-                    opacity: 1;
-                }
-
-                .revenue-card-decoration {
-                    position: absolute;
-                    bottom: 0;
-                    right: 0;
-                    width: 100px;
-                    height: 100px;
-                    background: linear-gradient(135deg, transparent 50%, var(--accent-color) 50%);
-                    opacity: 0.03;
-                    transition: opacity 0.3s ease;
-                }
-
-                .revenue-card:hover .revenue-card-decoration {
-                    opacity: 0.08;
-                }
-
-                .revenue-card-header {
-                    margin-bottom: 2rem;
-                    border-bottom: 1px solid var(--color-border);
-                    padding-bottom: 1rem;
-                }
-
-                .revenue-period {
-                    font-size: 1.5rem;
-                    font-weight: 600;
-                    color: var(--color-ink);
-                    margin-bottom: 0.25rem;
-                }
-
-                .revenue-date {
-                    font-size: 0.8125rem;
-                    color: var(--color-muted);
-                    letter-spacing: 0.02em;
-                }
-
-                .revenue-amount-section {
-                    margin-bottom: 1.5rem;
-                }
-
-                .revenue-label {
-                    font-size: 0.75rem;
-                    color: var(--color-muted);
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                    margin-bottom: 0.5rem;
-                }
-
-                .revenue-amount {
-                    font-size: 2.25rem;
-                    font-weight: 700;
-                    color: var(--color-ink);
-                    line-height: 1;
-                    letter-spacing: -0.02em;
-                }
-
-                .revenue-footer {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    padding-top: 1rem;
-                    border-top: 1px solid var(--color-border);
-                }
-
-                .revenue-unpaid-label {
-                    font-size: 0.75rem;
-                    color: var(--color-muted);
-                    text-transform: uppercase;
-                    letter-spacing: 0.1em;
-                }
-
-                .revenue-unpaid-status {
-                    font-size: 0.8125rem;
-                    color: var(--color-gold);
-                    font-style: italic;
-                    font-weight: 500;
-                }
-
-                .revenue-loading {
-                    display: flex;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 400px;
-                    color: var(--color-muted);
-                }
-
-                .revenue-loading-spinner {
-                    width: 40px;
-                    height: 40px;
-                    border: 3px solid var(--color-border);
-                    border-top-color: var(--color-gold);
-                    border-radius: 50%;
-                    animation: spin 1s linear infinite;
-                }
-
                 @keyframes spin {
                     to {
                         transform: rotate(360deg);
                     }
                 }
-
-                @media (max-width: 768px) {
-                    .revenue-title {
-                        font-size: 2rem;
-                    }
-
-                    .revenue-grid {
-                        grid-template-columns: 1fr;
-                        gap: 1.5rem;
-                    }
-
-                    .revenue-card {
-                        padding: 1.5rem;
-                    }
-
-                    .revenue-amount {
-                        font-size: 1.75rem;
-                    }
-                }
             `}</style>
 
-            <div className="page space-y-4 revenue-container">
+            <div className="page-scroll revenue-page">
+                {/* 헤더 */}
                 <div className="revenue-header">
                     <h1 className="revenue-title">매출 관리</h1>
-                    <div className="revenue-subtitle">Revenue Management</div>
+                    <p className="revenue-subtitle">기간별 매출 현황을 확인하세요</p>
                 </div>
 
-                <div className="page-scroll">
-                    {loading ? (
-                        <div className="revenue-loading">
-                            <div className="revenue-loading-spinner"></div>
+                {loading ? (
+                    <LoadingSpinner />
+                ) : (
+                    <>
+                        {/* 총 매출 요약 */}
+                        <SummaryCard />
+
+                        {/* 기간별 매출 카드 */}
+                        <div className="revenue-cards">
+                            {cards.map((card, index) => (
+                                <RevenueCard key={card.period} {...card} index={index} />
+                            ))}
                         </div>
-                    ) : (
-                        <div className="revenue-grid">
-                            <RevenueCard
-                                period="이번주"
-                                dateRange={weekTitle}
-                                amount={animatedValues.week}
-                                index={0}
-                                accentColor="#3b82f6"
-                            />
-                            <RevenueCard
-                                period="이번달"
-                                dateRange={monthTitle}
-                                amount={animatedValues.month}
-                                index={1}
-                                accentColor="#10b981"
-                            />
-                            <RevenueCard
-                                period="올해"
-                                dateRange={yearTitle}
-                                amount={animatedValues.year}
-                                index={2}
-                                accentColor="#8b5cf6"
-                            />
-                        </div>
-                    )}
-                </div>
+                    </>
+                )}
             </div>
-        </>
+        </div>
     );
 }

@@ -1,0 +1,295 @@
+/* Revenue Page Styles */
+
+.revenue-page {
+    padding: 30px 60px;
+}
+
+.revenue-header {
+    margin-bottom: 32px;
+}
+
+.revenue-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0 0 8px 0;
+}
+
+.revenue-subtitle {
+    font-size: 14px;
+    color: #6b7280;
+    margin: 0;
+}
+
+/* Summary Card */
+.revenue-summary {
+    background: linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #4c1d95 100%);
+    border-radius: 20px;
+    padding: 32px;
+    margin-bottom: 32px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 20px 40px -12px rgba(30, 58, 138, 0.35);
+}
+
+.revenue-summary__stats {
+    margin-top: 28px;
+    padding-top: 24px;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+.revenue-summary__stat-label {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 12px;
+    margin: 0 0 4px 0;
+}
+
+.revenue-summary__stat-value {
+    color: white;
+    font-size: 18px;
+    font-weight: 700;
+    margin: 0;
+}
+
+/* Revenue Cards Grid */
+.revenue-cards {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+}
+
+/* Individual Revenue Card */
+.revenue-card {
+    background: white;
+    border-radius: 16px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.revenue-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.15);
+}
+
+.revenue-card__body {
+    padding: 24px;
+}
+
+.revenue-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 20px;
+}
+
+.revenue-card__icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.revenue-card__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #111827;
+    margin: 0;
+}
+
+.revenue-card__date {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 2px;
+}
+
+.revenue-card__amount-box {
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.revenue-card__amount-label {
+    font-size: 12px;
+    color: #6b7280;
+    margin: 0 0 8px 0;
+    letter-spacing: 0.05em;
+}
+
+.revenue-card__amount {
+    font-size: 32px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+}
+
+.revenue-card__amount-unit {
+    font-size: 16px;
+    font-weight: 600;
+    opacity: 0.7;
+}
+
+.revenue-card__footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-top: 16px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.revenue-card__footer-label {
+    font-size: 13px;
+    color: #9ca3af;
+}
+
+.revenue-card__footer-badge {
+    font-size: 13px;
+    color: #f59e0b;
+    background: #fef3c7;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-weight: 500;
+}
+
+/* Loading Spinner */
+.revenue-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    gap: 16px;
+}
+
+.revenue-loading__spinner {
+    width: 48px;
+    height: 48px;
+    border: 3px solid #e5e7eb;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+.revenue-loading__text {
+    color: #6b7280;
+    font-size: 14px;
+}
+
+/* ===== Dark Mode ===== */
+[data-theme='dark'] .revenue-title {
+    color: #f1f5f9;
+}
+
+[data-theme='dark'] .revenue-subtitle {
+    color: #94a3b8;
+}
+
+[data-theme='dark'] .revenue-card {
+    background: #1e293b;
+    border-color: #334155;
+}
+
+[data-theme='dark'] .revenue-card:hover {
+    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.4);
+}
+
+[data-theme='dark'] .revenue-card__title {
+    color: #f1f5f9;
+}
+
+[data-theme='dark'] .revenue-card__date {
+    color: #94a3b8;
+}
+
+[data-theme='dark'] .revenue-card__amount-label {
+    color: #94a3b8;
+}
+
+[data-theme='dark'] .revenue-card__footer {
+    border-top-color: #334155;
+}
+
+[data-theme='dark'] .revenue-card__footer-label {
+    color: #64748b;
+}
+
+[data-theme='dark'] .revenue-card__footer-badge {
+    background: rgba(245, 158, 11, 0.15);
+    color: #fbbf24;
+}
+
+/* Dark mode for specific card themes */
+[data-theme='dark'] .revenue-card--blue .revenue-card__amount-box {
+    background: rgba(59, 130, 246, 0.15);
+}
+
+[data-theme='dark'] .revenue-card--green .revenue-card__amount-box {
+    background: rgba(16, 185, 129, 0.15);
+}
+
+[data-theme='dark'] .revenue-card--purple .revenue-card__amount-box {
+    background: rgba(139, 92, 246, 0.15);
+}
+
+[data-theme='dark'] .revenue-card--blue .revenue-card__icon {
+    background: rgba(59, 130, 246, 0.2);
+    color: #60a5fa;
+}
+
+[data-theme='dark'] .revenue-card--green .revenue-card__icon {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+[data-theme='dark'] .revenue-card--purple .revenue-card__icon {
+    background: rgba(139, 92, 246, 0.2);
+    color: #a78bfa;
+}
+
+[data-theme='dark'] .revenue-card--blue .revenue-card__amount,
+[data-theme='dark'] .revenue-card--blue .revenue-card__amount-unit {
+    color: #60a5fa;
+}
+
+[data-theme='dark'] .revenue-card--green .revenue-card__amount,
+[data-theme='dark'] .revenue-card--green .revenue-card__amount-unit {
+    color: #34d399;
+}
+
+[data-theme='dark'] .revenue-card--purple .revenue-card__amount,
+[data-theme='dark'] .revenue-card--purple .revenue-card__amount-unit {
+    color: #a78bfa;
+}
+
+[data-theme='dark'] .revenue-loading__spinner {
+    border-color: #334155;
+    border-top-color: #60a5fa;
+}
+
+[data-theme='dark'] .revenue-loading__text {
+    color: #94a3b8;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .revenue-page {
+        padding: 20px;
+    }
+
+    .revenue-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .revenue-summary__stats {
+        grid-template-columns: 1fr;
+        gap: 16px;
+    }
+}
