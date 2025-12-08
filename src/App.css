@@ -986,20 +986,24 @@ body {
 
 /* ===== BADGE SYSTEM ===== */
 
-/* Base badge styles */
+/* Base badge styles - Aligned with AssetManagementStageCell design */
 .badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 0.35rem;
-    padding: 0.2rem 0.5rem;
-    border-radius: 999px;
-    border: 1px solid transparent; /* keep size consistent across themes */
+    gap: 5px;
+    padding: 2px 14px;
+    border-radius: 100px;
+    border: none;
+    outline: 1px rgba(0, 0, 0, 0.05) solid;
+    outline-offset: -1px;
 
-    font-size: var(--badge-font-size);
-    line-height: var(--badge-line-height);
-    font-weight: var(--badge-font-weight);
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 500;
+    line-height: 24px;
     text-align: center;
+    word-wrap: break-word;
 }
 
 /* Interactive badge styles */
@@ -1023,121 +1027,120 @@ body {
     outline-offset: 2px;
 }
 
-/* === Status badges === */
+/* === Status badges - Aligned with AssetManagementStageCell colors === */
 .badge--available {
-    background: #e9f8ee;
-    color: #177245;
+    background: rgba(0, 163.81, 26.33, 0.15);
+    color: #2D6536;
 }
 
 .badge--rented {
-    background: #e3f2fd;
-    color: #0b57d0;
+    background: #F1CFFF;
+    color: #6C0099;
 }
 
 .badge--overdue {
-    background: #fff4e5;
-    color: #f59e0b;
+    background: rgba(232, 136, 0, 0.15);
+    color: #E88800;
 }
 
 .badge--suspicious {
-    background: #ff1744;
-    color: #f1eaea;
+    background: rgba(235, 74, 69, 0.15);
+    color: #EB4A45;
 }
 
 .badge--pending {
-    background: #fff4e5;
-    color: #f59e0b;
+    background: rgba(232, 136, 0, 0.15);
+    color: #E88800;
 }
 
 .badge--completed {
-    background: #e9f8ee;
-    color: #177245;
+    background: rgba(26.22, 129.17, 255, 0.05);
+    color: #006CEC;
 }
 
 .badge--normal {
-    background: #e9f8ee;
-    color: #177245;
+    background: rgba(0, 163.81, 26.33, 0.15);
+    color: #2D6536;
 }
 
 .badge--default {
-    background: #e5e7eb;
-    color: #6b7280;
+    background: rgba(0, 0, 0, 0.10);
+    color: #1C1C1C;
 }
 
 /* === Device/System badges === */
 .badge--on {
-    background: #e9f8ee;
-    color: #177245;
+    background: rgba(0, 163.81, 26.33, 0.15);
+    color: #2D6536;
 }
 
 .badge--off {
-    background: #f3f4f6;
-    color: #374151;
+    background: rgba(0, 0, 0, 0.10);
+    color: #1C1C1C;
 }
 
 .badge--installed {
-    background: #e3f2fd;
-    color: #0b57d0;
+    background: rgba(26.22, 129.17, 255, 0.05);
+    color: #006CEC;
 }
 
 .badge--registered {
-    background: #f3f4f6;
-    color: #374151;
+    background: rgba(0, 0, 0, 0.10);
+    color: #1C1C1C;
 }
 
 .badge--diagnostic {
-    background: #e3f2fd;
-    color: #0b57d0;
-    font-weight: 600;
+    background: rgba(26.22, 129.17, 255, 0.05);
+    color: #006CEC;
 }
 
 /* === Maintenance badges === */
 .badge--maintenance {
-    background: #fdecef;
-    color: #b71c1c;
+    background: rgba(235, 74, 69, 0.15);
+    color: #EB4A45;
 }
 
 /* === Accident/Video badges === */
 .badge--accident {
-    background: #ffe8d9;
-    color: #c2410c;
+    background: rgba(232, 136, 0, 0.15);
+    color: #E88800;
 }
 
 .badge--video {
-    background: #e0f2fe;
-    color: #0b57d0;
+    background: rgba(26.22, 129.17, 255, 0.05);
+    color: #006CEC;
 }
 
 /* === Contract badges === */
 .badge--contract-term {
-    background: #e3f2fd;
-    color: #0b57d0;
+    background: rgba(26.22, 129.17, 255, 0.05);
+    color: #006CEC;
 }
 
 .badge--contract-term-short {
-    background: #fff7ed;
-    color: #b45309;
+    background: rgba(232, 136, 0, 0.15);
+    color: #E88800;
 }
 
 .badge--contract-amount {
-    background: #f3f4f6;
-    color: #374151;
+    background: rgba(0, 0, 0, 0.05);
+    color: #1C1C1C;
 }
 
 .badge--contract-unpaid {
-    background: #ffebee;
-    color: #b91c1c;
+    background: rgba(235, 74, 69, 0.15);
+    color: #EB4A45;
 }
 
 /* === Restart control badges === */
 .badge--restart-blocked {
-    background: #fee2e2;
-    color: #b91c1c;
+    background: rgba(235, 74, 69, 0.15);
+    color: #EB4A45;
 }
 
 .badge--restart-allowed {
-    background: #dcfce7;
-    color: #166534;
+    background: rgba(0, 163.81, 26.33, 0.15);
+    color: #2D6536;
 }
 
 .management-stage-dropdown {
@@ -3144,9 +3147,17 @@ html {
 
 [data-theme='dark'] .badge--normal { background: #0b231a; color: #6ee7b7; }
 
+/* Zebra striping for dark mode */
+[data-theme='dark'] .asset-table tbody tr:nth-child(even):not(.row-selected):not(.is-completed):not(.withdrawn-row):not(.highlight-row):not(.pending-row) {
+    background-color: #0d1525;
+}
+
 /* Row hover contrast in dark */
-[data-theme='dark'] .asset-table tbody tr:hover,
-[data-theme='dark'] .members-table tbody tr:hover { background: #111827; color: #e5e7eb; }
+[data-theme='dark'] .asset-table tbody tr:hover:not(.row-selected):not(.highlight-row):not(.is-completed):not(.withdrawn-row),
+[data-theme='dark'] .members-table tbody tr:hover:not(.row-selected):not(.highlight-row):not(.withdrawn-row) {
+    background-color: #1a2744;
+    color: #e5e7eb;
+}
 
 /* Completed contract row highlighting (dark mode) */
 [data-theme='dark'] .asset-table tbody tr.is-completed { background: #0f2e23; }

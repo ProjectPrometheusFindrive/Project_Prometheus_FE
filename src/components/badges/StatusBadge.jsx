@@ -1,24 +1,45 @@
 import React from "react";
 
+// Base layout styles only - colors are handled by CSS for dark mode support
+const BADGE_BASE_STYLE = {
+  paddingLeft: '14px',
+  paddingRight: '14px',
+  paddingTop: '2px',
+  paddingBottom: '2px',
+  borderRadius: '100px',
+  outline: '1px rgba(0, 0, 0, 0.05) solid',
+  outlineOffset: '-1px',
+  display: 'inline-flex',
+  justifyContent: 'center',
+  alignItems: 'center',
+  gap: '5px',
+  textAlign: 'center',
+  fontSize: '14px',
+  fontFamily: 'Pretendard',
+  fontWeight: 500,
+  lineHeight: '24px',
+  wordWrap: 'break-word',
+};
+
 const StatusBadge = ({ type, variant, children, className = "", style = {} }) => {
   const getClassNames = () => {
     const baseClass = "badge";
-    
+
     if (type) {
       return `${baseClass} badge--${type}`;
     }
-    
+
     if (variant) {
       return `${baseClass} ${variant}`;
     }
-    
+
     return baseClass;
   };
 
   return (
-    <span 
-      className={`${getClassNames()} ${className}`.trim()} 
-      style={style}
+    <span
+      className={`${getClassNames()} ${className}`.trim()}
+      style={{ ...BADGE_BASE_STYLE, ...style }}
     >
       {children}
     </span>

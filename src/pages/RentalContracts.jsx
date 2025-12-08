@@ -1062,11 +1062,35 @@ export default function RentalContracts() {
                 }
                 const isBlocked = Boolean(row.restartBlocked);
                 const identifier = row.plate || row.renterName || row.rentalId || "계약";
+                const baseStyle = {
+                    paddingLeft: '14px',
+                    paddingRight: '14px',
+                    paddingTop: '2px',
+                    paddingBottom: '2px',
+                    borderRadius: '100px',
+                    outline: '1px rgba(0, 0, 0, 0.02) solid',
+                    outlineOffset: '-1px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '10px',
+                    display: 'inline-flex',
+                    textAlign: 'center',
+                    fontSize: '14px',
+                    fontFamily: 'Pretendard',
+                    fontWeight: 500,
+                    lineHeight: '24px',
+                    wordWrap: 'break-word',
+                    border: 'none',
+                    cursor: 'pointer',
+                };
+                const variantStyle = isBlocked
+                    ? { background: 'rgba(235, 74, 69, 0.15)', color: '#EB4A45' }
+                    : { background: 'rgba(0, 163.81, 26.33, 0.15)', color: '#2D6536' };
                 return (
                     <button
                         type="button"
                         onClick={() => handleToggleRestart(row.rentalId)}
-                        className={`badge badge--clickable badge--compact ${isBlocked ? "badge--restart-blocked" : "badge--restart-allowed"}`}
+                        style={{ ...baseStyle, ...variantStyle }}
                         aria-pressed={isBlocked}
                         aria-label={`${identifier} ${isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}`}
                         title={isBlocked ? "재시동 금지 해제" : "재시동 금지 설정"}
@@ -1535,7 +1559,10 @@ export default function RentalContracts() {
                                                 );
                                             }
                                             return (
-                                                <StatusBadge variant={selectedContract.restartBlocked ? "badge--restart-blocked" : "badge--restart-allowed"} style={{ marginLeft: "8px" }}>
+                                                <StatusBadge
+                                                    type={selectedContract.restartBlocked ? "restart-blocked" : "restart-allowed"}
+                                                    style={{ marginLeft: "8px" }}
+                                                >
                                                     {selectedContract.restartBlocked ? "차단" : "허용"}
                                                 </StatusBadge>
                                             );
