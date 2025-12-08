@@ -798,15 +798,10 @@ function MemberManagement() {
                                         paddingTop: '4px',
                                         paddingBottom: '4px',
                                         borderRadius: '6px',
-                                        outline: '1px rgba(0, 0, 0, 0.10) solid',
-                                        outlineOffset: '-1px',
                                         fontSize: '14px',
                                         fontFamily: 'Pretendard',
                                         fontWeight: 500,
                                         lineHeight: '24px',
-                                        color: '#1C1C1C',
-                                        border: 'none',
-                                        background: 'white'
                                     }}
                                 >
                                     <option value="">역할 선택</option>
