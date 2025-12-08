@@ -126,6 +126,7 @@ const VehicleHealthCell = React.memo(function VehicleHealthCell({ label, onClick
   return (
     <button
       type="button"
+      className="asset-pill asset-pill--vehicle-health"
       onClick={onClick}
       title="진단 코드 상세 보기"
       aria-label={`차량 상태 ${label} 진단 코드 상세 보기`}

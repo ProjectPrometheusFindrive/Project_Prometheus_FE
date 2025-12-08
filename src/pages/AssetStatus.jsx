@@ -852,6 +852,7 @@ export default function AssetStatus() {
                     <button
                         type="button"
                         onClick={() => openInsuranceModal(row)}
+                        className="asset-pill asset-pill--insurance"
                         title="보험 등록"
                         style={{
                             paddingTop: '2px',
@@ -886,6 +887,7 @@ export default function AssetStatus() {
                     return (
                         <button
                             type="button"
+                            className="asset-pill asset-pill--device asset-pill--device-bad"
                             style={{
                                 paddingTop: '2px',
                                 paddingBottom: '2px',
@@ -915,7 +917,7 @@ export default function AssetStatus() {
                     );
                 }
                 return (
-                    <span style={{
+                    <span className="asset-pill asset-pill--device asset-pill--device-ok" style={{
                         paddingLeft: '14px',
                         paddingRight: '14px',
                         paddingTop: '2px',
@@ -948,6 +950,7 @@ export default function AssetStatus() {
                             onClick={openInstallModal}
                             title="단말 장착 신청"
                             aria-label="단말 장착 신청"
+                            className="asset-pill asset-pill--severity asset-pill--severity-install"
                             style={{
                                 paddingTop: '2px',
                                 paddingBottom: '2px',
@@ -983,7 +986,7 @@ export default function AssetStatus() {
                     const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
                     if (arr.length === 0) {
                         return (
-                            <span style={{
+                            <span className="asset-pill asset-pill--severity asset-pill--severity-ok" style={{
                                 paddingLeft: '14px',
                                 paddingRight: '14px',
                                 paddingTop: '2px',
@@ -1012,7 +1015,7 @@ export default function AssetStatus() {
                 }
                 if (Number(max) === 0) {
                     return (
-                        <span style={{
+                        <span className="asset-pill asset-pill--severity asset-pill--severity-ok" style={{
                             paddingLeft: '14px',
                             paddingRight: '14px',
                             paddingTop: '2px',

@@ -103,6 +103,10 @@ body {
 .icon-button--success { color: #4caf50; }
 .icon-button--danger { color: #f44336; }
 
+[data-theme='dark'] .icon-button--primary-ink { color: #93c5fd; }
+[data-theme='dark'] .icon-button--success { color: #4ade80; }
+[data-theme='dark'] .icon-button--danger { color: #fca5a5; }
+
 /* === Memo cell layout === */
 .memo-cell__row {
   display: flex;
@@ -132,6 +136,20 @@ body {
   font-size: var(--badge-font-size);
   line-height: var(--badge-line-height);
   font-weight: var(--badge-font-weight);
+}
+
+[data-theme='dark'] .memo-cell__input {
+  background: #020617;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+[data-theme='dark'] .memo-cell__edit-button {
+  background: #020617 !important;
+  border-color: #1f2937 !important;
+}
+[data-theme='dark'] .memo-cell__edit-button svg path {
+  fill: #93c5fd;
+  fill-opacity: 1;
 }
 
 .page {
@@ -786,7 +804,75 @@ body {
 
 [data-theme='dark'] .filter-popover { background: #111827; border-color: #374151; }
 [data-theme='dark'] .filter-popover__header { border-color: #374151; }
+[data-theme='dark'] .filter-popover__title { color: #e5e7eb; }
+[data-theme='dark'] .filter-popover__clear { color: #fca5a5; }
 [data-theme='dark'] .filter-input { background: #0b1220; border-color: #374151; color: #e5e7eb; }
+[data-theme='dark'] .filter-label,
+[data-theme='dark'] .filter-row label,
+[data-theme='dark'] .filter-ops label,
+[data-theme='dark'] .filter-sep,
+[data-theme='dark'] .date-range-separator {
+  color: #cbd5e1;
+}
+[data-theme='dark'] .filter-management-clear__checkbox {
+  background-color: #020617;
+  border-color: #4b5563;
+}
+[data-theme='dark'] .filter-management-clear__label {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .filter-management-divider {
+  background: #1f2937;
+}
+[data-theme='dark'] .filter-popover--vehicle-type {
+  background: #111827;
+  border-color: #374151;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+}
+[data-theme='dark'] .filter-option:hover {
+  background: #020617;
+}
+[data-theme='dark'] .filter-option__control {
+  border-color: #4b5563;
+  background-color: #020617;
+}
+[data-theme='dark'] .filter-option__control:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+[data-theme='dark'] .filter-option__label {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .filter-popover--management-stage .filter-option__label {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .date-input {
+  background: #020617;
+  border-color: #374151;
+  outline-color: #374151;
+  color: #e5e7eb;
+}
+[data-theme='dark'] .date-range-filter__reset,
+[data-theme='dark'] .text-filter__reset,
+[data-theme='dark'] .number-range-filter__reset {
+  background: #020617;
+}
+[data-theme='dark'] .date-range-filter__reset:hover,
+[data-theme='dark'] .text-filter__reset:hover,
+[data-theme='dark'] .number-range-filter__reset:hover {
+  background: #111827;
+}
+[data-theme='dark'] .date-range-filter__reset:active,
+[data-theme='dark'] .text-filter__reset:active,
+[data-theme='dark'] .number-range-filter__reset:active {
+  background: #1f2937;
+}
+[data-theme='dark'] .date-range-filter__reset svg path,
+[data-theme='dark'] .text-filter__reset svg path,
+[data-theme='dark'] .number-range-filter__reset svg path {
+  fill: #93c5fd;
+}
+
 [data-theme='dark'] .asset-table thead th.th-filtered .th-label { color: #60a5fa; }
 [data-theme='dark'] .asset-table thead th .filter-badge { background: #1f2937; color: #93c5fd; }
 /* Completed contract row highlighting */
@@ -1542,6 +1628,19 @@ body {
     font-size: 18px;
     font-weight: 600;
     color: #1f2933;
+}
+
+[data-theme='dark'] .top-header__profile-bar {
+    background: #1f2937;
+}
+[data-theme='dark'] .top-header__profile-avatar {
+    background: #111827;
+}
+[data-theme='dark'] .top-header__profile-avatar-img {
+    background: #020617;
+}
+[data-theme='dark'] .top-header__profile-avatar-initial {
+    color: #e5e7eb;
 }
 
 .top-header__logo:focus {
@@ -2789,6 +2888,15 @@ html {
       text-align: right;
   }
 
+[data-theme='dark'] .dashboard-card {
+  background: #020617; /* darker slate */
+  border-color: #1f2937;
+}
+[data-theme='dark'] .dashboard-legend__label,
+[data-theme='dark'] .dashboard-legend__value {
+  color: #e5e7eb;
+}
+
 /* Simple modal styles */
 .modal-backdrop {
     position: fixed;
@@ -3009,8 +3117,51 @@ html {
   color: #9ca3af;
 }
 
+[data-theme='dark'] .top-header__icon-button {
+  background: #111827;
+  color: #e5e7eb;
+}
+[data-theme='dark'] .top-header__icon-button:hover {
+  background: #1f2937;
+}
+[data-theme='dark'] .top-header__icon-button svg path,
+[data-theme='dark'] .top-header__icon-button svg circle {
+  stroke: #e5e7eb;
+}
+[data-theme='dark'] .top-header__icon-button svg rect {
+  fill: #1f2937 !important;
+}
+[data-theme='dark'] .top-header__icon-button svg rect[fill="#F8F8F8"] {
+  fill: #1f2937 !important;
+}
+[data-theme='dark'] .top-header__icon-button svg path[fill="#1C1C1C"] {
+  fill: #e5e7eb;
+}
+[data-theme='dark'] .top-header__profile-name {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .top-header__profile-company {
+  color: #9ca3af;
+}
+[data-theme='dark'] .top-header__profile-chevron {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .top-header__profile-menu {
+  background: #0b1220;
+  border-color: #1f2937;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+}
+[data-theme='dark'] .top-header__profile-menu-item {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .top-header__profile-menu-item:hover {
+  background: #111827;
+}
+[data-theme='dark'] .top-header__profile-menu-item--danger {
+  color: #f87171;
+}
+
 [data-theme='dark'] .navigation-bar {
-  background: #020617;
   border-bottom-color: #1f2937;
 }
 [data-theme='dark'] .navigation-bar__link { color: #e5e7eb; }
@@ -3094,6 +3245,65 @@ html {
 [data-theme='dark'] .toolbar-button:hover {
   color: #f9fafb !important;
 }
+[data-theme='dark'] .toolbar-button svg path {
+  fill: #e5e7eb;
+}
+[data-theme='dark'] .toolbar-button:hover svg path {
+  fill: #f9fafb;
+}
+
+/* Device/vehicle status filter dropdowns */
+[data-theme='dark'] .Dropdown .Rectangle12 {
+  background-color: #111827 !important;
+  border-color: #374151 !important;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.6) !important;
+}
+[data-theme='dark'] .Dropdown .Line3 {
+  outline-color: #1f2937 !important;
+}
+[data-theme='dark'] .Dropdown .Frame427319158 > div > div {
+  color: #e5e7eb !important;
+}
+[data-theme='dark'] .Dropdown .RadiobtnSelected {
+  background-color: #020617 !important;
+  outline-color: #60a5fa !important;
+}
+[data-theme='dark'] .Dropdown .RadiobtnSelected .Ellipse9 {
+  background-color: #60a5fa !important;
+}
+[data-theme='dark'] .Dropdown .Ellipse14 {
+  background-color: #020617 !important;
+  border-color: #4b5563 !important;
+}
+[data-theme='dark'] .Dropdown .Frame427319149 div[data-layer='새로고침'] {
+  color: #93c5fd !important;
+}
+[data-theme='dark'] .Dropdown .Frame427319172 svg path {
+  fill: #93c5fd;
+}
+
+/* AssetStatus pills (보험등록/단말필요/연결됨/정상 등) */
+[data-theme='dark'] .asset-pill {
+  background: #111827 !important;
+  outline-color: #1f2937 !important;
+  color: #e5e7eb !important;
+}
+[data-theme='dark'] .asset-pill--device-ok,
+[data-theme='dark'] .asset-pill--severity-ok,
+[data-theme='dark'] .asset-pill--insurance {
+  background: #0b1220 !important;
+  color: #bfdbfe !important;
+}
+[data-theme='dark'] .asset-pill--device-bad,
+[data-theme='dark'] .asset-pill--severity-install {
+  background: #3f1f1f !important;
+  color: #fecaca !important;
+}
+
+/* Severity numeric badge */
+[data-theme='dark'] .severity-badge {
+  color: #e5e7eb !important;
+}
 
 /* Badges: tone down bright backgrounds in dark mode */
 [data-theme='dark'] .badge { border: 1px solid rgba(148,163,184,0.16); }
@@ -3131,6 +3341,10 @@ html {
 [data-theme='dark'] .badge--accident { background: #3a2210; color: #fdba74; }
 
 [data-theme='dark'] .badge--restart-allowed { background: #0f2e23; color: #86efac; }
+[data-theme='dark'] .management-stage-badge.badge--default {
+  background: #111827 !important;
+  color: #e5e7eb !important;
+}
 
 /* Dropdown menus in dark mode already darkened; ensure headers/hover readable */
 [data-theme='dark'] .dropdown-menu__header { border-bottom-color: #1f2937; color: #e5e7eb; }

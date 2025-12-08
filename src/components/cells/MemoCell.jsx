@@ -77,7 +77,7 @@ const MemoCell = React.memo(function MemoCell({
       </span>
       {isHovered && (
         <button
-          className="icon-button icon-button--primary-ink"
+          className="icon-button icon-button--primary-ink memo-cell__edit-button"
           onClick={(e) => {
             e.stopPropagation();
             onEdit?.(id, value);
