@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import KakaoMap from "../components/KakaoMap";
-import GeofenceGlobalForm from "../components/forms/GeofenceGlobalForm";
+import KakaoGeofenceInput from "../components/forms/KakaoGeofenceInput";
 import { useCompany } from "../contexts/CompanyContext";
 import { useAuth } from "../contexts/AuthContext";
 import { useConfirm } from "../contexts/ConfirmContext";
@@ -75,10 +75,11 @@ export default function Settings() {
 
     // Geofence edit state
     const [geofenceList, setGeofenceList] = useState([]);
-    const [newGeofenceDraft, setNewGeofenceDraft] = useState({ geofences: [] });
+    const [newGeofencePoints, setNewGeofencePoints] = useState([]);
     const [newGeofenceName, setNewGeofenceName] = useState("");
-    const [activeGeofenceTab, setActiveGeofenceTab] = useState("list"); // "list" | "add"
+    const [isAddingNew, setIsAddingNew] = useState(false);
     const [selectedGeofenceIdx, setSelectedGeofenceIdx] = useState(0);
+    const [editingGeofenceIdx, setEditingGeofenceIdx] = useState(null); // 수정 모드인 구역 인덱스
 
     // Load company info, then load geofences from backend and migrate legacy data if needed
     useEffect(() => {
@@ -227,12 +228,45 @@ export default function Settings() {
         []
     );
 
-    const GeofenceItemMap = ({ idx, points }) => {
+    const GeofenceItemMap = ({ idx, points, isEditing }) => {
         const memoPolygons = React.useMemo(() => [points], [points]);
         const onChange = React.useCallback((newPoints) => handlePointsChange(idx, newPoints), [idx]);
         return (
-            <KakaoMap polygons={memoPolygons} height="100%" editable={true} onPolygonChange={onChange} />
+            <KakaoMap
+                polygons={memoPolygons}
+                height="100%"
+                editable={isEditing}
+                onPolygonChange={isEditing ? onChange : undefined}
+            />
         );
+    };
+
+    // 수정 모드 시작
+    const handleStartEdit = (idx) => {
+        setEditingGeofenceIdx(idx);
+        setSelectedGeofenceIdx(idx);
+        setIsAddingNew(false);
+    };
+
+    // 수정 저장
+    const handleSaveEdit = async () => {
+        if (editingGeofenceIdx === null) return;
+        const item = geofenceList[editingGeofenceIdx];
+        if (!item) return;
+        try {
+            const identifier = item.id != null ? item.id : item.name;
+            await updateGeofence(identifier, { name: item.name, points: item.points });
+            emitToast("구역이 저장되었습니다.", "success");
+        } catch (e) {
+            console.error("Failed to save geofence:", e);
+            emitToast("저장에 실패했습니다.", "error");
+        }
+        setEditingGeofenceIdx(null);
+    };
+
+    // 수정 취소
+    const handleCancelEdit = () => {
+        setEditingGeofenceIdx(null);
     };
 
     const handleGeofenceDeleteOne = async (idx) => {
@@ -270,48 +304,37 @@ export default function Settings() {
         }
     };
 
-    const handleNewGeofenceSubmit = async (data) => {
+    const handleNewGeofenceSave = async () => {
+        if (newGeofencePoints.length < 3) {
+            emitToast("최소 3개 이상의 점을 찍어주세요.", "error");
+            return;
+        }
+        const name = newGeofenceName.trim() || `구역 ${geofenceList.length + 1}`;
         try {
-            const polys = Array.isArray(data?.geofences) ? data.geofences : [];
-            if (polys.length === 0) return;
-
-            let newList = [...geofenceList];
-
-            if (polys.length === 1) {
-                const name = (data?.name && data.name.trim()) || newGeofenceName.trim() || `Polygon ${newList.length + 1}`;
-                try {
-                    const created = await createGeofence({ name, points: polys[0] });
-                    const newId = created?.name != null ? created.name : name;
-                    newList.push({ id: newId, name, points: polys[0] });
-                } catch (e) {
-                    console.error("Failed to create geofence:", e);
-                }
-            } else {
-                for (let i = 0; i < polys.length; i++) {
-                    const pts = polys[i];
-                    const nm = `Polygon ${newList.length + i + 1}`;
-                    try {
-                        const created = await createGeofence({ name: nm, points: pts });
-                        const newId = created?.name != null ? created.name : nm;
-                        newList.push({ id: newId, name: nm, points: pts });
-                    } catch (e) {
-                        console.error("Failed to create geofence:", e);
-                    }
-                }
-            }
-
-            setGeofenceList(newList);
-            setNewGeofenceDraft({ geofences: [] });
+            const created = await createGeofence({ name, points: newGeofencePoints });
+            const newId = created?.name != null ? created.name : name;
+            setGeofenceList([...geofenceList, { id: newId, name, points: newGeofencePoints }]);
+            setNewGeofencePoints([]);
             setNewGeofenceName("");
-            setActiveGeofenceTab("list");
+            setIsAddingNew(false);
+            setSelectedGeofenceIdx(geofenceList.length);
+            emitToast("구역이 등록되었습니다.", "success");
         } catch (e) {
-            console.error("Error adding new geofence:", e);
+            console.error("Failed to create geofence:", e);
+            const errMsg = e?.message || "";
+            if (errMsg.includes("already exists") || errMsg.includes("이미 존재")) {
+                emitToast(`'${name}' 이름의 구역이 이미 존재합니다.`, "error");
+            } else {
+                emitToast(errMsg || "구역 등록에 실패했습니다.", "error");
+            }
         }
     };
 
-    const handleNewGeofenceDraftChange = useCallback((v) => {
-        setNewGeofenceDraft(v);
-    }, []);
+    const handleNewGeofenceCancel = () => {
+        setNewGeofencePoints([]);
+        setNewGeofenceName("");
+        setIsAddingNew(false);
+    };
 
     // --- Account self-withdrawal ---
     const ensureNotLastAdminSelf = async () => {
@@ -556,55 +579,61 @@ export default function Settings() {
                             <CountBadge count={displayItems.length} label="개 구역" />
                         </div>
 
-                        {/* 탭 */}
-                        <div className="settings-tabs">
-                            <button
-                                className={`settings-tab ${activeGeofenceTab === "list" ? "settings-tab--active" : ""}`}
-                                onClick={() => setActiveGeofenceTab("list")}
-                            >
-                                구역 목록
-                            </button>
-                            <button
-                                className={`settings-tab ${activeGeofenceTab === "add" ? "settings-tab--active" : ""}`}
-                                onClick={() => setActiveGeofenceTab("add")}
-                            >
-                                + 새 구역 추가
-                            </button>
-                        </div>
-
-                        {activeGeofenceTab === "add" && (
-                            <div className="settings-geofence-add">
-                                <GeofenceGlobalForm
-                                    initial={newGeofenceDraft}
-                                    initialName={newGeofenceName}
-                                    onSubmit={handleNewGeofenceSubmit}
-                                    onChange={handleNewGeofenceDraftChange}
-                                    onNameChange={(v) => setNewGeofenceName(v)}
-                                />
-                            </div>
-                        )}
-
-                        {activeGeofenceTab === "list" && (
-                            <div className="settings-geofence-layout">
-                                {/* 지오펜스 리스트 */}
-                                <div className="settings-geofence-list">
-                                    {displayItems.length === 0 ? (
-                                        <div className="settings-empty">
-                                            <MapPinIcon />
-                                            <p>등록된 지오펜스가 없습니다</p>
+                        {/* 지오펜스 레이아웃 */}
+                        <div className="settings-geofence-layout">
+                            {/* 지오펜스 리스트 */}
+                            <div className="settings-geofence-list">
+                                {/* 신규 등록 버튼 또는 입력 폼 */}
+                                {isAddingNew ? (
+                                    <div className="settings-geofence-add-form">
+                                        <input
+                                            className="settings-geofence-add-input"
+                                            placeholder="구역 이름 입력"
+                                            value={newGeofenceName}
+                                            onChange={(e) => setNewGeofenceName(e.target.value)}
+                                            autoFocus
+                                        />
+                                        <div className="settings-geofence-add-actions">
                                             <button
-                                                className="settings-btn settings-btn--primary"
-                                                onClick={() => setActiveGeofenceTab("add")}
+                                                className="settings-btn settings-btn--sm settings-btn--primary"
+                                                onClick={handleNewGeofenceSave}
                                             >
-                                                첫 구역 추가하기
+                                                저장
+                                            </button>
+                                            <button
+                                                className="settings-btn settings-btn--sm settings-btn--secondary"
+                                                onClick={handleNewGeofenceCancel}
+                                            >
+                                                취소
                                             </button>
                                         </div>
-                                    ) : (
-                                        displayItems.map((item, idx) => (
+                                    </div>
+                                ) : (
+                                    <button
+                                        className="settings-geofence-add-btn"
+                                        onClick={() => { setIsAddingNew(true); setSelectedGeofenceIdx(null); }}
+                                    >
+                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                            <line x1="12" y1="5" x2="12" y2="19" />
+                                            <line x1="5" y1="12" x2="19" y2="12" />
+                                        </svg>
+                                        신규 등록하기
+                                    </button>
+                                )}
+
+                                {displayItems.length === 0 && !isAddingNew ? (
+                                    <div className="settings-empty">
+                                        <MapPinIcon />
+                                        <p>등록된 지오펜스가 없습니다</p>
+                                    </div>
+                                ) : (
+                                    displayItems.map((item, idx) => {
+                                        const isEditing = editingGeofenceIdx === idx;
+                                        return (
                                             <div
                                                 key={idx}
-                                                className={`settings-geofence-item ${selectedGeofenceIdx === idx ? "settings-geofence-item--active" : ""}`}
-                                                onClick={() => setSelectedGeofenceIdx(idx)}
+                                                className={`settings-geofence-item ${selectedGeofenceIdx === idx && !isAddingNew ? "settings-geofence-item--active" : ""} ${isEditing ? "settings-geofence-item--editing" : ""}`}
+                                                onClick={() => { setSelectedGeofenceIdx(idx); setIsAddingNew(false); }}
                                             >
                                                 <div className="settings-geofence-item__header">
                                                     <GeofenceBadge index={idx} />
@@ -613,37 +642,80 @@ export default function Settings() {
                                                         value={item.name || ""}
                                                         onChange={(e) => handleRenameOne(idx, e.target.value)}
                                                         onClick={(e) => e.stopPropagation()}
+                                                        readOnly={!isEditing}
                                                     />
                                                 </div>
                                                 <div className="settings-geofence-item__actions">
-                                                    <button
-                                                        className="settings-btn settings-btn--sm settings-btn--danger-outline"
-                                                        onClick={(e) => { e.stopPropagation(); handleGeofenceDeleteOne(idx); }}
-                                                    >
-                                                        삭제
-                                                    </button>
+                                                    {isEditing ? (
+                                                        <>
+                                                            <button
+                                                                className="settings-btn settings-btn--sm settings-btn--primary"
+                                                                onClick={(e) => { e.stopPropagation(); handleSaveEdit(); }}
+                                                            >
+                                                                저장
+                                                            </button>
+                                                            <button
+                                                                className="settings-btn settings-btn--sm settings-btn--secondary"
+                                                                onClick={(e) => { e.stopPropagation(); handleCancelEdit(); }}
+                                                            >
+                                                                취소
+                                                            </button>
+                                                        </>
+                                                    ) : (
+                                                        <>
+                                                            <button
+                                                                className="settings-btn settings-btn--sm settings-btn--outline"
+                                                                onClick={(e) => { e.stopPropagation(); handleStartEdit(idx); }}
+                                                            >
+                                                                수정
+                                                            </button>
+                                                            <button
+                                                                className="settings-btn settings-btn--sm settings-btn--danger-outline"
+                                                                onClick={(e) => { e.stopPropagation(); handleGeofenceDeleteOne(idx); }}
+                                                            >
+                                                                삭제
+                                                            </button>
+                                                        </>
+                                                    )}
                                                 </div>
                                             </div>
-                                        ))
-                                    )}
-                                </div>
-
-                                {/* 지오펜스 지도 */}
-                                <div className="settings-geofence-map">
-                                    {selectedGeofenceIdx !== null && displayItems[selectedGeofenceIdx] ? (
-                                        <GeofenceItemMap
-                                            idx={selectedGeofenceIdx}
-                                            points={displayItems[selectedGeofenceIdx].points}
-                                        />
-                                    ) : displayItems.length > 0 ? (
-                                        <div className="settings-map-placeholder">
-                                            <MapPinIcon />
-                                            <p>좌측에서 구역을 선택하세요</p>
-                                        </div>
-                                    ) : null}
-                                </div>
+                                        );
+                                    })
+                                )}
                             </div>
-                        )}
+
+                            {/* 지오펜스 지도 */}
+                            <div className="settings-geofence-map">
+                                {isAddingNew ? (
+                                    <KakaoGeofenceInput
+                                        value={newGeofencePoints.length > 0 ? [newGeofencePoints] : []}
+                                        onChange={(polys) => {
+                                            if (polys && polys.length > 0 && polys[0]) {
+                                                setNewGeofencePoints(polys[0]);
+                                            } else {
+                                                setNewGeofencePoints([]);
+                                            }
+                                        }}
+                                    />
+                                ) : selectedGeofenceIdx !== null && displayItems[selectedGeofenceIdx] ? (
+                                    <GeofenceItemMap
+                                        idx={selectedGeofenceIdx}
+                                        points={displayItems[selectedGeofenceIdx].points}
+                                        isEditing={editingGeofenceIdx === selectedGeofenceIdx}
+                                    />
+                                ) : displayItems.length > 0 ? (
+                                    <div className="settings-map-placeholder">
+                                        <MapPinIcon />
+                                        <p>좌측에서 구역을 선택하세요</p>
+                                    </div>
+                                ) : (
+                                    <div className="settings-map-placeholder">
+                                        <MapPinIcon />
+                                        <p>신규 등록하기 버튼을 눌러 구역을 추가하세요</p>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 
-export default function KakaoGeofenceInput({ value = [], onChange, readOnly = false, height = 360 }) {
+export default function KakaoGeofenceInput({ value = [], onChange, readOnly = false, height = "100%" }) {
     const mapContainer = useRef(null);
     const [map, setMap] = useState(null);
     // Separate readiness: base maps vs drawing library
@@ -474,14 +474,14 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
     }, []);
 
     return (
-        <div>
+        <div style={{ display: "flex", flexDirection: "column", height: typeof height === "number" ? `${height}px` : height }}>
             {!isMapsReady && (
-                <div className="mb-2 text-[12px] text-gray-500">
+                <div className="mb-2 text-[12px] text-gray-500" style={{ flexShrink: 0 }}>
                     카카오 지도를 로딩 중입니다...
                 </div>
             )}
             {!readOnly && isMapsReady && (
-                <div className="geofence-info-banner">
+                <div className="geofence-info-banner" style={{ flexShrink: 0 }}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <circle cx="12" cy="12" r="10" />
                         <line x1="12" y1="16" x2="12" y2="12" />
@@ -492,7 +492,7 @@ export default function KakaoGeofenceInput({ value = [], onChange, readOnly = fa
             )}
             <div
                 ref={mapContainer}
-                style={{ width: "100%", height: `${height}px`, cursor: !readOnly ? "crosshair" : "default" }}
+                style={{ width: "100%", flex: 1, minHeight: 0, cursor: !readOnly ? "crosshair" : "default" }}
                 className="border border-gray-300 mx-auto rounded-lg"
             />
         </div>
