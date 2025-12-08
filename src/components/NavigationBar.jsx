@@ -22,12 +22,12 @@ export default function NavigationBar() {
                 <span className="navigation-bar__label">홈</span>
             </NavLink>
 
-            <NavLink to="/rentals/table" className={linkClass}>
-                <span className="navigation-bar__label">계약등록관리</span>
-            </NavLink>
-
             <NavLink to="/assets" className={linkClass}>
                 <span className="navigation-bar__label">자산등록관리</span>
+            </NavLink>
+
+            <NavLink to="/rentals/table" className={linkClass}>
+                <span className="navigation-bar__label">계약등록관리</span>
             </NavLink>
 
             {canManageMembers && (
