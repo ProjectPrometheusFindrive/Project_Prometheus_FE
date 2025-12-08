@@ -36,7 +36,6 @@ function MemberManagement() {
     const [newRole, setNewRole] = useState('');
     const [highlightUserId, setHighlightUserId] = useState('');
     const [batchWorking, setBatchWorking] = useState(false);
-    const [batchRole, setBatchRole] = useState('');
 
     // Permission check: Only admin or super_admin can access
     const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
@@ -232,11 +231,6 @@ function MemberManagement() {
         () => selection.selectedItems.filter((r) => r && !r._pending && r.membershipStatus !== 'withdrawn' && canManageMember(r)).length,
         [selection.selectedItems]
     );
-    const selectedRoleChangeEligibleCount = useMemo(
-        () => selection.selectedItems.filter((r) => r && !r._pending && r.membershipStatus !== 'withdrawn' && r.role !== ROLES.SUPER_ADMIN && canManageMember(r)).length,
-        [selection.selectedItems]
-    );
-
     // Listen for global refresh signal and consume focus intent stored by dashboard
     useEffect(() => {
         function onRefresh() {
@@ -595,34 +589,6 @@ function MemberManagement() {
         }
     }
 
-    async function handleBulkRoleChange() {
-        if (!isSuperAdmin) return emitToast('역할 변경은 super_admin만 가능합니다.', 'error');
-        const ids = selection.selectedIds;
-        const targets = ids.map((id) => unifiedRows.find((r) => r.id === id)).filter((r) => r && !r._pending && r.membershipStatus !== 'withdrawn' && r.role !== ROLES.SUPER_ADMIN && canManageMember(r));
-        if (!targets.length) return emitToast('선택된 회원이 없습니다.', 'warning');
-        if (!batchRole || (batchRole !== ROLES.ADMIN && batchRole !== ROLES.MEMBER)) {
-            return emitToast('변경할 역할을 선택하세요 (admin/member).', 'warning');
-        }
-        const ok = await confirm({ title: '일괄 역할 변경', message: `${targets.length}명의 역할을 \"${batchRole}\"로 변경하시겠습니까?\n\n대상 사용자는 재로그인이 필요합니다.`, confirmText: '변경', cancelText: '취소' });
-        if (!ok) return;
-        try {
-            setBatchWorking(true);
-            let successCount = 0;
-            for (const member of targets) {
-                try {
-                    if (member.role === batchRole) continue; // no-op
-                    const ok = await changeMemberRole(member.id, batchRole);
-                    if (ok) successCount += 1;
-                } catch {}
-            }
-            emitToast(`역할 변경 완료: ${successCount}/${targets.length}`, successCount === targets.length ? 'success' : successCount > 0 ? 'warning' : 'error');
-            await loadAllMembers();
-            selection.clearSelection();
-        } finally {
-            setBatchWorking(false);
-        }
-    }
-
     if (!canManageMembers) {
         return (
             <div className="page page--data member-management-page space-y-4">
@@ -784,78 +750,7 @@ function MemberManagement() {
                         >
                             일괄탈퇴
                         </button>
-                        {isSuperAdmin && (
-                            <>
-                                <select
-                                    className="form-input"
-                                    aria-label="일괄 역할 선택"
-                                    value={batchRole}
-                                    onChange={(e) => setBatchRole(e.target.value)}
-                                    disabled={batchWorking}
-                                    style={{
-                                        paddingLeft: '14px',
-                                        paddingRight: '14px',
-                                        paddingTop: '4px',
-                                        paddingBottom: '4px',
-                                        borderRadius: '6px',
-                                        fontSize: '14px',
-                                        fontFamily: 'Pretendard',
-                                        fontWeight: 500,
-                                        lineHeight: '24px',
-                                    }}
-                                >
-                                    <option value="">역할 선택</option>
-                                    <option value={ROLES.ADMIN}>admin</option>
-                                    <option value={ROLES.MEMBER}>member</option>
-                                </select>
-                                <button
-                                    type="button"
-                                    onClick={handleBulkRoleChange}
-                                    disabled={batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0}
-                                    className="toolbar-button"
-                                    style={{
-                                        paddingLeft: '14px',
-                                        paddingRight: '14px',
-                                        paddingTop: '4px',
-                                        paddingBottom: '4px',
-                                        borderRadius: '6px',
-                                        outline: '1px rgba(0, 0, 0, 0.10) solid',
-                                        outlineOffset: '-1px',
-                                        justifyContent: 'center',
-                                        alignItems: 'center',
-                                        gap: '10px',
-                                        display: 'inline-flex',
-                                        textAlign: 'center',
-                                        color: '#1C1C1C',
-                                        fontSize: '14px',
-                                        fontFamily: 'Pretendard',
-                                        fontWeight: 500,
-                                        lineHeight: '24px',
-                                        background: 'transparent',
-                                        border: 'none',
-                                        cursor: (batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0) ? 'not-allowed' : 'pointer',
-                                        opacity: (batchWorking || !batchRole || selectedRoleChangeEligibleCount === 0) ? 0.5 : 1,
-                                        transition: 'all 0.2s'
-                                    }}
-                                    onMouseEnter={(e) => {
-                                        if (!batchWorking && batchRole && selectedRoleChangeEligibleCount > 0) {
-                                            e.currentTarget.style.background = '#006CEC';
-                                            e.currentTarget.style.color = 'white';
-                                            e.currentTarget.style.outline = 'none';
-                                        }
-                                    }}
-                                    onMouseLeave={(e) => {
-                                        if (!batchWorking && batchRole && selectedRoleChangeEligibleCount > 0) {
-                                            e.currentTarget.style.background = 'transparent';
-                                            e.currentTarget.style.color = '#1C1C1C';
-                                            e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
-                                        }
-                                    }}
-                                >
-                                    일괄역할변경
-                                </button>
-                            </>
-                        )}
+                        {/* Bulk role change removed by design; keep only withdraw + filter controls */}
                         <button
                             type="button"
                             onClick={tableFilterState.clearAll}
