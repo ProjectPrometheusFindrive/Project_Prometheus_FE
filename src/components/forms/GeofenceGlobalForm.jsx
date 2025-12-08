@@ -32,6 +32,22 @@ export default function GeofenceGlobalForm({ initial = {}, initialName = "", rea
 
     return (
         <form id={formId} onSubmit={handleSubmit}>
+            {!readOnly && showSubmit && (
+                <div className="geofence-form-header">
+                    <input
+                        className="geofence-form-input"
+                        placeholder="구역 이름을 입력하세요"
+                        value={name}
+                        onChange={(e) => {
+                            setName(e.target.value);
+                            if (onNameChange) onNameChange(e.target.value);
+                        }}
+                    />
+                    <button type="submit" className="settings-btn settings-btn--primary">
+                        저장
+                    </button>
+                </div>
+            )}
             <KakaoGeofenceInput
                 value={form.geofences}
                 onChange={(polys) => {
@@ -39,26 +55,11 @@ export default function GeofenceGlobalForm({ initial = {}, initialName = "", rea
                     if (onChange) onChange({ geofences: polys });
                 }}
                 readOnly={readOnly}
-                height={500}
+                height={600}
                 showList={false}
             />
 
-            {!readOnly && showSubmit && (
-                <div className="form-actions flex items-center gap-2">
-                    <input
-                        className="form-input flex-1"
-                        placeholder="Polygon name"
-                        value={name}
-                        onChange={(e) => {
-                            setName(e.target.value);
-                            if (onNameChange) onNameChange(e.target.value);
-                        }}
-                    />
-                    <button type="submit" className="form-button">
-                        Save
-                    </button>
-                </div>
-            )}
+            
         </form>
     );
 }
