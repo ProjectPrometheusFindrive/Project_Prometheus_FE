@@ -12,6 +12,7 @@ import AssetStatusPage from "./pages/AssetStatusPage";
 import Dashboard from "./pages/Dashboard";
 import RentalContracts from "./pages/RentalContracts";
 import Detail from "./pages/Detail";
+import SupportCenter from "./pages/SupportCenter";
 import MemberManagement from "./pages/MemberManagement";
 import Revenue from "./pages/Revenue";
 import AppLayout from "./components/AppLayout";
@@ -153,6 +154,11 @@ function App() {
               <Route path="/revenue" element={
                 <ErrorBoundary>
                   <Revenue />
+                </ErrorBoundary>
+              } />
+              <Route path="/support" element={
+                <ErrorBoundary>
+                  <SupportCenter />
                 </ErrorBoundary>
               } />
             </Route>
