@@ -1222,7 +1222,7 @@ body {
 .rental-amount-cell {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 2px;
 }
 .rental-amount-cell__value {
   font-weight: 600;

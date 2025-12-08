@@ -44,7 +44,7 @@ const DEFAULT_COLUMN_CONFIG = [
     { key: "vehicleType", label: "차종", visible: true, required: false, width: 100 },
     { key: "renterName", label: "예약자명", visible: true, required: false, width: 100 },
     { key: "rentalPeriod", label: "예약기간", visible: true, required: false, width: 180 },
-    { key: "rentalAmount", label: "대여금액", visible: true, required: false, width: 130 },
+    { key: "rentalAmount", label: "대여금액", visible: true, required: false, width: 200 },
     { key: "contractStatus", label: "계약 상태", visible: true, required: false, width: 110 },
     { key: "engineStatus", label: "엔진 상태", visible: true, required: false, width: 100 },
     { key: "restartBlocked", label: "재시동 금지", visible: true, required: false, width: 110 },
