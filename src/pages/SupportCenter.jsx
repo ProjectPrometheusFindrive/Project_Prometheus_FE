@@ -214,8 +214,7 @@ function SupportCenter() {
               <div style={{ position: 'relative', zIndex: 10 }}>
                 <h3>긴급 장애 신고</h3>
                 <p>
-                  서비스 이용이 불가능한 긴급 상황 시<br />
-                  아래 번호로 연락해주세요
+                  서비스 이용이 불가능한 긴급 상황 시 아래 번호로 연락해주세요
                 </p>
                 <div className="support-emergency-phone">
                   <PhoneIcon />

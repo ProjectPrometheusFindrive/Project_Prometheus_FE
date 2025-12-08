@@ -190,7 +190,7 @@
     position: relative;
     overflow: hidden;
     border-radius: 16px;
-    background: linear-gradient(135deg, #f97316 0%, #ef4444 100%);
+    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
     padding: 20px;
     color: white;
     box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
@@ -207,7 +207,7 @@
 
 .support-emergency p {
     font-size: 12px;
-    color: rgba(254, 215, 170, 1);
+    color: rgba(203, 213, 225, 1);
     line-height: 1.5;
     margin-bottom: 12px;
     margin-top: 0;

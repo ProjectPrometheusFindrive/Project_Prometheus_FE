@@ -179,12 +179,12 @@ const AssetManagementStageCell = React.memo(function AssetManagementStageCell({
   }, [isOpen]);
 
   const buttonStyle = MANAGEMENT_STAGE_STYLES[label] || MANAGEMENT_STAGE_STYLES["입고 대상"];
-  const textColor = buttonStyle.color;
 
   return (
     <span data-stage-dropdown className="inline-flex items-center gap-6 relative">
       <button
         type="button"
+        className={`badge badge--clickable ${badgeClass} management-stage-badge`}
         onClick={() => onToggleOpen(rowId)}
         disabled={isSaving}
         aria-haspopup="listbox"
@@ -204,7 +204,7 @@ const AssetManagementStageCell = React.memo(function AssetManagementStageCell({
         >
           <path
             d="M0.5 0.5L3.5 3.5L6.5 0.5"
-            stroke={textColor}
+            stroke="currentColor"
             strokeLinecap="round"
             strokeLinejoin="round"
           />

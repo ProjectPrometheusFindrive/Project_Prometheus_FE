@@ -6,6 +6,7 @@ export default function SeverityBadge({ value }) {
   if (Number.isNaN(v)) return <>-</>;
   return (
     <span
+      className="severity-badge"
       title={`심각도 ${v.toFixed(1)} / 10`}
       style={{
         textAlign: 'center',
@@ -21,4 +22,3 @@ export default function SeverityBadge({ value }) {
     </span>
   );
 }
-
