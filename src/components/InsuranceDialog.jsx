@@ -303,7 +303,10 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
                   />
                   {Array.isArray(form.insuranceDoc) ? (
                     <div className="mb-2">
-                      <FilesPreviewCarousel files={form.insuranceDoc} />
+                      <FilesPreviewCarousel
+                        files={form.insuranceDoc}
+                        onChange={(next) => setForm((p) => ({ ...p, insuranceDoc: next }))}
+                      />
                     </div>
                   ) : (form.insuranceDoc ? <div className="mb-2"><FilePreview file={form.insuranceDoc} /></div> : null)}
                   {(busy.status === "uploading" || busy.status === "ocr") && (

@@ -1737,7 +1737,7 @@ body {
     white-space: nowrap;
 }
 
-/* Asset dialog layout - insurance dialog style */
+/* Asset dialog layout - Figma design style */
 .asset-dialog {
     padding-bottom: 8px;
 }
@@ -1745,19 +1745,94 @@ body {
 .asset-dialog__body {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: 24px;
+}
+
+.modal--asset-register .asset-dialog__body {
+    gap: 0;
 }
 
 .asset-docs-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: 30px;
+}
+
+.modal--asset-register .asset-docs-section {
+    margin-top: 40px;
 }
 
 @media (max-width: 768px) {
     .asset-docs-section {
         grid-template-columns: 1fr;
     }
+}
+
+/* Asset registration modal specific styles (Figma design) */
+.modal.modal--asset-register {
+    max-width: 780px;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0px 12px 20px 5px rgba(0, 0, 0, 0.15);
+    border: none;
+}
+
+.modal--asset-register .modal-header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 0;
+    padding: 0;
+    width: 100%;
+}
+
+.modal--asset-register .modal-header__row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+}
+
+.modal--asset-register .modal-header__title {
+    color: #1C1C1C;
+    font-size: 20px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 700;
+    line-height: 30px;
+}
+
+.modal--asset-register .modal-header__close {
+    width: 36px;
+    height: 36px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    position: relative;
+    padding: 0;
+}
+
+.modal--asset-register .modal-header__close::before,
+.modal--asset-register .modal-header__close::after {
+    content: '';
+    position: absolute;
+    width: 20px;
+    height: 2px;
+    background: #1C1C1C;
+    top: 50%;
+    left: 50%;
+    border-radius: 1px;
+}
+
+.modal--asset-register .modal-header__close::before {
+    transform: translate(-50%, -50%) rotate(45deg);
+}
+
+.modal--asset-register .modal-header__close::after {
+    transform: translate(-50%, -50%) rotate(-45deg);
+}
+
+.modal--asset-register .modal-header__line {
+    height: 2px;
+    background: #1C1C1C;
 }
 
 .asset-doc {
@@ -1808,6 +1883,7 @@ body {
     border: 1px solid rgba(0, 0, 0, 0.08);
     background: #fafafa;
     padding: 8px;
+    overflow: hidden;
 }
 
 .asset-doc--upload .asset-doc__placeholder {
@@ -1890,10 +1966,91 @@ body {
 }
 
 .asset-dialog__footer {
-    margin-top: 12px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #1C1C1C;
     display: flex;
-    justify-content: flex-end;
-    gap: 8px;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+/* Asset dialog footer buttons (Figma pill style) */
+.asset-dialog__footer .form-button {
+    flex: 1;
+    padding: 14px 70px;
+    border-radius: 100px;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
+    text-align: center;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+}
+
+.asset-dialog__footer .form-button--close,
+.asset-dialog__footer .form-button:first-child {
+    background: #ECECEC;
+    color: #1C1C1C;
+}
+
+.asset-dialog__footer .form-button--close:hover,
+.asset-dialog__footer .form-button:first-child:hover {
+    background: #E0E0E0;
+}
+
+.asset-dialog__footer .form-button--save,
+.asset-dialog__footer .form-button:last-child:not(:first-child) {
+    background: #006CEC;
+    color: white;
+}
+
+.asset-dialog__footer .form-button--save:hover,
+.asset-dialog__footer .form-button:last-child:not(:first-child):hover {
+    background: #0056C7;
+}
+
+/* Upload and auto-fill button (업로드 및 자동채움) */
+.asset-upload-action-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 10px 14px;
+    background: rgba(26, 129, 255, 0.05);
+    border: 1px solid #006CEC;
+    border-radius: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.asset-upload-action-btn:hover {
+    background: rgba(26, 129, 255, 0.15);
+}
+
+.asset-upload-action-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.asset-upload-action-btn span {
+    color: #006CEC;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
+    text-align: center;
+}
+
+/* Separator line for asset form */
+.asset-form-separator {
+    width: 100%;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.08);
+    margin: 24px 0;
 }
 
 /* Two-column asset form layout for create mode */
@@ -1906,6 +2063,70 @@ body {
     display: grid;
     grid-template-columns: 100px minmax(0, 230px) 100px minmax(0, 230px);
     column-gap: 20px;
+    row-gap: 12px;
+}
+
+/* Asset form fields in modal (Figma design) */
+.modal--asset-register .asset-info.grid-info.asset-info--two-col {
+    display: grid;
+    grid-template-columns: 100px minmax(0, 230px) 100px minmax(0, 230px);
+    column-gap: 20px;
+    row-gap: 20px;
+    align-items: stretch;
+}
+
+.modal--asset-register .asset-info__label {
+    display: flex;
+    align-items: center;
+    color: #1C1C1C;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    line-height: 24px;
+    padding: 10px 0;
+}
+
+.modal--asset-register .asset-info__value {
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    padding: 10px 14px;
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+}
+
+.modal--asset-register .asset-info__value .form-input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    padding: 0;
+    font-family: 'Pretendard', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
+    color: #1C1C1C;
+}
+
+/* Custom select arrow for 연식 / 연료타입 in asset dialog */
+.modal--asset-register .asset-info__value select.form-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: transparent;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M2 2l4 4 4-4' stroke='%231C1C1C' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 12px 8px;
+    padding-right: 32px;
+}
+
+[data-theme='dark'] .modal--asset-register .asset-info__value select.form-input {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M2 2l4 4 4-4' stroke='%23e5e7eb' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+}
+
+.modal--asset-register .asset-info__value .form-input:focus {
+    outline: none;
 }
 
 @media (max-width: 768px) {
@@ -1925,6 +2146,138 @@ body {
     display: grid;
     grid-template-columns: 140px 1fr;
     align-items: center;
+}
+
+.asset-history-lines {
+    margin-top: 8px;
+    padding-top: 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    font-size: 12px;
+    color: #555;
+}
+.asset-history__line {
+    line-height: 1.4;
+}
+
+[data-theme='dark'] .asset-history-lines {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .modal--asset-register .BtnClosed svg path {
+    fill: #e5e7eb;
+}
+
+/* Dark mode overrides for asset registration dialog */
+[data-theme='dark'] .modal.modal--asset-register {
+    background: #0b1220;
+    border: 1px solid #1f2937;
+}
+[data-theme='dark'] .modal--asset-register .modal-header__title {
+    color: #e5e7eb;
+}
+[data-theme='dark'] .modal--asset-register [data-layer="자산등록"] {
+    color: #e5e7eb !important;
+}
+[data-theme='dark'] .modal--asset-register .modal-header__close::before,
+[data-theme='dark'] .modal--asset-register .modal-header__close::after {
+    background: #e5e7eb;
+}
+[data-theme='dark'] .modal--asset-register .modal-header__line {
+    background: #1f2937;
+}
+
+[data-theme='dark'] .asset-doc {
+    background: #0b1220;
+    border-color: #1f2937;
+}
+[data-theme='dark'] .asset-doc__title {
+    color: #e5e7eb;
+}
+[data-theme='dark'] .asset-doc__box {
+    background: #020617;
+    border-color: #1f2937;
+}
+[data-theme='dark'] .asset-doc__placeholder {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .asset-doc--upload .asset-doc__title {
+    color: #e5e7eb;
+}
+[data-theme='dark'] .asset-doc--upload .asset-doc__box {
+    background: #020617;
+    border-color: #1f2937;
+}
+[data-theme='dark'] .asset-doc__upload-row {
+    background: #020617;
+    border-color: #1f2937;
+}
+[data-theme='dark'] .asset-doc__upload-button {
+    color: #e5e7eb;
+}
+[data-theme='dark'] .asset-doc__upload-icon {
+    border-color: #e5e7eb;
+}
+[data-theme='dark'] .asset-doc__upload-icon svg path {
+    stroke: #e5e7eb;
+}
+[data-theme='dark'] .asset-doc__upload-count {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .asset-info__label {
+    color: #e5e7eb;
+}
+[data-theme='dark'] .asset-info__value {
+    color: #e5e7eb;
+}
+[data-theme='dark'] .modal--asset-register .asset-info__value {
+    background: #020617;
+    border-color: #1f2937;
+}
+[data-theme='dark'] .modal--asset-register .asset-info__value .form-input {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .asset-dates__item {
+    background: #020617;
+    border-color: #1f2937;
+}
+[data-theme='dark'] .asset-dates__label {
+    color: #9ca3af;
+}
+[data-theme='dark'] .asset-dates__value {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .asset-dialog__footer {
+    border-top-color: #1f2937;
+}
+[data-theme='dark'] .asset-dialog__footer .form-button--close,
+[data-theme='dark'] .asset-dialog__footer .form-button:first-child {
+    background: #111827;
+    color: #e5e7eb;
+}
+[data-theme='dark'] .asset-dialog__footer .form-button--close:hover,
+[data-theme='dark'] .asset-dialog__footer .form-button:first-child:hover {
+    background: #1f2937;
+}
+
+[data-theme='dark'] .asset-upload-action-btn {
+    background: rgba(37, 99, 235, 0.08);
+    border-color: #3b82f6;
+}
+[data-theme='dark'] .asset-upload-action-btn:hover {
+    background: rgba(37, 99, 235, 0.16);
+}
+[data-theme='dark'] .asset-upload-action-btn span {
+    color: #93c5fd;
+}
+
+[data-theme='dark'] .asset-form-separator {
+    background: rgba(255, 255, 255, 0.08);
 }
 
 /*
@@ -2599,6 +2952,24 @@ body {
     border: 1px solid #ddd;
     border-radius: 8px;
     font-size: 1rem;
+}
+
+/* Consistent dropdown styling for all selects using form-input */
+select.form-input {
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-color: #fff;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M2 2l4 4 4-4' stroke='%231C1C1C' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 12px 8px;
+    padding-right: 2rem;
+}
+
+[data-theme='dark'] select.form-input {
+    background-color: #0b1220;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M2 2l4 4 4-4' stroke='%23e5e7eb' stroke-width='1.5' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 }
 .form-input.is-invalid {
     border-color: #d32f2f;

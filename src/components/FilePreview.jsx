@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import "./FilePreview.css";
-import DocumentViewer from "./DocumentViewer";
 
 /**
  * FilePreview Component
@@ -16,7 +15,6 @@ import DocumentViewer from "./DocumentViewer";
 export default function FilePreview({ file, className = "" }) {
   const [previewUrl, setPreviewUrl] = useState("");
   const [previewType, setPreviewType] = useState(""); // "image", "pdf", "video", "unsupported"
-  const [showViewer, setShowViewer] = useState(false);
 
   useEffect(() => {
     if (!file) {
@@ -73,22 +71,12 @@ export default function FilePreview({ file, className = "" }) {
         <img
           src={previewUrl}
           alt={file.name}
-          className="file-preview__image cursor-zoom-in"
-          onClick={() => setShowViewer(true)}
+          className="file-preview__image"
         />
         <div className="file-preview__info">
           <span className="file-preview__filename">{file.name}</span>
           <span className="file-preview__filesize">{formatFileSize(file.size)}</span>
         </div>
-        <DocumentViewer
-          isOpen={showViewer}
-          onClose={() => setShowViewer(false)}
-          src={previewUrl}
-          type="image"
-          title={file.name}
-          allowDownload={false}
-          file={file}
-        />
       </div>
     );
   }
@@ -101,22 +89,10 @@ export default function FilePreview({ file, className = "" }) {
           className="file-preview__pdf-viewer"
           title={file.name}
         />
-        <div className="flex justify-end py-1.5 px-3">
-          <button type="button" className="form-button" onClick={() => setShowViewer(true)} title="창 크기에 맞게 보기">확대</button>
-        </div>
         <div className="file-preview__info">
           <span className="file-preview__filename">{file.name}</span>
           <span className="file-preview__filesize">{formatFileSize(file.size)}</span>
         </div>
-        <DocumentViewer
-          isOpen={showViewer}
-          onClose={() => setShowViewer(false)}
-          src={previewUrl}
-          type="pdf"
-          title={file.name}
-          allowDownload={false}
-          file={file}
-        />
       </div>
     );
   }
@@ -131,23 +107,11 @@ export default function FilePreview({ file, className = "" }) {
           preload="metadata"
           aria-label={file.name}
         />
-        <div className="flex justify-end py-1.5 px-3">
-          <button type="button" className="form-button" onClick={() => setShowViewer(true)} title="창 크기에 맞게 보기">확대</button>
-        </div>
         <div className="file-preview__info">
           <span className="file-preview__filename">{file.name}</span>
           <span className="file-preview__filesize">{formatFileSize(file.size)}</span>
           <span className="file-preview__filetype">{file.type || "video"}</span>
         </div>
-        <DocumentViewer
-          isOpen={showViewer}
-          onClose={() => setShowViewer(false)}
-          src={previewUrl}
-          type="video"
-          title={file.name}
-          allowDownload={false}
-          file={file}
-        />
       </div>
     );
   }

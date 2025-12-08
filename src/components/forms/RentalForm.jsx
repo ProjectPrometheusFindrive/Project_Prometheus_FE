@@ -341,7 +341,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         disabled={readOnly}
                     >
                         {Array.isArray(form.contractFile) ? (
-                            <FilesPreviewCarousel files={form.contractFile} />
+                            <FilesPreviewCarousel
+                                files={form.contractFile}
+                                onChange={(next) => update("contractFile", next)}
+                            />
                         ) : (
                             <FilePreview file={form.contractFile} />
                         )}
@@ -359,7 +362,10 @@ export default function RentalForm({ initial = {}, readOnly = false, onSubmit, f
                         disabled={readOnly}
                     >
                         {Array.isArray(form.driverLicenseFile) ? (
-                            <FilesPreviewCarousel files={form.driverLicenseFile} />
+                            <FilesPreviewCarousel
+                                files={form.driverLicenseFile}
+                                onChange={(next) => update("driverLicenseFile", next)}
+                            />
                         ) : (
                             <FilePreview file={form.driverLicenseFile} />
                         )}

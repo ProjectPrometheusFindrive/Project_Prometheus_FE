@@ -35,7 +35,6 @@ function normalizeFuelLabel(val) {
 
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
-  const [step, setStep] = useState(isEdit ? "details" : "upload");
   const tmpIdRef = useRef(randomId("asset"));
   const [busy, setBusy] = useState({ status: "idle", message: "", percent: 0, label: "" });
   const [preUploaded, setPreUploaded] = useState({ registration: [], insurance: [] });
@@ -353,7 +352,13 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     if (files.length > 0) {
       if (e.target.multiple) {
         console.debug("[upload-ui] asset dialog files selected:", { key, count: files.length, names: files.map(f => f.name) });
-        setForm((p) => ({ ...p, [key]: files }));
+        setForm((p) => {
+          const prev = p[key];
+          const prevArr = Array.isArray(prev)
+            ? prev
+            : (prev instanceof File ? [prev] : []);
+          return { ...p, [key]: [...prevArr, ...files] };
+        });
       } else {
         const file = files[0];
         console.debug("[upload-ui] asset dialog file selected:", { key, name: file.name, size: file.size, type: file.type });
@@ -416,14 +421,27 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
               파일을 선택하면 미리보기가 표시됩니다.
             </div>
           ) : Array.isArray(value) ? (
-            <FilesPreviewCarousel files={value} className="asset-doc__carousel" />
+            <FilesPreviewCarousel
+              files={value}
+              className="asset-doc__carousel"
+              onChange={(next) => setForm((p) => ({ ...p, [key]: next }))}
+            />
           ) : (
             <FilePreview file={value} />
           )}
         </div>
         <div className="asset-doc__upload-row">
           <label className="asset-doc__upload-button" htmlFor={`asset-${key}`}>
-            <span className="asset-doc__upload-icon" aria-hidden="true" />
+            <span className="asset-doc__upload-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M17 10.0944L10.8539 15.8909C10.101 16.6011 9.07974 17 8.01492 17C6.9501 17 5.92889 16.6011 5.17594 15.8909C4.423 15.1808 4 14.2177 4 13.2134C4 12.2092 4.423 11.246 5.17594 10.5359L11.322 4.73937C11.824 4.26596 12.5048 4 13.2147 4C13.9246 4 14.6054 4.26596 15.1073 4.73937C15.6093 5.21279 15.8913 5.85487 15.8913 6.52438C15.8913 7.19389 15.6093 7.83598 15.1073 8.30939L8.95456 14.1059C8.70358 14.3426 8.36317 14.4756 8.00823 14.4756C7.65329 14.4756 7.31289 14.3426 7.06191 14.1059C6.81093 13.8692 6.66993 13.5482 6.66993 13.2134C6.66993 12.8787 6.81093 12.5576 7.06191 12.3209L12.7399 6.97221"
+                  stroke="#1C1C1C"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
             <span className="asset-doc__upload-label">파일 및 사진 추가</span>
             <input
               id={`asset-${key}`}
@@ -437,7 +455,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             />
           </label>
           <div className="asset-doc__upload-count">
-            {count > 0 ? `${count}개 선택됨` : "선택된 파일 없음"}
+            {count > 0 ? `${count} / ${count}` : "0 / 0"}
           </div>
         </div>
       </div>
@@ -500,7 +518,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         )}
         {infoRow(
           "연식",
-          <div className="flex items-center gap-2 flex-nowrap">
+          <div className="flex items-center gap-2 flex-nowrap" style={{ width: "100%" }}>
             <select id="asset-year" name="year" className="form-input flex-1 min-w-0" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
               {(() => {
                 const CURRENT_YEAR = new Date().getFullYear();
@@ -653,159 +671,42 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
                 docBoxView("자동차 등록증", registrationDocUrl, asset.registrationDocName)
               )}
             </div>
-          <div className="asset-info grid-info">
-            {infoRow("제조사", asset.make || "")}
-            {infoRow("차종", asset.model || "")}
-            {infoRow("연식", asset.year || "")}
-            {infoRow("연료 타입", asset.fuelType || "")}
-            {infoRow("차량번호", asset.plate || "")}
-            {infoRow("차대번호(VIN)", asset.vin || "")}
-            {infoRow("차량가액", asset.vehicleValue || "")}
-          </div>
+            <div className="asset-info grid-info asset-info--two-col">
+              {infoRow("제조사", asset.make || "")}
+              {infoRow("차량번호", asset.plate || "")}
+              {infoRow("차종", asset.model || "")}
+              {infoRow("차대번호 (VIN)", asset.vin || "")}
+              {infoRow("연식", asset.year || "")}
+              {infoRow("차량가액 (원)", asset.vehicleValue || "")}
+              {infoRow("연료타입", asset.fuelType || "")}
+            </div>
           </>
         ) : (
           <>
-            <div className="asset-docs-section mb-4">
+            <div className="asset-docs-section">
               {docBoxEdit("원리금 상환 계획표", "insuranceDoc")}
               {docBoxEdit("자동차 등록증", "registrationDoc")}
             </div>
-            <div className="min-h-[26px] mt-1">
-              <UploadProgress status={busy.status} percent={busy.percent} label={busy.label} variant="bar" />
-            </div>
-            <div className="asset-dialog__footer flex justify-end gap-2" style={{ marginTop: 8 }}>
-              <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={busy.status !== "idle"}>
-                업로드 및 자동 채움
+            {busy.status === "idle" ? (
+              <button
+                type="button"
+                className="asset-upload-action-btn"
+                onClick={handleUploadAndOcr}
+              >
+                <span>업로드 및 자동채움</span>
               </button>
-            </div>
+            ) : (
+              <div className="asset-upload-action-btn">
+                <UploadProgress
+                  status={busy.status}
+                  percent={busy.percent}
+                  label={busy.label}
+                  variant="bar"
+                />
+              </div>
+            )}
+            <div className="asset-form-separator" />
 
-            <div className="asset-info grid-info">
-              {infoRow(
-                "제조사",
-                <div className="flex items-center gap-2 flex-nowrap">
-                  <input id="asset-make" name="make" className="form-input flex-1 min-w-0" value={form.make} onChange={(e) => setForm((p) => ({ ...p, make: e.target.value }))} placeholder="예: 현대" />
-                  <OcrSuggestionPicker items={fieldSuggestions.make || []} onApply={applySuggestion("make")} showLabel={false} maxWidth={200} />
-                </div>
-              )}
-              {infoRow(
-                "차종",
-                <div className="flex items-center gap-2 flex-nowrap">
-                  <input id="asset-model" name="model" className="form-input flex-1 min-w-0" value={form.model} onChange={(e) => setForm((p) => ({ ...p, model: e.target.value }))} placeholder="예: 쏘나타" />
-                  <OcrSuggestionPicker items={fieldSuggestions.model || []} onApply={applySuggestion("model")} showLabel={false} maxWidth={200} />
-                </div>
-              )}
-              {infoRow(
-                "연식",
-                <div className="flex items-center gap-2 flex-nowrap">
-                  <select id="asset-year" name="year" className="form-input flex-1 min-w-0" value={form.year} onChange={(e) => setForm((p) => ({ ...p, year: e.target.value }))}>
-                    {(() => {
-                      const CURRENT_YEAR = new Date().getFullYear();
-                      const YEAR_START = 1990;
-                      const options = [{ value: "", label: "선택" }].concat(
-                        Array.from({ length: CURRENT_YEAR - YEAR_START + 1 }, (_, i) => {
-                          const y = CURRENT_YEAR - i;
-                          return { value: String(y), label: String(y) };
-                        })
-                      );
-                      return options.map((opt) => (
-                        <option key={opt.value} value={opt.value}>{opt.label}</option>
-                      ));
-                    })()}
-                  </select>
-                  <OcrSuggestionPicker items={(fieldSuggestions.year || []).map((it) => ({ ...it, value: String(it.value) }))} onApply={applySuggestion("year")} showLabel={false} maxWidth={140} />
-                </div>
-              )}
-              {infoRow(
-                "연료 타입",
-                (() => {
-                  const base = ["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"];
-                  const suggestedRaw = (fieldSuggestions.fuelType || [])
-                    .map((it) => String(it.value || "").trim())
-                    .filter(Boolean);
-                  const suggestedNormalized = new Set(suggestedRaw.map((s) => normalizeFuelLabel(s)));
-                  const ordered = base.slice();
-                  const highlightStyle = { backgroundColor: "#e3f2fd", color: "#1e3a8a" };
-                  const selectedValue = normalizeFuelLabel(form.fuelType);
-                  return (
-                    <div className="flex items-center gap-2 flex-nowrap">
-                      <select
-                        id="asset-fuelType"
-                        name="fuelType"
-                        className="form-input"
-                        value={selectedValue}
-                        onChange={(e) => setForm((p) => ({ ...p, fuelType: normalizeFuelLabel(e.target.value) }))}
-                      >
-                        {ordered.map((v, i) => {
-                          const label = v || "선택";
-                          const normalized = normalizeFuelLabel(v);
-                          const isSuggested = v && suggestedNormalized.has(normalized);
-                          return (
-                            <option
-                              key={v ? v : `_empty_${i}`}
-                              value={v}
-                              data-suggested={isSuggested ? "true" : undefined}
-                              style={isSuggested ? highlightStyle : undefined}
-                            >
-                              {label}
-                            </option>
-                          );
-                        })}
-                      </select>
-                      <OcrSuggestionPicker items={fieldSuggestions.fuelType || []} onApply={() => { /* no auto-apply for fuel */ }} showLabel={false} maxWidth={140} />
-                    </div>
-                  );
-                })()
-              )}
-              {infoRow(
-                "차량번호",
-                <div className="flex items-center gap-2 w-full flex-wrap">
-                  <input id="asset-plate" name="plate"
-                    className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
-                    value={form.plate}
-                    onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
-                    onBlur={(e) => {
-                      const v = normalizeKoreanPlate(e.target.value);
-                      if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
-                    }}
-                    aria-invalid={isPlateInvalid ? true : undefined}
-                    placeholder="예: 28가2345"
-                  />
-                  {isPlateInvalid && (
-                    <span aria-live="polite" className="text-red-700 text-[12px]">올바르지 않은 형식</span>
-                  )}
-                  <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} showLabel={false} maxWidth={200} />
-                </div>
-              )}
-              {infoRow(
-                "차대번호(VIN)",
-                <div className="flex items-center gap-2 flex-nowrap">
-                  <input id="asset-vin" name="vin" className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
-                  <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
-                </div>
-              )}
-              {infoRow(
-                "차량가액(원)",
-                <div className="flex items-center gap-2 flex-nowrap w-full">
-                  <input id="asset-vehicleValue" name="vehicleValue"
-                    className="form-input flex-1"
-                    type="text"
-                    value={form.vehicleValue}
-                    onChange={(e) => setForm((p) => ({ ...p, vehicleValue: formatCurrency(e.target.value) }))}
-                    inputMode="numeric"
-                    maxLength={20}
-                    placeholder="예: 25,000,000"
-                  />
-                  <OcrSuggestionPicker
-                    items={fieldSuggestions.vehicleValue || []}
-                    onApply={(val) => {
-                      const raw = val == null ? "" : String(val);
-                      setForm((p) => ({ ...p, vehicleValue: formatCurrency(raw) }));
-                    }}
-                    showLabel={false}
-                    maxWidth={200}
-                  />
-                </div>
-              )}
-            </div>
             {!isEdit && (
               <div className="asset-info grid-info asset-info--two-col">
                 {infoRow(
@@ -892,9 +793,9 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
                       maxWidth={200}
                     />
                   </div>
-                )}
-                {infoRow(
-                  "연료타입",
+        )}
+        {infoRow(
+          "연료타입",
                   (() => {
                     const base = ["", "가솔린", "디젤", "전기", "하이브리드", "LPG", "수소", "기타"];
                     const suggestedRaw = (fieldSuggestions.fuelType || [])
@@ -905,7 +806,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
                     const highlightStyle = { backgroundColor: "#e3f2fd", color: "#1e3a8a" };
                     const selectedValue = normalizeFuelLabel(form.fuelType);
                     return (
-                      <div className="flex items-center gap-2 flex-nowrap">
+                      <div className="flex items-center gap-2 flex-nowrap" style={{ width: "100%" }}>
                         <select
                           id="asset-fuelType"
                           name="fuelType"
@@ -939,24 +840,33 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
           </>
         )}
 
-        {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
-          <div className="mt-4">
-            <div className="asset-doc__title mb-2">등록 정보</div>
-            <div className="asset-dates">
-              {asset.purchaseDate && dateItem("차량 구매일", asset.purchaseDate)}
-              {(asset.registrationDate || asset.systemRegDate) && dateItem("전산 등록일", asset.registrationDate || asset.systemRegDate)}
-              {asset.systemDelDate && dateItem("전산 삭제일", asset.systemDelDate)}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="asset-dialog__footer">
+        <button type="button" className="form-button form-button--close" onClick={onClose}>닫기</button>
         {!isEdit && (
-          <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
+          <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
         )}
-        <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>
+      {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
+        <div className="asset-history-lines">
+          {asset.purchaseDate && (
+            <div className="asset-history__line">
+              차량 구매일: {formatDateShort(asset.purchaseDate)}
+            </div>
+          )}
+          {(asset.registrationDate || asset.systemRegDate) && (
+            <div className="asset-history__line">
+              전산 등록일: {formatDateShort(asset.registrationDate || asset.systemRegDate)}
+            </div>
+          )}
+          {asset.systemDelDate && (
+            <div className="asset-history__line">
+              전산 삭제일: {formatDateShort(asset.systemDelDate)}
+            </div>
+          )}
+        </div>
+      )}
       <DocumentViewer
         isOpen={viewer.open}
         onClose={() => setViewer((v) => ({ ...v, open: false }))}

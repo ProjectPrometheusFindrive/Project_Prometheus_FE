@@ -78,7 +78,10 @@ export default function DeviceInfoForm({ initial = {}, onSubmit, readOnly = fals
           </div>
           {!readOnly && Array.isArray(form.photos) && form.photos.length > 0 && (
             <div className="mt-2">
-              <FilesPreviewCarousel files={form.photos} />
+              <FilesPreviewCarousel
+                files={form.photos}
+                onChange={(next) => update("photos", next)}
+              />
             </div>
           )}
         </div>

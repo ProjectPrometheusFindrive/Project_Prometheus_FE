@@ -67,7 +67,10 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 disabled={readOnly}
             >
                 {Array.isArray(form.insuranceDoc) ? (
-                    <FilesPreviewCarousel files={form.insuranceDoc} />
+                    <FilesPreviewCarousel
+                        files={form.insuranceDoc}
+                        onChange={(next) => update("insuranceDoc", next)}
+                    />
                 ) : (
                     <FilePreview file={form.insuranceDoc} />
                 )}
@@ -85,7 +88,10 @@ export default function AssetForm({ initial = {}, readOnly = false, onSubmit, fo
                 disabled={readOnly}
             >
                 {Array.isArray(form.registrationDoc) ? (
-                    <FilesPreviewCarousel files={form.registrationDoc} />
+                    <FilesPreviewCarousel
+                        files={form.registrationDoc}
+                        onChange={(next) => update("registrationDoc", next)}
+                    />
                 ) : (
                     <FilePreview file={form.registrationDoc} />
                 )}

@@ -1,4 +1,4 @@
-.file-preview {
+ .file-preview {
   width: 100%;
   min-height: 200px;
   border: 1px solid #e0e0e0;
@@ -7,6 +7,7 @@
   background-color: #fafafa;
   display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .file-preview--empty,
@@ -79,28 +80,37 @@
 
 /* File Info */
 .file-preview__info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  padding: 12px 16px;
-  background-color: #f5f5f5;
-  border-top: 1px solid #e0e0e0;
   font-size: 13px;
+}
+
+.file-preview--image .file-preview__info,
+.file-preview--pdf .file-preview__info,
+.file-preview--video .file-preview__info {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
 }
 
 .file-preview__filename {
   font-weight: 500;
-  color: #424242;
+  color: #f9fafb;
   word-break: break-all;
 }
 
 .file-preview__filesize,
 .file-preview__filetype {
-  color: #757575;
+  color: #e5e7eb;
   font-size: 12px;
 }
 
-/* Unsupported file info styling */
+/* Unsupported file info styling keeps previous block layout */
 .file-preview--unsupported .file-preview__info {
   background-color: transparent;
   border-top: none;
@@ -128,6 +138,19 @@
   .file-preview__video {
     max-height: 300px;
   }
+}
+
+/* Compact file preview when used inside asset upload boxes (자산등록 팝업) */
+.modal--asset-register .asset-doc--upload .file-preview {
+  min-height: 0;
+  height: 100%;
+}
+.modal--asset-register .asset-doc--upload .file-preview__image,
+.modal--asset-register .asset-doc--upload .file-preview__video {
+  max-height: 100%;
+}
+.modal--asset-register .asset-doc--upload .file-preview__pdf-viewer {
+  height: 100%;
 }
 
 
