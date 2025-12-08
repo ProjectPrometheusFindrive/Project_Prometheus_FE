@@ -3087,6 +3087,14 @@ html {
 [data-theme='dark'] .asset-table tbody td { color: #e5e7eb; }
 [data-theme='dark'] .asset-table thead th { color: #e5e7eb; }
 
+/* Toolbar buttons (asset/contract/member tables) */
+[data-theme='dark'] .toolbar-button {
+  color: #e5e7eb !important;
+}
+[data-theme='dark'] .toolbar-button:hover {
+  color: #f9fafb !important;
+}
+
 /* Badges: tone down bright backgrounds in dark mode */
 [data-theme='dark'] .badge { border: 1px solid rgba(148,163,184,0.16); }
 [data-theme='dark'] .badge--default,
