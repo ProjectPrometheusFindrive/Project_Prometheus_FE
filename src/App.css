@@ -1752,6 +1752,32 @@ body {
     gap: 0;
 }
 
+.asset-view-layout {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.asset-view-main {
+    flex: 2 1 0;
+    min-width: 0;
+}
+
+.asset-view-side {
+    flex: 1 1 0;
+    min-width: 0;
+}
+
+@media (max-width: 1024px) {
+    .asset-view-layout {
+        flex-direction: column;
+    }
+}
+
+.modal--asset-view .asset-dialog {
+    padding-bottom: 0;
+}
+
 .asset-docs-section {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -1759,7 +1785,13 @@ body {
 }
 
 .modal--asset-register .asset-docs-section {
-    margin-top: 40px;
+    margin-top: 30px;
+}
+
+/* Figma spacing for view-mode docs row */
+.modal--asset-register .asset-docs-section.mb-4 {
+    margin-top: 30px;
+    margin-bottom: 60px;
 }
 
 @media (max-width: 768px) {
@@ -1870,6 +1902,12 @@ body {
     padding: 0;
 }
 
+.asset-doc.asset-doc--view {
+    background: transparent;
+    border: none;
+    padding: 0;
+}
+
 .asset-doc--upload .asset-doc__title {
     margin-bottom: 6px;
     font-size: 14px;
@@ -1967,8 +2005,22 @@ body {
 
 .asset-dialog__footer {
     margin-top: 20px;
-    padding-top: 20px;
+    padding-top: 10px;
     border-top: 2px solid #1C1C1C;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 10px;
+}
+
+.asset-dialog__footer.asset-dialog__footer--main {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    padding-top: 10;
+}
+
+.asset-dialog__footer-actions {
     display: flex;
     justify-content: flex-start;
     gap: 10px;
@@ -2149,8 +2201,8 @@ body {
 }
 
 .asset-history-lines {
-    margin-top: 8px;
-    padding-top: 4px;
+    margin-bottom: 20px;
+    padding-top: 0;
     display: flex;
     flex-direction: column;
     gap: 2px;
@@ -2159,6 +2211,12 @@ body {
 }
 .asset-history__line {
     line-height: 1.4;
+}
+
+.asset-history__line.asset-history__line--reg {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
 
 [data-theme='dark'] .asset-history-lines {
@@ -2178,6 +2236,14 @@ body {
     color: #e5e7eb;
 }
 [data-theme='dark'] .modal--asset-register [data-layer="자산등록"] {
+    color: #e5e7eb !important;
+}
+[data-theme='dark'] .modal--asset-register [data-layer="자산확인"] {
+    color: #e5e7eb !important;
+}
+[data-theme='dark'] .modal--asset-register [data-layer="보험 등록"],
+[data-theme='dark'] .modal--asset-register [data-layer="보험 수정"],
+[data-theme='dark'] .modal--asset-register [data-layer="보험확인"] {
     color: #e5e7eb !important;
 }
 [data-theme='dark'] .modal--asset-register .modal-header__close::before,
@@ -2278,6 +2344,123 @@ body {
 
 [data-theme='dark'] .asset-form-separator {
     background: rgba(255, 255, 255, 0.08);
+}
+
+/* Insurance dialog styles (보험 다이얼로그) */
+.insurance-special-terms {
+    margin-top: 20px;
+    padding: 16px;
+    background: #FAFAFA;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.insurance-special-terms .asset-info__label {
+    margin-bottom: 8px;
+}
+
+.insurance-special-terms__content {
+    font-size: 14px;
+    line-height: 22px;
+    color: #1C1C1C;
+    white-space: pre-wrap;
+}
+
+/* 특약사항 입력란 - 한 줄 전체 차지 */
+.asset-info.grid-info.asset-info--two-col .asset-info__label:has(+ .asset-info__value .insurance-full-row) {
+    grid-column: 1;
+}
+
+.asset-info.grid-info.asset-info--two-col .asset-info__value:has(.insurance-full-row) {
+    grid-column: 2 / -1;
+}
+
+.insurance-full-row {
+    width: 100%;
+}
+
+.insurance-history-section {
+    margin-top: 24px;
+}
+
+.insurance-history-section .asset-doc__title {
+    margin-bottom: 12px;
+}
+
+.insurance-history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.insurance-history-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: #FAFAFA;
+    border-radius: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.insurance-history-item__type {
+    font-size: 12px;
+    font-weight: 600;
+    color: #006CEC;
+    padding: 2px 8px;
+    background: rgba(0, 108, 236, 0.08);
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.insurance-history-item__date {
+    font-size: 12px;
+    color: #888888;
+    white-space: nowrap;
+}
+
+.insurance-history-item__info {
+    font-size: 13px;
+    color: #1C1C1C;
+    flex: 1;
+}
+
+/* Dark mode for insurance dialog */
+[data-theme='dark'] .insurance-special-terms {
+    background: #020617;
+    border-color: #1f2937;
+}
+
+[data-theme='dark'] .insurance-special-terms__content {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .insurance-special-terms__textarea {
+    background: #020617;
+    border-color: #1f2937;
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .insurance-special-terms__textarea:focus {
+    border-color: #3b82f6;
+}
+
+[data-theme='dark'] .insurance-history-item {
+    background: #020617;
+    border-color: #1f2937;
+}
+
+[data-theme='dark'] .insurance-history-item__type {
+    color: #93c5fd;
+    background: rgba(59, 130, 246, 0.15);
+}
+
+[data-theme='dark'] .insurance-history-item__date {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .insurance-history-item__info {
+    color: #e5e7eb;
 }
 
 /*
