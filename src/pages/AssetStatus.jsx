@@ -1596,6 +1596,7 @@ export default function AssetStatus() {
                 showFooter={false}
                 showHeaderClose={false}
                 className="modal--asset-register"
+                ariaLabel={editingAssetId ? "자산정보" : "자산등록"}
                 customHeaderContent={
                     <div className="modal-header">
                         <div
@@ -1609,7 +1610,7 @@ export default function AssetStatus() {
                             }}
                         >
                             <div
-                                data-layer="자산등록"
+                                data-layer={editingAssetId ? "자산정보" : "자산등록"}
                                 style={{
                                     justifyContent: "center",
                                     display: "flex",
@@ -1622,7 +1623,7 @@ export default function AssetStatus() {
                                     wordWrap: "break-word",
                                 }}
                             >
-                                자산등록
+                                {editingAssetId ? "자산정보" : "자산등록"}
                             </div>
                             <button
                                 type="button"
@@ -1683,9 +1684,79 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showInsuranceModal && !!insuranceAsset}
                 onClose={closeInsuranceModal}
-                title={`${insuranceReadOnly ? "보험 정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")} - ${insuranceAsset?.plate || ""}`}
                 showFooter={false}
                 showHeaderClose={false}
+                className={insuranceReadOnly ? "modal--asset-register modal--asset-view" : "modal--asset-register"}
+                ariaLabel={insuranceReadOnly ? "보험정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")}
+                customHeaderContent={
+                    <div className="modal-header">
+                        <div
+                            data-layer="Frame 427319202"
+                            className="modal-header__row Frame427319202"
+                            style={{
+                                alignSelf: "stretch",
+                                alignItems: "flex-end",
+                                justifyContent: "space-between",
+                                display: "flex",
+                            }}
+                        >
+                            <div
+                                data-layer={insuranceReadOnly ? "보험정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")}
+                                style={{
+                                    justifyContent: "center",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    color: "#1C1C1C",
+                                    fontSize: 20,
+                                    fontFamily: "Pretendard",
+                                    fontWeight: 700,
+                                    lineHeight: "30px",
+                                    wordWrap: "break-word",
+                                }}
+                            >
+                                {insuranceReadOnly ? "보험정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")}
+                            </div>
+                            <button
+                                type="button"
+                                data-svg-wrapper
+                                data-layer="Btn_closed"
+                                className="BtnClosed"
+                                aria-label="닫기"
+                                onClick={closeInsuranceModal}
+                                style={{
+                                    position: "relative",
+                                    width: 36,
+                                    height: 36,
+                                    padding: 0,
+                                    border: "none",
+                                    background: "transparent",
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <svg
+                                    width="36"
+                                    height="36"
+                                    viewBox="0 0 36 36"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M25.6154 9C25.9977 8.61765 26.6176 8.61765 27 9C27.3824 9.38235 27.3824 10.0023 27 10.3846L10.3846 27C10.0023 27.3824 9.38235 27.3824 9 27C8.61765 26.6177 8.61765 25.9977 9 25.6154L25.6154 9Z"
+                                        fill="#1C1C1C"
+                                    />
+                                    <path
+                                        d="M27 25.6154C27.3824 25.9977 27.3824 26.6177 27 27C26.6176 27.3824 25.9977 27.3824 25.6154 27L9 10.3846C8.61765 10.0023 8.61765 9.38235 9 9C9.38235 8.61765 10.0023 8.61765 10.3846 9L27 25.6154Z"
+                                        fill="#1C1C1C"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="modal-header__line" />
+                    </div>
+                }
             >
                 <InsuranceDialog asset={insuranceAsset || {}} onClose={closeInsuranceModal} onSubmit={handleInsuranceSubmit} readOnly={insuranceReadOnly} allowEditToggle />
             </Modal>
@@ -1740,46 +1811,107 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showInfoModal && infoVehicle}
                 onClose={() => setShowInfoModal(false)}
-                title={`차량 상세 정보${infoVehicle?.asset?.plate ? ` - ${infoVehicle.asset.plate}` : ""}`}
                 showFooter={false}
-                ariaLabel="차량 상세 정보"
-                className="modal-large"
+                showHeaderClose={false}
+                ariaLabel="자산정보"
+                className="modal--asset-register modal--asset-view"
+                customHeaderContent={
+                    <div className="modal-header">
+                        <div
+                            data-layer="Frame 427319202"
+                            className="modal-header__row Frame427319202"
+                            style={{
+                                alignSelf: "stretch",
+                                alignItems: "flex-end",
+                                justifyContent: "space-between",
+                                display: "flex",
+                            }}
+                        >
+                            <div
+                                data-layer="자산정보"
+                                style={{
+                                    justifyContent: "center",
+                                    display: "flex",
+                                    flexDirection: "column",
+                                    color: "#1C1C1C",
+                                    fontSize: 20,
+                                    fontFamily: "Pretendard",
+                                    fontWeight: 700,
+                                    lineHeight: "30px",
+                                    wordWrap: "break-word",
+                                }}
+                            >
+                                자산정보
+                            </div>
+                            <button
+                                type="button"
+                                data-svg-wrapper
+                                data-layer="Btn_closed"
+                                className="BtnClosed"
+                                aria-label="닫기"
+                                onClick={() => setShowInfoModal(false)}
+                                style={{
+                                    position: "relative",
+                                    width: 36,
+                                    height: 36,
+                                    padding: 0,
+                                    border: "none",
+                                    background: "transparent",
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <svg
+                                    width="36"
+                                    height="36"
+                                    viewBox="0 0 36 36"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M25.6154 9C25.9977 8.61765 26.6176 8.61765 27 9C27.3824 9.38235 27.3824 10.0023 27 10.3846L10.3846 27C10.0023 27.3824 9.38235 27.3824 9 27C8.61765 26.6177 8.61765 25.9977 9 25.6154L25.6154 9Z"
+                                        fill="#1C1C1C"
+                                    />
+                                    <path
+                                        d="M27 25.6154C27.3824 25.9977 27.3824 26.6177 27 27C26.6176 27.3824 25.9977 27.3824 25.6154 27L9 10.3846C8.61765 10.0023 8.61765 9.38235 9 9C9.38235 8.61765 10.0023 8.61765 10.3846 9L27 25.6154Z"
+                                        fill="#1C1C1C"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="modal-header__line" />
+                    </div>
+                }
             >
-                <div className="grid-2col">
-                    <section className="card card-padding">
-                        <h3 className="section-title section-margin-0">자산 정보</h3>
-                        <InfoGrid
-                            items={[
-                                { key: "plate", label: "차량번호", value: <strong>{infoVehicle?.asset?.plate || "-"}</strong> },
-                                { key: "vehicleType", label: "차종", value: infoVehicle?.asset?.vehicleType },
-                                { key: "makeModel", label: "제조사/모델", value: [infoVehicle?.asset?.make, infoVehicle?.asset?.model], type: "makeModel" },
-                                { key: "yearFuel", label: "연식/연료", value: [infoVehicle?.asset?.year, infoVehicle?.asset?.fuelType], type: "yearFuel" },
-                                { key: "vin", label: "VIN", value: infoVehicle?.asset?.vin || infoVehicle?.vin },
-                                { key: "insurance", label: "보험/공제", value: infoVehicle?.asset?.insuranceInfo },
-                                { key: "registrationDate", label: "차량 등록일", value: infoVehicle?.asset?.registrationDate, type: "date" },
-                                { key: "status", label: "등록 상태", value: infoVehicle?.asset?.registrationStatus },
-                                { key: "installer", label: "설치자", value: infoVehicle?.asset?.installer },
-                                { key: "deviceSerial", label: "기기 시리얼", value: infoVehicle?.asset?.deviceSerial },
-                            ]}
+                <div className="asset-view-layout">
+                    <div className="asset-view-main">
+                        <AssetDialog
+                            asset={infoVehicle?.asset || {}}
+                            mode="edit"
+                            onClose={() => setShowInfoModal(false)}
+                            requireDocs={false}
                         />
-                    </section>
-
-                    <section className="card card-padding">
-                        <h3 className="section-title section-margin-0">대여 정보</h3>
-                        <InfoGrid
-                            items={[
-                                { key: "rentalId", label: "계약번호", value: infoVehicle?.rental?.rentalId },
-                                { key: "renterName", label: "대여자", value: infoVehicle?.rental?.renterName },
-                                { key: "contact", label: "연락처", value: infoVehicle?.rental?.contactNumber },
-                                { key: "address", label: "주소", value: infoVehicle?.rental?.address },
-                                { key: "period", label: "대여 기간", value: infoVehicle?.rental?.rentalPeriod, type: "dateRange" },
-                                { key: "insurance", label: "보험사", value: infoVehicle?.rental?.insuranceName },
-                                { key: "rentalLocation", label: "대여 위치", value: infoVehicle?.rental?.rentalLocation, type: "location" },
-                                { key: "returnLocation", label: "반납 위치", value: infoVehicle?.rental?.returnLocation, type: "location" },
-                                { key: "currentLocation", label: "현재 위치", value: infoVehicle?.rental?.currentLocation, type: "location" },
-                            ]}
-                        />
-                    </section>
+                    </div>
+                    {infoVehicle?.rental && (
+                        <section className="asset-view-side card card-padding">
+                            <h3 className="section-title section-margin-0">대여 정보</h3>
+                            <InfoGrid
+                                items={[
+                                    { key: "rentalId", label: "계약번호", value: infoVehicle?.rental?.rentalId },
+                                    { key: "renterName", label: "대여자", value: infoVehicle?.rental?.renterName },
+                                    { key: "contact", label: "연락처", value: infoVehicle?.rental?.contactNumber },
+                                    { key: "address", label: "주소", value: infoVehicle?.rental?.address },
+                                    { key: "period", label: "대여 기간", value: infoVehicle?.rental?.rentalPeriod, type: "dateRange" },
+                                    { key: "insurance", label: "보험사", value: infoVehicle?.rental?.insuranceName },
+                                    { key: "rentalLocation", label: "대여 위치", value: infoVehicle?.rental?.rentalLocation, type: "location" },
+                                    { key: "returnLocation", label: "반납 위치", value: infoVehicle?.rental?.returnLocation, type: "location" },
+                                    { key: "currentLocation", label: "현재 위치", value: infoVehicle?.rental?.currentLocation, type: "location" },
+                                ]}
+                            />
+                        </section>
+                    )}
                 </div>
             </Modal>
 

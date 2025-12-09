@@ -1,5 +1,4 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { formatDateShort } from "../utils/date";
 import { ALLOWED_MIME_TYPES } from "../constants/uploads";
 import { uploadOneOCR } from "../utils/uploadHelpers";
 import FilePreview from "./FilePreview";
@@ -11,6 +10,19 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
 import OcrSuggestionPicker from "./OcrSuggestionPicker";
 import { emitToast } from "../utils/toast";
+
+function formatFullDateDot(value) {
+  try {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    const yyyy = String(d.getFullYear());
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}. ${mm}. ${dd}`;
+  } catch {
+    return "";
+  }
+}
 
 export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnly = false, allowEditToggle = false }) {
   const [form, setForm] = useState({
@@ -32,7 +44,6 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
   const { companyInfo } = useCompany();
   const companyId = (auth?.user?.companyId || companyInfo?.companyId || "ci");
   const ocrFolderBase = `company/${companyId}/docs`;
-  const hasExisting = !!(asset?.insuranceExpiryDate || asset?.insuranceCompany || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0));
 
   useEffect(() => {
     // Keep read-only state in sync
@@ -45,7 +56,7 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
 
   // Sync form fields when asset prop updates (e.g., after fetching /assets/{id}/insurance)
   useEffect(() => {
-    setForm((prev) => ({
+    setForm(() => ({
       insuranceCompany: asset.insuranceCompany || "",
       insuranceProduct: asset.insuranceProduct || "",
       insuranceStartDate: asset.insuranceStartDate || "",
@@ -261,163 +272,274 @@ export default function InsuranceDialog({ asset = {}, onClose, onSubmit, readOnl
     onSubmit && onSubmit(patch);
   };
 
-  const infoRow = (label, input) => (
+  const infoRow = (label, value) => (
     <>
       <div className="asset-info__label">{label}</div>
-      <div>{input}</div>
+      <div className="asset-info__value">{value ?? <span className="empty">-</span>}</div>
     </>
   );
 
+  const docBoxEdit = (title, key, accept = "image/*,application/pdf") => {
+    const value = form[key];
+    const files = Array.isArray(value) ? value.filter(Boolean) : (value ? [value] : []);
+    const count = files.length;
+
+    return (
+      <div className="asset-doc asset-doc--upload">
+        <div className="asset-doc__title">{title}</div>
+        <div className="asset-doc__box">
+          {count === 0 ? (
+            <div className="asset-doc__placeholder">
+              파일을 선택하면 미리보기가 표시됩니다.
+            </div>
+          ) : Array.isArray(value) ? (
+            <FilesPreviewCarousel
+              files={value}
+              className="asset-doc__carousel"
+              onChange={(next) => setForm((p) => ({ ...p, [key]: next }))}
+            />
+          ) : (
+            <FilePreview file={value} />
+          )}
+        </div>
+        <div className="asset-doc__upload-row">
+          <label className="asset-doc__upload-button" htmlFor={`insurance-${key}`}>
+            <span className="asset-doc__upload-icon" aria-hidden="true">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                  d="M17 10.0944L10.8539 15.8909C10.101 16.6011 9.07974 17 8.01492 17C6.9501 17 5.92889 16.6011 5.17594 15.8909C4.423 15.1808 4 14.2177 4 13.2134C4 12.2092 4.423 11.246 5.17594 10.5359L11.322 4.73937C11.824 4.26596 12.5048 4 13.2147 4C13.9246 4 14.6054 4.26596 15.1073 4.73937C15.6093 5.21279 15.8913 5.85487 15.8913 6.52438C15.8913 7.19389 15.6093 7.83598 15.1073 8.30939L8.95456 14.1059C8.70358 14.3426 8.36317 14.4756 8.00823 14.4756C7.65329 14.4756 7.31289 14.3426 7.06191 14.1059C6.81093 13.8692 6.66993 13.5482 6.66993 13.2134C6.66993 12.8787 6.81093 12.5576 7.06191 12.3209L12.7399 6.97221"
+                  stroke="#1C1C1C"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
+            <span className="asset-doc__upload-label">파일 및 사진 추가</span>
+            <input
+              id={`insurance-${key}`}
+              name={key}
+              type="file"
+              accept={accept}
+              multiple
+              onChange={onFile}
+              className="sr-only"
+            />
+          </label>
+          <div className="asset-doc__upload-count">
+            {count > 0 ? `${count} / ${count}` : "0 / 0"}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
-    <div className="asset-dialog">
+    <div className={`asset-dialog ${isReadOnly ? "asset-dialog--edit" : "asset-dialog--create"}`}>
       <div className="asset-dialog__body">
+        {isReadOnly ? (
+          // 보험 확인 모드 (View Mode)
           <>
-            <div className="asset-doc mb-3">
-              <div className="asset-doc__title">{isReadOnly ? "보험증권" : "보험증권"}</div>
-              {/* Existing saved docs (read-only or when editing with previous history) */}
+            <div className="asset-docs-section mb-4">
               {(() => {
-                // Prefer insuranceDocList [{name, objectName}]
                 const list = Array.isArray(asset.insuranceDocList)
                   ? asset.insuranceDocList
                   : (Array.isArray(asset.insuranceDocGcsObjectNames)
                       ? asset.insuranceDocGcsObjectNames.map((obj, idx) => ({ name: (asset.insuranceDocNames && asset.insuranceDocNames[idx]) || `보험서류 ${idx + 1}`, objectName: obj }))
                       : []);
                 return list.length > 0 ? (
-                <div className="mt-3">
-                  <MultiDocGallery title="등록된 보험 서류" items={list} />
-                </div>
-                ) : null;
-              })()}
-
-              {/* OCR 업로드 (상단에서 바로 실행) */}
-              {!isReadOnly && (
-                <div className="mt-3">
-                  <div className="font-semibold mb-1.5">보험증권 업로드 (자동 채움)</div>
-                  <input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    capture="environment"
-                    multiple
-                    onChange={onFile}
-                    className="mb-2"
-                  />
-                  {Array.isArray(form.insuranceDoc) ? (
-                    <div className="mb-2">
-                      <FilesPreviewCarousel
-                        files={form.insuranceDoc}
-                        onChange={(next) => setForm((p) => ({ ...p, insuranceDoc: next }))}
-                      />
+                  <MultiDocGallery title="보험증권" items={list} />
+                ) : (
+                  <div className="asset-doc asset-doc--view">
+                    <div className="asset-doc__title">보험증권</div>
+                    <div
+                      className="asset-doc__box Box32"
+                      style={{
+                        width: 330,
+                        height: 198,
+                        background: "#FAFAFA",
+                        borderRadius: 6,
+                        border: "1px rgba(0, 0, 0, 0.08) solid",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <div className="asset-doc__placeholder">등록하신 문서가 없습니다.</div>
                     </div>
-                  ) : (form.insuranceDoc ? <div className="mb-2"><FilePreview file={form.insuranceDoc} /></div> : null)}
-                  {(busy.status === "uploading" || busy.status === "ocr") && (
-                    <div className="w-full mt-1 mb-2"><UploadProgress status={busy.status} percent={busy.percent} label={busy.message || (busy.status === 'ocr' ? '자동 채움 처리 중...' : undefined)} /></div>
-                  )}
-                  <div className="flex gap-2">
-                    <button type="button" className="form-button" onClick={handleUploadAndOcr} disabled={!form.insuranceDoc || busy.status !== 'idle'}>
-                      업로드 및 자동 채움
-                    </button>
-                    {form.insuranceDoc && (
-                      <button type="button" className="form-button form-button--muted" onClick={() => setForm((p) => ({ ...p, insuranceDoc: null }))}>
-                        선택 해제
-                      </button>
-                    )}
                   </div>
-
-                </div>
-              )}
+                );
+              })()}
             </div>
 
-            <div className="asset-doc__title mb-1.5">세부 정보</div>
-            <div className="asset-info grid-info">
+            <div className="asset-info grid-info asset-info--two-col">
+              {infoRow("보험사명", asset.insuranceCompany || "")}
+              {infoRow("보험 상품", asset.insuranceProduct || "")}
+              {infoRow("보험 가입일", asset.insuranceStartDate ? formatFullDateDot(asset.insuranceStartDate) : "")}
+              {infoRow("보험 만료일", asset.insuranceExpiryDate ? formatFullDateDot(asset.insuranceExpiryDate) : "")}
+              {infoRow("특약사항", <span className="insurance-full-row">{asset.insuranceSpecialTerms || ""}</span>)}
+            </div>
+          </>
+        ) : (
+          // 보험 등록/수정 모드 (Create/Edit Mode)
+          <>
+            <div className="asset-docs-section">
+              {docBoxEdit("보험증권", "insuranceDoc")}
+            </div>
+            {busy.status === "idle" ? (
+              <button
+                type="button"
+                className="asset-upload-action-btn"
+                onClick={handleUploadAndOcr}
+                disabled={!form.insuranceDoc}
+              >
+                <span>업로드 및 자동채움</span>
+              </button>
+            ) : (
+              <div className="asset-upload-action-btn">
+                <UploadProgress
+                  status={busy.status}
+                  percent={busy.percent}
+                  label={busy.message || (busy.status === 'ocr' ? '자동 채움 처리 중...' : undefined)}
+                  variant="bar"
+                />
+              </div>
+            )}
+            <div className="asset-form-separator" />
+
+            <div className="asset-info grid-info asset-info--two-col">
               {infoRow(
                 "보험사명",
-                <>
+                <div className="flex items-center gap-2 flex-nowrap">
                   <input
-                    className="form-input"
+                    id="insurance-company"
+                    name="insuranceCompany"
+                    className="form-input flex-1 min-w-0"
                     value={form.insuranceCompany}
                     onChange={(e) => setForm((p) => ({ ...p, insuranceCompany: e.target.value }))}
-                    placeholder={isReadOnly ? undefined : "예: 현대해상"}
-                    disabled={isReadOnly}
+                    placeholder="예: 현대해상"
                   />
-                  {!isReadOnly && <OcrSuggestionPicker items={fieldSuggestions.insuranceCompany || []} onApply={(v) => setForm((p) => ({ ...p, insuranceCompany: String(v || "") }))} showLabel={false} maxWidth={220} />}
-                </>
+                  <OcrSuggestionPicker items={fieldSuggestions.insuranceCompany || []} onApply={(v) => setForm((p) => ({ ...p, insuranceCompany: String(v || "") }))} showLabel={false} maxWidth={200} />
+                </div>
               )}
               {infoRow(
                 "보험 상품",
-                <>
+                <div className="flex items-center gap-2 flex-nowrap">
                   <input
-                    className="form-input"
+                    id="insurance-product"
+                    name="insuranceProduct"
+                    className="form-input flex-1 min-w-0"
                     value={form.insuranceProduct}
                     onChange={(e) => setForm((p) => ({ ...p, insuranceProduct: e.target.value }))}
-                    placeholder={isReadOnly ? undefined : "예: 자동차종합보험(개인용)"}
-                    disabled={isReadOnly}
+                    placeholder="예: 자동차종합보험(개인용)"
                   />
-                  {!isReadOnly && <OcrSuggestionPicker items={fieldSuggestions.insuranceProduct || []} onApply={(v) => setForm((p) => ({ ...p, insuranceProduct: String(v || "") }))} showLabel={false} maxWidth={240} />}
-                </>
+                  <OcrSuggestionPicker items={fieldSuggestions.insuranceProduct || []} onApply={(v) => setForm((p) => ({ ...p, insuranceProduct: String(v || "") }))} showLabel={false} maxWidth={200} />
+                </div>
               )}
               {infoRow(
                 "보험 가입일",
-                <>
-                  <input className="form-input" type="date" value={form.insuranceStartDate} onChange={(e) => setForm((p) => ({ ...p, insuranceStartDate: e.target.value }))} disabled={isReadOnly} />
-                  {!isReadOnly && <OcrSuggestionPicker items={fieldSuggestions.insuranceStartDate || []} onApply={(v) => setForm((p) => ({ ...p, insuranceStartDate: String(v || "") }))} showLabel={false} maxWidth={180} />}
-                </>
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <input
+                    id="insurance-start-date"
+                    name="insuranceStartDate"
+                    className="form-input flex-1 min-w-0"
+                    type="date"
+                    value={form.insuranceStartDate}
+                    onChange={(e) => setForm((p) => ({ ...p, insuranceStartDate: e.target.value }))}
+                  />
+                  <OcrSuggestionPicker items={fieldSuggestions.insuranceStartDate || []} onApply={(v) => setForm((p) => ({ ...p, insuranceStartDate: String(v || "") }))} showLabel={false} maxWidth={180} />
+                </div>
               )}
               {infoRow(
                 "보험 만료일",
-                <>
-                  <input className="form-input" type="date" value={form.insuranceExpiryDate} onChange={(e) => setForm((p) => ({ ...p, insuranceExpiryDate: e.target.value }))} disabled={isReadOnly} />
-                  {!isReadOnly && <OcrSuggestionPicker items={fieldSuggestions.insuranceExpiryDate || []} onApply={(v) => setForm((p) => ({ ...p, insuranceExpiryDate: String(v || "") }))} showLabel={false} maxWidth={180} />}
-                </>
-              )}
-              <div className="asset-info__label">특약사항</div>
-              <div>
-                <textarea
-                  className="form-input"
-                  rows={3}
-                  value={form.specialTerms}
-                  onChange={(e) => setForm((p) => ({ ...p, specialTerms: e.target.value }))}
-                  placeholder={isReadOnly ? undefined : "예: 긴급출동 포함, 자기부담금 20만원"}
-                  disabled={isReadOnly}
-                />
-                {!isReadOnly && <div className="mt-1.5"><OcrSuggestionPicker items={fieldSuggestions.insuranceSpecialTerms || []} onApply={(v) => setForm((p) => ({ ...p, specialTerms: String(v || "") }))} showLabel={true} maxWidth={360} /></div>}
-              </div>
-            </div>
-
-            {Array.isArray(asset.insuranceHistory) && asset.insuranceHistory.length > 0 && (
-              <div className="mt-4">
-                <div className="asset-doc__title mb-1.5">변경 이력</div>
-                <div className="flex flex-col gap-1.5">
-                  {asset.insuranceHistory
-                    .slice()
-                    .sort((a, b) => new Date(a.startDate || a.date || 0) - new Date(b.startDate || b.date || 0))
-                    .map((h, idx) => {
-                      const when = formatDateShort(h.date || h.startDate || "");
-                      const label = h.type === "등록" ? "보험 등록" : "보험 갱신(기존 보험 만료 또는 변경으로 인한)";
-                      return (
-                        <div key={`${h.date || h.startDate || idx}-${h.company || ''}`} className="asset-history__item">
-                          <div className="text-[12px]">{label} {when}</div>
-                          <div className="text-[12px] text-gray-600">
-                            {(h.company || "") + (h.product ? ` ${h.product}` : "")} · {h.startDate || "-"} ~ {h.expiryDate || "-"}
-                          </div>
-                        </div>
-                      );
-                    })}
+                <div className="flex items-center gap-2 flex-nowrap">
+                  <input
+                    id="insurance-expiry-date"
+                    name="insuranceExpiryDate"
+                    className="form-input flex-1 min-w-0"
+                    type="date"
+                    value={form.insuranceExpiryDate}
+                    onChange={(e) => setForm((p) => ({ ...p, insuranceExpiryDate: e.target.value }))}
+                  />
+                  <OcrSuggestionPicker items={fieldSuggestions.insuranceExpiryDate || []} onApply={(v) => setForm((p) => ({ ...p, insuranceExpiryDate: String(v || "") }))} showLabel={false} maxWidth={180} />
                 </div>
-              </div>
-            )}
+              )}
+              {infoRow(
+                "특약사항",
+                <div className="flex items-center gap-2 flex-nowrap insurance-full-row">
+                  <input
+                    id="insurance-special-terms"
+                    name="specialTerms"
+                    className="form-input flex-1 min-w-0"
+                    value={form.specialTerms}
+                    onChange={(e) => setForm((p) => ({ ...p, specialTerms: e.target.value }))}
+                    placeholder="예: 긴급출동 포함, 자기부담금 20만원"
+                  />
+                  <OcrSuggestionPicker items={fieldSuggestions.insuranceSpecialTerms || []} onApply={(v) => setForm((p) => ({ ...p, specialTerms: String(v || "") }))} showLabel={false} maxWidth={200} />
+                </div>
+              )}
+            </div>
           </>
+        )}
       </div>
 
-      <div className="asset-dialog__footer flex justify-end gap-2">
-        {!isReadOnly && (
-          <button type="button" className="form-button" onClick={handleSave} disabled={uploadState.status === 'uploading'}>
-            {(asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) ? '저장' : '등록'}
-          </button>
+      <div className="asset-dialog__footer asset-dialog__footer--main">
+        {isReadOnly && Array.isArray(asset.insuranceHistory) && asset.insuranceHistory.length > 0 && (
+          <div className="asset-history-lines">
+            {(
+              asset.insuranceHistory
+                .slice()
+                .sort((a, b) => new Date(a.startDate || a.date || 0) - new Date(b.startDate || b.date || 0))
+                .map((h, idx) => {
+                  const when = formatFullDateDot(h.date || h.startDate || "");
+                  const label = h.type === "등록" ? "보험 등록" : "보험 갱신";
+                  const info = (h.company || "") + (h.product ? ` ${h.product}` : "");
+                  return (
+                    <div key={`${h.date || h.startDate || idx}-${h.company || ''}`} className="asset-history__line asset-history__line--reg">
+                      <div
+                        style={{
+                          justifyContent: "center",
+                          display: "flex",
+                          flexDirection: "column",
+                          color: "#888888",
+                          fontSize: 12,
+                          fontFamily: "Pretendard",
+                          fontWeight: 400,
+                          lineHeight: "18px",
+                        }}
+                      >
+                        {label}
+                      </div>
+                      <div
+                        style={{
+                          justifyContent: "center",
+                          display: "flex",
+                          flexDirection: "column",
+                          color: "#1C1C1C",
+                          fontSize: 12,
+                          fontFamily: "Pretendard",
+                          fontWeight: 400,
+                          lineHeight: "18px",
+                        }}
+                      >
+                        {when}{info ? ` (${info})` : ""}
+                      </div>
+                    </div>
+                  );
+                })
+            )}
+          </div>
         )}
-        {allowEditToggle && isReadOnly && (asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) && (
-          <button type="button" className="form-button" onClick={() => setIsReadOnly(false)}>수정</button>
-        )}
-        <button type="button" className="form-button" onClick={onClose}>닫기</button>
+        <div className="asset-dialog__footer-actions">
+          {allowEditToggle && isReadOnly && (asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) && (
+            <button type="button" className="form-button form-button--close" onClick={() => setIsReadOnly(false)}>수정</button>
+          )}
+          <button type="button" className="form-button form-button--close" onClick={onClose}>닫기</button>
+          {!isReadOnly && (
+            <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={uploadState.status === 'uploading'}>
+              {(asset?.insuranceExpiryDate || asset?.insuranceInfo || (Array.isArray(asset?.insuranceHistory) && asset.insuranceHistory.length > 0)) ? '저장' : '등록'}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );

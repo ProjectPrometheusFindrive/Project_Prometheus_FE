@@ -33,6 +33,19 @@ function normalizeFuelLabel(val) {
   return v;
 }
 
+function formatFullDateDot(value) {
+  try {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return "";
+    const yyyy = String(d.getFullYear());
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}. ${mm}. ${dd}`;
+  } catch {
+    return "";
+  }
+}
+
 export default function AssetDialog({ asset = {}, mode = "create", onClose, onSubmit, requireDocs = true }) {
   const isEdit = mode === "edit";
   const tmpIdRef = useRef(randomId("asset"));
@@ -376,7 +389,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         return <div className="text-[12px] text-gray-600">문서 불러오는 중…</div>;
       }
       if (!url) {
-        return <div className="empty">문서 없음</div>;
+        return <div className="asset-doc__placeholder">등록하신 문서가 없습니다.</div>;
       }
       const lower = String(docName || "").toLowerCase();
       const isPdf = lower.endsWith('.pdf') || url.includes('content-type=application%2Fpdf');
@@ -398,9 +411,24 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     };
 
     return (
-      <div className="asset-doc">
+      <div className="asset-doc asset-doc--view">
         <div className="asset-doc__title">{title}</div>
-        <div className="asset-doc__box min-h-20 p-2" aria-label={`${title} 미리보기 영역`}>
+        <div
+          data-layer="box_3:2"
+          className="asset-doc__box Box32"
+          style={{
+            width: 330,
+            height: 198,
+            background: "#FAFAFA",
+            borderRadius: 6,
+            border: "1px rgba(0, 0, 0, 0.08) solid",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            overflow: "hidden",
+          }}
+          aria-label={`${title} 미리보기 영역`}
+        >
           {renderContent()}
         </div>
       </div>
@@ -842,31 +870,65 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
       </div>
 
-      <div className="asset-dialog__footer">
-        <button type="button" className="form-button form-button--close" onClick={onClose}>닫기</button>
-        {!isEdit && (
-          <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
+      <div className="asset-dialog__footer asset-dialog__footer--main">
+        {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
+          <div className="asset-history-lines">
+            {asset.purchaseDate && (
+              <div className="asset-history__line">
+                차량 구매일: {formatDateShort(asset.purchaseDate)}
+              </div>
+            )}
+            {(asset.registrationDate || asset.systemRegDate) && (
+              <div className="asset-history__line asset-history__line--reg">
+                <div
+                  data-layer="전산등록일"
+                  style={{
+                    justifyContent: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    color: "#888888",
+                    fontSize: 12,
+                    fontFamily: "Pretendard",
+                    fontWeight: 400,
+                    lineHeight: "18px",
+                    wordWrap: "break-word",
+                  }}
+                >
+                  전산등록일
+                </div>
+                <div
+                  data-layer="전산등록일-값"
+                  className="0912"
+                  style={{
+                    justifyContent: "center",
+                    display: "flex",
+                    flexDirection: "column",
+                    color: "#1C1C1C",
+                    fontSize: 12,
+                    fontFamily: "Pretendard",
+                    fontWeight: 400,
+                    lineHeight: "18px",
+                    wordWrap: "break-word",
+                  }}
+                >
+                  {formatFullDateDot(asset.registrationDate || asset.systemRegDate)}
+                </div>
+              </div>
+            )}
+            {asset.systemDelDate && (
+              <div className="asset-history__line">
+                전산 삭제일: {formatDateShort(asset.systemDelDate)}
+              </div>
+            )}
+          </div>
         )}
-      </div>
-      {(asset.purchaseDate || asset.registrationDate || asset.systemRegDate || asset.systemDelDate) && (
-        <div className="asset-history-lines">
-          {asset.purchaseDate && (
-            <div className="asset-history__line">
-              차량 구매일: {formatDateShort(asset.purchaseDate)}
-            </div>
-          )}
-          {(asset.registrationDate || asset.systemRegDate) && (
-            <div className="asset-history__line">
-              전산 등록일: {formatDateShort(asset.registrationDate || asset.systemRegDate)}
-            </div>
-          )}
-          {asset.systemDelDate && (
-            <div className="asset-history__line">
-              전산 삭제일: {formatDateShort(asset.systemDelDate)}
-            </div>
+        <div className="asset-dialog__footer-actions">
+          <button type="button" className="form-button form-button--close" onClick={onClose}>닫기</button>
+          {!isEdit && (
+            <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
           )}
         </div>
-      )}
+      </div>
       <DocumentViewer
         isOpen={viewer.open}
         onClose={() => setViewer((v) => ({ ...v, open: false }))}
