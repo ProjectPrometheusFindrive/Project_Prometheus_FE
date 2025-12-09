@@ -32,6 +32,7 @@
 - If you accidentally commit cross-feature work on an existing branch, create a new branch at that commit (e.g., `git branch feat/company-settings-geofence <commit>`) and reset the original branch if needed.
 - Use `origin` (`ProjectPrometheusFindrive/Project_Prometheus_FE`) as the single source of truth for pushes and PRs. When using `gh`, ensure PRs target this repo (set it as default or pass `--repo ProjectPrometheusFindrive/Project_Prometheus_FE`).
 - When creating PRs with `gh pr create`, avoid embedding literal `\n` in `--body`. Prefer Markdown via `--body-file` or edit the body afterwards so PR descriptions render with proper sections (e.g., “변경 내용”, “테스트”) and real newlines.
+- Draft PR bodies in the gitignored `docs_temp` folder (e.g., `docs_temp/pr_body.md`) so you can feed them to `--body-file`, and delete the temporary file immediately after creating or updating the PR to keep the workspace clean.
 
 ## Security & Configuration Tips
 - Environment: use `VITE_`-prefixed vars. Do not commit secrets; prefer `.env.local` for local keys.
