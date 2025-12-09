@@ -223,8 +223,8 @@ export default function Settings() {
         []
     );
 
-    const GeofenceItemMap = ({ idx, points, isEditing }) => {
-        const memoPolygons = React.useMemo(() => [points], [points]);
+    const GeofenceItemMap = ({ idx, points, isEditing, name }) => {
+        const memoPolygons = React.useMemo(() => [{ points, name }], [points, name]);
         const onChange = React.useCallback((newPoints) => handlePointsChange(idx, newPoints), [idx]);
         return (
             <KakaoMap
@@ -716,11 +716,12 @@ export default function Settings() {
                                         idx={selectedGeofenceIdx}
                                         points={displayItems[selectedGeofenceIdx].points}
                                         isEditing={editingGeofenceIdx === selectedGeofenceIdx}
+                                        name={displayItems[selectedGeofenceIdx].name}
                                     />
                                 ) : displayItems.length > 0 ? (
                                     // 전체 보기 모드: 모든 폴리곤을 한 지도에 표시
                                     <KakaoMap
-                                        polygons={displayItems.map((item) => item.points)}
+                                        polygons={displayItems.map((item) => ({ points: item.points, name: item.name }))}
                                         height="100%"
                                         editable={false}
                                     />

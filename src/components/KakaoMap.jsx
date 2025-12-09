@@ -157,6 +157,8 @@ const KakaoMap = ({
                 if (Array.isArray(entry.vertexMarkers)) entry.vertexMarkers.forEach((m) => m && m.setMap && m.setMap(null));
                 if (Array.isArray(entry.midMarkers)) entry.midMarkers.forEach((m) => m && m.setMap && m.setMap(null));
                 if (entry.polygon && entry.polygon.setMap) entry.polygon.setMap(null);
+                if (entry.labelOverlay && entry.labelOverlay.setMap) entry.labelOverlay.setMap(null);
+                if (entry.labelOverlay) entry.labelOverlay = null;
             } catch {}
         });
         overlaysRef.current.polygons = [];
@@ -166,6 +168,74 @@ const KakaoMap = ({
         return points
             .filter((p) => p && typeof p.lat === "number" && typeof p.lng === "number")
             .map((p) => new window.kakao.maps.LatLng(p.lat, p.lng));
+    };
+
+    const normalizePolygonsInput = (rawPolygons) => {
+        if (!Array.isArray(rawPolygons)) return [];
+        return rawPolygons.map((entry, idx) => {
+            if (Array.isArray(entry)) {
+                return { id: idx, name: "", points: entry };
+            }
+            if (entry && Array.isArray(entry.points)) {
+                return {
+                    id: entry.id != null ? entry.id : idx,
+                    name: entry.name || "",
+                    points: entry.points,
+                };
+            }
+            return null;
+        });
+    };
+
+    const buildLabelElement = (label) => {
+        const element = document.createElement("div");
+        element.style.pointerEvents = "none";
+        element.style.padding = "2px 8px";
+        element.style.borderRadius = "12px";
+        element.style.backgroundColor = "rgba(255, 255, 255, 0.9)";
+        element.style.border = "1px solid rgba(11, 87, 208, 0.7)";
+        element.style.boxShadow = "0 2px 6px rgba(0, 0, 0, 0.15)";
+        element.style.color = "#0b57d0";
+        element.style.fontSize = "12px";
+        element.style.fontWeight = "600";
+        element.style.fontFamily = "Noto Sans KR, Noto Sans, Arial, sans-serif";
+        element.style.whiteSpace = "nowrap";
+        element.textContent = label;
+        return element;
+    };
+
+    const removeLabelOverlay = (entry) => {
+        if (entry?.labelOverlay) {
+            entry.labelOverlay.setMap(null);
+            entry.labelOverlay = null;
+        }
+    };
+
+    const updateLabelOverlay = (map, entry, position, rawLabel) => {
+        if (!map || !position) {
+            removeLabelOverlay(entry);
+            return;
+        }
+        const normalizedLabel = typeof rawLabel === "string" ? rawLabel.trim() : rawLabel ? String(rawLabel).trim() : "";
+        if (!normalizedLabel) {
+            removeLabelOverlay(entry);
+            return;
+        }
+        if (!entry.labelOverlay) {
+            entry.labelOverlay = new window.kakao.maps.CustomOverlay({
+                position,
+                content: buildLabelElement(normalizedLabel),
+                yAnchor: 1.1,
+                xAnchor: 0.5,
+            });
+            entry.labelOverlay.setMap(map);
+            return;
+        }
+        entry.labelOverlay.setPosition(position);
+        const currentContent = entry.labelOverlay.getContent();
+        if (currentContent && currentContent.textContent !== normalizedLabel) {
+            currentContent.textContent = normalizedLabel;
+        }
     };
 
     const attachEditHandles = (map, polygon, index) => {
@@ -293,22 +363,34 @@ const KakaoMap = ({
     };
 
     const drawOrUpdatePolygons = (map) => {
-        if (!Array.isArray(polygons) || polygons.length === 0) {
+        const normalizedPolygons = normalizePolygonsInput(polygons);
+        const hasAnyPath =
+            normalizedPolygons.some((entry) => entry && Array.isArray(entry.points) && entry.points.length > 0);
+        if (!hasAnyPath) {
             clearPolygons();
             return;
         }
-        const existing = overlaysRef.current.polygons;
-        // If count differs, clear and recreate
-        if (existing.length !== polygons.length) {
+
+        let existing = overlaysRef.current.polygons;
+        if (existing.length !== normalizedPolygons.length) {
             clearPolygons();
+            existing = overlaysRef.current.polygons;
         }
 
-        const results = [];
-        for (let i = 0; i < polygons.length; i++) {
-            const pts = polygons[i];
-            if (!Array.isArray(pts) || pts.length === 0) continue;
-            const path = toLatLngPath(pts);
-            let entry = overlaysRef.current.polygons[i];
+        const results = new Array(normalizedPolygons.length);
+        for (let i = 0; i < normalizedPolygons.length; i++) {
+            const polyMeta = normalizedPolygons[i];
+            if (!polyMeta || !Array.isArray(polyMeta.points) || polyMeta.points.length === 0) {
+                results[i] = null;
+                continue;
+            }
+            const path = toLatLngPath(polyMeta.points);
+            if (path.length === 0) {
+                results[i] = null;
+                continue;
+            }
+
+            let entry = existing[i];
             if (!entry) {
                 const polygon = new window.kakao.maps.Polygon({
                     path,
@@ -326,11 +408,9 @@ const KakaoMap = ({
                 const handles = attachEditHandles(map, polygon, i);
                 entry = { polygon, ...handles };
             } else {
-                // Update path and colors according to editable
                 entry.polygon.setPath(path);
                 try {
                     const currentPath = entry.polygon.getPath();
-                    // Reposition existing handles if counts match
                     if (Array.isArray(entry.vertexMarkers) && entry.vertexMarkers.length === currentPath.length) {
                         entry.vertexMarkers.forEach((vm, k) => vm.setPosition(currentPath[k]));
                     }
@@ -345,9 +425,11 @@ const KakaoMap = ({
                     }
                 } catch {}
             }
+            const labelPosition = (entry.polygon.getPath && entry.polygon.getPath()[0]) || path[0];
+            updateLabelOverlay(map, entry, labelPosition, polyMeta.name);
             results[i] = entry;
         }
-        overlaysRef.current.polygons = results.filter(Boolean);
+        overlaysRef.current.polygons = results;
     };
 
     const drawOrUpdatePolylines = (map, options = {}) => {
