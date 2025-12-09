@@ -15,10 +15,9 @@ import {
     updateGeofence,
     deleteGeofence,
 } from "../api";
-import { CountBadge, GeofenceBadge } from "../components/badges/StatusBadge";
+import { GeofenceBadge } from "../components/badges/StatusBadge";
 import DocumentViewer from "../components/DocumentViewer";
 import GCSImage from "../components/GCSImage";
-import DragDropUpload from "../components/DragDropUpload";
 import { getSignedDownloadUrl } from "../utils/gcsApi";
 import { uploadOne } from "../utils/uploadHelpers";
 import { typedStorage } from "../utils/storage";
@@ -150,12 +149,8 @@ export default function Settings() {
                 setViewData(base);
                 setEditData(base);
                 setGeofenceList(list);
-                // 구역 목록이 있을 때는 1번(인덱스 0)을 기본 선택
-                if (list.length > 0) {
-                    setSelectedGeofenceIdx(0);
-                } else {
-                    setSelectedGeofenceIdx(null);
-                }
+                // 초기에는 전체 보기 모드 (selectedGeofenceIdx = null)
+                setSelectedGeofenceIdx(null);
             }
             } catch (e) {
                 console.error("Failed to load or migrate company info", e);
@@ -487,17 +482,30 @@ export default function Settings() {
                             ) : (
                                 <img src={defaultLogoUrl} alt="Default Logo" className="settings-logo" />
                             )}
-                            <div className="settings-logo-overlay">
-                                {folder && (
-                                    <DragDropUpload
-                                        folder={folder}
-                                        accept="image/png,image/jpeg,image/jpg,image/webp"
-                                        multiple={false}
-                                        onUploadSuccess={handleLogoUploadSuccess}
-                                        onError={(e) => console.error(e)}
-                                    />
-                                )}
-                            </div>
+                            <label className="settings-logo-overlay" htmlFor="ci-upload-input">
+                                <span className="settings-logo-overlay__text">수정하기</span>
+                                <input
+                                    id="ci-upload-input"
+                                    type="file"
+                                    accept="image/png,image/jpeg,image/jpg,image/webp"
+                                    className="sr-only"
+                                    onChange={async (e) => {
+                                        const file = e.target.files?.[0];
+                                        if (!file || !folder) return;
+                                        try {
+                                            const result = await uploadOne(file, { folder, label: "logo" });
+                                            if (result?.objectName) {
+                                                handleLogoUploadSuccess(result.objectName);
+                                                emitToast("CI가 업데이트되었습니다.", "success");
+                                            }
+                                        } catch (err) {
+                                            console.error("CI upload error:", err);
+                                            emitToast("CI 업로드에 실패했습니다.", "error");
+                                        }
+                                        e.target.value = "";
+                                    }}
+                                />
+                            </label>
                         </div>
                         <div className="settings-company-name">
                             {companyInfo?.companyName || auth?.user?.companyName || "회사명"}
@@ -576,7 +584,13 @@ export default function Settings() {
                         <div className="settings-card__header">
                             <div className="settings-card__icon"><MapPinIcon /></div>
                             <h3>지오펜스 관리</h3>
-                            <CountBadge count={displayItems.length} label="개 구역" />
+                            <button
+                                type="button"
+                                className={`settings-geofence-overview-btn ${selectedGeofenceIdx === null && !isAddingNew ? "settings-geofence-overview-btn--active" : ""}`}
+                                onClick={() => { setSelectedGeofenceIdx(null); setIsAddingNew(false); setEditingGeofenceIdx(null); }}
+                            >
+                                {displayItems.length}개 구역 전체 보기
+                            </button>
                         </div>
 
                         {/* 지오펜스 레이아웃 */}
@@ -704,10 +718,12 @@ export default function Settings() {
                                         isEditing={editingGeofenceIdx === selectedGeofenceIdx}
                                     />
                                 ) : displayItems.length > 0 ? (
-                                    <div className="settings-map-placeholder">
-                                        <MapPinIcon />
-                                        <p>좌측에서 구역을 선택하세요</p>
-                                    </div>
+                                    // 전체 보기 모드: 모든 폴리곤을 한 지도에 표시
+                                    <KakaoMap
+                                        polygons={displayItems.map((item) => item.points)}
+                                        height="100%"
+                                        editable={false}
+                                    />
                                 ) : (
                                     <div className="settings-map-placeholder">
                                         <MapPinIcon />
