@@ -27,6 +27,12 @@
 - PRs must include: clear description, linked issues, screenshots/GIFs for UI changes, testing notes (commands, steps), and any doc updates (README, API spec).
 - Keep PRs focused and small; avoid unrelated refactors.
 
+### Branch & PR Workflow (for agents)
+- Create dedicated feature branches per concern (e.g., `feat/asset-view-popup-design`, `feat/company-settings-geofence`) instead of mixing Settings changes with other work.
+- If you accidentally commit cross-feature work on an existing branch, create a new branch at that commit (e.g., `git branch feat/company-settings-geofence <commit>`) and reset the original branch if needed.
+- Use `origin` (`ProjectPrometheusFindrive/Project_Prometheus_FE`) as the single source of truth for pushes and PRs. When using `gh`, ensure PRs target this repo (set it as default or pass `--repo ProjectPrometheusFindrive/Project_Prometheus_FE`).
+- When creating PRs with `gh pr create`, avoid embedding literal `\n` in `--body`. Prefer Markdown via `--body-file` or edit the body afterwards so PR descriptions render with proper sections (e.g., “변경 내용”, “테스트”) and real newlines.
+
 ## Security & Configuration Tips
 - Environment: use `VITE_`-prefixed vars. Do not commit secrets; prefer `.env.local` for local keys.
 - Real API base configured via `VITE_API_BASE_URL` (see `src/api/index.js`).
