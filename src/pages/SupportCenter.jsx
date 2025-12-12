@@ -4,31 +4,6 @@ import { useCompany } from "../contexts/CompanyContext";
 import SupportRequestForm from "../components/support/SupportRequestForm";
 import "./SupportCenter.css";
 
-// 아이콘 컴포넌트
-const HeadsetIcon = () => (
-  <svg style={{ width: 32, height: 32 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 18.75a6 6 0 006-6v-1.5m-6 7.5a6 6 0 01-6-6v-1.5m6 7.5v3.75m-3.75 0h7.5M12 15.75a3 3 0 01-3-3V4.5a3 3 0 116 0v8.25a3 3 0 01-3 3z" />
-  </svg>
-);
-
-const MailIcon = () => (
-  <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-  </svg>
-);
-
-const ClockIcon = () => (
-  <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-);
-
-const PhoneIcon = () => (
-  <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
-  </svg>
-);
-
 const ChevronDownIcon = ({ isOpen }) => (
   <svg
     style={{
@@ -70,21 +45,42 @@ const FAQ_ITEMS = [
     question: "계정 권한 변경이나 담당자 변경은 어떻게 하나요?",
     answer: "'계정 / 권한 관련'을 선택하여 변경 요청을 접수해주세요. 보안상 본인 확인 절차가 필요할 수 있습니다.",
   },
+  {
+    question: "문의 상태는 어디서 확인할 수 있나요?",
+    answer: "접수된 문의는 담당자가 확인 후 등록된 이메일 또는 연락처로 진행 상황을 안내드립니다. 추가 정보가 필요하면 별도 연락을 드립니다.",
+  },
+  {
+    question: "첨부파일은 어떤 형식과 용량까지 업로드할 수 있나요?",
+    answer: "일반적인 이미지(PNG, JPG)와 PDF, Excel 파일을 지원하며, 단일 파일 기준 약 20MB 이하 업로드를 권장합니다. 대용량 자료가 필요하면 링크 형태로 남겨주세요.",
+  },
+  {
+    question: "서비스 이용 가이드나 교육 자료를 받을 수 있나요?",
+    answer: "도입/온보딩 자료가 필요하면 문의 유형을 '기타 문의'로 선택해 요청해주세요. 사용 가이드, 계정 설정 방법, 운영 베스트 프랙티스 등을 전달드립니다.",
+  },
+  {
+    question: "데이터 정정이나 로그 확인을 요청하려면 어떻게 해야 하나요?",
+    answer: "관련 화면 캡처와 원하는 기간, 대상(차량/계정)을 포함해 문의를 남겨주세요. 필요한 경우 추가 확인을 위해 담당자가 연락드립니다.",
+  },
 ];
 
 // FAQ 아이템 컴포넌트
 function FAQItem({ question, answer, isOpen, onToggle }) {
   return (
     <div className="support-faq-item">
-      <button type="button" onClick={onToggle} className="support-faq-question">
+      <button
+        type="button"
+        onClick={onToggle}
+        className="support-faq-question"
+        aria-expanded={isOpen}
+      >
         <span>{question}</span>
         <ChevronDownIcon isOpen={isOpen} />
       </button>
       <div
         style={{
           overflow: 'hidden',
-          transition: 'max-height 0.2s ease-in-out, opacity 0.2s ease-in-out',
-          maxHeight: isOpen ? 160 : 0,
+          transition: 'max-height 0.25s ease-in-out, opacity 0.2s ease-in-out',
+          maxHeight: isOpen ? 400 : 0,
           opacity: isOpen ? 1 : 0,
         }}
       >
@@ -151,50 +147,15 @@ function SupportCenter() {
 
           {/* 우측: 사이드바 */}
           <div className="support-sidebar">
-            {/* 연락처 정보 카드 */}
-            <section className="support-card">
-              <h3>연락처 정보</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                <div className="support-contact-item">
-                  <div className="support-contact-icon support-contact-icon--email">
-                    <MailIcon />
-                  </div>
-                  <div>
-                    <p className="support-contact-label">이메일</p>
-                    <p className="support-contact-value">prometheus.rok@gmail.com</p>
-                  </div>
-                </div>
-                <div className="support-contact-item">
-                  <div className="support-contact-icon support-contact-icon--phone">
-                    <PhoneIcon />
-                  </div>
-                  <div>
-                    <p className="support-contact-label">전화</p>
-                    <p className="support-contact-value">1588-0000</p>
-                  </div>
-                </div>
-                <div className="support-contact-item">
-                  <div className="support-contact-icon support-contact-icon--time">
-                    <ClockIcon />
-                  </div>
-                  <div>
-                    <p className="support-contact-label">운영 시간</p>
-                    <p className="support-contact-value">평일 09:00 ~ 18:00</p>
-                    <p className="support-contact-sub">주말/공휴일 휴무</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
             {/* FAQ 섹션 */}
-            <section className="support-card">
+            <section className="support-card support-card--faq">
               <div className="support-faq-header">
                 <div className="support-faq-icon">
                   <QuestionIcon />
                 </div>
                 <h3 style={{ margin: 0 }}>자주 묻는 질문</h3>
               </div>
-              <div>
+              <div className="support-faq-list">
                 {FAQ_ITEMS.map((item, index) => (
                   <FAQItem
                     key={index}
@@ -204,22 +165,6 @@ function SupportCenter() {
                     onToggle={() => toggleFAQ(index)}
                   />
                 ))}
-              </div>
-            </section>
-
-            {/* 긴급 문의 안내 */}
-            <section className="support-emergency">
-              <div style={{ position: 'absolute', right: -24, top: -24, width: 80, height: 80, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-              <div style={{ position: 'absolute', left: -16, bottom: -16, width: 64, height: 64, borderRadius: '50%', background: 'rgba(255,255,255,0.1)' }} />
-              <div style={{ position: 'relative', zIndex: 10 }}>
-                <h3>긴급 장애 신고</h3>
-                <p>
-                  서비스 이용이 불가능한 긴급 상황 시 아래 번호로 연락해주세요
-                </p>
-                <div className="support-emergency-phone">
-                  <PhoneIcon />
-                  <span style={{ fontWeight: 600 }}>1588-0000</span>
-                </div>
               </div>
             </section>
           </div>

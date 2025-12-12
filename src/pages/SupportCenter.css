@@ -67,64 +67,18 @@
     padding: 20px;
 }
 
+.support-card--faq {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+}
+
 .support-card h3 {
     font-size: 14px;
     font-weight: 600;
     color: #111827;
     margin-top: 0;
     margin-bottom: 16px;
-}
-
-/* Contact Info */
-.support-contact-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 12px;
-}
-
-.support-contact-icon {
-    display: flex;
-    width: 36px;
-    height: 36px;
-    align-items: center;
-    justify-content: center;
-    border-radius: 8px;
-    flex-shrink: 0;
-}
-
-.support-contact-icon--email {
-    background: #eff6ff;
-    color: #2563eb;
-}
-
-.support-contact-icon--phone {
-    background: #dcfce7;
-    color: #16a34a;
-}
-
-.support-contact-icon--time {
-    background: #f3e8ff;
-    color: #9333ea;
-}
-
-.support-contact-label {
-    font-size: 12px;
-    color: #6b7280;
-    margin: 0;
-}
-
-.support-contact-value {
-    font-size: 14px;
-    font-weight: 500;
-    color: #111827;
-    margin: 0;
-}
-
-.support-contact-sub {
-    font-size: 12px;
-    color: #9ca3af;
-    margin-top: 2px;
-    margin-bottom: 0;
 }
 
 /* FAQ */
@@ -148,6 +102,12 @@
 
 .support-faq-item {
     border-bottom: 1px solid #f3f4f6;
+}
+
+.support-faq-list {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
 }
 
 .support-faq-question {
@@ -183,44 +143,6 @@
     padding-right: 4px;
     line-height: 1.6;
     margin: 0;
-}
-
-/* Emergency Card */
-.support-emergency {
-    position: relative;
-    overflow: hidden;
-    border-radius: 16px;
-    background: linear-gradient(135deg, #64748b 0%, #475569 100%);
-    padding: 20px;
-    color: white;
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-}
-
-.support-emergency h3 {
-    color: white;
-    margin-bottom: 8px;
-}
-
-.support-emergency p {
-    font-size: 12px;
-    color: rgba(203, 213, 225, 1);
-    line-height: 1.5;
-    margin-bottom: 12px;
-    margin-top: 0;
-}
-
-.support-emergency-phone {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 8px;
-    padding: 8px 12px;
-    backdrop-filter: blur(4px);
 }
 
 /* Form Styles */
@@ -439,33 +361,6 @@
 
 [data-theme='dark'] .support-card h3 {
     color: #f1f5f9;
-}
-
-[data-theme='dark'] .support-contact-label {
-    color: #94a3b8;
-}
-
-[data-theme='dark'] .support-contact-value {
-    color: #f1f5f9;
-}
-
-[data-theme='dark'] .support-contact-sub {
-    color: #64748b;
-}
-
-[data-theme='dark'] .support-contact-icon--email {
-    background: rgba(37, 99, 235, 0.2);
-    color: #60a5fa;
-}
-
-[data-theme='dark'] .support-contact-icon--phone {
-    background: rgba(22, 163, 74, 0.2);
-    color: #4ade80;
-}
-
-[data-theme='dark'] .support-contact-icon--time {
-    background: rgba(147, 51, 234, 0.2);
-    color: #c084fc;
 }
 
 [data-theme='dark'] .support-faq-icon {
