@@ -1,14 +1,8 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { useAuth } from "../contexts/AuthContext";
-import { ROLES, isRoleAtLeast } from "../constants/auth";
+
 
 export default function NavigationBar() {
-  const { user } = useAuth();
-
-  // 회원 관리는 관리자 이상에게만 노출
-  const canManageMembers = user && isRoleAtLeast(user.role, ROLES.ADMIN);
-
   const linkClass = ({ isActive }) =>
     `navigation-bar__link ${isActive ? "is-active" : ""}`;
 
@@ -34,20 +28,6 @@ export default function NavigationBar() {
         <span className="navigation-bar__label">매출관리</span>
       </NavLink>
 
-      {canManageMembers && (
-        <NavLink to="/members" className={linkClass}>
-          <span className="navigation-bar__label">회원관리</span>
-        </NavLink>
-      )}
-
-      <NavLink
-        to="/support"
-        className={linkClass}
-      >
-        <span className="navigation-bar__label">고객센터</span>
-      </NavLink>
-
     </nav>
   );
 }
-

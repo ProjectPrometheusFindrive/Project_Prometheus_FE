@@ -11,6 +11,7 @@ import GCSImage from "./GCSImage";
 import { emitToast } from "../utils/toast";
 import log from "../utils/logger";
 import NavigationBar from "./NavigationBar";
+import { ROLES, isRoleAtLeast } from "../constants/auth";
 
 export default function TopHeader() {
     const navigate = useNavigate();
@@ -25,6 +26,9 @@ export default function TopHeader() {
     const userName = auth?.user?.name || userInfo?.name || "관리자";
     const companyNameRaw = companyInfo?.name || auth?.user?.company || userInfo?.company;
     const companyName = loading ? "" : (companyNameRaw || "");
+
+    // 회원 관리는 관리자 이상에게만 노출
+    const canManageMembers = auth?.user && isRoleAtLeast(auth.user.role, ROLES.ADMIN);
 
     const hasLogoPath = !!(companyInfo && companyInfo.logoPath);
     const hasLogoDataUrl = !!(companyInfo && companyInfo.logoDataUrl);
@@ -175,6 +179,30 @@ export default function TopHeader() {
                                 }}
                             >
                                 회사정보설정
+                            </button>
+                            {canManageMembers && (
+                                <button
+                                    type="button"
+                                    className="top-header__profile-menu-item"
+                                    role="menuitem"
+                                    onClick={() => {
+                                        setIsProfileMenuOpen(false);
+                                        navigate("/members");
+                                    }}
+                                >
+                                    회원관리
+                                </button>
+                            )}
+                            <button
+                                type="button"
+                                className="top-header__profile-menu-item"
+                                role="menuitem"
+                                onClick={() => {
+                                    setIsProfileMenuOpen(false);
+                                    navigate("/support");
+                                }}
+                            >
+                                고객센터
                             </button>
                             <button
                                 type="button"
