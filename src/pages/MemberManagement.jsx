@@ -127,7 +127,7 @@ function MemberManagement() {
             },
             {
                 key: 'role',
-                label: '역할',
+                label: '권한',
                 filterType: 'multi-select',
                 filterAllowAnd: false,
                 filterHideHeader: true,
@@ -208,7 +208,7 @@ function MemberManagement() {
                                 onClick={() => openRoleChangeModal(r)}
                                 disabled={actionLoading === r.userId}
                             >
-                                역할 변경
+                                권한 변경
                             </button>
                         </div>
                     )
@@ -394,17 +394,17 @@ function MemberManagement() {
             )
         );
         if (!canChange) {
-            emitToast('역할 변경 권한이 없습니다.', 'error');
+            emitToast('권한 변경 권한이 없습니다.', 'error');
             return;
         }
 
         // Check if role is same
         if (newRole === selectedMember.role) {
-            emitToast('현재 역할과 동일합니다.', 'warning');
+            emitToast('현재 권한과 동일합니다.', 'warning');
             return;
         }
 
-        if (!window.confirm(`${selectedMember.userId}의 역할을 "${newRole}"로 변경하시겠습니까?\n\n대상 사용자는 재로그인이 필요합니다.`)) {
+        if (!window.confirm(`${selectedMember.userId}의 권한을 "${newRole}"로 변경하시겠습니까?\n\n대상 사용자는 재로그인이 필요합니다.`)) {
             return;
         }
 
@@ -412,16 +412,16 @@ function MemberManagement() {
             setActionLoading(selectedMember.userId);
             const success = await changeMemberRole(selectedMember.userId, newRole);
             if (success) {
-                emitToast('역할이 변경되었습니다. 대상 사용자는 재로그인이 필요합니다.', 'success', 5000);
+                emitToast('권한이 변경되었습니다. 대상 사용자는 재로그인이 필요합니다.', 'success', 5000);
                 closeRoleChangeModal();
                 // Reload list to show updated data
                 await loadAllMembers();
             } else {
-                emitToast('역할 변경에 실패했습니다.', 'error');
+                emitToast('권한 변경에 실패했습니다.', 'error');
             }
         } catch (err) {
             console.error('Failed to change role:', err);
-            emitToast(err.message || '역할 변경에 실패했습니다.', 'error');
+            emitToast(err.message || '권한 변경에 실패했습니다.', 'error');
         } finally {
             setActionLoading(null);
         }
