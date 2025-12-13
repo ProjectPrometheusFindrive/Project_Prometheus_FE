@@ -13,7 +13,7 @@ export default function NavigationBar() {
       aria-label="주요 메뉴"
     >
       <NavLink to="/dashboard" className={linkClass}>
-        <span className="navigation-bar__label">대시보드</span>
+        <span className="navigation-bar__label">홈</span>
       </NavLink>
 
       <NavLink to="/assets" className={linkClass}>
