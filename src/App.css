@@ -1425,6 +1425,795 @@ body {
     color: #065f46;
 }
 
+/* =========================================
+   진단코드 상세 모달 (새 디자인)
+   ========================================= */
+.diagnostic-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.diagnostic-modal {
+    width: 100%;
+    max-width: 410px;
+    max-height: 90vh;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0px 12px 20px 5px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 헤더 */
+.diagnostic-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px 24px;
+    border-bottom: 2px solid #1C1C1C;
+}
+
+.diagnostic-modal__title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.diagnostic-modal__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 30px;
+}
+
+.diagnostic-modal__plate-badge {
+    padding: 2px 8px;
+    background: #FF3C00;
+    border-radius: 5px;
+    color: white;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 18px;
+}
+
+.diagnostic-modal__close-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #1C1C1C;
+    padding: 0;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.diagnostic-modal__close-btn:hover {
+    background: #f0f0f0;
+}
+
+/* 차량 정보 박스 */
+.diagnostic-modal__vehicle-box {
+    margin: 16px 24px;
+    padding: 20px;
+    background: rgba(26, 129, 255, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.diagnostic-modal__vehicle-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.diagnostic-modal__vehicle-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+}
+
+.diagnostic-modal__category-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 27px;
+}
+
+.diagnostic-modal__vehicle-type {
+    font-size: 14px;
+    font-weight: 500;
+    color: #FF4B14;
+    line-height: 24px;
+}
+
+/* 진단 코드 개수 텍스트 */
+.diagnostic-modal__count-text {
+    padding: 0 24px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+}
+
+.diagnostic-modal__count-highlight {
+    color: #006CEC;
+    font-weight: 400;
+}
+
+/* 테이블 래퍼 */
+.diagnostic-modal__table-wrapper {
+    flex: 1;
+    overflow: hidden;
+    padding: 0 24px;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.diagnostic-modal__table {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+/* 테이블 헤더 */
+.diagnostic-modal__table-header {
+    display: grid;
+    grid-template-columns: 50px 1fr 55px 85px;
+    gap: 8px;
+    padding: 11px 8px;
+    background: #FAFAFA;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    flex-shrink: 0;
+}
+
+.diagnostic-modal__th {
+    font-size: 12px;
+    font-weight: 600;
+    color: #1C1C1C;
+    line-height: 18px;
+}
+
+.diagnostic-modal__th--code {
+    text-align: center;
+}
+
+.diagnostic-modal__th--severity {
+    text-align: center;
+}
+
+/* 테이블 바디 */
+.diagnostic-modal__table-body {
+    flex: 1;
+    overflow-y: auto;
+    min-height: 200px;
+    max-height: 300px;
+}
+
+/* 커스텀 스크롤바 */
+.diagnostic-modal__table-body::-webkit-scrollbar {
+    width: 4px;
+}
+
+.diagnostic-modal__table-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.diagnostic-modal__table-body::-webkit-scrollbar-thumb {
+    background: #2B2B2B;
+    border-radius: 100px;
+}
+
+/* 테이블 행 */
+.diagnostic-modal__table-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 55px 85px;
+    gap: 8px;
+    padding: 8px;
+    align-items: center;
+}
+
+.diagnostic-modal__td {
+    font-size: 12px;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 18px;
+}
+
+.diagnostic-modal__td--code {
+    text-align: center;
+    color: #006CEC;
+}
+
+.diagnostic-modal__td--desc {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.diagnostic-modal__td--severity {
+    display: flex;
+    justify-content: center;
+}
+
+.diagnostic-modal__td--date {
+    font-size: 12px;
+    color: #1C1C1C;
+}
+
+/* 심각도 뱃지 */
+.diagnostic-modal__severity-badge {
+    padding: 0 6px;
+    border-radius: 3px;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.diagnostic-modal__severity-badge--high {
+    background: #FAE6E5;
+    color: #E91700;
+}
+
+.diagnostic-modal__severity-badge--medium {
+    background: #FFF3DB;
+    color: #FF9909;
+}
+
+.diagnostic-modal__severity-badge--low {
+    background: #EFFBE7;
+    color: #0CA255;
+}
+
+/* 빈 상태 */
+.diagnostic-modal__empty {
+    padding: 40px 20px;
+    text-align: center;
+    color: #666;
+    font-size: 14px;
+}
+
+/* 하단 푸터 */
+.diagnostic-modal__footer {
+    padding: 16px 24px 24px 24px;
+    border-top: 2px solid #1C1C1C;
+}
+
+.diagnostic-modal__footer-btn {
+    width: 100%;
+    padding: 14px 70px;
+    background: #ECECEC;
+    border: none;
+    border-radius: 100px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #1C1C1C;
+    line-height: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.diagnostic-modal__footer-btn:hover {
+    background: #e0e0e0;
+}
+
+/* 다크 테마 지원 */
+[data-theme='dark'] .diagnostic-modal {
+    background: #1f2937;
+}
+
+[data-theme='dark'] .diagnostic-modal__header {
+    border-bottom-color: #374151;
+}
+
+[data-theme='dark'] .diagnostic-modal__title {
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .diagnostic-modal__close-btn {
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .diagnostic-modal__close-btn:hover {
+    background: #374151;
+}
+
+[data-theme='dark'] .diagnostic-modal__vehicle-box {
+    background: rgba(26, 129, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .diagnostic-modal__category-name {
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .diagnostic-modal__count-text {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .diagnostic-modal__table-header {
+    background: #111827;
+    border-color: #374151;
+}
+
+[data-theme='dark'] .diagnostic-modal__th {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .diagnostic-modal__td {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .diagnostic-modal__table-body::-webkit-scrollbar-thumb {
+    background: #6b7280;
+}
+
+[data-theme='dark'] .diagnostic-modal__footer {
+    border-top-color: #374151;
+}
+
+[data-theme='dark'] .diagnostic-modal__footer-btn {
+    background: #374151;
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .diagnostic-modal__footer-btn:hover {
+    background: #4b5563;
+}
+
+/* =========================================
+   단말 장착 신청 모달 (새 디자인)
+   ========================================= */
+.terminal-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.terminal-modal {
+    width: 100%;
+    max-width: 410px;
+    max-height: 90vh;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0px 12px 20px 5px rgba(0, 0, 0, 0.15);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* 헤더 */
+.terminal-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 24px 24px 16px 24px;
+    border-bottom: 2px solid #1C1C1C;
+    flex-shrink: 0;
+}
+
+.terminal-modal__title {
+    margin: 0;
+    font-size: 20px;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 30px;
+}
+
+.terminal-modal__close-btn {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    color: #1C1C1C;
+    padding: 0;
+    border-radius: 4px;
+    transition: background 0.2s;
+}
+
+.terminal-modal__close-btn:hover {
+    background: #f0f0f0;
+}
+
+/* 컨텐츠 영역 */
+.terminal-modal__content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px 24px;
+}
+
+/* 에러 메시지 */
+.terminal-modal__error {
+    padding: 12px;
+    margin-bottom: 16px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 6px;
+}
+
+.terminal-modal__error-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: #991b1b;
+    margin-bottom: 4px;
+}
+
+.terminal-modal__error-msg {
+    font-size: 13px;
+    color: #b91c1c;
+}
+
+.terminal-modal__error-list {
+    margin: 8px 0 0 0;
+    padding-left: 20px;
+    font-size: 13px;
+    color: #b91c1c;
+}
+
+/* 필드 */
+.terminal-modal__field {
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 16px;
+    gap: 12px;
+}
+
+.terminal-modal__field--radio {
+    align-items: center;
+}
+
+.terminal-modal__label {
+    width: 110px;
+    flex-shrink: 0;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1C1C1C;
+    line-height: 44px;
+}
+
+.terminal-modal__input-wrap {
+    flex: 1;
+    position: relative;
+}
+
+.terminal-modal__input {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.terminal-modal__input:focus {
+    border-color: #006CEC;
+}
+
+.terminal-modal__input--error {
+    border-color: #E91700;
+}
+
+.terminal-modal__input::placeholder {
+    color: #999;
+}
+
+.terminal-modal__field-error {
+    position: absolute;
+    bottom: -18px;
+    left: 0;
+    font-size: 11px;
+    color: #E91700;
+}
+
+/* 숫자 카운터 입력 */
+.terminal-modal__input-wrap--counter {
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.terminal-modal__input--counter {
+    padding-right: 70px;
+    -moz-appearance: textfield;
+}
+
+.terminal-modal__input--counter::-webkit-outer-spin-button,
+.terminal-modal__input--counter::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.terminal-modal__counter-btns {
+    position: absolute;
+    right: 8px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.terminal-modal__counter-btn {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.2s;
+}
+
+.terminal-modal__counter-btn--minus {
+    background: #F8F8F8;
+    color: #006CEC;
+}
+
+.terminal-modal__counter-btn--minus:hover {
+    background: #006CEC;
+    color: white;
+}
+
+.terminal-modal__counter-btn--minus:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.terminal-modal__counter-btn--plus {
+    background: #F8F8F8;
+    color: #006CEC;
+}
+
+.terminal-modal__counter-btn--plus:hover {
+    background: #006CEC;
+    color: white;
+}
+
+/* 날짜 입력 */
+.terminal-modal__input-wrap--date {
+    position: relative;
+}
+
+.terminal-modal__input--date-hidden {
+    position: absolute;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+.terminal-modal__date-display {
+    width: 100%;
+    height: 44px;
+    padding: 0 14px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+}
+
+.terminal-modal__calendar-icon {
+    color: #006CEC;
+}
+
+/* 라디오 버튼 */
+.terminal-modal__radio-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex: 1;
+    justify-content: flex-end;
+}
+
+.terminal-modal__radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+}
+
+.terminal-modal__radio input[type="radio"] {
+    display: none;
+}
+
+.terminal-modal__radio-custom {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 1px solid #006CEC;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.terminal-modal__radio input[type="radio"]:checked + .terminal-modal__radio-custom {
+    background: white;
+}
+
+.terminal-modal__radio input[type="radio"]:checked + .terminal-modal__radio-custom::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #006CEC;
+}
+
+.terminal-modal__radio-label {
+    font-size: 14px;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+}
+
+/* 푸터 */
+.terminal-modal__footer {
+    padding: 16px 24px 24px 24px;
+    border-top: 2px solid #1C1C1C;
+    flex-shrink: 0;
+}
+
+.terminal-modal__footer-notice {
+    margin: 0 0 16px 0;
+    font-size: 12px;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 18px;
+}
+
+.terminal-modal__footer-btns {
+    display: flex;
+    gap: 10px;
+}
+
+.terminal-modal__btn {
+    flex: 1;
+    padding: 14px 20px;
+    border-radius: 100px;
+    border: none;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.terminal-modal__btn--cancel {
+    background: #ECECEC;
+    color: #1C1C1C;
+}
+
+.terminal-modal__btn--cancel:hover {
+    background: #e0e0e0;
+}
+
+.terminal-modal__btn--submit {
+    background: #006CEC;
+    color: white;
+}
+
+.terminal-modal__btn--submit:hover {
+    background: #0056c4;
+}
+
+.terminal-modal__btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 다크 테마 지원 */
+[data-theme='dark'] .terminal-modal {
+    background: #1f2937;
+}
+
+[data-theme='dark'] .terminal-modal__header {
+    border-bottom-color: #374151;
+}
+
+[data-theme='dark'] .terminal-modal__title {
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .terminal-modal__close-btn {
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .terminal-modal__close-btn:hover {
+    background: #374151;
+}
+
+[data-theme='dark'] .terminal-modal__label {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-modal__input {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .terminal-modal__input:focus {
+    border-color: #006CEC;
+}
+
+[data-theme='dark'] .terminal-modal__date-display {
+    background: #374151;
+    border-color: #4b5563;
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .terminal-modal__counter-btn--minus {
+    background: #4b5563;
+}
+
+[data-theme='dark'] .terminal-modal__radio-label {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-modal__footer {
+    border-top-color: #374151;
+}
+
+[data-theme='dark'] .terminal-modal__footer-notice {
+    color: #d1d5db;
+}
+
+[data-theme='dark'] .terminal-modal__btn--cancel {
+    background: #374151;
+    color: #f3f4f6;
+}
+
+[data-theme='dark'] .terminal-modal__btn--cancel:hover {
+    background: #4b5563;
+}
+
 .empty {
     color: #666;
     padding: 1rem 0;

@@ -29,6 +29,7 @@ import { getManagementStage, withManagementStage, getDiagnosticCount } from "../
 import { FaCog } from "react-icons/fa";
 import MemoHistoryModal from "../components/modals/MemoHistoryModal";
 import TerminalRequestModal from "../components/modals/TerminalRequestModal";
+import DiagnosticDetailModal from "../components/modals/DiagnosticDetailModal";
 import { MemoCell, AssetManagementStageCell, VehicleHealthCell, CompanyCell, PlateCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import useInsuranceModal from "../hooks/useInsuranceModal";
@@ -1708,60 +1709,11 @@ export default function AssetStatus() {
                 </div>
             </Modal>
 
-            <Modal
-                isOpen={showDiagnosticModal && diagnosticDetail}
+            <DiagnosticDetailModal
+                isOpen={showDiagnosticModal && !!diagnosticDetail}
                 onClose={() => setShowDiagnosticModal(false)}
-                title={`진단 코드 상세 - ${diagnosticDetail?.categoryName || ""} (${diagnosticDetail?.vehicleInfo?.plate || ""})`}
-                showFooter={false}
-                ariaLabel="진단 코드 상세 정보"
-            >
-                {diagnosticDetail && (
-                    <div className="diagnostic-detail">
-                        <div className="diagnostic-header">
-                            <div className="diagnostic-info">
-                                <h3>{diagnosticDetail.categoryName}</h3>
-                                <p>
-                                    차량: {diagnosticDetail.vehicleInfo.vehicleType} ({diagnosticDetail.vehicleInfo.plate})
-                                </p>
-                                <p>총 {diagnosticDetail.count}개의 진단 코드가 발견되었습니다.</p>
-                            </div>
-                        </div>
-
-                        <div className="diagnostic-issues">
-                            {diagnosticDetail.issues.length > 0 ? (
-                                <div className="diagnostic-table">
-                                    <div className="diagnostic-table-header">
-                                        <div>코드</div>
-                                        <div>내용</div>
-                                        <div>심각도</div>
-                                        <div>발생일</div>
-                                    </div>
-                                    {diagnosticDetail.issues.map((issue, idx) => (
-                                        <div key={`${issue?.id ?? issue?.code ?? "issue"}-${idx}`} className="diagnostic-table-row">
-                                            <div className="diagnostic-code">{issue.code}</div>
-                                            <div className="diagnostic-description">{issue.description}</div>
-                                            <div>
-                                                {(() => {
-                                                    const val = severityNumber(issue.severity);
-                                                    const cls = severityClass(val);
-                                                    return (
-                                                        <span className={`badge diagnostic-severity diagnostic-severity--${cls}`}>
-                                                            {val.toFixed(1)}
-                                                        </span>
-                                                    );
-                                                })()}
-                                            </div>
-                                            <div className="diagnostic-date">{issue.detectedDate}</div>
-                                        </div>
-                                    ))}
-                                </div>
-                            ) : (
-                                <p>진단 코드 상세 정보를 불러오는 중...</p>
-                            )}
-                        </div>
-                    </div>
-                )}
-            </Modal>
+                diagnosticDetail={diagnosticDetail}
+            />
 
             {/* Rental create modal for keeping consistency with stage changes */}
             <Modal
