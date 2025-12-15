@@ -40,16 +40,16 @@ import VehicleTypeYearFilter from "../components/filters/VehicleTypeYearFilter";
 
 const DEFAULT_COLUMN_CONFIG = [
     { key: "select", label: "선택", visible: true, required: true, width: 60 },
-    { key: "plate", label: "차량번호", visible: true, required: true, width: 120 },
-    { key: "vehicleType", label: "차종", visible: true, required: false, width: 100 },
-    { key: "renterName", label: "예약자명", visible: true, required: false, width: 100 },
-    { key: "rentalPeriod", label: "예약기간", visible: true, required: false, width: 180 },
-    { key: "rentalAmount", label: "대여금액", visible: true, required: false, width: 200 },
-    { key: "contractStatus", label: "계약 상태", visible: true, required: false, width: 110 },
-    { key: "engineStatus", label: "엔진 상태", visible: true, required: false, width: 100 },
-    { key: "restartBlocked", label: "재시동 금지", visible: true, required: false, width: 110 },
-    { key: "accident", label: "사고 등록", visible: true, required: false, width: 100 },
-    { key: "memo", label: "메모", visible: true, required: false, width: 250 },
+    { key: "rentalAmount", label: "대여금액", visible: true, required: false, width: 160 },
+    { key: "plate", label: "차량번호", visible: true, required: true, width: 100 },
+    { key: "vehicleType", label: "차종", visible: true, required: false, width: 140 },
+    { key: "renterName", label: "예약자명", visible: true, required: false, width: 80 },
+    { key: "rentalPeriod", label: "예약기간", visible: true, required: false, width: 200 },
+    { key: "contractStatus", label: "계약상태", visible: true, required: false, width: 90 },
+    { key: "engineStatus", label: "엔진상태", visible: true, required: false, width: 80 },
+    { key: "restartBlocked", label: "재시동금지", visible: true, required: false, width: 90 },
+    { key: "accident", label: "사고등록", visible: true, required: false, width: 90 },
+    { key: "memo", label: "메모", visible: true, required: false, width: 220 },
 ];
 
 const HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) => String(index).padStart(2, "0"));
@@ -744,15 +744,16 @@ export default function RentalContracts() {
 
     // Column settings handled by useColumnSettings hook
 
-    // Derive columns for rendering; inject company column for super-admin just after 'select'
+    // Derive columns for rendering; inject company column for super-admin after 'rentalAmount'
     const columnsForRender = useMemo(() => {
         const base = [...visibleColumns];
         if (isSuperAdmin) {
             const hasCompany = base.some((c) => c.key === "company");
             if (!hasCompany) {
-                const insertIndex = Math.max(0, base.findIndex((c) => c.key === "plate"));
-                // Insert before 'plate'; if not found, insert at start or after select when present
-                const colDef = { key: "company", label: "회사", visible: true, required: false, width: 200, sortable: true };
+                // Insert after 'rentalAmount', before 'plate'
+                const rentalAmountIdx = base.findIndex((c) => c.key === "rentalAmount");
+                const insertIndex = rentalAmountIdx >= 0 ? rentalAmountIdx + 1 : Math.max(0, base.findIndex((c) => c.key === "plate"));
+                const colDef = { key: "company", label: "회사", visible: true, required: false, width: 120, sortable: true };
                 if (insertIndex >= 0) base.splice(insertIndex, 0, colDef);
                 else base.unshift(colDef);
             }
@@ -1022,7 +1023,31 @@ export default function RentalContracts() {
                         </button>
                     );
                 }
-                return <StatusBadge type={row.engineOn ? "on" : "off"}>{row.engineOn ? "ON" : "OFF"}</StatusBadge>;
+                // 디자인: 텍스트와 같은 색상의 보더라인
+                const isOn = row.engineOn;
+                const color = isOn ? '#006CEC' : '#1C1C1C';
+                return (
+                    <div style={{
+                        paddingTop: 2,
+                        paddingBottom: 2,
+                        paddingLeft: isOn ? 14 : 11,
+                        paddingRight: isOn ? 14 : 12,
+                        borderRadius: 100,
+                        outline: `1.5px ${color} solid`,
+                        outlineOffset: '-1.5px',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: 10,
+                        display: 'inline-flex',
+                        color,
+                        fontSize: 14,
+                        fontFamily: 'Pretendard',
+                        fontWeight: 500,
+                        lineHeight: '24px',
+                    }}>
+                        {isOn ? "ON" : "OFF"}
+                    </div>
+                );
             }
             case "restartBlocked": {
                 if (!row?.hasDevice) {
@@ -1102,15 +1127,42 @@ export default function RentalContracts() {
             case "accident": {
                 const identifier = row.plate || row.rentalId || "계약";
                 const hasAccident = Boolean(row.accidentReported);
-                const videoTitle = row.accidentReport?.blackboxFileName?.trim();
-                const hasVideo = Boolean(videoTitle);
-                const variantClass = hasAccident ? (hasVideo ? "badge--video" : "badge--accident") : "badge--default";
-                const title = hasVideo ? videoTitle : hasAccident ? "등록된 사고 정보 보기" : "사고 등록";
-                const ariaLabel = hasVideo ? `${identifier} 사고 영상 ${videoTitle} 보기` : hasAccident ? `${identifier} 사고 정보 보기` : `${identifier} 사고 등록`;
+                const title = hasAccident ? "등록된 사고 정보 보기" : "사고 등록";
+                const ariaLabel = hasAccident ? `${identifier} 사고 정보 보기` : `${identifier} 사고 등록`;
 
+                // 디자인: 사고확인은 파랑 + 비디오 아이콘, 사고등록은 검정
                 return (
-                    <button type="button" onClick={() => handleOpenAccidentModal(row)} className={`badge badge--clickable ${variantClass}`} title={title} aria-label={ariaLabel}>
-                        {hasVideo ? <VideoIcon size={13} aria-hidden="true" /> : <FiAlertTriangle size={14} aria-hidden="true" />}
+                    <button
+                        type="button"
+                        onClick={() => handleOpenAccidentModal(row)}
+                        title={title}
+                        aria-label={ariaLabel}
+                        style={{
+                            paddingTop: '2px',
+                            paddingBottom: '2px',
+                            paddingLeft: '14px',
+                            paddingRight: '14px',
+                            background: hasAccident ? 'rgba(0, 108, 236, 0.10)' : 'rgba(0, 0, 0, 0.05)',
+                            borderRadius: '100px',
+                            display: 'inline-flex',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            gap: 4,
+                            color: hasAccident ? '#006CEC' : '#1C1C1C',
+                            fontSize: 14,
+                            fontFamily: 'Pretendard',
+                            fontWeight: 500,
+                            lineHeight: '24px',
+                            border: 'none',
+                            cursor: 'pointer',
+                        }}
+                    >
+                        {hasAccident && (
+                            <svg width="14" height="10" viewBox="0 0 14 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path fillRule="evenodd" clipRule="evenodd" d="M1.96875 0C0.88144 0 0 0.839467 0 1.875V8.125C0 9.1605 0.88144 10 1.96875 10H9.40625H10.0625V9.375V7.8125L12.6875 9.27083L14 10V8.55283V1.44713V0L12.6875 0.729167L10.0625 2.1875V0.625V0H9.40625H1.96875Z" fill="#006CEC"/>
+                            </svg>
+                        )}
+                        {hasAccident ? "사고확인" : "사고등록"}
                     </button>
                 );
             }
@@ -1152,26 +1204,49 @@ export default function RentalContracts() {
 
     const getContractStatusBadge = (status) => {
         if (!status) {
-            return <StatusBadge type="default">-</StatusBadge>;
+            return <span style={{ color: '#1C1C1C', fontSize: 14, fontFamily: 'Pretendard', fontWeight: 500 }}>-</span>;
         }
 
-        const statusMap = {
-            "예약 중": "pending",
-            대여중: "rented",
-            사고접수: "accident",
-            반납지연: "overdue",
-            도난의심: "suspicious",
-            완료: "completed",
+        // 디자인: 배경 없이 SVG dot + 텍스트 (bold)
+        const statusColorMap = {
+            "예약 중": '#E9850D',
+            대여중: '#0CA255',
+            사고접수: '#E50E08',
+            반납지연: '#E9850D',
+            도난의심: '#E50E08',
+            완료: '#006CEC',
         };
-        const badgeType = statusMap[status] || "default";
-        return <StatusBadge type={badgeType}>{status}</StatusBadge>;
+        const color = statusColorMap[status] || '#1C1C1C';
+        return (
+            <span style={{
+                color,
+                fontSize: 14,
+                fontFamily: 'Pretendard',
+                fontWeight: 700,
+                lineHeight: '24px',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 4,
+            }}>
+                <svg width="7" height="7" viewBox="0 0 7 7" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <circle cx="3.5" cy="3.5" r="3.5" fill={color}/>
+                </svg>
+                {status}
+            </span>
+        );
     };
 
     // getRentalAmountBadges moved to RentalAmountCell component
 
     return (
         <div className="page page--data space-y-4">
-            <h1 className="text-2xl font-semibold text-gray-900">계약등록관리</h1>
+            <h1 style={{
+                color: '#1C1C1C',
+                fontSize: 24,
+                fontFamily: 'Pretendard',
+                fontWeight: 700,
+                lineHeight: '36px',
+            }}>계약등록관리</h1>
             <div className="table-toolbar">
                 <div className="flex-1" />
                 <div className="flex gap-3">

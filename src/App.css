@@ -197,7 +197,7 @@ body {
 .asset-table th,
 .asset-table td {
     border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-    padding: 0.75rem 1rem;
+    padding: 16px 12px; /* Increased padding for 2-line cells */
     text-align: left;
     white-space: nowrap;
     color: #1c1c1c;
@@ -214,11 +214,11 @@ body {
 }
 
 .asset-table thead {
-    background: #f5faff; /* Ensure background covers entire header row including scrollbar area */
+    background: #ffffff; /* White background per design */
 }
 
 .asset-table thead th {
-    background: #f5faff;
+    background: #ffffff;
     font-weight: 700;
     vertical-align: middle;
     position: relative; /* anchor popovers */
@@ -1120,18 +1120,18 @@ body {
 }
 
 .badge--rented {
-    background: #F1CFFF;
-    color: #6C0099;
+    background: rgba(12, 162, 85, 0.15);
+    color: #0CA255;
 }
 
 .badge--overdue {
-    background: rgba(232, 136, 0, 0.15);
-    color: #E88800;
+    background: rgba(233, 133, 13, 0.15);
+    color: #E9850D;
 }
 
 .badge--suspicious {
-    background: rgba(235, 74, 69, 0.15);
-    color: #EB4A45;
+    background: rgba(229, 14, 8, 0.15);
+    color: #E50E08;
 }
 
 .badge--pending {
@@ -1156,12 +1156,12 @@ body {
 
 /* === Device/System badges === */
 .badge--on {
-    background: rgba(0, 163.81, 26.33, 0.15);
-    color: #2D6536;
+    background: rgba(0, 108, 236, 0.10);
+    color: #006CEC;
 }
 
 .badge--off {
-    background: rgba(0, 0, 0, 0.10);
+    background: rgba(0, 0, 0, 0.05);
     color: #1C1C1C;
 }
 
