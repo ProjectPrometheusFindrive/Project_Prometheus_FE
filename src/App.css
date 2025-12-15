@@ -4635,7 +4635,7 @@ html {
     border-radius: 12px;
     width: 100%;
     max-width: 720px;
-    padding: 16px;
+    padding: 40px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
     max-height: calc(100vh - 80px);
     overflow-y: auto;

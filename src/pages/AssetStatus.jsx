@@ -9,6 +9,7 @@ import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
 import DeviceEventLog from "../components/DeviceEventLog";
+import DiagnosticHero from "../components/DiagnosticHero";
 import DiagnosticCountBadge from "../components/badges/DiagnosticCountBadge";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
@@ -1918,54 +1919,91 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showDiagnosticModal && diagnosticDetail}
                 onClose={() => setShowDiagnosticModal(false)}
-                title={`진단 코드 상세 - ${diagnosticDetail?.categoryName || ""} (${diagnosticDetail?.vehicleInfo?.plate || ""})`}
+                className="!w-[410px] !max-w-[410px] !h-[800px] !p-[40px] !overflow-hidden flex flex-col"
+                customHeaderContent={
+                    <div className="flex items-center justify-between w-full">
+                        <div className="flex items-center gap-2">
+                            <span className="text-[20px] font-bold text-[#1C1C1C] leading-[30px]">진단코드상세</span>
+                            <div className="flex items-center justify-center bg-[#FF3C00] rounded-[5px] px-[7px] py-[1px]">
+                                <span className="!text-white text-[12px] font-semibold leading-[18px]">{diagnosticDetail?.vehicleInfo?.plate}</span>
+                            </div>
+                        </div>
+                        <div 
+                            className="w-9 h-9 relative cursor-pointer" 
+                            onClick={() => setShowDiagnosticModal(false)}
+                        >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1C1C1C" strokeWidth="2" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+                                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                        </div>
+                    </div>
+                }
                 showFooter={false}
                 ariaLabel="진단 코드 상세 정보"
             >
                 {diagnosticDetail && (
-                    <div className="diagnostic-detail">
-                        <div className="diagnostic-header">
-                            <div className="diagnostic-info">
-                                <h3>{diagnosticDetail.categoryName}</h3>
-                                <p>
-                                    차량: {diagnosticDetail.vehicleInfo.vehicleType} ({diagnosticDetail.vehicleInfo.plate})
-                                </p>
-                                <p>총 {diagnosticDetail.count}개의 진단 코드가 발견되었습니다.</p>
-                            </div>
+                    <div className="flex flex-col w-full h-full">
+                        {/* Divider below header */}
+                        <div className="w-full border-t-2 border-[#1C1C1C] my-[15px] shrink-0"></div>
+                        
+                        <div className="shrink-0 flex justify-center">
+                            <DiagnosticHero vehicleName={diagnosticDetail.vehicleInfo.vehicleType} />
+                        </div>
+                        
+                        <div className="mb-6 text-left w-full shrink-0">
+                            <span className="text-[#1C1C1C] text-[14px] leading-[24px]">총 </span>
+                            <span className="text-[#006CEC] text-[14px] font-bold leading-[24px]"> {diagnosticDetail.count}개 </span>
+                            <span className="text-[#1C1C1C] text-[14px] leading-[24px]">의 진단 코드가 발견되었습니다.</span>
                         </div>
 
-                        <div className="diagnostic-issues">
-                            {diagnosticDetail.issues.length > 0 ? (
-                                <div className="diagnostic-table">
-                                    <div className="diagnostic-table-header">
-                                        <div>코드</div>
-                                        <div>내용</div>
-                                        <div>심각도</div>
-                                        <div>발생일</div>
-                                    </div>
+                        {diagnosticDetail.issues.length > 0 ? (
+                            <div className="flex flex-col flex-1 min-h-0 w-full mb-6">
+                                <div className="grid grid-cols-[1fr_2fr_1fr_1.5fr] text-center text-[12px] font-semibold text-[#1C1C1C] leading-[18px] h-[40px] items-center bg-[#FAFAFA] border-y border-[rgba(0,0,0,0.1)] shrink-0">
+                                    <div>코드</div>
+                                    <div className="text-left pl-1">내용</div>
+                                    <div>심각도</div>
+                                    <div>발생일</div>
+                                </div>
+                                <div className="overflow-y-auto max-h-[360px]">
                                     {diagnosticDetail.issues.map((issue, idx) => (
-                                        <div key={`${issue?.id ?? issue?.code ?? "issue"}-${idx}`} className="diagnostic-table-row">
-                                            <div className="diagnostic-code">{issue.code}</div>
-                                            <div className="diagnostic-description">{issue.description}</div>
-                                            <div>
+                                        <div key={`${issue?.id ?? issue?.code ?? "issue"}-${idx}`} className="grid grid-cols-[1fr_2fr_1fr_1.5fr] items-center text-center py-3 border-b border-[rgba(0,0,0,0.05)] last:border-0 min-h-[40px]">
+                                            <div className="text-[#1C1C1C] text-[12px] font-semibold leading-[18px]">{issue.code}</div>
+                                            <div className="text-[#1C1C1C] text-[12px] font-semibold leading-[18px] truncate px-1 text-left" title={issue.description}>{issue.description}</div>
+                                            <div className="flex justify-center">
                                                 {(() => {
                                                     const val = severityNumber(issue.severity);
                                                     const cls = severityClass(val);
+                                                    const colors = {
+                                                        low: { bg: '#EFFBE7', text: '#0CA255' },
+                                                        medium: { bg: '#FFF3DB', text: '#FF9909' },
+                                                        high: { bg: '#FAE6E5', text: '#E91700' }
+                                                    };
+                                                    const c = colors[cls] || colors.low;
                                                     return (
-                                                        <span className={`badge diagnostic-severity diagnostic-severity--${cls}`}>
+                                                        <div style={{backgroundColor: c.bg, color: c.text}} className="rounded-[3px] px-1.5 py-1 min-w-[30px] text-[12px] font-semibold leading-[16px] flex items-center justify-center">
                                                             {val.toFixed(1)}
-                                                        </span>
+                                                        </div>
                                                     );
                                                 })()}
                                             </div>
-                                            <div className="diagnostic-date">{issue.detectedDate}</div>
+                                            <div className="text-[#1C1C1C] text-[12px] font-medium leading-[18px]">{issue.detectedDate}</div>
                                         </div>
                                     ))}
                                 </div>
-                            ) : (
-                                <p>진단 코드 상세 정보를 불러오는 중...</p>
-                            )}
-                        </div>
+                            </div>
+                        ) : (
+                            <div className="flex-1"></div> 
+                        )}
+
+                        {/* Divider above close button - pushed to bottom by mt-auto */}
+                        <div className="mt-auto w-full border-t-2 border-[#1C1C1C] my-[15px] shrink-0"></div>
+
+                        <button 
+                            onClick={() => setShowDiagnosticModal(false)}
+                            className="w-full bg-[#ECECEC] rounded-[100px] py-[14px] text-[#1C1C1C] text-[14px] font-medium leading-[24px] hover:bg-gray-200 transition-colors border-none outline-none shrink-0"
+                        >
+                            닫기
+                        </button>
                     </div>
                 )}
             </Modal>
