@@ -1,0 +1,277 @@
+/* TerminalRequestModal.css */
+
+.terminal-request-modal {
+    max-width: 410px !important;
+    width: 100%;
+}
+
+/* Title underline */
+.terminal-request-modal .header-row {
+    padding-bottom: 10px;
+    border-bottom: 2px solid #1C1C1C;
+    margin-bottom: 16px !important;
+}
+
+.terminal-request-modal .header-row strong {
+    font-size: 20px;
+    font-weight: 700;
+    color: #1C1C1C;
+    font-family: 'Pretendard', sans-serif;
+    line-height: 30px;
+}
+
+.terminal-request-content {
+    padding: 0;
+}
+
+.terminal-request-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+/* Row: Label + Input */
+.terminal-request-row {
+    display: flex;
+    align-items: center;
+    min-height: 64px;
+    padding: 10px 0;
+}
+
+.terminal-request-label {
+    flex: 0 0 120px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #1C1C1C;
+    font-family: 'Pretendard', sans-serif;
+    line-height: 24px;
+}
+
+.terminal-request-input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.terminal-request-input {
+    width: 100%;
+    height: 44px;
+    padding: 10px 14px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.terminal-request-input:focus {
+    border-color: #006CEC;
+}
+
+.terminal-request-input.is-invalid {
+    border-color: #dc2626;
+}
+
+.terminal-request-input::placeholder {
+    color: #9ca3af;
+}
+
+.terminal-request-error {
+    font-size: 12px;
+    color: #dc2626;
+    margin-top: 2px;
+}
+
+/* Stepper for vehicle count */
+.terminal-request-stepper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.terminal-request-input--stepper {
+    padding-right: 60px;
+}
+
+.terminal-request-stepper-buttons {
+    position: absolute;
+    right: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.terminal-request-stepper-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+}
+
+.terminal-request-stepper-btn svg .stepper-bg {
+    transition: fill 0.2s;
+}
+
+.terminal-request-stepper-btn svg .stepper-icon {
+    transition: fill 0.2s;
+}
+
+.terminal-request-stepper-btn:hover svg .stepper-bg {
+    fill: #006CEC;
+}
+
+.terminal-request-stepper-btn:hover svg .stepper-icon {
+    fill: white;
+}
+
+.terminal-request-stepper-btn:active {
+    opacity: 0.8;
+}
+
+/* Date input */
+.terminal-request-date-wrapper {
+    position: relative;
+}
+
+.terminal-request-input--date {
+    cursor: pointer;
+}
+
+.terminal-request-input--date::-webkit-calendar-picker-indicator {
+    color: #006CEC;
+    cursor: pointer;
+}
+
+/* Radio Group */
+.terminal-request-radio-group {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 20px;
+    height: 44px;
+}
+
+.terminal-request-radio {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+}
+
+.terminal-request-radio input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.terminal-request-radio__custom {
+    width: 18px;
+    height: 18px;
+    border: 1px solid #006CEC;
+    border-radius: 50%;
+    background: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.terminal-request-radio__custom::after {
+    content: '';
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #006CEC;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.terminal-request-radio input[type="radio"]:checked + .terminal-request-radio__custom::after {
+    opacity: 1;
+}
+
+.terminal-request-radio__text {
+    line-height: 24px;
+}
+
+/* Footer */
+.terminal-request-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-top: 0;
+}
+
+.terminal-request-footer__divider {
+    height: 2px;
+    background: #1C1C1C;
+    margin-bottom: 4px;
+}
+
+.terminal-request-footer__notice {
+    font-size: 12px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 18px;
+    margin: 0;
+}
+
+.terminal-request-footer__buttons {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 6px;
+}
+
+.terminal-request-btn {
+    flex: 1;
+    height: 52px;
+    border: none;
+    border-radius: 100px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 500;
+    line-height: 24px;
+    cursor: pointer;
+    transition: opacity 0.2s, background-color 0.2s;
+}
+
+.terminal-request-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.terminal-request-btn--cancel {
+    background: #ECECEC;
+    color: #1C1C1C;
+}
+
+.terminal-request-btn--cancel:hover:not(:disabled) {
+    background: #E0E0E0;
+}
+
+.terminal-request-btn--submit {
+    background: #006CEC;
+    color: white;
+}
+
+.terminal-request-btn--submit:hover:not(:disabled) {
+    background: #0058C4;
+}
