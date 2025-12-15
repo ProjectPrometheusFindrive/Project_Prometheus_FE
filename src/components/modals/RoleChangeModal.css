@@ -1,0 +1,269 @@
+/* RoleChangeModal.css */
+
+.role-change-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.role-change-modal {
+    width: 100%;
+    max-width: 410px;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0px 12px 20px 5px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    position: relative;
+}
+
+/* Header */
+.role-change-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #1C1C1C;
+    margin-bottom: 16px;
+}
+
+.role-change-title {
+    font-size: 20px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 30px;
+    margin: 0;
+}
+
+.role-change-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.role-change-close:hover {
+    opacity: 0.7;
+}
+
+/* Form */
+.role-change-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.role-change-row {
+    display: flex;
+    align-items: center;
+    min-height: 64px;
+    padding: 10px 0;
+}
+
+.role-change-label {
+    flex: 0 0 100px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 600;
+    color: #1C1C1C;
+    line-height: 24px;
+}
+
+.role-change-input-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.role-change-input {
+    width: 100%;
+    height: 44px;
+    padding: 10px 14px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+    outline: none;
+}
+
+.role-change-input:disabled {
+    background: white;
+    color: #1C1C1C;
+    cursor: default;
+}
+
+.role-change-input--disabled {
+    background: #F5F5F5 !important;
+}
+
+/* Select */
+.role-change-select-wrapper {
+    position: relative;
+    width: 100%;
+}
+
+.role-change-select {
+    width: 100%;
+    height: 44px;
+    padding: 10px 40px 10px 14px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
+
+.role-change-select:focus {
+    border-color: #006CEC;
+}
+
+.role-change-select:disabled {
+    background: #F5F5F5;
+    cursor: not-allowed;
+}
+
+.role-change-select-arrow {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    pointer-events: none;
+}
+
+.role-change-hint {
+    font-size: 12px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 18px;
+    margin: 4px 0 0 0;
+    text-align: center;
+}
+
+/* Info Box */
+.role-change-info-box {
+    background: #FFFAE5;
+    border-radius: 8px;
+    padding: 16px;
+    margin-top: 16px;
+    margin-bottom: 20px;
+}
+
+.role-change-info-section {
+    margin-bottom: 12px;
+}
+
+.role-change-info-section:last-child {
+    margin-bottom: 0;
+}
+
+.role-change-info-title {
+    font-size: 12px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 600;
+    line-height: 18px;
+    margin: 0 0 4px 0;
+}
+
+.role-change-info-title--warning {
+    color: #E50E08;
+}
+
+.role-change-info-title--caution {
+    color: #E88800;
+}
+
+.role-change-info-list {
+    margin: 0;
+    padding-left: 16px;
+    list-style-type: disc;
+}
+
+.role-change-info-list li {
+    font-size: 12px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #888888;
+    line-height: 18px;
+    margin-bottom: 4px;
+}
+
+.role-change-info-list li:last-child {
+    margin-bottom: 0;
+}
+
+/* Footer */
+.role-change-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.role-change-btn {
+    width: 100%;
+    height: 52px;
+    border-radius: 100px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 500;
+    line-height: 24px;
+    cursor: pointer;
+    transition: opacity 0.2s, background-color 0.2s;
+    border: none;
+}
+
+.role-change-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.role-change-btn--primary {
+    background: #006CEC;
+    color: white;
+}
+
+.role-change-btn--primary:hover:not(:disabled) {
+    background: #0058C4;
+}
+
+.role-change-btn--withdraw {
+    background: #FFECEC;
+    color: #E50E08;
+    border: 1px solid #FFCCCC;
+}
+
+.role-change-btn--withdraw:hover:not(:disabled) {
+    background: #FFD9D9;
+}
+
+.role-change-btn--cancel {
+    background: #ECECEC;
+    color: #1C1C1C;
+}
+
+.role-change-btn--cancel:hover:not(:disabled) {
+    background: #E0E0E0;
+}

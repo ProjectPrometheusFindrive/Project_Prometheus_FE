@@ -255,52 +255,43 @@
     color: #856404;
 }
 
-/* Role Badge styles - Aligned with AssetManagementStageCell design */
+/* Role Badge styles - Updated to match design spec */
 .role-badge {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 2px 14px;
     font-size: 14px;
     font-family: 'Pretendard', sans-serif;
     font-weight: 500;
     line-height: 24px;
-    border-radius: 100px;
-    border: none;
-    outline: 1px rgba(0, 0, 0, 0.05) solid;
-    outline-offset: -1px;
     text-transform: capitalize;
+    background: transparent;
+    border: none;
 }
 
 .role-badge.role-super_admin {
-    background: rgba(235, 74, 69, 0.15);
-    color: #EB4A45;
+    color: #E50E08;
 }
 
 .role-badge.role-admin {
-    background: #F1CFFF;
-    color: #6C0099;
+    color: #006CEC;
 }
 
 .role-badge.role-member {
-    background: rgba(0, 0, 0, 0.10);
-    color: #1C1C1C;
+    color: #08890F;
 }
 
 /* Dark mode role badge styles */
 [data-theme='dark'] .role-badge.role-super_admin {
-    background: rgba(235, 74, 69, 0.25);
-    color: #EB4A45;
+    color: #F87171;
 }
 
 [data-theme='dark'] .role-badge.role-admin {
-    background: rgba(108, 0, 153, 0.25);
-    color: #E0A0FF;
+    color: #60A5FA;
 }
 
 [data-theme='dark'] .role-badge.role-member {
-    background: rgba(255, 255, 255, 0.10);
-    color: #E5E7EB;
+    color: #4ADE80;
 }
 
 /* Button styles - Aligned with AssetManagementStageCell design */
@@ -366,13 +357,12 @@
 }
 
 .btn-role-change {
-    background: #F1CFFF;
-    color: #6C0099;
+    background: transparent;
+    color: #FF9909;
 }
 
 .btn-role-change:hover:not(:disabled) {
     opacity: 0.8;
-    transform: translateY(-1px);
 }
 
 .btn-secondary:disabled,
@@ -623,8 +613,8 @@
 }
 
 [data-theme='dark'] .btn-role-change {
-    background: rgba(192, 132, 252, 0.15);
-    color: #c084fc;
+    background: transparent;
+    color: #FBBF24;
 }
 
 /* Dark mode modal */
