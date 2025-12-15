@@ -1,43 +1,56 @@
-import React, { useEffect, useState, useRef } from "react";
-import Modal from "../Modal";
-import { FaPlay, FaPause, FaStop, FaVolumeUp, FaVolumeDown, FaExpand, FaClock, FaUser, FaExclamationTriangle } from "react-icons/fa";
+import { useEffect, useState, useRef } from "react";
 import { getSignedDownloadUrl } from "../../utils/gcsApi";
 import { formatDisplayDate } from "../../utils/date";
 import { formatYyMmDdHhMmSs } from "../../utils/datetime";
+import "./AccidentInfoModal.css";
 
-const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title = "사고 정보 조회" }) => {
+const CarIcon = () => (
+    <svg width="66" height="43" viewBox="0 0 66 43" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M17.0868 0.0145657H34.2905V42.0792H7.85562C4.8345 42.0792 4.49881 39.976 4.49881 38.2934V23.5708C4.49881 21.2151 6.73669 18.6632 7.85562 17.6817H3.24C-0.452495 17.3452 -0.956067 12.2133 1.56159 12.2133H6.59681C8.27521 12.2133 8.69482 15.0176 8.69482 16.4198C9.25428 14.4568 10.625 9.43705 11.632 5.06232C12.6391 0.6876 15.6882 -0.12565 17.0868 0.0145657Z" fill="url(#paint0_car)"/>
+        <path d="M48.5567 0.014559H31.3531V42.0792H57.7879C60.8091 42.0792 61.1448 39.976 61.1448 38.2934V23.5708C61.1448 21.2151 58.9069 18.6632 57.7879 17.6817H62.4036C66.0961 17.3452 66.5996 12.2133 64.082 12.2133H59.0468C57.3683 12.2133 56.9487 15.0176 56.9487 16.4198C56.3893 14.4568 55.0186 9.43704 54.0115 5.06232C53.0045 0.687593 49.9554 -0.125657 48.5567 0.014559Z" fill="url(#paint1_car)"/>
+        <defs>
+            <linearGradient id="paint0_car" x1="32.8218" y1="29.4598" x2="32.8218" y2="42.0792" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#168DEB"/>
+                <stop offset="1" stopColor="#006BC0"/>
+            </linearGradient>
+            <linearGradient id="paint1_car" x1="32.8218" y1="29.4598" x2="32.8218" y2="42.0792" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#168DEB"/>
+                <stop offset="1" stopColor="#006BC0"/>
+            </linearGradient>
+        </defs>
+    </svg>
+);
+
+const WarningIcon = () => (
+    <svg width="30" height="27" viewBox="0 0 30 27" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12.6207 1.21344C13.5571 -0.404485 15.8983 -0.40448 16.8348 1.21345L29.1259 22.4488C30.0623 24.0667 28.8917 26.0891 27.0188 26.0891H2.43663C0.563701 26.0891 -0.606872 24.0667 0.329592 22.4488L12.6207 1.21344Z" fill="url(#paint_warning)"/>
+        <text x="15" y="20" textAnchor="middle" fill="white" fontSize="14" fontWeight="bold">!</text>
+        <defs>
+            <linearGradient id="paint_warning" x1="23.0658" y1="9.85083" x2="-1.1102" y2="28.1278" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#FFBB00"/>
+                <stop offset="0.870994" stopColor="#FF9500"/>
+            </linearGradient>
+        </defs>
+    </svg>
+);
+
+const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData }) => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(1);
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
+    const [isMuted, setIsMuted] = useState(false);
     const videoRef = useRef(null);
     const [videoSrc, setVideoSrc] = useState(null);
 
     const handlePlayPause = () => {
         if (!videoRef.current) return;
-
         if (isPlaying) {
             videoRef.current.pause();
         } else {
             videoRef.current.play();
         }
         setIsPlaying(!isPlaying);
-    };
-
-    const handleStop = () => {
-        if (!videoRef.current) return;
-        videoRef.current.pause();
-        videoRef.current.currentTime = 0;
-        setIsPlaying(false);
-        setCurrentTime(0);
-    };
-
-    const handleVolumeChange = (e) => {
-        const newVolume = parseFloat(e.target.value);
-        setVolume(newVolume);
-        if (videoRef.current) {
-            videoRef.current.volume = newVolume;
-        }
     };
 
     const handleTimeUpdate = () => {
@@ -54,16 +67,18 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
 
     const handleSeek = (e) => {
         if (!videoRef.current) return;
-        const seekTime = (e.target.value / 100) * duration;
+        const rect = e.currentTarget.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        const seekTime = percent * duration;
         videoRef.current.currentTime = seekTime;
         setCurrentTime(seekTime);
     };
 
     const formatTime = (seconds) => {
-        if (isNaN(seconds)) return "00:00";
+        if (isNaN(seconds)) return "0:00";
         const mins = Math.floor(seconds / 60);
         const secs = Math.floor(seconds % 60);
-        return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        return `${mins}:${secs.toString().padStart(2, '0')}`;
     };
 
     const handleFullscreen = () => {
@@ -72,9 +87,14 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                 videoRef.current.requestFullscreen();
             } else if (videoRef.current.webkitRequestFullscreen) {
                 videoRef.current.webkitRequestFullscreen();
-            } else if (videoRef.current.mozRequestFullScreen) {
-                videoRef.current.mozRequestFullScreen();
             }
+        }
+    };
+
+    const toggleMute = () => {
+        if (videoRef.current) {
+            videoRef.current.muted = !isMuted;
+            setIsMuted(!isMuted);
         }
     };
 
@@ -82,146 +102,144 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
         let cancelled = false;
         const run = async () => {
             try {
-                // 1) Local File object preview
                 if (accidentData?.blackboxFile instanceof File) {
                     const url = URL.createObjectURL(accidentData.blackboxFile);
                     if (!cancelled) setVideoSrc(url);
                     return;
                 }
-                // 2) Prefer private object with signed URL
                 if (accidentData?.blackboxGcsObjectName) {
                     const url = await getSignedDownloadUrl(accidentData.blackboxGcsObjectName);
                     if (!cancelled) setVideoSrc(url);
                     return;
                 }
-                // 3) Fallback to legacy public URL (may 403 if bucket is private)
                 if (accidentData?.blackboxFileUrl) {
                     if (!cancelled) setVideoSrc(accidentData.blackboxFileUrl);
                     return;
                 }
-                // 4) Demo sample (restricted to explicit opt-in in dev)
-                try {
-                    const enableDemo = import.meta.env?.VITE_ENABLE_DEMO_FALLBACK === "true";
-                    if (import.meta.env?.DEV && enableDemo && accidentData?.blackboxFileName === "blackbox_250922.mp4") {
-                        if (!cancelled) setVideoSrc("/src/data/blackbox_250922.mp4");
-                        return;
-                    }
-                } catch {}
                 if (!cancelled) setVideoSrc(null);
-            } catch (e) {
+            } catch {
                 if (!cancelled) setVideoSrc(null);
             }
         };
         run();
-        return () => {
-            cancelled = true;
-        };
-    }, [accidentData?.blackboxFile, accidentData?.blackboxGcsObjectName, accidentData?.blackboxFileUrl, accidentData?.blackboxFileName]);
+        return () => { cancelled = true; };
+    }, [accidentData?.blackboxFile, accidentData?.blackboxGcsObjectName, accidentData?.blackboxFileUrl]);
 
-    if (!accidentData) return null;
+    useEffect(() => {
+        if (!isOpen) {
+            setIsPlaying(false);
+            setCurrentTime(0);
+            if (videoRef.current) {
+                videoRef.current.pause();
+                videoRef.current.currentTime = 0;
+            }
+        }
+    }, [isOpen]);
+
+    if (!isOpen || !accidentData) return null;
+
+    const progressPercent = duration ? (currentTime / duration) * 100 : 0;
 
     return (
-        <Modal
-            isOpen={isOpen}
-            onClose={onClose}
-            title={title}
-            showFooter={false}
-            ariaLabel="사고 정보 조회"
-            size="large"
-        >
-            <div className="p-5 max-h-[80vh] overflow-auto">
-                {/* 상단 경고 배너 */}
-                <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-500 rounded-lg mb-6">
-                    <FaExclamationTriangle size={24} color="#ff9800" />
-                    <div>
-                        <div className="font-semibold text-[1.1rem] text-[#e65100]">
-                            사고 접수됨
+        <div className="accident-modal-overlay" onClick={onClose}>
+            <div className="accident-modal" onClick={(e) => e.stopPropagation()}>
+                {/* Header */}
+                <div className="accident-modal-header">
+                    <div className="accident-modal-header__left">
+                        <h3 className="accident-modal-title">사고 정보 조회</h3>
+                        {vehicleData?.plate && (
+                            <span className="accident-modal-plate-badge">{vehicleData.plate}</span>
+                        )}
+                    </div>
+                    <button className="accident-modal-close" onClick={onClose}>
+                        <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                            <path d="M25.6154 9C25.9977 8.61765 26.6176 8.61765 27 9C27.3824 9.38235 27.3824 10.0023 27 10.3846L10.3846 27C10.0023 27.3824 9.38235 27.3824 9 27C8.61765 26.6177 8.61765 25.9977 9 25.6154L25.6154 9Z" fill="#1C1C1C"/>
+                            <path d="M27 25.6154C27.3824 25.9977 27.3824 26.6177 27 27C26.6176 27.3824 25.9977 27.3824 25.6154 27L9 10.3846C8.61765 10.0023 8.61765 9.38235 9 9C9.38235 8.61765 10.0023 8.61765 10.3846 9L27 25.6154Z" fill="#1C1C1C"/>
+                        </svg>
+                    </button>
+                </div>
+
+                {/* Status Box */}
+                <div className="accident-modal-status-box">
+                    <div className="accident-modal-status-icon">
+                        <CarIcon />
+                        <div className="accident-modal-status-warning">
+                            <WarningIcon />
                         </div>
-                        <div className="text-[0.9rem] mt-1 text-[#f57c00]">
-                            {accidentData.accidentDisplayTime} 발생 사고
-                        </div>
+                    </div>
+                    <div className="accident-modal-status-text">
+                        <div className="accident-modal-status-title">사고 접수됨</div>
+                        <div className="accident-modal-status-time">{accidentData.accidentDisplayTime || "-"} 발생</div>
                     </div>
                 </div>
 
-                <div className="grid [grid-template-columns:1fr_1fr] gap-6 mb-6">
-                    {/* 사고 정보 */}
-                    <div className="p-5 bg-gray-50 rounded-lg border border-[#dee2e6]">
-                        <h3 className="m-0 mb-4 text-[1.1rem] text-gray-800 flex items-center gap-2">
-                            <FaClock size={16} color="#ff9800" />
-                            사고 발생 정보
-                        </h3>
-                        <div className="flex flex-col gap-3">
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600">발생 일시:</strong>
-                                <div className="text-[1rem] font-semibold text-gray-800 mt-1">
+                {/* Info Grid */}
+                <div className="accident-modal-info-grid">
+                    {/* Left Column - 사고 발생 정보 */}
+                    <div className="accident-modal-info-section">
+                        <h4 className="accident-modal-section-title">사고 발생 정보</h4>
+                        <div className="accident-modal-info-rows">
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">발생 일시</span>
+                                <div className="accident-modal-info-value-box">
                                     {accidentData.accidentDisplayTime || "-"}
                                 </div>
                             </div>
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600">접수 일시:</strong>
-                                <div className="text-[0.95rem] text-gray-800 mt-1">
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">접수 일시</span>
+                                <div className="accident-modal-info-value-box">
                                     {accidentData.recordedAt ? formatYyMmDdHhMmSs(accidentData.recordedAt) : "-"}
                                 </div>
                             </div>
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600">처리 담당자:</strong>
-                                <div className="text-[1rem] font-semibold text-gray-800 mt-1 flex items-center gap-1.5">
-                                    <FaUser size={14} color="#666" />
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">처리 담당자</span>
+                                <div className="accident-modal-info-value-box">
                                     {accidentData.handlerName || "-"}
                                 </div>
                             </div>
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600">블랙박스 영상:</strong>
-                                <div className="text-[0.95rem] mt-1 flex items-center gap-1.5">
-                                    {accidentData.blackboxFileName ? (
-                                        <>
-                                            <span className="text-emerald-600 font-medium">✓</span>
-                                            <span className="text-gray-800">{accidentData.blackboxFileName}</span>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-red-600 font-medium">✗</span>
-                                            <span className="text-gray-600">영상 파일 없음</span>
-                                        </>
-                                    )}
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">블랙박스 영상</span>
+                                <div className="accident-modal-info-value-box">
+                                    {accidentData.blackboxFileName || "-"}
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* 차량 정보 */}
-                    <div className="p-5 bg-gray-50 dark:bg-gray-800 rounded-lg border border-[#dee2e6] dark:border-gray-600">
-                        <h3 className="m-0 mb-4 text-[1.1rem] text-gray-800 dark:text-gray-100">
-                            차량 및 대여 정보
-                        </h3>
-                        <div className="flex flex-col gap-3">
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">차량번호:</strong>
-                                <div className="text-[1rem] font-semibold text-gray-800 dark:text-gray-100 mt-1">
+                    {/* Divider */}
+                    <div className="accident-modal-info-divider" />
+
+                    {/* Right Column - 차량 및 대여정보 */}
+                    <div className="accident-modal-info-section">
+                        <h4 className="accident-modal-section-title">차량 및 대여정보</h4>
+                        <div className="accident-modal-info-rows">
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">차량번호</span>
+                                <div className="accident-modal-info-value-box">
                                     {vehicleData?.plate || "-"}
                                 </div>
                             </div>
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">차종:</strong>
-                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">차종</span>
+                                <div className="accident-modal-info-value-box">
                                     {vehicleData?.vehicleType || "-"}
                                 </div>
                             </div>
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">대여자:</strong>
-                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">대여자</span>
+                                <div className="accident-modal-info-value-box">
                                     {vehicleData?.renterName || "-"}
                                 </div>
                             </div>
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">연락처:</strong>
-                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">연락처</span>
+                                <div className="accident-modal-info-value-box">
                                     {vehicleData?.contactNumber || "-"}
                                 </div>
                             </div>
-                            <div>
-                                <strong className="text-[0.9rem] text-gray-600 dark:text-gray-400">대여 기간:</strong>
-                                <div className="text-[0.95rem] text-gray-800 dark:text-gray-100 mt-1">
+                            <div className="accident-modal-info-row">
+                                <span className="accident-modal-info-label">대여기간</span>
+                                <div className="accident-modal-info-value-box">
                                     {vehicleData?.rentalPeriod?.start && vehicleData?.rentalPeriod?.end
                                         ? `${formatDisplayDate(vehicleData.rentalPeriod.start)} ~ ${formatDisplayDate(vehicleData.rentalPeriod.end)}`
                                         : "-"}
@@ -231,112 +249,84 @@ const AccidentInfoModal = ({ isOpen, onClose, accidentData, vehicleData, title =
                     </div>
                 </div>
 
-                {/* 블랙박스 영상 재생 */}
+                {/* Video Section */}
                 {videoSrc && (
-                    <div className="bg-black rounded-lg overflow-hidden mb-4">
-                        <div className="py-3 px-4 bg-zinc-900 text-white text-[1rem] font-semibold border-b border-[#333]">
-                            🎥 블랙박스 영상 - {accidentData.blackboxFileName}
-                        </div>
-
-                        <div className="relative">
+                    <div className="accident-modal-video-section">
+                        <h4 className="accident-modal-section-title">블랙박스영상</h4>
+                        <div className="accident-modal-video-container">
                             <video
                                 ref={videoRef}
-                                className="w-full h-[60vh] object-contain bg-black"
+                                className="accident-modal-video"
                                 onTimeUpdate={handleTimeUpdate}
                                 onLoadedMetadata={handleLoadedMetadata}
                                 onPlay={() => setIsPlaying(true)}
                                 onPause={() => setIsPlaying(false)}
-                                controls={false}
+                                onClick={handlePlayPause}
                             >
                                 <source src={videoSrc} type="video/mp4" />
-                                브라우저가 비디오 재생을 지원하지 않습니다.
                             </video>
-                        </div>
 
-                        {/* 비디오 컨트롤 */}
-                        <div className="py-3 px-4 bg-zinc-900 text-white flex items-center gap-3">
-                            {/* 재생/일시정지 버튼 */}
-                            <button onClick={handlePlayPause} className="p-2 rounded hover:bg-zinc-800" type="button">
-                                {isPlaying ? <FaPause size={16} /> : <FaPlay size={16} />}
-                            </button>
-
-                            {/* 정지 버튼 */}
-                            <button onClick={handleStop} className="p-2 rounded hover:bg-zinc-800" type="button">
-                                <FaStop size={16} />
-                            </button>
-
-                            {/* 진행바 */}
-                            <div className="flex-1 flex items-center gap-2">
-                                <span className="text-[0.85rem] min-w-10">
-                                    {formatTime(currentTime)}
-                                </span>
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="100"
-                                    value={duration ? (currentTime / duration) * 100 : 0}
-                                    onChange={handleSeek}
-                                    className="flex-1 h-1 bg-zinc-800 cursor-pointer"
-                                />
-                                <span className="text-[0.85rem] min-w-10">
-                                    {formatTime(duration)}
-                                </span>
+                            {/* Video Controls Overlay */}
+                            <div className="accident-modal-video-controls">
+                                <div className="accident-modal-video-controls-top">
+                                    <button className="accident-modal-video-btn" onClick={handlePlayPause}>
+                                        {isPlaying ? (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                                <path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>
+                                            </svg>
+                                        ) : (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                                <path d="M8 5v14l11-7L8 5z"/>
+                                            </svg>
+                                        )}
+                                    </button>
+                                    <span className="accident-modal-video-time">
+                                        {formatTime(currentTime)} / {formatTime(duration)}
+                                    </span>
+                                </div>
+                                <div className="accident-modal-video-controls-right">
+                                    <button className="accident-modal-video-btn" onClick={toggleMute}>
+                                        {isMuted ? (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                                <path d="M16.5 12c0-1.77-1.02-3.29-2.5-4.03v2.21l2.45 2.45c.03-.2.05-.41.05-.63zm2.5 0c0 .94-.2 1.82-.54 2.64l1.51 1.51C20.63 14.91 21 13.5 21 12c0-4.28-2.99-7.86-7-8.77v2.06c2.89.86 5 3.54 5 6.71zM4.27 3L3 4.27 7.73 9H3v6h4l5 5v-6.73l4.25 4.25c-.67.52-1.42.93-2.25 1.18v2.06c1.38-.31 2.63-.95 3.69-1.81L19.73 21 21 19.73l-9-9L4.27 3zM12 4L9.91 6.09 12 8.18V4z"/>
+                                            </svg>
+                                        ) : (
+                                            <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                                <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                                            </svg>
+                                        )}
+                                    </button>
+                                    <button className="accident-modal-video-btn" onClick={handleFullscreen}>
+                                        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+                                            <path d="M4 18c0 1.1.9 2 2 2h4v-2H6v-4H4v4zm16-8V6c0-1.1-.9-2-2-2h-4v2h4v4h2zM6 6h4V4H6c-1.1 0-2 .9-2 2v4h2V6zm14 12v-4h-2v4h-4v2h4c1.1 0 2-.9 2-2z"/>
+                                        </svg>
+                                    </button>
+                                </div>
+                                {/* Progress Bar */}
+                                <div className="accident-modal-video-progress" onClick={handleSeek}>
+                                    <div
+                                        className="accident-modal-video-progress-bar"
+                                        style={{ width: `${progressPercent}%` }}
+                                    />
+                                    <div
+                                        className="accident-modal-video-progress-handle"
+                                        style={{ left: `${progressPercent}%` }}
+                                    />
+                                </div>
                             </div>
-
-                            {/* 볼륨 컨트롤 */}
-                            <div className="flex items-center gap-1.5">
-                                <FaVolumeDown size={14} />
-                                <input
-                                    type="range"
-                                    min="0"
-                                    max="1"
-                                    step="0.1"
-                                    value={volume}
-                                    onChange={handleVolumeChange}
-                                    className="w-20 h-1 bg-zinc-800 cursor-pointer"
-                                />
-                                <FaVolumeUp size={14} />
-                            </div>
-
-                            {/* 전체화면 버튼 */}
-                            <button onClick={handleFullscreen} className="p-2 rounded hover:bg-zinc-800" type="button">
-                                <FaExpand size={14} />
-                            </button>
                         </div>
                     </div>
                 )}
 
-                {/* 영상이 있지만 파일을 찾을 수 없을 때 */}
-                {!videoSrc && accidentData.blackboxFileName && (
-                    <div className="p-5 bg-amber-50 border-2 border-dashed border-[#ff9800] rounded-lg text-center mb-4">
-                        <div className="text-[1rem] mb-2 font-semibold text-[#e65100]">
-                            📹 블랙박스 영상 파일 누락
-                        </div>
-                        <div className="text-[0.9rem] text-[#f57c00]">
-                            등록된 파일: {accidentData.blackboxFileName}
-                        </div>
-                        <div className="text-[0.85rem] mt-2 text-[#ff9800]">
-                            영상 파일을 찾을 수 없거나 지원하지 않는 형식입니다.
-                        </div>
-                    </div>
-                )}
-
-                {/* 영상이 아예 없을 때 */}
-                {!videoSrc && !accidentData.blackboxFileName && (
-                    <div className="p-6 bg-gray-50 border-2 border-dashed rounded-lg text-center mb-4">
-                        <div className="text-3xl mb-3">📋</div>
-                        <div className="text-[1.1rem] text-gray-700 mb-2 font-semibold">
-                            사고 정보만 등록됨
-                        </div>
-                        <div className="text-[0.9rem] text-gray-600 leading-relaxed">
-                            블랙박스 영상은 등록되지 않았습니다.<br />
-                            사고 발생 시각과 담당자 정보를 확인하세요.
-                        </div>
-                    </div>
-                )}
-
+                {/* Footer */}
+                <div className="accident-modal-footer">
+                    <div className="accident-modal-footer-divider" />
+                    <button className="accident-modal-close-btn" onClick={onClose}>
+                        닫기
+                    </button>
+                </div>
             </div>
-        </Modal>
+        </div>
     );
 };
 

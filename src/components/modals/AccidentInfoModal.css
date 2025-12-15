@@ -1,0 +1,349 @@
+/* AccidentInfoModal.css */
+
+.accident-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.accident-modal {
+    width: 100%;
+    max-width: 780px;
+    max-height: 90vh;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0px 12px 20px 5px rgba(0, 0, 0, 0.15);
+    padding: 40px;
+    position: relative;
+    overflow-y: auto;
+}
+
+/* Header */
+.accident-modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #1C1C1C;
+    margin-bottom: 20px;
+}
+
+.accident-modal-header__left {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.accident-modal-title {
+    font-size: 20px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 30px;
+    margin: 0;
+}
+
+.accident-modal-plate-badge {
+    padding: 1px 7px;
+    background: #FF4B14;
+    border-radius: 5px;
+    font-size: 12px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 600;
+    color: white;
+    line-height: 18px;
+}
+
+.accident-modal-close {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accident-modal-close:hover {
+    opacity: 0.7;
+}
+
+/* Status Box */
+.accident-modal-status-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    padding: 30px;
+    background: rgba(26, 129, 255, 0.05);
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 6px;
+    margin-bottom: 24px;
+}
+
+.accident-modal-status-icon {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.accident-modal-status-warning {
+    position: absolute;
+    right: -10px;
+    bottom: -5px;
+}
+
+.accident-modal-status-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.accident-modal-status-title {
+    font-size: 18px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 28px;
+}
+
+.accident-modal-status-time {
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 500;
+    color: #FF4B14;
+    line-height: 24px;
+}
+
+/* Info Grid */
+.accident-modal-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1px 1fr;
+    gap: 30px;
+    margin-bottom: 24px;
+}
+
+.accident-modal-info-divider {
+    width: 1px;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.accident-modal-info-section {
+    display: flex;
+    flex-direction: column;
+}
+
+.accident-modal-section-title {
+    font-size: 16px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 26px;
+    margin: 0 0 16px 0;
+}
+
+.accident-modal-info-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.accident-modal-info-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.accident-modal-info-label {
+    flex: 0 0 80px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 600;
+    color: #1C1C1C;
+    line-height: 24px;
+}
+
+.accident-modal-info-value-box {
+    flex: 1;
+    height: 44px;
+    padding: 10px 14px;
+    background: #FAFAFA;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+    display: flex;
+    align-items: center;
+}
+
+/* Video Section */
+.accident-modal-video-section {
+    margin-bottom: 24px;
+}
+
+.accident-modal-video-container {
+    position: relative;
+    width: 100%;
+    background: #000;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.accident-modal-video {
+    width: 100%;
+    height: auto;
+    max-height: 400px;
+    object-fit: contain;
+    display: block;
+    cursor: pointer;
+}
+
+/* Video Controls */
+.accident-modal-video-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.8) 100%);
+    padding: 60px 16px 16px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.accident-modal-video-controls-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.accident-modal-video-controls-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.accident-modal-video-btn {
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 40px;
+    transition: background 0.2s;
+}
+
+.accident-modal-video-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+}
+
+.accident-modal-video-time {
+    font-size: 14px;
+    font-family: Arial, sans-serif;
+    font-weight: 400;
+    color: white;
+    line-height: 24px;
+}
+
+/* Progress Bar */
+.accident-modal-video-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+    margin-top: 12px;
+    cursor: pointer;
+    position: relative;
+}
+
+.accident-modal-video-progress-bar {
+    height: 100%;
+    background: white;
+    border-radius: 3px;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.accident-modal-video-progress-handle {
+    width: 12px;
+    height: 12px;
+    background: white;
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+/* Footer */
+.accident-modal-footer {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.accident-modal-footer-divider {
+    height: 2px;
+    background: #1C1C1C;
+}
+
+.accident-modal-close-btn {
+    width: 100%;
+    height: 52px;
+    background: #ECECEC;
+    border: none;
+    border-radius: 100px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 500;
+    color: #1C1C1C;
+    line-height: 24px;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.accident-modal-close-btn:hover {
+    background: #E0E0E0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .accident-modal {
+        max-width: 95%;
+        padding: 24px;
+    }
+
+    .accident-modal-info-grid {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .accident-modal-info-divider {
+        width: 100%;
+        height: 1px;
+    }
+
+    .accident-modal-status-box {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .accident-modal-status-text {
+        align-items: center;
+    }
+}
