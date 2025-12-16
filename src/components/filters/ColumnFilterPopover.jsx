@@ -181,33 +181,30 @@ export default function ColumnFilterPopover({
   return (
     <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>
       <div className="filter-popover__content">
-        {(isManagementStageFilter || isContractStatusFilter || isCompanyFilter || isEngineStatusFilter || isRestartBlockedFilter || isAccidentFilter) && (type === "select" || type === "multi-select" || type === "boolean") && (
-          <>
-            <button
-              type="button"
-              className="filter-management-clear"
-              onClick={() => {
-                setSelected([]);
-                setBoolVal(null);
-                onClear && onClear();
-              }}
-              aria-label={
-                isManagementStageFilter ? "관리상태 선택 해제" :
-                isContractStatusFilter ? "계약상태 선택 해제" :
-                isCompanyFilter ? "회사 선택 해제" :
-                isEngineStatusFilter ? "엔진상태 선택 해제" :
-                isRestartBlockedFilter ? "재시동금지 선택 해제" :
-                isAccidentFilter ? "사고등록 선택 해제" :
-                "선택 해제"
-              }
-            >
-              <span aria-hidden="true" className="filter-management-clear__checkbox" />
-              <span className="filter-management-clear__label">선택해제</span>
-            </button>
-            <div className="filter-management-divider" />
-          </>
-        )}
-        {type === "text" && (
+                {(isManagementStageFilter || isContractStatusFilter || isCompanyFilter) && (type === "select" || type === "multi-select") && (
+                  <>
+                    <button
+                      type="button"
+                      className="filter-management-clear"
+                      onClick={() => {
+                        setSelected([]);
+                        onClear && onClear();
+                      }}
+                      aria-label={
+                        isManagementStageFilter ? "관리상태 선택 해제" :
+                        isContractStatusFilter ? "계약상태 선택 해제" :
+                        isCompanyFilter ? "회사 선택 해제" :
+                        "선택 해제"
+                      }
+                    >
+                      <span aria-hidden="true" className="filter-management-clear__checkbox" />
+                      <span className="filter-management-clear__label">선택해제</span>
+                    </button>
+                    <div className="filter-management-divider" />
+                  </>
+                )}
+        
+                {type === "text" && (
           <div className="text-filter">
             <input
               type="text"
@@ -268,6 +265,49 @@ export default function ColumnFilterPopover({
                   );
                 })}
               </div>
+            ) : isEngineStatusFilter ? (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                <div className="filter-ops">
+                  {sortedOptions.map((opt) => {
+                    const v = opt?.value ?? opt;
+                    const label = opt?.label ?? String(v ?? "");
+                    const checked = selected.includes(v);
+                    return (
+                      <label key={String(v)}>
+                        <input
+                          type="radio"
+                          name={`select-${column.key}`}
+                          checked={checked}
+                          onChange={() => setSelected([v])}
+                        />
+                        {label}
+                      </label>
+                    );
+                  })}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelected([]);
+                    onClear && onClear();
+                  }}
+                  aria-label="엔진상태 필터 초기화"
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginLeft: "8px"
+                  }}
+                >
+                  <svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z" fill="#006CEC"/>
+                  </svg>
+                </button>
+              </div>
             ) : (
               <div className="filter-options">
                 {sortedOptions.map((opt) => {
@@ -300,11 +340,37 @@ export default function ColumnFilterPopover({
         )}
 
         {type === "boolean" && (
-          <div className="filter-ops">
-            <label><input type="radio" name={`bool-${column.key}`} checked={boolVal === true} onChange={() => setBoolVal(true)} /> 예</label>
-            <label><input type="radio" name={`bool-${column.key}`} checked={boolVal === false} onChange={() => setBoolVal(false)} /> 아니오</label>
-            {column?.filterTriState !== false && (
-              <label><input type="radio" name={`bool-${column.key}`} checked={boolVal === null} onChange={() => setBoolVal(null)} /> 알수없음</label>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div className="filter-ops">
+              <label><input type="radio" name={`bool-${column.key}`} checked={boolVal === true} onChange={() => setBoolVal(true)} /> 예</label>
+              <label><input type="radio" name={`bool-${column.key}`} checked={boolVal === false} onChange={() => setBoolVal(false)} /> 아니오</label>
+              {column?.filterTriState !== false && (
+                <label><input type="radio" name={`bool-${column.key}`} checked={boolVal === null} onChange={() => setBoolVal(null)} /> 알수없음</label>
+              )}
+            </div>
+            {(isRestartBlockedFilter || isAccidentFilter) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setBoolVal(null);
+                  onClear && onClear();
+                }}
+                aria-label={isRestartBlockedFilter ? "재시동금지 필터 초기화" : "사고등록 필터 초기화"}
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  marginLeft: "8px"
+                }}
+              >
+                <svg width="15" height="14" viewBox="0 0 15 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z" fill="#006CEC"/>
+                </svg>
+              </button>
             )}
           </div>
         )}
