@@ -16,6 +16,7 @@ export default function ColumnFilterPopover({
   const isMulti = type === "multi-select";
   const isManagementStageFilter = column?.key === "managementStage";
   const isContractStatusFilter = column?.key === "contractStatus";
+  const isCompanyFilter = column?.key === "company";
   const isVehicleHealthFilter = column?.key === "vehicleHealth";
   const isDeviceStatusFilter = column?.key === "deviceStatus";
   const isVehicleTypeFilter = column?.key === "vehicleType";
@@ -177,7 +178,7 @@ export default function ColumnFilterPopover({
   return (
     <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>
       <div className="filter-popover__content">
-        {(isManagementStageFilter || isContractStatusFilter) && (type === "select" || type === "multi-select") && (
+        {(isManagementStageFilter || isContractStatusFilter || isCompanyFilter) && (type === "select" || type === "multi-select") && (
           <>
             <button
               type="button"
@@ -186,7 +187,7 @@ export default function ColumnFilterPopover({
                 setSelected([]);
                 onClear && onClear();
               }}
-              aria-label={isManagementStageFilter ? "관리상태 선택 해제" : "계약상태 선택 해제"}
+              aria-label={isManagementStageFilter ? "관리상태 선택 해제" : isContractStatusFilter ? "계약상태 선택 해제" : "회사 선택 해제"}
             >
               <span aria-hidden="true" className="filter-management-clear__checkbox" />
               <span className="filter-management-clear__label">선택해제</span>
