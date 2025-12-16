@@ -9,6 +9,7 @@ import useTableFilters from "../hooks/useTableFilters";
 import { applyColumnFilters } from "../utils/filtering";
 import { TABLE_COLUMN_FILTERS_ENABLED } from "../constants/featureFlags";
 import AccidentInfoModal from "../components/modals/AccidentInfoModal";
+import RentalCreateModal from "../components/modals/RentalCreateModal";
 import FaxSendPanel from "../components/FaxSendPanel";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/badges/StatusBadge";
@@ -1487,9 +1488,11 @@ export default function RentalContracts() {
                 />
             </div>
 
-            <Modal isOpen={showCreate} onClose={() => setShowCreate(false)} title="계약 등록" showFooter={false} ariaLabel="Create Rental">
-                <RentalForm onSubmit={handleCreateSubmit} formId="rental-create" onClose={() => setShowCreate(false)} />
-            </Modal>
+            <RentalCreateModal
+                isOpen={showCreate}
+                onClose={() => setShowCreate(false)}
+                onSubmit={handleCreateSubmit}
+            />
 
             <TerminalRequestModal isOpen={installModalOpen} onClose={closeInstallModal} />
 
