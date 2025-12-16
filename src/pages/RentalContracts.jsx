@@ -182,6 +182,11 @@ export default function RentalContracts() {
     const openInstallModal = () => setInstallModalOpen(true);
     const closeInstallModal = () => setInstallModalOpen(false);
     const [hasDeviceByPlate, setHasDeviceByPlate] = useState({});
+    const [accidentRegTab, setAccidentRegTab] = useState("blackbox"); // "blackbox" | "fax"
+    const [faxNumber, setFaxNumber] = useState("");
+    const [faxReceiverName, setFaxReceiverName] = useState("");
+    const [faxTitle, setFaxTitle] = useState("");
+    const [faxFiles, setFaxFiles] = useState([]);
     const selectedContractTrackingData = selectedContract?.logRecord || [];
     const trackingDateKeys = useMemo(() => {
         if (!Array.isArray(selectedContractTrackingData) || selectedContractTrackingData.length === 0) return [];
@@ -1789,173 +1794,246 @@ export default function RentalContracts() {
                 )}
             </Modal>
 
-            <Modal isOpen={showAccidentModal} onClose={handleCloseAccidentModal} title="사고 등록" showFooter={false} ariaLabel="Accident Registration">
+            <Modal isOpen={showAccidentModal} onClose={() => { handleCloseAccidentModal(); setAccidentRegTab("blackbox"); setFaxNumber(""); setFaxReceiverName(""); setFaxTitle(""); setFaxFiles([]); }} showFooter={false} ariaLabel="Accident Registration" className="accident-reg-modal">
                 {accidentTarget && (
-                    <form id="accident-registration-form" onSubmit={handleAccidentSubmit} style={{ display: "flex", flexDirection: "column", gap: "16px", padding: "8px" }}>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>블랙박스 영상 등록</label>
-                                    <input
-                                        key={fileInputKey}
-                                        type="file"
-                                        accept="video/*"
-                                        onChange={handleAccidentFileChange}
-                                        style={{
-                                            padding: "6px",
-                                            border: "1px solid #ddd",
-                                            borderRadius: "6px",
-                                            marginBottom: "12px",
-                                        }}
-                                    />
-                                    {accidentForm.blackboxFile && (
+                    <div className="accident-reg">
+                        {/* Header */}
+                        <div className="accident-reg__header">
+                            <h2 className="accident-reg__title">사고등록</h2>
+                            <button className="accident-reg__close-btn" onClick={() => { handleCloseAccidentModal(); setAccidentRegTab("blackbox"); }} aria-label="닫기">
+                                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M25.6154 9C25.9977 8.61765 26.6176 8.61765 27 9C27.3824 9.38235 27.3824 10.0023 27 10.3846L10.3846 27C10.0023 27.3824 9.38235 27.3824 9 27C8.61765 26.6177 8.61765 25.9977 9 25.6154L25.6154 9Z" fill="#1C1C1C"/>
+                                    <path d="M27 25.6154C27.3824 25.9977 27.3824 26.6177 27 27C26.6176 27.3824 25.9977 27.3824 25.6154 27L9 10.3846C8.61765 10.0023 8.61765 9.38235 9 9C9.38235 8.61765 10.0023 8.61765 10.3846 9L27 25.6154Z" fill="#1C1C1C"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="accident-reg__header-line"></div>
+
+                        {/* Tabs */}
+                        <div className="accident-reg__tabs">
+                            <button
+                                type="button"
+                                className={`accident-reg__tab ${accidentRegTab === "blackbox" ? "accident-reg__tab--active" : ""}`}
+                                onClick={() => setAccidentRegTab("blackbox")}
+                            >
+                                블랙박스 영상 등록
+                            </button>
+                            <button
+                                type="button"
+                                className={`accident-reg__tab ${accidentRegTab === "fax" ? "accident-reg__tab--active" : ""}`}
+                                onClick={() => setAccidentRegTab("fax")}
+                            >
+                                대여정보 및 팩스발송
+                            </button>
+                        </div>
+
+                        <form id="accident-registration-form" onSubmit={handleAccidentSubmit}>
+                            {/* 블랙박스 영상 등록 탭 */}
+                            {accidentRegTab === "blackbox" && (
+                                <div>
+                                    <div className="accident-reg__section-title">블랙박스 영상 등록</div>
+
+                                    {/* Preview Box */}
+                                    <div className="accident-reg__preview-box">
+                                        {accidentForm.blackboxFile ? (
+                                            <FilePreview file={accidentForm.blackboxFile} />
+                                        ) : (
+                                            <span className="accident-reg__preview-placeholder">파일을 선택하면 미리보기가 표시됩니다.</span>
+                                        )}
+                                    </div>
+
+                                    {/* File Input Bar */}
+                                    <label className="accident-reg__file-bar">
+                                        <div className="accident-reg__file-bar-left">
+                                            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M17 10.0944L10.8539 15.8909C10.101 16.6011 9.07974 17 8.01492 17C6.9501 17 5.92889 16.6011 5.17594 15.8909C4.423 15.1808 4 14.2177 4 13.2134C4 12.2092 4.423 11.246 5.17594 10.5359L11.322 4.73937C11.824 4.26596 12.5048 4 13.2147 4C13.9246 4 14.6054 4.26596 15.1073 4.73937C15.6093 5.21279 15.8913 5.85487 15.8913 6.52438C15.8913 7.19389 15.6093 7.83598 15.1073 8.30939L8.95456 14.1059C8.70358 14.3426 8.36317 14.4756 8.00823 14.4756C7.65329 14.4756 7.31289 14.3426 7.06191 14.1059C6.81093 13.8692 6.66993 13.5482 6.66993 13.2134C6.66993 12.8787 6.81093 12.5576 7.06191 12.3209L12.7399 6.97221" stroke="#1C1C1C" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                            <span className="accident-reg__file-bar-text">파일 및 사진 추가</span>
+                                        </div>
+                                        <span className="accident-reg__file-bar-count">{accidentForm.blackboxFile ? "1" : "0"} / 1</span>
+                                        <input
+                                            key={fileInputKey}
+                                            type="file"
+                                            accept="video/*,image/*"
+                                            onChange={handleAccidentFileChange}
+                                            style={{ display: "none" }}
+                                        />
+                                    </label>
+
+                                    {/* Upload Progress */}
+                                    {accidentForm.blackboxFile && uploadState.status === 'uploading' && (
                                         <div style={{ marginBottom: 12 }}>
-                                            <div style={{ fontSize: "0.8rem", color: "#666", marginBottom: 6 }}>
-                                                업로드 방식: {uploadState.mode === 'resumable' ? '대용량(Resumable)' : '서명 PUT'}
-                                            </div>
-                                            {uploadState.status === 'uploading' && (
-                                                <div style={{ marginBottom: 12 }}>
-                                                    <UploadProgress status={uploadState.status} percent={uploadState.percent} onCancel={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }} />
-                                                </div>
-                                            )}
-                                            {uploadState.status === 'error' && (
-                                                <div style={{ marginBottom: 12, color: '#c62828', fontSize: 12 }}>
-                                                    업로드 실패: {uploadState.error || '알 수 없는 오류'}
-                                                    <div style={{ marginTop: 6 }}>
-                                                        <button type="button" className="form-button" onClick={(e) => {
-                                                            e.preventDefault();
-                                                            // Trigger submit again to retry upload
-                                                            const formEl = document.getElementById('accident-registration-form');
-                                                            if (formEl) formEl.requestSubmit();
-                                                        }}>
-                                                            재시도
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            )}
+                                            <UploadProgress status={uploadState.status} percent={uploadState.percent} onCancel={() => { try { uploadState.cancel && uploadState.cancel(); } catch {} }} />
                                         </div>
                                     )}
-                                    <FilePreview file={accidentForm.blackboxFile} />
-                                </div>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>사고 발생 시각</label>
-                                    <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
+                                    {uploadState.status === 'error' && (
+                                        <div style={{ marginBottom: 12, color: '#c62828', fontSize: 12 }}>
+                                            업로드 실패: {uploadState.error || '알 수 없는 오류'}
+                                        </div>
+                                    )}
+
+                                    {/* 사고 발생 시각 */}
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">사고 발생 시각</span>
                                         <input
                                             type="date"
+                                            className="accident-reg__date-input"
                                             value={accidentForm.accidentDate}
                                             onChange={(e) => handleAccidentInputChange("accidentDate", e.target.value)}
-                                            style={{
-                                                padding: "8px",
-                                                border: "1px solid #ddd",
-                                                borderRadius: "6px",
-                                                fontSize: "0.9rem",
-                                            }}
                                             required
                                         />
-                                        <div style={{ display: "flex", gap: "4px", alignItems: "center" }}>
-                                            <select
-                                                value={accidentForm.accidentHour}
-                                                onChange={(e) => handleAccidentInputChange("accidentHour", e.target.value)}
-                                                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "0.9rem" }}
-                                            >
-                                                {HOUR_OPTIONS.map((hour) => (
-                                                    <option key={hour} value={hour}>
-                                                        {hour}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <span>:</span>
-                                            <select
-                                                value={accidentForm.accidentMinute}
-                                                onChange={(e) => handleAccidentInputChange("accidentMinute", e.target.value)}
-                                                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "0.9rem" }}
-                                            >
-                                                {MINUTE_SECOND_OPTIONS.map((minute) => (
-                                                    <option key={`minute-${minute}`} value={minute}>
-                                                        {minute}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            <span>:</span>
-                                            <select
-                                                value={accidentForm.accidentSecond}
-                                                onChange={(e) => handleAccidentInputChange("accidentSecond", e.target.value)}
-                                                style={{ padding: "8px", border: "1px solid #ddd", borderRadius: "6px", fontSize: "0.9rem" }}
-                                            >
-                                                {MINUTE_SECOND_OPTIONS.map((second) => (
-                                                    <option key={`second-${second}`} value={second}>
-                                                        {second}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
                                     </div>
-                                </div>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <label style={{ fontWeight: 600, fontSize: "0.9rem" }}>처리 담당자</label>
-                                    <input
-                                        type="text"
-                                        value={accidentForm.handlerName}
-                                        onChange={(e) => handleAccidentInputChange("handlerName", e.target.value)}
-                                        placeholder="담당자 이름을 입력하세요"
-                                        style={{
-                                            padding: "8px",
-                                            border: "1px solid #ddd",
-                                            borderRadius: "6px",
-                                            fontSize: "0.9rem",
-                                        }}
-                                        required
-                                    />
-                                </div>
-                            </div>
-                            <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg flex flex-col gap-3">
-                                <h3 className="m-0 text-base text-gray-800 dark:text-gray-100">대여 정보</h3>
-                                <div className="flex flex-col gap-2.5">
-                                    <div>
-                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여 차량번호</strong>
-                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.plate || "-"}</div>
+                                    <div className="accident-reg__time-row" style={{ marginLeft: 100, marginBottom: 14 }}>
+                                        <select
+                                            className="accident-reg__time-select"
+                                            value={accidentForm.accidentHour}
+                                            onChange={(e) => handleAccidentInputChange("accidentHour", e.target.value)}
+                                        >
+                                            {HOUR_OPTIONS.map((hour) => (
+                                                <option key={hour} value={hour}>{hour}</option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            className="accident-reg__time-select"
+                                            value={accidentForm.accidentMinute}
+                                            onChange={(e) => handleAccidentInputChange("accidentMinute", e.target.value)}
+                                        >
+                                            {MINUTE_SECOND_OPTIONS.map((minute) => (
+                                                <option key={`minute-${minute}`} value={minute}>{minute}</option>
+                                            ))}
+                                        </select>
+                                        <select
+                                            className="accident-reg__time-select"
+                                            value={accidentForm.accidentSecond}
+                                            onChange={(e) => handleAccidentInputChange("accidentSecond", e.target.value)}
+                                        >
+                                            {MINUTE_SECOND_OPTIONS.map((second) => (
+                                                <option key={`second-${second}`} value={second}>{second}</option>
+                                            ))}
+                                        </select>
                                     </div>
-                                    <div>
-                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여 차종</strong>
-                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.vehicleType || "-"}</div>
-                                    </div>
-                                    <div>
-                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여 기간</strong>
-                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">
-                                            {formatDateTime(accidentTarget.rentalPeriod?.start)} ~ {formatDateTime(accidentTarget.rentalPeriod?.end)}
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여자</strong>
-                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.renterName || "-"}</div>
-                                    </div>
-                                    <div>
-                                        <strong className="block text-[0.85rem] text-gray-600 dark:text-gray-400">대여자 연락처</strong>
-                                        <div className="text-[0.95rem] font-semibold text-gray-800 dark:text-gray-100">{accidentTarget.contactNumber || "-"}</div>
-                                    </div>
-                                </div>
-                                {accidentTarget.accidentReport?.accidentDisplayTime && (
-                                    <div className="mt-2 p-2.5 rounded bg-amber-50 dark:bg-amber-900/30 text-amber-700 dark:text-amber-200 text-[0.85rem]">
-                                        최근 등록된 사고 시각: {accidentTarget.accidentReport.accidentDisplayTime}
-                                    </div>
-                                )}
 
-                                {/* FAX 보내기 (placed below rental info, right column) */}
-                                <div className="mt-4">
-                                    <h3 className="m-0 text-base text-gray-800 dark:text-gray-100 mb-2">FAX 보내기</h3>
-                                    <FaxSendPanel rentalId={accidentTarget.rentalId} defaultTitle={"사고 접수 서류"} compact />
+                                    {/* 처리 담당자 */}
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">처리 담당자</span>
+                                        <input
+                                            type="text"
+                                            className="accident-reg__input"
+                                            value={accidentForm.handlerName}
+                                            onChange={(e) => handleAccidentInputChange("handlerName", e.target.value)}
+                                            placeholder="담당자명"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* 대여정보 및 팩스발송 탭 */}
+                            {accidentRegTab === "fax" && (
+                                <div>
+                                    {/* 대여 정보 (읽기 전용) */}
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">대여차량번호</span>
+                                        <span className="accident-reg__info-value">{accidentTarget.plate || "-"}</span>
+                                    </div>
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">대여차종</span>
+                                        <span className="accident-reg__info-value">{accidentTarget.vehicleType || "-"}</span>
+                                    </div>
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">대여기간</span>
+                                        <span className="accident-reg__info-value">
+                                            {formatDateTime(accidentTarget.rentalPeriod?.start)} ~ {formatDateTime(accidentTarget.rentalPeriod?.end)}
+                                        </span>
+                                    </div>
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">대여자</span>
+                                        <span className="accident-reg__info-value">{accidentTarget.renterName || "-"}</span>
+                                    </div>
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">대여자 연락처</span>
+                                        <span className="accident-reg__info-value">{accidentTarget.contactNumber || "-"}</span>
+                                    </div>
+
+                                    <div className="accident-reg__divider"></div>
+
+                                    {/* 팩스 입력 */}
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">팩스 수신 번호</span>
+                                        <input
+                                            type="text"
+                                            className="accident-reg__input"
+                                            value={faxNumber}
+                                            onChange={(e) => setFaxNumber(e.target.value)}
+                                            placeholder="번호 입력"
+                                        />
+                                    </div>
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">수신자 (선택)</span>
+                                        <input
+                                            type="text"
+                                            className="accident-reg__input"
+                                            value={faxReceiverName}
+                                            onChange={(e) => setFaxReceiverName(e.target.value)}
+                                            placeholder="수신자 이름"
+                                        />
+                                    </div>
+                                    <div className="accident-reg__info-row">
+                                        <span className="accident-reg__info-label">제목 (선택)</span>
+                                        <input
+                                            type="text"
+                                            className="accident-reg__input"
+                                            value={faxTitle}
+                                            onChange={(e) => setFaxTitle(e.target.value)}
+                                            placeholder="제목"
+                                        />
+                                    </div>
+
+                                    {/* 파일 추가 & FAX 보내기 버튼 */}
+                                    <div className="accident-reg__fax-actions">
+                                        <label className="accident-reg__fax-file-bar">
+                                            <div className="accident-reg__file-bar-left">
+                                                <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M17 10.0944L10.8539 15.8909C10.101 16.6011 9.07974 17 8.01492 17C6.9501 17 5.92889 16.6011 5.17594 15.8909C4.423 15.1808 4 14.2177 4 13.2134C4 12.2092 4.423 11.246 5.17594 10.5359L11.322 4.73937C11.824 4.26596 12.5048 4 13.2147 4C13.9246 4 14.6054 4.26596 15.1073 4.73937C15.6093 5.21279 15.8913 5.85487 15.8913 6.52438C15.8913 7.19389 15.6093 7.83598 15.1073 8.30939L8.95456 14.1059C8.70358 14.3426 8.36317 14.4756 8.00823 14.4756C7.65329 14.4756 7.31289 14.3426 7.06191 14.1059C6.81093 13.8692 6.66993 13.5482 6.66993 13.2134C6.66993 12.8787 6.81093 12.5576 7.06191 12.3209L12.7399 6.97221" stroke="#1C1C1C" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                                <span className="accident-reg__file-bar-text">파일 및 사진 추가</span>
+                                            </div>
+                                            <span className="accident-reg__file-bar-count">{faxFiles.length} / 20</span>
+                                            <input
+                                                type="file"
+                                                multiple
+                                                accept="image/*,.pdf"
+                                                onChange={(e) => setFaxFiles(Array.from(e.target.files || []))}
+                                                style={{ display: "none" }}
+                                            />
+                                        </label>
+                                        <button type="button" className="accident-reg__fax-btn">FAX보내기</button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Footer */}
+                            <div className="accident-reg__footer">
+                                <div className="accident-reg__footer-line"></div>
+                                <div className="accident-reg__footer-btns">
+                                    <button
+                                        type="button"
+                                        className="accident-reg__btn accident-reg__btn--secondary"
+                                        onClick={() => { handleCloseAccidentModal(); setAccidentRegTab("blackbox"); }}
+                                    >
+                                        닫기
+                                    </button>
+                                    <button
+                                        type="submit"
+                                        className="accident-reg__btn accident-reg__btn--primary"
+                                        disabled={uploadState.status === 'uploading'}
+                                    >
+                                        저장
+                                    </button>
                                 </div>
                             </div>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "flex-end", gap: "8px" }}>
-                            <button type="submit" className="form-button" disabled={uploadState.status === 'uploading'}>
-                                저장
-                            </button>
-                            <button type="button" className="form-button form-button--muted" onClick={handleCloseAccidentModal}>
-                                닫기
-                            </button>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 )}
             </Modal>
 
