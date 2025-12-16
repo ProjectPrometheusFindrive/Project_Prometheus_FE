@@ -443,23 +443,21 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
     return (
       <div className="asset-doc asset-doc--upload">
         <div className="asset-doc__title">{title}</div>
-        <div className="asset-doc__box">
+        <div className={`asset-doc__box ${count > 0 ? "asset-doc__box--has-file" : ""}`}>
           {count === 0 ? (
             <div className="asset-doc__placeholder">
               파일을 선택하면 미리보기가 표시됩니다.
             </div>
-          ) : Array.isArray(value) ? (
-            <FilesPreviewCarousel
-              files={value}
-              className="asset-doc__carousel"
-              onChange={(next) => setForm((p) => ({ ...p, [key]: next }))}
-            />
           ) : (
-            <FilePreview file={value} />
+            <FilesPreviewCarousel
+              files={files}
+              className="asset-doc__carousel"
+              onChange={(next) => setForm((p) => ({ ...p, [key]: next.length > 0 ? next : null }))}
+            />
           )}
         </div>
-        <div className="asset-doc__upload-row">
-          <label className="asset-doc__upload-button" htmlFor={`asset-${key}`}>
+        <label className={`asset-doc__upload-row ${count > 0 ? "asset-doc__upload-row--active" : ""}`} htmlFor={`asset-${key}`}>
+          <div className="asset-doc__upload-button">
             <span className="asset-doc__upload-icon" aria-hidden="true">
               <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path
@@ -471,21 +469,21 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
               </svg>
             </span>
             <span className="asset-doc__upload-label">파일 및 사진 추가</span>
-            <input
-              id={`asset-${key}`}
-              name={key}
-              type="file"
-              accept={accept}
-              multiple
-              onChange={onFile(key)}
-              required={requireDocs}
-              className="sr-only"
-            />
-          </label>
-          <div className="asset-doc__upload-count">
+          </div>
+          <input
+            id={`asset-${key}`}
+            name={key}
+            type="file"
+            accept={accept}
+            multiple
+            onChange={onFile(key)}
+            required={requireDocs}
+            className="sr-only"
+          />
+          <div className={`asset-doc__upload-count ${count > 0 ? "asset-doc__upload-count--active" : ""}`}>
             {count > 0 ? `${count} / ${count}` : "0 / 0"}
           </div>
-        </div>
+        </label>
       </div>
     );
   };

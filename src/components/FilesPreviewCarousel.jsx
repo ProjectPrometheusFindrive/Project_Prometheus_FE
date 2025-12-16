@@ -53,7 +53,9 @@ export default function FilesPreviewCarousel({ files = [], className = "", onCha
             </svg>
           </button>
         )}
-        <FilePreview file={items[index]} />
+        <div className="files-carousel__preview-wrapper">
+          <FilePreview file={items[index]} />
+        </div>
         {canRemove && (
           <button
             type="button"
@@ -82,10 +84,13 @@ export default function FilesPreviewCarousel({ files = [], className = "", onCha
         )}
       </div>
       <style>{`
-        .files-carousel { width: 100%; }
+        .files-carousel { width: 100%; height: 100%; position: relative; }
         .files-carousel__header { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; }
         .files-carousel__counter { font-size: 12px; color:#666; }
-        .files-carousel__body { width: 100%; position: relative; }
+        .files-carousel__body { width: 100%; height: 100%; position: relative; display: flex; align-items: center; justify-content: center; }
+        .files-carousel__preview-wrapper { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+        .files-carousel__preview-wrapper .file-preview { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .files-carousel__preview-wrapper img { max-width: 100%; max-height: 100%; object-fit: contain; }
         .files-carousel__arrow {
           position: absolute;
           top: 50%;
@@ -111,6 +116,7 @@ export default function FilesPreviewCarousel({ files = [], className = "", onCha
           align-items: center;
           justify-content: center;
           border-radius: 999px;
+          z-index: 3;
         }
       `}</style>
     </div>
