@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiChevronDown } from "react-icons/fi";
 import { typedStorage } from "../utils/storage";
@@ -20,6 +20,22 @@ export default function TopHeader() {
     const [uploading, setUploading] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+    const profileWrapperRef = useRef(null);
+
+    // Close profile menu when clicking outside
+    useEffect(() => {
+        function handleClickOutside(event) {
+            if (profileWrapperRef.current && !profileWrapperRef.current.contains(event.target)) {
+                setIsProfileMenuOpen(false);
+            }
+        }
+        if (isProfileMenuOpen) {
+            document.addEventListener("mousedown", handleClickOutside);
+        }
+        return () => {
+            document.removeEventListener("mousedown", handleClickOutside);
+        };
+    }, [isProfileMenuOpen]);
 
     // 사용자 / 회사 정보
     const userInfo = typedStorage.auth.getUserInfo();
@@ -117,7 +133,7 @@ export default function TopHeader() {
                 </button>
 
                 {/* Profile (thumb_img + 이름/회사, 드롭다운) */}
-                <div className="top-header__profile-wrapper">
+                <div className="top-header__profile-wrapper" ref={profileWrapperRef}>
                     <button
                         type="button"
                         className="top-header__profile-btn"
