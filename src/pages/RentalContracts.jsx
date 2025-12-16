@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
-import { fetchRentals, fetchRentalsSummary, fetchRentalById, updateRental, createRental, deleteRental, fetchAssets, fetchRentalLocation } from "../api";
+import { fetchRentals, fetchRentalsSummary, fetchRentalById, fetchRentalAccidentDetail, updateRental, createRental, deleteRental, fetchAssets, fetchRentalLocation } from "../api";
 import RentalForm from "../components/forms/RentalForm";
 import Modal from "../components/Modal";
 import Toast from "../components/Toast";
@@ -473,9 +473,23 @@ export default function RentalContracts() {
         (async () => {
             try {
                 const full = await fetchRentalById(contract.rentalId);
+                let merged = { ...contract, ...full };
+
+                // 사고 정보가 있으면 상세 사고 정보도 가져옴
+                if (merged.accidentReported) {
+                    try {
+                        const accidentDetail = await fetchRentalAccidentDetail(contract.rentalId);
+                        if (accidentDetail && accidentDetail.accidentReport) {
+                            merged = { ...merged, accidentReport: accidentDetail.accidentReport };
+                        }
+                    } catch (accidentErr) {
+                        console.warn("Failed to load accident details", accidentErr);
+                    }
+                }
+
                 setSelectedContract((prev) => {
                     if (!prev || prev.rentalId !== contract.rentalId) return prev;
-                    return { ...prev, ...full };
+                    return merged;
                 });
             } catch (e) {
                 console.error("Failed to load rental details", e);
@@ -1474,34 +1488,100 @@ export default function RentalContracts() {
 
             <TerminalRequestModal isOpen={installModalOpen} onClose={closeInstallModal} />
 
-            <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} title="계약 상세 정보" showFooter={false} ariaLabel="Contract Details">
+            <Modal isOpen={showDetail} onClose={() => setShowDetail(false)} showFooter={false} ariaLabel="Contract Details" className="rental-detail-modal">
                 {selectedContract && (
-                    <div style={{ padding: "20px" }}>
-                        {/* 상단 액션 버튼들 */}
-                        <div className="quick-actions">
-                            <div className="quick-actions__label">빠른 액션</div>
-                            {/* 현재 위치 보기 버튼 */}
+                    <div className="rental-detail">
+                        {/* Header */}
+                        <div className="rental-detail__header">
+                            <div className="rental-detail__header-left">
+                                <h2 className="rental-detail__title">계약 상세 정보</h2>
+                                <span className="rental-detail__plate-badge">{selectedContract.plate || "-"}</span>
+                            </div>
+                            <button className="rental-detail__close-btn" onClick={() => setShowDetail(false)} aria-label="닫기">
+                                <svg width="36" height="36" viewBox="0 0 36 36" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M25.6154 9C25.9977 8.61765 26.6176 8.61765 27 9C27.3824 9.38235 27.3824 10.0023 27 10.3846L10.3846 27C10.0023 27.3824 9.38235 27.3824 9 27C8.61765 26.6177 8.61765 25.9977 9 25.6154L25.6154 9Z" fill="#1C1C1C"/>
+                                    <path d="M27 25.6154C27.3824 25.9977 27.3824 26.6177 27 27C26.6176 27.3824 25.9977 27.3824 25.6154 27L9 10.3846C8.61765 10.0023 8.61765 9.38235 9 9C9.38235 8.61765 10.0023 8.61765 10.3846 9L27 25.6154Z" fill="#1C1C1C"/>
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="rental-detail__header-line"></div>
+
+                        {/* Accident Alert */}
+                        {selectedContract.accidentReported && (
+                            <div className="rental-detail__accident-alert">
+                                <svg className="rental-detail__car-icon" viewBox="0 0 66 43" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M17.0868 0.0145657H34.2905V42.0792H7.85562C4.8345 42.0792 4.49881 39.976 4.49881 38.2934V23.5708C4.49881 21.2151 6.73669 18.6632 7.85562 17.6817H3.24C-0.452495 17.3452 -0.956067 12.2133 1.56159 12.2133H6.59681C8.27521 12.2133 8.69482 15.0176 8.69482 16.4198C9.25428 14.4568 10.625 9.43705 11.632 5.06232C12.6391 0.6876 15.6882 -0.12565 17.0868 0.0145657Z" fill="url(#paint0_car)"/>
+                                    <path d="M48.5567 0.014559H31.3531V42.0792H57.7879C60.8091 42.0792 61.1448 39.976 61.1448 38.2934V23.5708C61.1448 21.2151 58.9069 18.6632 57.7879 17.6817H62.4036C66.0961 17.3452 66.5996 12.2133 64.082 12.2133H59.0468C57.3683 12.2133 56.9487 15.0176 56.9487 16.4198C56.3893 14.4568 55.0186 9.43704 54.0115 5.06232C53.0045 0.687593 49.9554 -0.125657 48.5567 0.014559Z" fill="url(#paint1_car)"/>
+                                    <defs>
+                                        <linearGradient id="paint0_car" x1="32.8218" y1="29.4598" x2="32.8218" y2="42.0792" gradientUnits="userSpaceOnUse">
+                                            <stop stopColor="#168DEB"/><stop offset="1" stopColor="#006BC0"/>
+                                        </linearGradient>
+                                        <linearGradient id="paint1_car" x1="32.8218" y1="29.4598" x2="32.8218" y2="42.0792" gradientUnits="userSpaceOnUse">
+                                            <stop stopColor="#168DEB"/><stop offset="1" stopColor="#006BC0"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div className="rental-detail__accident-alert-content">
+                                    <span className="rental-detail__accident-alert-title">사고 접수됨</span>
+                                    <span className="rental-detail__accident-alert-date">
+                                        {(() => {
+                                            const report = selectedContract.accidentReport;
+                                            if (report?.accidentDisplayTime) {
+                                                return `${report.accidentDisplayTime} 발생`;
+                                            }
+                                            if (report?.accidentDateTime) {
+                                                return `${formatDateTime(report.accidentDateTime)} 발생`;
+                                            }
+                                            if (report?.accidentDate) {
+                                                const time = `${report.accidentHour || '00'}:${report.accidentMinute || '00'}:${report.accidentSecond || '00'}`;
+                                                return `${report.accidentDate.replace(/-/g, '.')} ${time} 발생`;
+                                            }
+                                            return "발생 일시 정보 없음";
+                                        })()}
+                                    </span>
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Action Buttons */}
+                        <div className="rental-detail__actions">
                             <button
+                                className="rental-detail__action-btn rental-detail__action-btn--primary"
                                 onClick={handleShowLocation}
                                 disabled={isLoadingLocation}
-                                className="form-button form-button--accent"
                                 title="현재 위치를 지도에서 확인"
                             >
-                                <FaMapMarkerAlt size={16} aria-hidden="true" />
-                                {isLoadingLocation ? "불러오는 중..." : "현재 위치"}
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M7.83301 0C9.55689 0 11.2107 0.689516 12.4297 1.91699C13.6487 3.1445 14.333 4.80994 14.333 6.5459C14.3326 11.6366 7.83301 16 7.83301 16C7.78008 15.9644 1.3334 11.6157 1.33301 6.5459C1.33301 4.80994 2.01832 3.1445 3.2373 1.91699C4.45617 0.689632 6.1093 0.000130171 7.83301 0ZM7.83398 4C6.45327 4 5.33398 5.11929 5.33398 6.5C5.33399 7.8807 6.45328 9 7.83398 9C9.21447 8.99974 10.334 7.88054 10.334 6.5C10.334 5.11945 9.21447 4.00026 7.83398 4Z" fill="url(#paint_location)"/>
+                                    <defs>
+                                        <linearGradient id="paint_location" x1="7.83301" y1="0" x2="7.83301" y2="16" gradientUnits="userSpaceOnUse">
+                                            <stop stopColor="#239EFF"/><stop offset="1" stopColor="#005BE4"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                {isLoadingLocation ? "불러오는 중..." : "현재위치"}
                             </button>
-                            {/* 사고 접수 버튼 */}
-                            <button onClick={() => handleOpenAccidentModal(selectedContract)} className="form-button form-button--warning">
-                                <FaExclamationTriangle size={16} aria-hidden="true" />
-                                {selectedContract.accidentReported ? "사고 정보 수정" : "사고 등록"}
+                            <button
+                                className="rental-detail__action-btn rental-detail__action-btn--outline"
+                                onClick={() => handleOpenAccidentModal(selectedContract)}
+                            >
+                                <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M13.6416 1.5C13.8855 1.50001 14.1271 1.54473 14.3525 1.63184C14.578 1.71901 14.7835 1.84674 14.9561 2.00781C15.1285 2.16875 15.265 2.36008 15.3584 2.57031C15.4518 2.7807 15.5 3.00666 15.5 3.23438C15.5 3.46216 15.4518 3.68799 15.3584 3.89844C15.2651 4.10873 15.1285 4.29995 14.9561 4.46094L4.00488 14.6826L0.5 15.5L1.37598 12.2295L12.3271 2.00781C12.6757 1.68252 13.1487 1.5 13.6416 1.5ZM14.5 13.5C15.0523 13.5 15.5 13.9477 15.5 14.5C15.5 15.0523 15.0523 15.5 14.5 15.5H7.5C6.94772 15.5 6.5 15.0523 6.5 14.5C6.5 13.9477 6.94772 13.5 7.5 13.5H14.5Z" fill="url(#paint_edit)"/>
+                                    <defs>
+                                        <linearGradient id="paint_edit" x1="8" y1="1.5" x2="8" y2="15.5" gradientUnits="userSpaceOnUse">
+                                            <stop stopColor="#239EFF"/><stop offset="1" stopColor="#005BE4"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                {selectedContract.accidentReported ? "사고정보수정" : "사고등록"}
                             </button>
-                            {/* 반납 등록 버튼 */}
                             {(() => {
                                 const now = new Date();
                                 const returnedAt = selectedContract?.returnedAt ? new Date(selectedContract.returnedAt) : null;
                                 const isReturned = returnedAt ? now >= returnedAt : false;
                                 return (
                                     <button
+                                        className="rental-detail__action-btn rental-detail__action-btn--outline"
                                         onClick={async () => {
                                             const ok = window.confirm("반납 등록 하시겠습니까?");
                                             if (!ok) return;
@@ -1516,182 +1596,194 @@ export default function RentalContracts() {
                                             setShowDetail(false);
                                             setSelectedContract(null);
                                         }}
-                                        className="form-button"
                                         disabled={isReturned}
                                         title={isReturned ? "이미 반납 처리됨" : "반납 처리"}
                                     >
-                                        <FaCheck size={16} aria-hidden="true" />
-                                        반납 등록
+                                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <g clipPath="url(#clip_check)">
+                                                <path d="M16.7142 8.28984V8.99955C16.7133 10.6631 16.1746 12.2817 15.1786 13.6141C14.1825 14.9465 12.7825 15.9212 11.1872 16.3928C9.59195 16.8645 7.88696 16.8079 6.32652 16.2314C4.76608 15.6549 3.43381 14.5894 2.52839 13.1939C1.62296 11.7983 1.19291 10.1475 1.30237 8.48757C1.41182 6.82765 2.05492 5.24758 3.13575 3.98301C4.21657 2.71844 5.67722 1.83713 7.29985 1.47052C8.92247 1.10391 10.6201 1.27164 12.1396 1.9487" stroke="url(#paint_check)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                <path d="M16.7142 3.56656L8.80209 11.2808L6.42847 8.96887" stroke="#006CEC" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </g>
+                                            <defs>
+                                                <linearGradient id="paint_check" x1="8.99993" y1="1.28085" x2="8.99993" y2="16.7094" gradientUnits="userSpaceOnUse">
+                                                    <stop stopColor="#239EFF"/><stop offset="1" stopColor="#005BE4"/>
+                                                </linearGradient>
+                                                <clipPath id="clip_check"><rect width="18" height="18" fill="white"/></clipPath>
+                                            </defs>
+                                        </svg>
+                                        반납등록
                                     </button>
                                 );
                             })()}
-                            {selectedContract.accidentReported && (
-                                <StatusBadge type="accident">
-                                    <FaExclamationTriangle size={14} aria-hidden="true" />
-                                    사고 접수됨
-                                </StatusBadge>
-                            )}
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
-                            <div>
-                                <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>기본 정보</h3>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <div>
-                                        <strong>차량번호:</strong> {selectedContract.plate || "-"}
-                                    </div>
-                                    <div>
-                                        <strong>차종:</strong> {selectedContract.vehicleType || "-"}
-                                    </div>
-                                    <div>
-                                        <strong>예약자명:</strong> {selectedContract.renterName || "-"}
-                                    </div>
-                                    <div>
-                                        <strong>연락처:</strong> {selectedContract.contactNumber || "-"}
-                                    </div>
-                                    <div>
-                                        <strong>면허번호:</strong> {selectedContract.license_number || "-"}
-                                    </div>
+
+                        {/* 기본정보 섹션 */}
+                        <div className="rental-detail__section">
+                            <h3 className="rental-detail__section-title">기본정보</h3>
+                            <div className="rental-detail__info-grid">
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">차량번호</span>
+                                    <span className="rental-detail__info-value">{selectedContract.plate || "-"}</span>
                                 </div>
-                            </div>
-                            <div>
-                                <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>계약 정보</h3>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <div>
-                                        <strong>계약 상태:</strong> {getContractStatusBadge(computeContractStatus(selectedContract))}
-                                    </div>
-                                    <div>
-                                        <strong>대여 시작:</strong> {formatDateTime(selectedContract.rentalPeriod?.start)}
-                                    </div>
-                                    <div>
-                                        <strong>대여 종료:</strong> {formatDateTime(selectedContract.rentalPeriod?.end)}
-                                    </div>
-                                    <div>
-                                        <strong>대여 기간:</strong> {selectedContract.rentalDurationDays || "-"}일
-                                    </div>
-                                    <div>
-                                        <strong>보험사:</strong> {selectedContract.insuranceName || "-"}
-                                    </div>
-                                    <div>
-                                        <strong>배차위치:</strong> {selectedContract.rentalLocation?.address || selectedContract.address || "-"}
-                                    </div>
-                                    <div>
-                                        <strong>반납위치:</strong> {selectedContract.returnLocation?.address || selectedContract.address || "-"}
-                                    </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">차종</span>
+                                    <span className="rental-detail__info-value">{selectedContract.vehicleType || "-"}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">예약자명</span>
+                                    <span className="rental-detail__info-value">{selectedContract.renterName || "-"}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">연락처</span>
+                                    <span className="rental-detail__info-value">{selectedContract.contactNumber || "-"}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">면허정보</span>
+                                    <span className="rental-detail__info-value">{selectedContract.license_number || "-"}</span>
                                 </div>
                             </div>
                         </div>
-                        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
-                            <div>
-                                <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>차량 상태</h3>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <div>
-                                        <strong>엔진 상태:</strong>
+
+                        <div className="rental-detail__section-divider"></div>
+
+                        {/* 계약정보 섹션 */}
+                        <div className="rental-detail__section">
+                            <h3 className="rental-detail__section-title">계약정보</h3>
+                            <div className="rental-detail__info-grid">
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">계약상태</span>
+                                    <span className={`rental-detail__info-value ${computeContractStatus(selectedContract) === "반납지연" ? "rental-detail__info-value--status" : ""}`}>
+                                        {computeContractStatus(selectedContract) || "-"}
+                                    </span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">대여일</span>
+                                    <span className="rental-detail__info-value">{selectedContract.rentalDurationDays || "-"} 일</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">대여 시작</span>
+                                    <span className="rental-detail__info-value">{formatDateTime(selectedContract.rentalPeriod?.start)}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">대여 종료</span>
+                                    <span className="rental-detail__info-value">{formatDateTime(selectedContract.rentalPeriod?.end)}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">배차위치</span>
+                                    <span className="rental-detail__info-value">{selectedContract.rentalLocation?.address || selectedContract.address || "-"}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">반납위치</span>
+                                    <span className="rental-detail__info-value">{selectedContract.returnLocation?.address || selectedContract.address || "-"}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">보험회사</span>
+                                    <span className="rental-detail__info-value">{selectedContract.insuranceName || "-"}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rental-detail__section-divider"></div>
+
+                        {/* 금액정보 섹션 */}
+                        <div className="rental-detail__section">
+                            <h3 className="rental-detail__section-title">금액정보</h3>
+                            <div className="rental-detail__info-grid">
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">대여 금액</span>
+                                    <span className="rental-detail__info-value">{formatCurrencyDisplay(selectedContract.rentalAmount || 0)}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">보증금</span>
+                                    <span className="rental-detail__info-value">{formatCurrencyDisplay(selectedContract.deposit || 0)}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">미납 금액</span>
+                                    <span className="rental-detail__info-value">{formatCurrencyDisplay(selectedContract.unpaidAmount || 0)}</span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">결제 방법</span>
+                                    <span className="rental-detail__info-value">{selectedContract.paymentMethod || "-"}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="rental-detail__section-divider"></div>
+
+                        {/* 차량상태 섹션 */}
+                        <div className="rental-detail__section">
+                            <h3 className="rental-detail__section-title">차량상태</h3>
+                            <div style={{ marginBottom: '14px', color: '#1C1C1C', fontSize: '14px', fontWeight: '700' }}>
+                                {(() => {
+                                    const hasDevice = computeHasDevice(selectedContract, hasDeviceByPlate);
+                                    if (!hasDevice) return "단말 미장착";
+                                    return selectedContract.engineOn ? "ON" : "OFF";
+                                })()}
+                            </div>
+                            <div className="rental-detail__info-grid">
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">엔진상태</span>
+                                    <span className={`rental-detail__info-value ${selectedContract.engineOn ? "rental-detail__info-value--on" : "rental-detail__info-value--off"}`}>
                                         {(() => {
                                             const hasDevice = computeHasDevice(selectedContract, hasDeviceByPlate);
-                                            if (!hasDevice) {
-                                                return (
-                                                    <button
-                                                        type="button"
-                                                        className="badge badge--default badge--clickable badge--compact"
-                                                        onClick={openInstallModal}
-                                                        style={{ marginLeft: "8px" }}
-                                                        title="단말 장착 신청"
-                                                        aria-label="단말 장착 신청"
-                                                    >
-                                                        단말 필요
-                                                    </button>
-                                                );
-                                            }
-                                            return (
-                                                <StatusBadge
-                                                    style={{
-                                                        backgroundColor: selectedContract.engineOn ? "#4caf50" : "#f44336",
-                                                        color: "white",
-                                                        marginLeft: "8px",
-                                                    }}
-                                                >
-                                                    {selectedContract.engineOn ? "ON" : "OFF"}
-                                                </StatusBadge>
-                                            );
+                                            if (!hasDevice) return "단말 필요";
+                                            return selectedContract.engineOn ? "ON" : "OFF";
                                         })()}
-                                    </div>
-                                    <div>
-                                        <strong>재시동 금지:</strong>
+                                    </span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">재시동 금지</span>
+                                    <span className="rental-detail__info-value">
                                         {(() => {
                                             const hasDevice = computeHasDevice(selectedContract, hasDeviceByPlate);
-                                            if (!hasDevice) {
-                                                return (
-                                                    <button
-                                                        type="button"
-                                                        className="badge badge--default badge--clickable badge--compact"
-                                                        onClick={openInstallModal}
-                                                        style={{ marginLeft: "8px" }}
-                                                        title="단말 장착 신청"
-                                                        aria-label="단말 장착 신청"
-                                                    >
-                                                        단말 필요
-                                                    </button>
-                                                );
-                                            }
-                                            return (
-                                                <StatusBadge
-                                                    type={selectedContract.restartBlocked ? "restart-blocked" : "restart-allowed"}
-                                                    style={{ marginLeft: "8px" }}
-                                                >
-                                                    {selectedContract.restartBlocked ? "차단" : "허용"}
-                                                </StatusBadge>
-                                            );
+                                            if (!hasDevice) return "단말 필요";
+                                            return selectedContract.restartBlocked ? "차단" : "허용";
                                         })()}
-                                    </div>
-                                    <div>
-                                        <strong>위치:</strong> {
-                                            selectedContract.currentLocation
-                                                ? (selectedContract.currentLocation.address || "주소 확인 중...")
-                                                : (
-                                                    selectedContract.rentalLocation?.address ||
-                                                    selectedContract.returnLocation?.address ||
-                                                    selectedContract.address ||
-                                                    selectedContract.location ||
-                                                    "정보 없음"
-                                                )
+                                    </span>
+                                </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">위치</span>
+                                    <span className="rental-detail__info-value">
+                                        {selectedContract.currentLocation
+                                            ? (selectedContract.currentLocation.address || "주소 확인 중...")
+                                            : (selectedContract.rentalLocation?.address || selectedContract.returnLocation?.address || selectedContract.address || selectedContract.location || "정보 없음")
                                         }
-                                    </div>
-                                    <div>
-                                        <strong>주행 거리:</strong> {selectedContract.mileage ? `${formatNumberDisplay(selectedContract.mileage)} km` : "-"}
-                                    </div>
+                                    </span>
                                 </div>
-                            </div>
-                            <div>
-                                <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>금액 정보</h3>
-                                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                    <div>
-                                        <strong>대여 금액:</strong> {formatCurrencyDisplay(selectedContract.rentalAmount || 0)}
-                                    </div>
-                                    <div>
-                                        <strong>보증금:</strong> {formatCurrencyDisplay(selectedContract.deposit || 0)}
-                                    </div>
-                                    <div>
-                                        <strong>미납 금액:</strong> {formatCurrencyDisplay(selectedContract.unpaidAmount || 0)}
-                                    </div>
-                                    <div>
-                                        <strong>결제 방법:</strong> {selectedContract.paymentMethod || "-"}
-                                    </div>
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">주행거리</span>
+                                    <span className="rental-detail__info-value">{selectedContract.mileage ? `${formatNumberDisplay(selectedContract.mileage)} Km` : "-"}</span>
                                 </div>
                             </div>
                         </div>
-                        <div>
-                            <h3 style={{ margin: "0 0 10px 0", fontSize: "1.1rem", color: "#333" }}>추가 정보</h3>
-                            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                                <div>
-                                    <strong>메모:</strong> {selectedContract.memo || "메모가 없습니다."}
+
+                        <div className="rental-detail__section-divider"></div>
+
+                        {/* 추가사항 섹션 */}
+                        <div className="rental-detail__section">
+                            <h3 className="rental-detail__section-title">추가사항</h3>
+                            <div className="rental-detail__info-grid">
+                                <div className="rental-detail__info-row rental-detail__info-row--full">
+                                    <span className="rental-detail__info-label">메모사항</span>
+                                    <span className="rental-detail__info-value">{selectedContract.memo || "메모가 없습니다."}</span>
                                 </div>
-                                <div>
-                                    <strong>특이사항:</strong> {selectedContract.specialNotes || "없음"}
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">등록일</span>
+                                    <span className="rental-detail__info-value">{selectedContract.createdAt ? formatYyMmDdHhMmSs(selectedContract.createdAt) : "-"}</span>
                                 </div>
-                                <div>
-                                    <strong>등록일:</strong> {selectedContract.createdAt ? formatYyMmDdHhMmSs(selectedContract.createdAt) : "-"}
+                                <div className="rental-detail__info-row">
+                                    <span className="rental-detail__info-label">특이사항</span>
+                                    <span className="rental-detail__info-value">{selectedContract.specialNotes || "없음"}</span>
                                 </div>
                             </div>
+                        </div>
+
+                        {/* Footer */}
+                        <div className="rental-detail__footer">
+                            <div className="rental-detail__footer-line"></div>
+                            <button className="rental-detail__footer-btn" onClick={() => setShowDetail(false)}>
+                                닫기
+                            </button>
                         </div>
                     </div>
                 )}
