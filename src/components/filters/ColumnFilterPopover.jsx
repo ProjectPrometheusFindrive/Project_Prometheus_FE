@@ -17,6 +17,9 @@ export default function ColumnFilterPopover({
   const isManagementStageFilter = column?.key === "managementStage";
   const isContractStatusFilter = column?.key === "contractStatus";
   const isCompanyFilter = column?.key === "company";
+  const isEngineStatusFilter = column?.key === "engineStatus";
+  const isRestartBlockedFilter = column?.key === "restartBlocked";
+  const isAccidentFilter = column?.key === "accident";
   const isVehicleHealthFilter = column?.key === "vehicleHealth";
   const isDeviceStatusFilter = column?.key === "deviceStatus";
   const isVehicleTypeFilter = column?.key === "vehicleType";
@@ -178,16 +181,25 @@ export default function ColumnFilterPopover({
   return (
     <div ref={containerRef} className={popoverClassName} role="dialog" aria-label={`${thStyle} 필터`}>
       <div className="filter-popover__content">
-        {(isManagementStageFilter || isContractStatusFilter || isCompanyFilter) && (type === "select" || type === "multi-select") && (
+        {(isManagementStageFilter || isContractStatusFilter || isCompanyFilter || isEngineStatusFilter || isRestartBlockedFilter || isAccidentFilter) && (type === "select" || type === "multi-select" || type === "boolean") && (
           <>
             <button
               type="button"
               className="filter-management-clear"
               onClick={() => {
                 setSelected([]);
+                setBoolVal(null);
                 onClear && onClear();
               }}
-              aria-label={isManagementStageFilter ? "관리상태 선택 해제" : isContractStatusFilter ? "계약상태 선택 해제" : "회사 선택 해제"}
+              aria-label={
+                isManagementStageFilter ? "관리상태 선택 해제" :
+                isContractStatusFilter ? "계약상태 선택 해제" :
+                isCompanyFilter ? "회사 선택 해제" :
+                isEngineStatusFilter ? "엔진상태 선택 해제" :
+                isRestartBlockedFilter ? "재시동금지 선택 해제" :
+                isAccidentFilter ? "사고등록 선택 해제" :
+                "선택 해제"
+              }
             >
               <span aria-hidden="true" className="filter-management-clear__checkbox" />
               <span className="filter-management-clear__label">선택해제</span>
