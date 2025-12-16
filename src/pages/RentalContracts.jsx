@@ -1816,7 +1816,7 @@ export default function RentalContracts() {
                                 className={`accident-reg__tab ${accidentRegTab === "blackbox" ? "accident-reg__tab--active" : ""}`}
                                 onClick={() => setAccidentRegTab("blackbox")}
                             >
-                                블랙박스 영상 등록
+                                사고 영상 등록
                             </button>
                             <button
                                 type="button"
@@ -1828,10 +1828,10 @@ export default function RentalContracts() {
                         </div>
 
                         <form id="accident-registration-form" onSubmit={handleAccidentSubmit}>
-                            {/* 블랙박스 영상 등록 탭 */}
+                            {/* 사고 영상 등록 탭 */}
                             {accidentRegTab === "blackbox" && (
                                 <div>
-                                    <div className="accident-reg__section-title">블랙박스 영상 등록</div>
+                                    <div className="accident-reg__section-title">사고 영상 등록</div>
 
                                     {/* Preview Box */}
                                     <div className="accident-reg__preview-box">
