@@ -226,15 +226,46 @@ export async function buildRentalIndexByVin() {
         const now = new Date();
         const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
         const open = !(returnedAt && now >= returnedAt) && r?.contractStatus !== '완료';
-        if (!acc[vin]) acc[vin] = { hasActive: false, hasReserved: false, hasOverdue: false, hasStolen: false, openCount: 0 };
+        if (!acc[vin]) acc[vin] = { hasActive: false, hasReserved: false, hasOverdue: false, hasStolen: false, openCount: 0, activeContractSummary: null, reservedContractSummary: null };
         if (open) {
             acc[vin].openCount += 1;
             const start = r?.rentalPeriod?.start ? new Date(r.rentalPeriod.start) : null;
             const end = r?.rentalPeriod?.end ? new Date(r.rentalPeriod.end) : null;
-            if (r?.reportedStolen) acc[vin].hasStolen = true;
-            if (start && end && now >= start && now <= end) acc[vin].hasActive = true;
-            else if (end && now > end) acc[vin].hasOverdue = true;
-            else if (start && now < start) acc[vin].hasReserved = true;
+            
+            // Status-based checks
+            const s = r?.contractStatus;
+            const isStatusActive = s === '대여중';
+            const isStatusOverdue = s && (s.startsWith('연체') || s === '반납지연');
+            const isStatusStolen = s === '도난의심' || s === '도난';
+
+            if (r?.reportedStolen || isStatusStolen) {
+                acc[vin].hasStolen = true;
+                // Stolen is also a form of active/issue contract, so capture details
+                if (!acc[vin].activeContractSummary) {
+                    acc[vin].activeContractSummary = { renterName: r.renterName, startDate: start, endDate: end };
+                }
+            }
+            
+            // Check Active: Date-based OR Status-based
+            if ((start && end && now >= start && now <= end) || isStatusActive) {
+                acc[vin].hasActive = true;
+                if (!acc[vin].activeContractSummary) {
+                    acc[vin].activeContractSummary = { renterName: r.renterName, startDate: start, endDate: end };
+                }
+            }
+            // Check Overdue: Date-based OR Status-based
+            else if ((end && now > end) || isStatusOverdue) {
+                acc[vin].hasOverdue = true;
+                // Overdue is also an active concern
+                if (!acc[vin].activeContractSummary) {
+                    acc[vin].activeContractSummary = { renterName: r.renterName, startDate: start, endDate: end };
+                }
+            }
+            // Check Reserved: Date-based (Status '예약중' could be added if available)
+            else if (start && now < start) {
+                acc[vin].hasReserved = true;
+                acc[vin].reservedContractSummary = { renterName: r.renterName, startDate: start, endDate: end };
+            }
         }
         return acc;
     }, {});

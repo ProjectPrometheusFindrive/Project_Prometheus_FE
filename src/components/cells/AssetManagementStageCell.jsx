@@ -234,8 +234,7 @@ const AssetManagementStageCell = React.memo(function AssetManagementStageCell({
           <div className="inconsistency-popover" role="tooltip">
             <div className="inconsistency-popover__title">상태 불일치</div>
             <div className="inconsistency-popover__body">
-              관리상태와 계약상태가 일치하지 않습니다.
-              <br />사유: {reason}
+              {reason}
             </div>
           </div>
         </span>

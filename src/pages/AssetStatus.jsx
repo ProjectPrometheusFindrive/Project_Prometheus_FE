@@ -1043,6 +1043,23 @@ export default function AssetStatus() {
                 const hasStolen = !!agg?.hasStolen;
                 const hasReserved = !!agg?.hasReserved;
                 const hasAnyOpen = hasActive || hasOverdue || hasStolen || hasReserved;
+                
+                const activeSummary = agg?.activeContractSummary;
+                const reservedSummary = agg?.reservedContractSummary;
+                const formatDate = (d) => {
+                    if (!d) return "";
+                    try {
+                        const date = new Date(d);
+                        const mm = String(date.getMonth() + 1).padStart(2, '0');
+                        const dd = String(date.getDate()).padStart(2, '0');
+                        return `${mm}.${dd}`;
+                    } catch { return ""; }
+                };
+                const formatPeriod = (s) => {
+                    if (!s || !s.startDate || !s.endDate) return "";
+                    return `(${formatDate(s.startDate)}~${formatDate(s.endDate)})`;
+                };
+
                 let inconsistent = false;
                 let reason = "";
                 const isKnownStage = MANAGEMENT_STAGE_SET.has(stage);
@@ -1060,12 +1077,32 @@ export default function AssetStatus() {
                     } else if (stage === "대여가능") {
                         if (hasAnyOpen) {
                             inconsistent = true;
-                            reason = "진행 중/예약/연체/도난 계약 존재";
+                            if (hasActive && activeSummary) {
+                                reason = `${activeSummary.renterName || '알 수 없음'} 님의 대여 계약${formatPeriod(activeSummary)} 진행 중`;
+                            } else if (hasReserved && reservedSummary) {
+                                reason = `${reservedSummary.renterName || '알 수 없음'} 님의 예약 계약${formatPeriod(reservedSummary)} 존재`;
+                            } else if (hasStolen) {
+                                reason = activeSummary 
+                                    ? `${activeSummary.renterName || '알 수 없음'} 님의 도난 신고된 계약${formatPeriod(activeSummary)} 존재`
+                                    : "도난 신고된 계약 존재";
+                            } else if (hasOverdue) {
+                                reason = activeSummary
+                                    ? `${activeSummary.renterName || '알 수 없음'} 님의 반납 지연된 계약${formatPeriod(activeSummary)} 존재`
+                                    : "반납 지연된 계약 존재";
+                            } else {
+                                reason = "진행 중/예약/연체/도난 계약 존재";
+                            }
                         }
                     } else {
                         if (hasAnyOpen) {
                             inconsistent = true;
-                            reason = "계약(대여/예약/연체/도난) 진행 중";
+                             if (hasActive && activeSummary) {
+                                reason = `${activeSummary.renterName || '알 수 없음'} 대여 중 ${formatPeriod(activeSummary)}`;
+                            } else if (hasReserved && reservedSummary) {
+                                reason = `${reservedSummary.renterName || '알 수 없음'} 예약 중 ${formatPeriod(reservedSummary)}`;
+                            } else {
+                                reason = "타 계약(대여/예약/연체/도난) 진행 중";
+                            }
                         }
                     }
                 }

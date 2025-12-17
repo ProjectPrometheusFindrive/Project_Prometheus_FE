@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { useConfirm } from "../contexts/ConfirmContext";
-import { fetchRentals, fetchRentalsSummary, updateRental, saveAsset, createRental } from "../api";
+import { fetchRentals, fetchRentalsSummary, updateRental, saveAsset, createRental, resolveVehicleRentals } from "../api";
 import { uploadMany } from "../utils/uploadHelpers";
 import { emitToast } from "../utils/toast";
 
@@ -29,13 +29,25 @@ export default function useManagementStage(options) {
     // Guardrails based on rentals consistency
     try {
       const now = new Date();
-      // Prefer lightweight summary; fallback to full list if unavailable
-      let rentals = await fetchRentalsSummary().catch(() => null);
-      if (!Array.isArray(rentals)) {
-        rentals = await fetchRentals();
+      let allRentalsForVin = [];
+      try {
+          const vinData = await resolveVehicleRentals(asset.vin);
+          if (Array.isArray(vinData)) {
+              allRentalsForVin = vinData;
+          } else if (vinData && typeof vinData === 'object') {
+              if (vinData.current) allRentalsForVin.push(vinData.current);
+              if (Array.isArray(vinData.future)) allRentalsForVin.push(...vinData.future);
+              if (Array.isArray(vinData.history)) allRentalsForVin.push(...vinData.history);
+          }
+      } catch (e) {
+          console.warn("Failed to fetch rentals for VIN using resolveVehicleRentals", e);
+          // Fallback to fetchRentals if resolveVehicleRentals fails
+          let rentals = await fetchRentals();
+          const list = Array.isArray(rentals) ? rentals : [];
+
       }
-      const list = Array.isArray(rentals) ? rentals : [];
-      const openForVin = list.filter((r) => String(r.vin) === String(asset.vin)).filter((r) => {
+
+      const openForVin = allRentalsForVin.filter((r) => {
         const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
         return !(returnedAt && now >= returnedAt) && r?.contractStatus !== "완료";
       });
@@ -55,9 +67,24 @@ export default function useManagementStage(options) {
         return !returnedAt && s ? now < s : false;
       };
 
+      const formatDate = (d) => {
+        if (!d) return "";
+        const date = new Date(d);
+        const mm = String(date.getMonth() + 1).padStart(2, '0');
+        const dd = String(date.getDate()).padStart(2, '0');
+        return `${mm}.${dd}`;
+      };
+
       if (nextStage === "대여가능") {
         if (openForVin.length > 0) {
-          const ok = await confirm({ title: "관리단계 변경", message: "해당 차량에 진행 중인 계약(대여/예약/연체/도난)이 있습니다. 반납 처리 후 대여가능으로 변경하시겠습니까?", confirmText: "변경", cancelText: "취소" });
+          const first = openForVin[0];
+          const renter = first.renterName || "알 수 없음";
+          const startStr = formatDate(first.rentalPeriod?.start);
+          const endStr = formatDate(first.rentalPeriod?.end);
+          const period = startStr && endStr ? `(${startStr}~${endStr})` : "";
+          const msg = `${renter} 님의 대여 계약${period}이 진행 중입니다.\n반납 처리 후 대여가능으로 변경하시겠습니까?`;
+          
+          const ok = await confirm({ title: "관리단계 변경", message: msg, confirmText: "반납 및 변경", cancelText: "취소" });
           if (!ok) return;
           const ts = new Date().toISOString();
           try {
@@ -70,7 +97,7 @@ export default function useManagementStage(options) {
         const hasOpen = openForVin.some((r) => isActive(r) || isOverdue(r) || isReserved(r) || r?.reportedStolen);
         if (!hasOpen) {
           if (previousStage === "대여가능") {
-            const ok = await confirm({ title: "관리단계 변경", message: "현재 유효한 계약이 없습니다. 신규로 대여 계약을 입력하시겠습니까?", confirmText: "진행", cancelText: "취소" });
+            const ok = await confirm({ title: "관리단계 변경", message: "현재 유효한 계약이 없습니다.\n신규로 대여 계약을 입력하시겠습니까?", confirmText: "계약 생성", cancelText: "취소" });
             if (!ok) return;
           }
           if (setPendingStageAssetId) setPendingStageAssetId(assetId);
@@ -84,10 +111,7 @@ export default function useManagementStage(options) {
       console.warn("Stage-guard rentals check failed", e);
     }
 
-    if (previousStage === "대여중" && nextStage === "대여가능") {
-      const ok = await confirm({ title: "관리단계 변경", message: "대여가능으로 변경하면 해당 차량의 모든 활성 계약이 반납 처리됩니다. 계속하시겠습니까?", confirmText: "변경", cancelText: "취소" });
-      if (!ok) return;
-    }
+
 
     if (setRows && withManagementStage) {
       setRows((prev) => prev.map((row) => (row.id === assetId ? withManagementStage({ ...row, managementStage: nextStage }) : row)));

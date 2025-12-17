@@ -34,10 +34,40 @@ export function ConfirmProvider({ children }) {
       {children}
       {state.open && (
         <Modal isOpen={state.open} onClose={handleClose} title={state.title} ariaLabel={state.title} showFooter={false}>
-          <div className="p-1 text-[0.95rem]">{state.message}</div>
-          <div className="mt-4 flex justify-end gap-2">
-            <button type="button" className="form-button form-button--muted" onClick={handleClose}>{state.cancelText}</button>
-            <button type="button" className="form-button form-button--danger" onClick={handleConfirm}>{state.confirmText}</button>
+          <p className="text-[0.95rem] text-[#1C1C1C] leading-relaxed py-2">{state.message}</p>
+          <div className="flex justify-end gap-2 mt-4">
+            <button
+              type="button"
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 500,
+                background: '#ECECEC',
+                color: '#1C1C1C',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={handleClose}
+            >
+              {state.cancelText}
+            </button>
+            <button
+              type="button"
+              style={{
+                padding: '8px 16px',
+                borderRadius: '8px',
+                fontSize: '14px',
+                fontWeight: 500,
+                background: '#006CEC',
+                color: '#fff',
+                border: 'none',
+                cursor: 'pointer'
+              }}
+              onClick={handleConfirm}
+            >
+              {state.confirmText}
+            </button>
           </div>
         </Modal>
       )}
