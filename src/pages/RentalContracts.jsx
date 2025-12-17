@@ -9,12 +9,12 @@ import useTableFilters from "../hooks/useTableFilters";
 import { applyColumnFilters } from "../utils/filtering";
 import { TABLE_COLUMN_FILTERS_ENABLED } from "../constants/featureFlags";
 import AccidentInfoModal from "../components/modals/AccidentInfoModal";
+import CurrentLocationModal from "../components/modals/CurrentLocationModal";
 import RentalCreateModal from "../components/modals/RentalCreateModal";
 import FaxSendPanel from "../components/FaxSendPanel";
 import useTableSelection from "../hooks/useTableSelection";
 import StatusBadge from "../components/badges/StatusBadge";
-import KakaoMap from "../components/KakaoMap";
-import { FaExclamationTriangle, FaMapMarkerAlt, FaCheck } from "react-icons/fa";
+import { FaExclamationTriangle, FaCheck } from "react-icons/fa";
 import VideoIcon from "../components/VideoIcon";
 import UploadProgress from "../components/UploadProgress";
 import { FiAlertTriangle } from "react-icons/fi";
@@ -2041,163 +2041,30 @@ export default function RentalContracts() {
             </Modal>
 
             {/* 현재 위치 지도 모달 */}
-            <Modal isOpen={showLocationMap} onClose={() => setShowLocationMap(false)} title="현재 위치" showFooter={false} ariaLabel="Current Location Map">
-                {selectedContract && (
-                    <div style={{ padding: "20px" }}>
-                        {/* 상단 정보 */}
-                        <div
-                            style={{
-                                display: "flex",
-                                justifyContent: "space-between",
-                                alignItems: "center",
-                                marginBottom: "20px",
-                                padding: "15px",
-                                backgroundColor: "var(--location-header-bg, #f8f9fa)",
-                                borderRadius: "8px",
-                            }}
-                        >
-                            <div>
-                                <div style={{ fontSize: "1.1rem", fontWeight: "600", marginBottom: "8px" }}>
-                                    {selectedContract.plate} ({selectedContract.vehicleType})
-                                </div>
-                                <div style={{ fontSize: "0.9rem", color: "var(--location-header-text, #555)", lineHeight: 1.6 }}>
-                                    <div>
-                                        <strong>대여자 정보:</strong> {selectedContract.renterName || "-"}, {selectedContract.contactNumber || "-"}, {selectedContract.address || "-"}
-                                    </div>
-                                </div>
-                            </div>
-                            <button onClick={handleBackToDetail} className="form-button form-button--muted">
-                                상세정보로 돌아가기
-                            </button>
-                        </div>
-
-                        {/* 지도 영역 */}
-                        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                            {trackingDateKeys.length > 0 && (
-                                <div className="flex flex-wrap items-center gap-3 px-3 py-2 rounded-full shadow-sm bg-white/95 dark:bg-slate-800/95 text-slate-900 dark:text-slate-100">
-                                    {hasSelectedTrackingData && (
-                                        <>
-                                            <span className="font-semibold text-[12px] whitespace-nowrap">속도 범례:&nbsp;&nbsp;&nbsp; </span>
-                                            {speedLegendItems.map((item) => (
-                                                <div
-                                                    key={item.key}
-                                                    className="flex items-center gap-2 text-[12px] leading-tight px-2.5 py-1 rounded-full"
-                                                    style={{ backgroundColor: item.bg, boxShadow: "0 1px 2px rgba(0, 0, 0, 0.06)" }}
-                                                >
-                                                    <div className="w-4 h-[3px] rounded-full" style={{ backgroundColor: item.color }} />
-                                                    <span> &nbsp;&nbsp;&nbsp; </span>
-                                                    <span className="whitespace-nowrap" style={{ color: item.color }}>{item.label}</span>
-                                                    <span> &nbsp;&nbsp;&nbsp; </span>
-                                                </div>
-                                            ))}
-                                        </>
-                                    )}
-                                    <div className="ml-auto flex items-center gap-2">
-                                        {trackingDateKeys.length > 1 && (
-                                            <div className="flex items-center gap-1 text-[12px]">
-                                                <span className="font-semibold whitespace-nowrap mr-1">일자:</span>
-                                                {trackingDateKeys.map((key) => {
-                                                    const isActive = Array.isArray(trackingDateFilters) && trackingDateFilters.includes(key);
-                                                    return (
-                                                        <button
-                                                            key={key}
-                                                            type="button"
-                                                            onClick={() => {
-                                                                console.log('[DateButton Click]', { clickedDate: key, label: formatTrackingDateLabel(key) });
-                                                                setTrackingDateFilters((prev) => {
-                                                                    const base = Array.isArray(prev) ? prev : [];
-                                                                    const wasActive = base.includes(key);
-                                                                    const nextFilters = wasActive
-                                                                        ? base.filter((k) => k !== key)
-                                                                        : [...base, key];
-                                                                    console.log('[DateButton Update]', {
-                                                                        clickedDate: key,
-                                                                        action: wasActive ? 'REMOVED' : 'ADDED',
-                                                                        prevFilters: base,
-                                                                        nextFilters
-                                                                    });
-                                                                    return nextFilters;
-                                                                });
-                                                            }}
-                                                            className={`text-[12px] px-3 py-1 rounded-full border-0 ${
-                                                                isActive ? "bg-slate-900 text-white shadow-sm" : "bg-white/80 text-slate-700 hover:bg-slate-50"
-                                                            }`}
-                                                        >
-                                                            {formatTrackingDateLabel(key)}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                        <button
-                                            type="button"
-                                            onClick={handleLoadMoreTrail}
-                                            disabled={isLoadingLocation}
-                                            className="border-0 text-[12px] px-3 py-1 rounded-full bg-white hover:bg-slate-50"
-                                        >
-                                            이동경로 더보기
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
-                            <div
-                                style={{
-                                    position: "relative",
-                                    height: "420px",
-                                    borderRadius: "10px",
-                                    overflow: "hidden",
-                                    border: "1px solid #e5e7eb",
-                                    backgroundColor: "var(--location-map-bg, #f8f9fa)",
-                                }}
-                            >
-                                {selectedContract.currentLocation ? (
-                                    <KakaoMap
-                                        latitude={selectedContract.currentLocation.lat}
-                                        longitude={selectedContract.currentLocation.lng}
-                                        vehicleNumber={selectedContract.plate}
-                                        lastUpdateTime={mapLastUpdateTime}
-                                        markerTitle={`${selectedContract.plate} (${selectedContract.vehicleType})`}
-                                        width="100%"
-                                        height="100%"
-                                        renterName={selectedContract.renterName}
-                                        engineOn={selectedContract.engineOn}
-                                        isOnline={!!selectedContract.currentLocation}
-                                        trackingData={filteredTrackingData}
-                                        showSpeedLegend={false}
-                                        showStatusOverlay={false}
-                                        onAddressResolved={(addr) => {
-                                            setSelectedContract((prev) => {
-                                                if (!prev) return prev;
-                                                const cl = prev.currentLocation || {};
-                                                if (cl.address === addr) return prev;
-                                                return { ...prev, currentLocation: { ...cl, address: addr } };
-                                            });
-                                        }}
-                                    />
-                                ) : (
-                                    <div
-                                        style={{
-                                            width: "100%",
-                                            height: "100%",
-                                            backgroundColor: "var(--location-placeholder-bg, #f8f9fa)",
-                                            borderRadius: "10px",
-                                            display: "flex",
-                                            flexDirection: "column",
-                                            alignItems: "center",
-                                            justifyContent: "center",
-                                            border: "2px dashed var(--location-placeholder-border, #dee2e6)",
-                                        }}
-                                    >
-                                        <FaMapMarkerAlt size={48} style={{ marginBottom: "16px", color: "var(--location-placeholder-icon, #adb5bd)" }} />
-                                        <div style={{ fontSize: "1.1rem", fontWeight: "600", color: "var(--location-placeholder-title, #6c757d)", marginBottom: "8px" }}>위치 정보 없음</div>
-                                        <div style={{ fontSize: "0.9rem", color: "var(--location-placeholder-subtext, #adb5bd)" }}>현재 차량의 위치 정보를 받을 수 없습니다.</div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                )}
-            </Modal>
+            <CurrentLocationModal
+                isOpen={showLocationMap}
+                onClose={() => setShowLocationMap(false)}
+                onBackToDetail={handleBackToDetail}
+                contract={selectedContract}
+                trackingDateKeys={trackingDateKeys}
+                trackingDateFilters={trackingDateFilters}
+                onTrackingDateFilterChange={setTrackingDateFilters}
+                filteredTrackingData={filteredTrackingData}
+                mapLastUpdateTime={mapLastUpdateTime}
+                speedLegendItems={speedLegendItems}
+                hasSelectedTrackingData={hasSelectedTrackingData}
+                isLoadingLocation={isLoadingLocation}
+                onLoadMoreTrail={handleLoadMoreTrail}
+                onAddressResolved={(addr) => {
+                    setSelectedContract((prev) => {
+                        if (!prev) return prev;
+                        const cl = prev.currentLocation || {};
+                        if (cl.address === addr) return prev;
+                        return { ...prev, currentLocation: { ...cl, address: addr } };
+                    });
+                }}
+                formatTrackingDateLabel={formatTrackingDateLabel}
+            />
 
             {/* 사고 정보 조회 모달 */}
             <AccidentInfoModal
