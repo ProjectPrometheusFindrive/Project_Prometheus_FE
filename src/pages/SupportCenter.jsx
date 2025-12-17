@@ -6,24 +6,17 @@ import "./SupportCenter.css";
 
 const ChevronDownIcon = ({ isOpen }) => (
   <svg
+    width="16"
+    height="16"
+    viewBox="0 0 16 16"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
     style={{
-      width: 16,
-      height: 16,
       transition: 'transform 0.2s',
       transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)'
     }}
-    fill="none"
-    viewBox="0 0 24 24"
-    stroke="currentColor"
-    strokeWidth={2}
   >
-    <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
-  </svg>
-);
-
-const QuestionIcon = () => (
-  <svg style={{ width: 20, height: 20 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9 5.25h.008v.008H12v-.008z" />
+    <path d="M4 6L8 10L12 6" stroke="#888888" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -44,6 +37,10 @@ const FAQ_ITEMS = [
   {
     question: "계정 권한 변경이나 담당자 변경은 어떻게 하나요?",
     answer: "'계정 / 권한 관련'을 선택하여 변경 요청을 접수해주세요. 보안상 본인 확인 절차가 필요할 수 있습니다.",
+  },
+  {
+    question: "결제 관련 문의는 어떻게 하나요?",
+    answer: "결제, 정산, 청구서 관련 문의는 '결제 / 정산 문의'를 선택하여 접수해주세요.",
   },
   {
     question: "문의 상태는 어디서 확인할 수 있나요?",
@@ -77,10 +74,9 @@ function FAQItem({ question, answer, isOpen, onToggle }) {
         <ChevronDownIcon isOpen={isOpen} />
       </button>
       <div
+        className="support-faq-answer-wrapper"
         style={{
-          overflow: 'hidden',
-          transition: 'max-height 0.25s ease-in-out, opacity 0.2s ease-in-out',
-          maxHeight: isOpen ? 400 : 0,
+          maxHeight: isOpen ? 200 : 0,
           opacity: isOpen ? 1 : 0,
         }}
       >
@@ -94,7 +90,7 @@ function SupportCenter() {
   const auth = useAuth();
   const { companyInfo } = useCompany();
   const user = auth?.user;
-  const [openFAQ, setOpenFAQ] = useState(null);
+  const [openFAQ, setOpenFAQ] = useState(0); // 첫 번째 항목 기본 열림
 
   const meta = useMemo(() => {
     const companyName = (companyInfo && companyInfo.name) || user?.company || "";
@@ -122,38 +118,31 @@ function SupportCenter() {
 
   return (
     <div className="page page--data">
-      <div className="page-scroll support-page">
+      <div className="support-page">
+        {/* 페이지 타이틀 */}
+        <h1 className="support-page-title">고객센터</h1>
+
         <div className="support-layout">
           {/* 좌측: 문의 양식 */}
           <div className="support-main">
             <section className="support-form-card">
-              <div className="support-form-header">
-                <h2>문의 남기기</h2>
-                <p>서비스 이용, 장애 신고, 결제/정산, 계정/권한 등 운영 관련 문의를 남기면 담당자가 답변을 드립니다.</p>
-              </div>
-              <div className="support-form-body">
-                <SupportRequestForm
-                  companyName={meta.companyName}
-                  companyId={meta.companyId}
-                  requesterName={meta.requesterName}
-                  requesterId={meta.requesterId}
-                  requesterPosition={meta.requesterPosition}
-                  initialEmail={meta.initialEmail}
-                  initialPhone={meta.initialPhone}
-                />
-              </div>
+              <SupportRequestForm
+                companyName={meta.companyName}
+                companyId={meta.companyId}
+                requesterName={meta.requesterName}
+                requesterId={meta.requesterId}
+                requesterPosition={meta.requesterPosition}
+                initialEmail={meta.initialEmail}
+                initialPhone={meta.initialPhone}
+              />
             </section>
           </div>
 
-          {/* 우측: 사이드바 */}
+          {/* 우측: FAQ */}
           <div className="support-sidebar">
-            {/* FAQ 섹션 */}
             <section className="support-card support-card--faq">
-              <div className="support-faq-header">
-                <div className="support-faq-icon">
-                  <QuestionIcon />
-                </div>
-                <h3 style={{ margin: 0 }}>자주 묻는 질문</h3>
+              <div className="support-section-header">
+                <h3 className="support-section-title">자주 묻는 질문</h3>
               </div>
               <div className="support-faq-list">
                 {FAQ_ITEMS.map((item, index) => (

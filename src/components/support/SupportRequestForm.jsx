@@ -12,43 +12,6 @@ const EMPTY_FORM = {
   replyPhone: "",
 };
 
-// 아이콘 컴포넌트
-const UserIcon = () => (
-  <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-  </svg>
-);
-
-const BuildingIcon = () => (
-  <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 21h16.5M4.5 3h15M5.25 3v18m13.5-18v18M9 6.75h1.5m-1.5 3h1.5m-1.5 3h1.5m3-6H15m-1.5 3H15m-1.5 3H15M9 21v-3.375c0-.621.504-1.125 1.125-1.125h3.75c.621 0 1.125.504 1.125 1.125V21" />
-  </svg>
-);
-
-const MailIcon = () => (
-  <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
-  </svg>
-);
-
-const BriefcaseIcon = () => (
-  <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 14.15v4.25c0 1.094-.787 2.036-1.872 2.18-2.087.277-4.216.42-6.378.42s-4.291-.143-6.378-.42c-1.085-.144-1.872-1.086-1.872-2.18v-4.25m16.5 0a2.18 2.18 0 00.75-1.661V8.706c0-1.081-.768-2.015-1.837-2.175a48.114 48.114 0 00-3.413-.387m4.5 8.006c-.194.165-.42.295-.673.38A23.978 23.978 0 0112 15.75c-2.648 0-5.195-.429-7.577-1.22a2.016 2.016 0 01-.673-.38m0 0A2.18 2.18 0 013 12.489V8.706c0-1.081.768-2.015 1.837-2.175a48.111 48.111 0 013.413-.387m7.5 0V5.25A2.25 2.25 0 0013.5 3h-3a2.25 2.25 0 00-2.25 2.25v.894m7.5 0a48.667 48.667 0 00-7.5 0M12 12.75h.008v.008H12v-.008z" />
-  </svg>
-);
-
-const SendIcon = () => (
-  <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 12L3.269 3.126A59.768 59.768 0 0121.485 12 59.77 59.77 0 013.27 20.876L5.999 12zm0 0h7.5" />
-  </svg>
-);
-
-const WarningIcon = () => (
-  <svg style={{ width: 16, height: 16, flexShrink: 0 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-  </svg>
-);
-
 const ErrorIcon = () => (
   <svg style={{ width: 16, height: 16 }} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
@@ -58,6 +21,12 @@ const ErrorIcon = () => (
 const ErrorIconSmall = () => (
   <svg style={{ width: 12, height: 12 }} fill="currentColor" viewBox="0 0 20 20">
     <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+  </svg>
+);
+
+const DropdownArrow = () => (
+  <svg width="10" height="6" viewBox="0 0 10 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M1 1L5 5L9 1" stroke="#1C1C1C" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 );
 
@@ -214,7 +183,12 @@ export default function SupportRequestForm({
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+    <div>
+      {/* 문의하기 타이틀 */}
+      <div className="support-section-header">
+        <h2 className="support-section-title">문의하기</h2>
+      </div>
+
       {/* 에러 메시지 */}
       {submitError && (
         <div className="support-error-box">
@@ -249,54 +223,44 @@ export default function SupportRequestForm({
         </div>
       )}
 
-      {/* 보내는 사람 정보 카드 */}
-      <div className="support-sender-card">
-        <div className="support-sender-header">
-          <div className="support-sender-icon">
-            <UserIcon />
-          </div>
-          <span className="support-sender-title">보내는 사람</span>
-        </div>
+      {/* 보내는 사람 섹션 */}
+      <div className="support-sender-section">
+        <h3 className="support-sender-title">보내는 사람</h3>
         <div className="support-sender-grid">
-          <div className="support-info-card">
-            <UserIcon />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p className="support-info-label">이름</p>
-              <p className="support-info-value">{requesterName || "-"}</p>
-            </div>
+          {/* 이름 */}
+          <div className="support-sender-field">
+            <label className="support-sender-label">이름</label>
+            <div className="support-sender-input">{requesterName || "-"}</div>
           </div>
-          <div className="support-info-card">
-            <MailIcon />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p className="support-info-label">이메일</p>
-              <p className="support-info-value">{initialEmail || "-"}</p>
-            </div>
+          {/* 이메일 */}
+          <div className="support-sender-field">
+            <label className="support-sender-label">이메일</label>
+            <div className="support-sender-input">{initialEmail || "-"}</div>
           </div>
-          <div className="support-info-card">
-            <BuildingIcon />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p className="support-info-label">회사</p>
-              <p className="support-info-value">{companyName || "-"}</p>
-            </div>
+          {/* 회사명 */}
+          <div className="support-sender-field">
+            <label className="support-sender-label">회사명</label>
+            <div className="support-sender-input">{companyName || "-"}</div>
           </div>
-          <div className="support-info-card">
-            <BriefcaseIcon />
-            <div style={{ minWidth: 0, flex: 1 }}>
-              <p className="support-info-label">직책</p>
-              <p className="support-info-value">{requesterPosition || "-"}</p>
-            </div>
+          {/* 직책 */}
+          <div className="support-sender-field">
+            <label className="support-sender-label">직책</label>
+            <div className="support-sender-input">{requesterPosition || "-"}</div>
           </div>
         </div>
       </div>
 
+      {/* 구분선 */}
+      <div className="support-divider" />
+
       {/* 문의 양식 */}
-      <form id={formId} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {/* 문의 유형 + 제목 - 한 줄 */}
-        <div className="support-form-row support-form-row--2col">
-          <div className="support-form-field">
-            <label className="support-form-label" style={{ minWidth: 60 }} htmlFor="support-category">
-              문의 유형
-            </label>
+      <form id={formId} onSubmit={handleSubmit}>
+        {/* 문의 유형 */}
+        <div className="support-form-row-inline">
+          <label className="support-form-label-side" htmlFor="support-category">
+            문의 유형
+          </label>
+          <div className="support-select-wrapper">
             <select
               id="support-category"
               className="support-form-select"
@@ -308,67 +272,79 @@ export default function SupportRequestForm({
               ))}
             </select>
           </div>
-          <div className="support-form-field">
-            <label className="support-form-label" style={{ minWidth: 30 }} htmlFor="support-subject">
-              제목
-            </label>
-            <input
-              id="support-subject"
-              className="support-form-input"
-              type="text"
-              value={form.subject}
-              onChange={(e) => updateField("subject", e.target.value)}
-              placeholder="예) 대시보드 접속 시 오류가 발생합니다"
-              required
-            />
+        </div>
+
+        {/* 메일 제목 */}
+        <div className="support-form-row-inline">
+          <label className="support-form-label-side" htmlFor="support-subject">
+            메일 제목
+          </label>
+          <input
+            id="support-subject"
+            className="support-form-input-wide"
+            type="text"
+            value={form.subject}
+            onChange={(e) => updateField("subject", e.target.value)}
+            placeholder="제목을 입력하세요"
+            required
+          />
+        </div>
+        {fieldErrors.subject && (
+          <div className="support-field-error" style={{ marginLeft: 70 }}>
+            <ErrorIconSmall />
+            {fieldErrors.subject}
+          </div>
+        )}
+
+        {/* 내용 */}
+        <div className="support-form-row-inline" style={{ alignItems: 'flex-start' }}>
+          <label className="support-form-label-side" style={{ paddingTop: 10 }}>
+            내용
+          </label>
+          <div className="support-content-box">
+            <span className="support-content-text">
+              서비스 이용, 장애 신고, 결제·정산, 계정·권한 등 운영 관련 문의를 남겨주시면 담당자가 답변을 드립니다.
+            </span>
+            <br />
+            <span className="support-content-text">
+              문제가 발생한 화면, 상황, 발생 시간 등을 최대한 자세히 적어주세요.
+            </span>
+            <br />
+            <span className="support-content-warning">
+              주민번호나 계좌번호 등 민감한 정보는 입력하지 마세요.
+            </span>
           </div>
         </div>
 
-        {/* 내용 */}
-        <div>
-          <label className="support-form-label" style={{ display: 'block', marginBottom: 6 }} htmlFor="support-message">
-            내용
-          </label>
-          <textarea
-            id="support-message"
-            className="support-form-textarea"
-            value={form.message}
-            onChange={(e) => updateField("message", e.target.value)}
-            placeholder="문제가 발생한 화면, 상황, 발생 시간 등을 최대한 자세히 적어주세요."
-            rows={8}
-            style={{ height: 206 }}
-          />
-          {fieldErrors.message && (
-            <div className="support-field-error">
-              <ErrorIconSmall />
-              {fieldErrors.message}
-            </div>
-          )}
-        </div>
-
-        {/* 회신 이메일 + 연락처 - 한 줄 */}
-        <div className="support-form-row support-form-row--equal">
-          <div className="support-form-field">
-            <label className="support-form-label" style={{ minWidth: 70 }} htmlFor="support-reply-email">
+        {/* 회신 받을 이메일 + 연락처 */}
+        <div className="support-reply-row">
+          <div className="support-reply-field">
+            <label className="support-reply-label" htmlFor="support-reply-email">
               회신 받을 이메일
             </label>
             <input
               id="support-reply-email"
-              className="support-form-input"
+              className="support-reply-input"
               type="email"
               value={form.replyEmail}
               onChange={(e) => updateField("replyEmail", e.target.value)}
-              placeholder="name@company.com"
+              placeholder="abcd@efff.com"
               required
             />
+            {fieldErrors.replyEmail && (
+              <div className="support-field-error">
+                <ErrorIconSmall />
+                {fieldErrors.replyEmail}
+              </div>
+            )}
           </div>
-          <div className="support-form-field">
-            <label className="support-form-label" style={{ minWidth: 70 }} htmlFor="support-reply-phone">
+          <div className="support-reply-field">
+            <label className="support-reply-label" htmlFor="support-reply-phone">
               연락처 (선택)
             </label>
             <input
               id="support-reply-phone"
-              className="support-form-input"
+              className="support-reply-input"
               type="text"
               value={form.replyPhone}
               onChange={(e) => handlePhoneChange(e.target.value)}
@@ -376,36 +352,30 @@ export default function SupportRequestForm({
             />
           </div>
         </div>
-      </form>
 
-      {/* 하단 액션 영역 */}
-      <div className="support-form-footer">
-        <div className="support-form-warning">
-          <WarningIcon />
-          <span>민감 정보(주민번호, 계좌번호 등)는 입력하지 마세요</span>
+        {/* 하단 구분선 + 버튼 */}
+        <div className="support-form-footer">
+          <div className="support-footer-line" />
+          <button
+            type="submit"
+            form={formId}
+            disabled={submitting}
+            className="support-submit-btn"
+          >
+            {submitting ? (
+              <>
+                <svg style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} fill="none" viewBox="0 0 24 24">
+                  <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                </svg>
+                <span>전송 중...</span>
+              </>
+            ) : (
+              <span>문의 접수</span>
+            )}
+          </button>
         </div>
-        <button
-          type="submit"
-          form={formId}
-          disabled={submitting}
-          className="support-submit-btn"
-        >
-          {submitting ? (
-            <>
-              <svg style={{ width: 16, height: 16, animation: 'spin 1s linear infinite' }} fill="none" viewBox="0 0 24 24">
-                <circle style={{ opacity: 0.25 }} cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                <path style={{ opacity: 0.75 }} fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span>전송 중...</span>
-            </>
-          ) : (
-            <>
-              <SendIcon />
-              <span>문의 보내기</span>
-            </>
-          )}
-        </button>
-      </div>
+      </form>
 
       {/* 스핀 애니메이션 CSS */}
       <style>{`
