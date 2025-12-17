@@ -4,11 +4,9 @@ import { resolveVehicleRentals, fetchAssetById, fetchAssets, fetchAssetsSummary,
 import { uploadMany } from "../utils/uploadHelpers";
 import { parseCurrency } from "../utils/formatters";
 import AssetForm from "../components/forms/AssetForm";
-import DeviceInfoForm from "../components/forms/DeviceInfoForm";
 import InfoGrid from "../components/InfoGrid";
 import AssetDialog from "../components/AssetDialog";
 import InsuranceDialog from "../components/InsuranceDialog";
-import DeviceEventLog from "../components/DeviceEventLog";
 import DiagnosticHero from "../components/DiagnosticHero";
 import DiagnosticCountBadge from "../components/badges/DiagnosticCountBadge";
 import RentalForm from "../components/forms/RentalForm";
@@ -30,6 +28,7 @@ import { getManagementStage, withManagementStage, getDiagnosticCount } from "../
 import { FaCog } from "react-icons/fa";
 import MemoHistoryModal from "../components/modals/MemoHistoryModal";
 import TerminalRequestModal from "../components/modals/TerminalRequestModal";
+import DeviceInfoDialog from "../components/modals/DeviceInfoModal";
 import { MemoCell, AssetManagementStageCell, VehicleHealthCell, CompanyCell, PlateCell } from "../components/cells";
 import useMemoEditor from "../hooks/useMemoEditor";
 import useInsuranceModal from "../hooks/useInsuranceModal";
@@ -328,17 +327,6 @@ export default function AssetStatus() {
     };
 
     // rental create submit handled by hook version; wire context when calling
-
-    const deviceInitial = useMemo(() => {
-        if (!activeAsset) return {};
-        return {
-            supplier: activeAsset.supplier || "",
-            installDate: activeAsset.deviceInstallDate || activeAsset.installDate || "",
-            installer: activeAsset.installer || "",
-            serial: activeAsset.deviceSerial || "",
-            photos: [],
-        };
-    }, [activeAsset]);
 
     // Unified device modal opener (replaces openDeviceRegister + openDeviceView)
     const openDeviceModal = (asset, readOnly = false) => {
@@ -1598,7 +1586,9 @@ export default function AssetStatus() {
                 showHeaderClose={false}
                 className="modal--asset-register"
                 ariaLabel={editingAssetId ? "자산정보" : "자산등록"}
-                customHeaderContent={
+                customHeaderContent={(() => {
+                    const editAsset = editingAssetId ? rows.find((r) => r.id === editingAssetId) : null;
+                    return (
                     <div className="modal-header">
                         <div
                             data-layer="Frame 427319202"
@@ -1610,21 +1600,50 @@ export default function AssetStatus() {
                                 display: "flex",
                             }}
                         >
-                            <div
-                                data-layer={editingAssetId ? "자산정보" : "자산등록"}
-                                style={{
-                                    justifyContent: "center",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    color: "#1C1C1C",
-                                    fontSize: 20,
-                                    fontFamily: "Pretendard",
-                                    fontWeight: 700,
-                                    lineHeight: "30px",
-                                    wordWrap: "break-word",
-                                }}
-                            >
-                                {editingAssetId ? "자산정보" : "자산등록"}
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div
+                                    data-layer={editingAssetId ? "자산정보" : "자산등록"}
+                                    style={{
+                                        justifyContent: "center",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        color: "#1C1C1C",
+                                        fontSize: 20,
+                                        fontFamily: "Pretendard",
+                                        fontWeight: 700,
+                                        lineHeight: "30px",
+                                        wordWrap: "break-word",
+                                    }}
+                                >
+                                    {editingAssetId ? "자산정보" : "자산등록"}
+                                </div>
+                                {editAsset?.plate && (
+                                    <div
+                                        style={{
+                                            paddingLeft: 7,
+                                            paddingRight: 7,
+                                            paddingTop: 1,
+                                            paddingBottom: 1,
+                                            background: "#FF4B14",
+                                            borderRadius: 5,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                color: "white",
+                                                fontSize: 12,
+                                                fontFamily: "Pretendard",
+                                                fontWeight: 600,
+                                                lineHeight: "18px",
+                                            }}
+                                        >
+                                            {editAsset.plate}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <button
                                 type="button"
@@ -1666,7 +1685,8 @@ export default function AssetStatus() {
                         </div>
                         <div className="modal-header__line" />
                     </div>
-                }
+                    );
+                })()}
             >
                 {(() => {
                     const current = editingAssetId ? rows.find((r) => r.id === editingAssetId) : {};
@@ -1701,21 +1721,50 @@ export default function AssetStatus() {
                                 display: "flex",
                             }}
                         >
-                            <div
-                                data-layer={insuranceReadOnly ? "보험정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")}
-                                style={{
-                                    justifyContent: "center",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    color: "#1C1C1C",
-                                    fontSize: 20,
-                                    fontFamily: "Pretendard",
-                                    fontWeight: 700,
-                                    lineHeight: "30px",
-                                    wordWrap: "break-word",
-                                }}
-                            >
-                                {insuranceReadOnly ? "보험정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")}
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div
+                                    data-layer={insuranceReadOnly ? "보험정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")}
+                                    style={{
+                                        justifyContent: "center",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        color: "#1C1C1C",
+                                        fontSize: 20,
+                                        fontFamily: "Pretendard",
+                                        fontWeight: 700,
+                                        lineHeight: "30px",
+                                        wordWrap: "break-word",
+                                    }}
+                                >
+                                    {insuranceReadOnly ? "보험정보" : (insuranceAsset?.insuranceExpiryDate || insuranceAsset?.insuranceInfo ? "보험 수정" : "보험 등록")}
+                                </div>
+                                {insuranceAsset?.plate && (
+                                    <div
+                                        style={{
+                                            paddingLeft: 7,
+                                            paddingRight: 7,
+                                            paddingTop: 1,
+                                            paddingBottom: 1,
+                                            background: "#FF4B14",
+                                            borderRadius: 5,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                color: "white",
+                                                fontSize: 12,
+                                                fontFamily: "Pretendard",
+                                                fontWeight: 600,
+                                                lineHeight: "18px",
+                                            }}
+                                        >
+                                            {insuranceAsset.plate}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <button
                                 type="button"
@@ -1765,24 +1814,116 @@ export default function AssetStatus() {
             <Modal
                 isOpen={showDeviceModal && activeAsset}
                 onClose={() => setShowDeviceModal(false)}
-                title={`단말 정보 ${deviceReadOnly ? '보기' : (activeAsset?.deviceSerial ? '수정' : '등록')} - ${activeAsset?.plate || activeAsset?.id || ""}`}
                 showFooter={false}
-                showHeaderClose={!deviceReadOnly}
+                showHeaderClose={false}
+                className={deviceReadOnly ? "modal--asset-register modal--asset-view" : "modal--asset-register"}
+                ariaLabel={deviceReadOnly ? "단말정보" : (activeAsset?.deviceSerial ? "단말 수정" : "단말 등록")}
+                customHeaderContent={
+                    <div className="modal-header">
+                        <div
+                            data-layer="Frame 427319202"
+                            className="modal-header__row Frame427319202"
+                            style={{
+                                alignSelf: "stretch",
+                                alignItems: "flex-end",
+                                justifyContent: "space-between",
+                                display: "flex",
+                            }}
+                        >
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div
+                                    data-layer={deviceReadOnly ? "단말정보" : (activeAsset?.deviceSerial ? "단말 수정" : "단말 등록")}
+                                    style={{
+                                        justifyContent: "center",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        color: "#1C1C1C",
+                                        fontSize: 20,
+                                        fontFamily: "Pretendard",
+                                        fontWeight: 700,
+                                        lineHeight: "30px",
+                                        wordWrap: "break-word",
+                                    }}
+                                >
+                                    {deviceReadOnly ? "단말정보" : (activeAsset?.deviceSerial ? "단말 수정" : "단말 등록")}
+                                </div>
+                                {activeAsset?.plate && (
+                                    <div
+                                        style={{
+                                            paddingLeft: 7,
+                                            paddingRight: 7,
+                                            paddingTop: 1,
+                                            paddingBottom: 1,
+                                            background: "#FF4B14",
+                                            borderRadius: 5,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                color: "white",
+                                                fontSize: 12,
+                                                fontFamily: "Pretendard",
+                                                fontWeight: 600,
+                                                lineHeight: "18px",
+                                            }}
+                                        >
+                                            {activeAsset.plate}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                data-svg-wrapper
+                                data-layer="Btn_closed"
+                                className="BtnClosed"
+                                aria-label="닫기"
+                                onClick={() => setShowDeviceModal(false)}
+                                style={{
+                                    position: "relative",
+                                    width: 36,
+                                    height: 36,
+                                    padding: 0,
+                                    border: "none",
+                                    background: "transparent",
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <svg
+                                    width="36"
+                                    height="36"
+                                    viewBox="0 0 36 36"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M25.6154 9C25.9977 8.61765 26.6176 8.61765 27 9C27.3824 9.38235 27.3824 10.0023 27 10.3846L10.3846 27C10.0023 27.3824 9.38235 27.3824 9 27C8.61765 26.6177 8.61765 25.9977 9 25.6154L25.6154 9Z"
+                                        fill="#1C1C1C"
+                                    />
+                                    <path
+                                        d="M27 25.6154C27.3824 25.9977 27.3824 26.6177 27 27C26.6176 27.3824 25.9977 27.3824 25.6154 27L9 10.3846C8.61765 10.0023 8.61765 9.38235 9 9C9.38235 8.61765 10.0023 8.61765 10.3846 9L27 25.6154Z"
+                                        fill="#1C1C1C"
+                                    />
+                                </svg>
+                            </button>
+                        </div>
+                        <div className="modal-header__line" />
+                    </div>
+                }
             >
-                <DeviceInfoForm
-                    formId="device-info"
-                    initial={deviceInitial}
+                <DeviceInfoDialog
+                    asset={activeAsset || {}}
+                    onClose={() => setShowDeviceModal(false)}
                     onSubmit={handleDeviceInfoSubmit}
                     readOnly={deviceReadOnly}
-                    showSubmit={!deviceReadOnly}
+                    allowEditToggle
                 />
-                <DeviceEventLog assetId={activeAsset?.id} history={activeAsset?.deviceHistory || []} fallbackInstallDate={deviceInitial?.installDate || "" || activeAsset?.deviceInstallDate || activeAsset?.installDate || ""} />
-                {deviceReadOnly && (
-                    <div className="asset-dialog__footer">
-                        <button type="button" className="form-button" onClick={() => setDeviceReadOnly(false)} style={{ marginRight: 8 }}>수정</button>
-                        <button type="button" className="form-button" onClick={() => setShowDeviceModal(false)}>닫기</button>
-                    </div>
-                )}
             </Modal>
 
             <MemoHistoryModal
@@ -1828,21 +1969,50 @@ export default function AssetStatus() {
                                 display: "flex",
                             }}
                         >
-                            <div
-                                data-layer="자산정보"
-                                style={{
-                                    justifyContent: "center",
-                                    display: "flex",
-                                    flexDirection: "column",
-                                    color: "#1C1C1C",
-                                    fontSize: 20,
-                                    fontFamily: "Pretendard",
-                                    fontWeight: 700,
-                                    lineHeight: "30px",
-                                    wordWrap: "break-word",
-                                }}
-                            >
-                                자산정보
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div
+                                    data-layer="자산정보"
+                                    style={{
+                                        justifyContent: "center",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        color: "#1C1C1C",
+                                        fontSize: 20,
+                                        fontFamily: "Pretendard",
+                                        fontWeight: 700,
+                                        lineHeight: "30px",
+                                        wordWrap: "break-word",
+                                    }}
+                                >
+                                    자산정보
+                                </div>
+                                {infoVehicle?.plate && (
+                                    <div
+                                        style={{
+                                            paddingLeft: 7,
+                                            paddingRight: 7,
+                                            paddingTop: 1,
+                                            paddingBottom: 1,
+                                            background: "#FF4B14",
+                                            borderRadius: 5,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                color: "white",
+                                                fontSize: 12,
+                                                fontFamily: "Pretendard",
+                                                fontWeight: 600,
+                                                lineHeight: "18px",
+                                            }}
+                                        >
+                                            {infoVehicle.plate}
+                                        </span>
+                                    </div>
+                                )}
                             </div>
                             <button
                                 type="button"
@@ -1921,20 +2091,100 @@ export default function AssetStatus() {
                 onClose={() => setShowDiagnosticModal(false)}
                 className="!w-[410px] !max-w-[410px] !h-[800px] !p-[40px] !overflow-hidden flex flex-col"
                 customHeaderContent={
-                    <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[20px] font-bold text-[#1C1C1C] leading-[30px]">진단코드상세</span>
-                            <div className="flex items-center justify-center bg-[#FF3C00] rounded-[5px] px-[7px] py-[1px]">
-                                <span className="!text-white text-[12px] font-semibold leading-[18px]">{diagnosticDetail?.vehicleInfo?.plate}</span>
-                            </div>
-                        </div>
-                        <div 
-                            className="w-9 h-9 relative cursor-pointer" 
-                            onClick={() => setShowDiagnosticModal(false)}
+                    <div className="modal-header" style={{ width: "100%" }}>
+                        <div
+                            data-layer="Frame 427319202"
+                            className="modal-header__row Frame427319202"
+                            style={{
+                                alignSelf: "stretch",
+                                alignItems: "flex-end",
+                                justifyContent: "space-between",
+                                display: "flex",
+                                width: "100%",
+                            }}
                         >
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1C1C1C" strokeWidth="2" className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-                                <path d="M18 6L6 18M6 6l12 12" strokeLinecap="round" strokeLinejoin="round"/>
-                            </svg>
+                            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                                <div
+                                    data-layer="진단코드상세"
+                                    style={{
+                                        justifyContent: "center",
+                                        display: "flex",
+                                        flexDirection: "column",
+                                        color: "#1C1C1C",
+                                        fontSize: 20,
+                                        fontFamily: "Pretendard",
+                                        fontWeight: 700,
+                                        lineHeight: "30px",
+                                        wordWrap: "break-word",
+                                    }}
+                                >
+                                    진단코드상세
+                                </div>
+                                {diagnosticDetail?.vehicleInfo?.plate && (
+                                    <div
+                                        style={{
+                                            paddingLeft: 7,
+                                            paddingRight: 7,
+                                            paddingTop: 1,
+                                            paddingBottom: 1,
+                                            background: "#FF4B14",
+                                            borderRadius: 5,
+                                            display: "flex",
+                                            justifyContent: "center",
+                                            alignItems: "center",
+                                        }}
+                                    >
+                                        <span
+                                            style={{
+                                                color: "white",
+                                                fontSize: 12,
+                                                fontFamily: "Pretendard",
+                                                fontWeight: 600,
+                                                lineHeight: "18px",
+                                            }}
+                                        >
+                                            {diagnosticDetail.vehicleInfo.plate}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
+                            <button
+                                type="button"
+                                data-svg-wrapper
+                                data-layer="Btn_closed"
+                                className="BtnClosed"
+                                aria-label="닫기"
+                                onClick={() => setShowDiagnosticModal(false)}
+                                style={{
+                                    position: "relative",
+                                    width: 36,
+                                    height: 36,
+                                    padding: 0,
+                                    border: "none",
+                                    background: "transparent",
+                                    cursor: "pointer",
+                                    display: "inline-flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <svg
+                                    width="36"
+                                    height="36"
+                                    viewBox="0 0 36 36"
+                                    fill="none"
+                                    xmlns="http://www.w3.org/2000/svg"
+                                >
+                                    <path
+                                        d="M25.6154 9C25.9977 8.61765 26.6176 8.61765 27 9C27.3824 9.38235 27.3824 10.0023 27 10.3846L10.3846 27C10.0023 27.3824 9.38235 27.3824 9 27C8.61765 26.6177 8.61765 25.9977 9 25.6154L25.6154 9Z"
+                                        fill="#1C1C1C"
+                                    />
+                                    <path
+                                        d="M27 25.6154C27.3824 25.9977 27.3824 26.6177 27 27C26.6176 27.3824 25.9977 27.3824 25.6154 27L9 10.3846C8.61765 10.0023 8.61765 9.38235 9 9C9.38235 8.61765 10.0023 8.61765 10.3846 9L27 25.6154Z"
+                                        fill="#1C1C1C"
+                                    />
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 }
