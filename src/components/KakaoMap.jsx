@@ -174,13 +174,14 @@ const KakaoMap = ({
         if (!Array.isArray(rawPolygons)) return [];
         return rawPolygons.map((entry, idx) => {
             if (Array.isArray(entry)) {
-                return { id: idx, name: "", points: entry };
+                return { id: idx, name: "", points: entry, options: {} };
             }
             if (entry && Array.isArray(entry.points)) {
                 return {
                     id: entry.id != null ? entry.id : idx,
                     name: entry.name || "",
                     points: entry.points,
+                    options: entry.options || {}
                 };
             }
             return null;
@@ -239,7 +240,9 @@ const KakaoMap = ({
     };
 
     const attachEditHandles = (map, polygon, index) => {
+        // If not editable or no callback, return empty arrays (markers will be cleared by caller if needed)
         if (!editable || !onPolygonChange) return { vertexMarkers: [], midMarkers: [] };
+        
         const path = polygon.getPath();
         const vertexMarkers = [];
         const midMarkers = [];
@@ -255,6 +258,7 @@ const KakaoMap = ({
                     { offset: new window.kakao.maps.Point(4, 4) }
                 ),
                 draggable: true,
+                zIndex: 100 // Ensure handles are on top
             });
             marker.setMap(map);
             window.kakao.maps.event.addListener(marker, "dragend", function () {
@@ -264,6 +268,8 @@ const KakaoMap = ({
                 polygon.setPath(currentPath);
                 const newPoints = currentPath.map((pt) => ({ lat: pt.getLat(), lng: pt.getLng() }));
                 onPolygonChange(newPoints, index);
+                
+                // Sync UI immediately
                 // sync other vertex markers
                 vertexMarkers.forEach((vm, vmIndex) => {
                     if (vmIndex !== i) vm.setPosition(currentPath[vmIndex]);
@@ -274,7 +280,7 @@ const KakaoMap = ({
                     const b = currentPath[(k + 1) % currentPath.length];
                     const midLat = (a.getLat() + b.getLat()) / 2;
                     const midLng = (a.getLng() + b.getLng()) / 2;
-                    midMarkers[k].setPosition(new window.kakao.maps.LatLng(midLat, midLng));
+                    if(midMarkers[k]) midMarkers[k].setPosition(new window.kakao.maps.LatLng(midLat, midLng));
                 }
             });
             vertexMarkers.push(marker);
@@ -295,6 +301,7 @@ const KakaoMap = ({
                     { offset: new window.kakao.maps.Point(3, 3) }
                 ),
                 draggable: true,
+                zIndex: 90
             });
             midMarker.setMap(map);
             window.kakao.maps.event.addListener(midMarker, "dragend", (function (segmentIdx) {
@@ -390,40 +397,84 @@ const KakaoMap = ({
                 continue;
             }
 
+            // Determine Styles
+            const defaultColor = "#0b57d0";
+            const editColor = "#ff6b6b";
+            
+            // Allow overrides from props, but enforce edit mode styles if editable is true
+            const baseStrokeColor = polyMeta.options?.strokeColor || defaultColor;
+            const baseFillColor = polyMeta.options?.fillColor || defaultColor;
+            
+            const strokeColor = editable ? editColor : baseStrokeColor;
+            const fillColor = editable ? editColor : baseFillColor;
+            const strokeOpacity = 0.8;
+            const fillOpacity = editable ? 0.2 : 0.1;
+
             let entry = existing[i];
             if (!entry) {
                 const polygon = new window.kakao.maps.Polygon({
                     path,
                     strokeWeight: 4,
-                    strokeColor: editable ? "#ff6b6b" : "#0b57d0",
-                    strokeOpacity: 0.8,
+                    strokeColor,
+                    strokeOpacity,
                     strokeStyle: "solid",
-                    fillColor: editable ? "#ff6b6b" : "#0b57d0",
-                    fillOpacity: editable ? 0.2 : 0.1,
-                    draggable: !!editable,
-                    editable: !!editable,
-                    removable: !!editable,
+                    fillColor,
+                    fillOpacity,
+                    draggable: false, // We use handles for editing
+                    editable: false, // We use custom handles
                 });
                 polygon.setMap(map);
                 const handles = attachEditHandles(map, polygon, i);
                 entry = { polygon, ...handles };
             } else {
                 entry.polygon.setPath(path);
-                try {
-                    const currentPath = entry.polygon.getPath();
-                    if (Array.isArray(entry.vertexMarkers) && entry.vertexMarkers.length === currentPath.length) {
-                        entry.vertexMarkers.forEach((vm, k) => vm.setPosition(currentPath[k]));
+                entry.polygon.setOptions({
+                    strokeColor,
+                    fillColor,
+                    fillOpacity
+                });
+
+                // Update Handles logic
+                // If editable is true, ensures handles exist. If false, remove them.
+                const hasHandles = Array.isArray(entry.vertexMarkers) && entry.vertexMarkers.length > 0;
+                
+                if (editable) {
+                    if (!hasHandles || entry.vertexMarkers.length !== path.length) {
+                        // Re-attach handles if count mismatch or missing
+                        // First clear existing
+                        if(entry.vertexMarkers) entry.vertexMarkers.forEach(m => m.setMap(null));
+                        if(entry.midMarkers) entry.midMarkers.forEach(m => m.setMap(null));
+                        
+                        const handles = attachEditHandles(map, entry.polygon, i);
+                        entry.vertexMarkers = handles.vertexMarkers;
+                        entry.midMarkers = handles.midMarkers;
+                    } else {
+                        // Just update positions
+                        try {
+                            const currentPath = entry.polygon.getPath();
+                            if (Array.isArray(entry.vertexMarkers)) {
+                                entry.vertexMarkers.forEach((vm, k) => vm.setPosition(currentPath[k]));
+                            }
+                            if (Array.isArray(entry.midMarkers)) {
+                                for (let k = 0; k < currentPath.length; k++) {
+                                    const a = currentPath[k];
+                                    const b = currentPath[(k + 1) % currentPath.length];
+                                    const midLat = (a.getLat() + b.getLat()) / 2;
+                                    const midLng = (a.getLng() + b.getLng()) / 2;
+                                    if(entry.midMarkers[k]) entry.midMarkers[k].setPosition(new window.kakao.maps.LatLng(midLat, midLng));
+                                }
+                            }
+                        } catch {}
                     }
-                    if (Array.isArray(entry.midMarkers) && entry.midMarkers.length === currentPath.length) {
-                        for (let k = 0; k < currentPath.length; k++) {
-                            const a = currentPath[k];
-                            const b = currentPath[(k + 1) % currentPath.length];
-                            const midLat = (a.getLat() + b.getLat()) / 2;
-                            const midLng = (a.getLng() + b.getLng()) / 2;
-                            entry.midMarkers[k].setPosition(new window.kakao.maps.LatLng(midLat, midLng));
-                        }
+                } else {
+                    // Not editable, remove handles if present
+                    if (hasHandles) {
+                        entry.vertexMarkers.forEach(m => m.setMap(null));
+                        entry.midMarkers.forEach(m => m.setMap(null));
+                        entry.vertexMarkers = [];
+                        entry.midMarkers = [];
                     }
-                } catch {}
+                }
             }
             const labelPosition = (entry.polygon.getPath && entry.polygon.getPath()[0]) || path[0];
             updateLabelOverlay(map, entry, labelPosition, polyMeta.name);

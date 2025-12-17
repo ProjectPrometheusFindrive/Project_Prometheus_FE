@@ -1,1023 +1,416 @@
-/* Settings Page - Compact Dashboard Style */
-
-/* 부모 .app-content의 overflow: hidden 해제 */
-.app-content:has(.settings-page) {
-    overflow-y: auto;
-}
+/* Settings Page Refactoring based on Design References */
 
 .settings-page {
-    min-height: 100vh;
-    background: #f3f6ff;
-    padding: 0;
+  width: 100%;
+  min-height: 100vh;
+  background-color: #F3F6FF;
+  position: relative;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
+  overflow-x: hidden;
 }
 
-/* ===== Title Bar ===== */
-.settings-title-bar {
-    padding: 20px 48px 0;
+.page-title-bar {
+  padding: 20px 60px 0;
 }
 
-.settings-title-bar h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    color: #1c1c1c;
-    margin: 0;
-    font-family: 'Pretendard', sans-serif;
+.page-title-bar h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1C1C1C;
+  margin: 0;
 }
 
-/* ===== Content Layout ===== */
-.settings-content {
-    display: grid;
-    grid-template-columns: 300px 1fr;
-    gap: 20px;
-    padding: 16px 48px 24px;
-    max-width: 1600px;
-    margin: 0 auto;
-    align-items: start;
-    height: calc(100vh - 120px);
+/* ===== Layout Containers ===== */
+.settings-container {
+  display: flex;
+  gap: 20px;
+  padding: 24px 60px; /* Matching the left margin approx 60px from reference */
+  height: calc(100vh - 80px); /* Adjust based on header height */
+  box-sizing: border-box;
 }
 
-@media (max-width: 1200px) {
-    .settings-page {
-        min-height: 100vh;
-        height: auto;
-        overflow-y: auto;
-    }
-
-    .settings-content {
-        grid-template-columns: 1fr;
-        padding: 16px 20px;
-        height: auto;
-        max-height: none;
-        overflow: visible;
-    }
-
-    .settings-sidebar {
-        display: grid !important;
-        grid-template-columns: 1fr 1.5fr !important;
-        grid-template-rows: auto auto auto;
-        gap: 12px;
-        height: auto;
-        overflow: visible;
-        align-items: stretch;
-    }
-
-    /* 좌측 열: 회사명(1), 회사정보(2), 계정관리(4) 세로 배열 */
-    .settings-card--profile {
-        grid-column: 1;
-        grid-row: 1;
-    }
-
-    .settings-sidebar .settings-card:nth-child(2) {
-        grid-column: 1;
-        grid-row: 2;
-    }
-
-    .settings-card--danger {
-        grid-column: 1;
-        grid-row: 3;
-    }
-
-    /* 우측 열: 사업자등록증(3) - 좌측 3개 카드 높이에 맞춤 */
-    .settings-card--biz {
-        grid-column: 2;
-        grid-row: 1 / 4;
-        height: auto !important;
-        align-self: stretch;
-    }
-
-    .settings-card--biz .settings-biz-preview {
-        flex: 1;
-        min-height: 120px;
-    }
-
-    .settings-main {
-        height: auto;
-    }
-
-    .settings-card--full {
-        height: 700px;
-    }
-
-    .settings-geofence-layout {
-        grid-template-columns: 200px 1fr;
-    }
-
-    .settings-geofence-list {
-        max-height: 350px;
-    }
-
-    .settings-geofence-map {
-        min-height: 300px;
-    }
+.settings-left-panel {
+  width: 230px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  scrollbar-width: none; /* Hide scrollbar for cleaner look */
+}
+.settings-left-panel::-webkit-scrollbar {
+  display: none;
 }
 
-/* ===== Sidebar ===== */
-.settings-sidebar {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    height: 100%;
-    overflow-y: auto;
+.settings-right-panel {
+  flex: 1;
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: white;
 }
 
-.settings-sidebar::-webkit-scrollbar {
-    width: 4px;
-}
-
-.settings-sidebar::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.settings-sidebar::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 2px;
-}
-
-/* ===== Cards ===== */
+/* ===== Common Card Styles ===== */
 .settings-card {
-    background: #fff;
-    border-radius: 12px;
-    padding: 14px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
-    border: 1px solid rgba(0, 0, 0, 0.04);
-    flex-shrink: 0;
-}
-
-.settings-card:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-}
-
-.settings-card--profile {
-    text-align: center;
-    padding: 16px 14px;
-    background: linear-gradient(180deg, #fff 0%, #f8faff 100%);
-}
-
-.settings-card--full {
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    max-height: 700px;
-}
-
-.settings-card--danger {
-    border-left: 3px solid #ef4444;
-}
-
-.settings-card__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 10px;
-}
-
-.settings-card__header h3 {
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #1c1c1c;
-    margin: 0;
-    flex: 1;
-}
-
-.settings-card__icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #4f46e5;
-}
-
-.settings-card__icon svg {
-    width: 16px;
-    height: 16px;
-}
-
-.settings-card__desc {
-    font-size: 0.75rem;
-    color: #64748b;
-    line-height: 1.4;
-    margin: 0 0 10px;
-}
-
-/* ===== Logo Section ===== */
-.settings-logo-wrapper {
-    position: relative;
-    width: 80px;
-    height: 80px;
-    margin: 0 auto 10px;
-    border-radius: 12px;
-    overflow: hidden;
-    background: #f8fafc;
-    border: 2px solid #e2e8f0;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
-}
-
-.settings-logo {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    padding: 8px;
-}
-
-.settings-logo-overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s;
-    cursor: pointer;
-    border-radius: 10px;
-}
-
-.settings-logo-wrapper:hover .settings-logo-overlay {
-    opacity: 1;
-}
-
-.settings-logo-overlay__text {
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 600;
-    font-family: 'Pretendard', sans-serif;
-}
-
-.settings-company-name {
-    font-size: 1rem;
-    font-weight: 700;
-    color: #1c1c1c;
-}
-
-/* ===== Info Grid ===== */
-.settings-info-grid {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.settings-info-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 6px 10px;
-    background: #f8fafc;
-    border-radius: 6px;
-}
-
-.settings-info-label {
-    font-size: 0.75rem;
-    color: #64748b;
-}
-
-.settings-info-value {
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #1c1c1c;
-}
-
-/* ===== Badge ===== */
-.settings-badge {
-    padding: 2px 8px;
-    border-radius: 100px;
-    font-size: 0.7rem;
-    font-weight: 600;
-}
-
-.settings-badge--success {
-    background: rgba(34, 197, 94, 0.15);
-    color: #16a34a;
-}
-
-/* ===== Geofence Overview Button ===== */
-.settings-geofence-overview-btn {
-    padding: 4px 12px;
-    border-radius: 100px;
-    font-size: 0.75rem;
-    font-weight: 600;
-    font-family: 'Pretendard', sans-serif;
-    background: #f1f5f9;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    transition: all 0.15s ease;
-    margin-left: auto;
-}
-
-.settings-geofence-overview-btn:hover {
-    background: #e2e8f0;
-    color: #475569;
-}
-
-.settings-geofence-overview-btn--active {
-    background: #006CEC;
-    color: #ffffff;
-    border-color: #006CEC;
-}
-
-.settings-geofence-overview-btn--active:hover {
-    background: #0057be;
-    border-color: #0057be;
-}
-
-/* ===== Business Certificate Card ===== */
-.settings-card--biz {
-    height: 250px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-}
-
-.settings-card--biz .settings-biz-preview {
-    flex: 1;
-    min-height: 0;
-}
-
-.settings-card--biz .settings-upload-form {
-    flex-shrink: 0;
-}
-
-/* ===== Business Certificate Preview ===== */
-.settings-biz-preview {
-    position: relative;
-    border-radius: 8px;
-    overflow: hidden;
-    margin-bottom: 8px;
-    cursor: pointer;
-}
-
-.settings-biz-preview img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-.settings-biz-preview__overlay {
-    position: absolute;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.2s;
-}
-
-.settings-biz-preview:hover .settings-biz-preview__overlay {
-    opacity: 1;
-}
-
-.settings-biz-preview__overlay span {
-    color: #fff;
-    font-weight: 600;
-    font-size: 0.75rem;
-}
-
-/* ===== Upload Form ===== */
-.settings-upload-form {
-    display: flex;
-    gap: 6px;
-}
-
-.settings-file-input {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    padding: 6px 10px;
-    background: #f8fafc;
-    border: 1px dashed #cbd5e1;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: border-color 0.2s, background 0.2s;
-}
-
-.settings-file-input:hover {
-    border-color: #3b82f6;
-    background: #f0f7ff;
-}
-
-.settings-file-input input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.settings-file-input span {
-    font-size: 0.75rem;
-    color: #64748b;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* ===== Buttons ===== */
-.settings-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 6px 14px;
-    border: none;
-    border-radius: 100px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    font-family: 'Pretendard', sans-serif;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.settings-btn--primary {
-    background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
-    color: #fff;
-    box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-}
-
-.settings-btn--primary:hover:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.settings-btn--danger {
-    background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
-    color: #fff;
-    width: 100%;
-    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
-}
-
-.settings-btn--danger:hover:not(:disabled) {
-    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.4);
-}
-
-.settings-btn--sm {
-    padding: 4px 10px;
-    font-size: 0.7rem;
-}
-
-.settings-btn--outline {
-    background: transparent;
-    color: #3b82f6;
-    border: 1px solid #bfdbfe;
-    box-shadow: none;
-}
-
-.settings-btn--outline:hover {
-    background: #eff6ff;
-}
-
-.settings-btn--danger-outline {
-    background: transparent;
-    color: #ef4444;
-    border: 1px solid #fecaca;
-    box-shadow: none;
-}
-
-.settings-btn--danger-outline:hover {
-    background: #fef2f2;
-}
-
-.settings-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-}
-
-/* ===== Messages ===== */
-.settings-error {
-    color: #ef4444;
-    font-size: 0.7rem;
-    margin-top: 6px;
-}
-
-.settings-success {
-    color: #16a34a;
-    font-size: 0.7rem;
-    margin-top: 6px;
-}
-
-/* ===== Main Content (Geofence) ===== */
-.settings-main {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-}
-
-/* ===== Tabs ===== */
-.settings-tabs {
-    display: flex;
-    gap: 2px;
-    background: #f1f5f9;
-    padding: 3px;
-    border-radius: 8px;
-    margin-bottom: 12px;
-    flex-shrink: 0;
-}
-
-.settings-tab {
-    flex: 1;
-    padding: 8px 14px;
-    border: none;
-    background: transparent;
-    border-radius: 6px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #64748b;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-.settings-tab:hover {
-    color: #1c1c1c;
-}
-
-.settings-tab--active {
-    background: #fff;
-    color: #1a56db;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-}
-
-/* ===== Geofence Layout ===== */
-.settings-geofence-layout {
-    display: grid;
-    grid-template-columns: 220px 1fr;
-    gap: 12px;
-    flex: 1;
-    min-height: 0;
-    max-height: 700px;
-    overflow: hidden;
-    align-items: stretch;
-}
-
-@media (max-width: 900px) {
-    .settings-geofence-layout {
-        grid-template-columns: 180px 1fr;
-    }
-}
-
-/* ===== Geofence List ===== */
-.settings-geofence-list {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    overflow-y: auto;
-    overflow-x: hidden;
-    width: 100%;
-    box-sizing: border-box;
-    padding-right: 6px;
-}
-
-.settings-geofence-list,
-.settings-geofence-map {
-    height: 100%;
-    min-height: 0;
-}
-
-.settings-geofence-list::-webkit-scrollbar {
-    width: 4px;
-}
-
-.settings-geofence-list::-webkit-scrollbar-track {
-    background: #f1f5f9;
-    border-radius: 2px;
-}
-
-.settings-geofence-list::-webkit-scrollbar-thumb {
-    background: #cbd5e1;
-    border-radius: 2px;
-}
-
-.settings-geofence-item {
-    padding: 10px;
-    background: #f8fafc;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-sizing: border-box;
-    flex-shrink: 0;
-}
-
-.settings-geofence-item:hover {
-    background: #f1f5f9;
-    border-color: #e2e8f0;
-}
-
-.settings-geofence-item--active {
-    background: #eff6ff;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
-}
-
-.settings-geofence-item--editing {
-    background: #fef3c7;
-    border-color: #f59e0b;
-    box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
-}
-
-.settings-geofence-item--editing .settings-geofence-name {
-    background: #fff;
-    border: 1px solid #fbbf24;
-}
-
-.settings-geofence-item__header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 6px;
-    min-width: 0;
-}
-
-.settings-geofence-name {
-    flex: 1;
-    min-width: 0;
-    border: none;
-    background: transparent;
-    font-size: 0.8rem;
-    font-weight: 600;
-    color: #1c1c1c;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: background 0.2s;
-}
-
-.settings-geofence-name:focus {
-    outline: none;
-    background: #fff;
-    box-shadow: 0 0 0 2px #3b82f6;
-}
-
-.settings-geofence-item__actions {
-    display: flex;
-    justify-content: flex-end;
-}
-
-/* ===== Geofence Map ===== */
-.settings-geofence-map {
-    background: #f8fafc;
-    border-radius: 12px;
-    overflow: hidden;
-    border: 1px solid #e2e8f0;
-    min-height: 400px;
-}
-
-.settings-map-placeholder {
-    height: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #94a3b8;
-    gap: 8px;
-}
-
-.settings-map-placeholder svg {
-    width: 36px;
-    height: 36px;
-    opacity: 0.5;
-}
-
-.settings-map-placeholder p {
-    font-size: 0.85rem;
-}
-
-/* ===== Empty State ===== */
-.settings-empty {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-    text-align: center;
-    color: #94a3b8;
-    gap: 12px;
-}
-
-.settings-empty svg {
-    width: 36px;
-    height: 36px;
-    opacity: 0.5;
-}
-
-.settings-empty p {
-    font-size: 0.85rem;
-    margin: 0;
-}
-
-/* ===== Geofence Add Form ===== */
-.settings-geofence-add {
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
-}
-
-/* ===== Geofence Form Header ===== */
-.geofence-form-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 12px;
-}
-
-.geofence-form-input {
-    flex: 1;
-    padding: 8px 14px;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    font-size: 0.85rem;
-    font-family: 'Pretendard', sans-serif;
-    color: #1c1c1c;
-    background: #f8fafc;
-    transition: all 0.2s;
-}
-
-.geofence-form-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    background: #fff;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.geofence-form-input::placeholder {
-    color: #94a3b8;
-}
-
-/* ===== Geofence Info Banner ===== */
-.geofence-info-banner {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    margin-bottom: 10px;
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 8px;
-    color: #1d4ed8;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.geofence-info-banner svg {
-    flex-shrink: 0;
-}
-
-/* ===== Dark Mode ===== */
-[data-theme='dark'] .settings-page {
-    background: #0f172a;
-}
-
-[data-theme='dark'] .settings-title-bar h1 {
-    color: #f1f5f9;
-}
-
-[data-theme='dark'] .settings-card {
-    background: #1e293b;
-    border-color: #334155;
-}
-
-[data-theme='dark'] .settings-card--profile {
-    background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-}
-
-[data-theme='dark'] .settings-company-name,
-[data-theme='dark'] .settings-card__header h3,
-[data-theme='dark'] .settings-info-value,
-[data-theme='dark'] .settings-geofence-name {
-    color: #f1f5f9;
-}
-
-[data-theme='dark'] .settings-info-item,
-[data-theme='dark'] .settings-file-input,
-[data-theme='dark'] .settings-geofence-item {
-    background: #334155;
-}
-
-[data-theme='dark'] .settings-geofence-item--active {
-    background: #1e3a5f;
-    border-color: #3b82f6;
-}
-
-[data-theme='dark'] .settings-geofence-item--editing {
-    background: #422006;
-    border-color: #f59e0b;
-}
-
-[data-theme='dark'] .settings-geofence-item--editing .settings-geofence-name {
-    background: #1e293b;
-    border-color: #f59e0b;
-}
-
-[data-theme='dark'] .settings-btn--outline {
-    color: #60a5fa;
-    border-color: #1e3a5f;
-}
-
-[data-theme='dark'] .settings-btn--outline:hover {
-    background: #1e3a5f;
-}
-
-[data-theme='dark'] .settings-tabs {
-    background: #334155;
-}
-
-[data-theme='dark'] .settings-tab {
-    color: #94a3b8;
-}
-
-[data-theme='dark'] .settings-tab--active {
-    background: #1e293b;
-    color: #60a5fa;
-}
-
-[data-theme='dark'] .settings-geofence-map,
-[data-theme='dark'] .settings-map-placeholder {
-    background: #334155;
-    border-color: #475569;
-}
-
-[data-theme='dark'] .settings-logo-wrapper {
-    background: #334155;
-    border-color: #475569;
-}
-
-[data-theme='dark'] .settings-geofence-overview-btn {
-    background: #334155;
-    color: #94a3b8;
-    border-color: #475569;
-}
-
-[data-theme='dark'] .settings-geofence-overview-btn:hover {
-    background: #475569;
-    color: #e2e8f0;
-}
-
-[data-theme='dark'] .settings-geofence-overview-btn--active {
-    background: #3b82f6;
-    color: #ffffff;
-    border-color: #3b82f6;
-}
-
-[data-theme='dark'] .settings-geofence-overview-btn--active:hover {
-    background: #2563eb;
-    border-color: #2563eb;
-}
-
-[data-theme='dark'] .geofence-form-input {
-    background: #334155;
-    border-color: #475569;
-    color: #f1f5f9;
-}
-
-[data-theme='dark'] .geofence-form-input:focus {
-    background: #1e293b;
-    border-color: #3b82f6;
-}
-
-[data-theme='dark'] .geofence-info-banner {
-    background: rgba(59, 130, 246, 0.15);
-    border-color: rgba(59, 130, 246, 0.3);
-    color: #60a5fa;
-}
-
-/* ===== Geofence Add Button ===== */
-.settings-geofence-add-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    width: 100%;
-    padding: 12px 16px;
-    border: 2px dashed #cbd5e1;
-    border-radius: 10px;
-    background: #f8fafc;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #3b82f6;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-family: 'Pretendard', sans-serif;
-    flex-shrink: 0;
-}
-
-.settings-geofence-add-btn:hover {
-    border-color: #3b82f6;
-    background: #eff6ff;
-}
-
-.settings-geofence-add-btn svg {
-    flex-shrink: 0;
-}
-
-/* ===== Geofence Add Form ===== */
-.settings-geofence-add-form {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    padding: 12px;
-    background: #eff6ff;
-    border: 2px solid #3b82f6;
-    border-radius: 10px;
-    flex-shrink: 0;
-}
-
-.settings-geofence-add-input {
-    width: 100%;
-    padding: 10px 12px;
-    border: 1px solid #cbd5e1;
-    border-radius: 6px;
-    font-size: 0.85rem;
-    font-family: 'Pretendard', sans-serif;
-    background: #fff;
-    color: #1c1c1c;
-    transition: all 0.2s;
-    box-sizing: border-box;
-}
-
-.settings-geofence-add-input:focus {
-    outline: none;
-    border-color: #3b82f6;
-    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
-}
-
-.settings-geofence-add-input::placeholder {
-    color: #94a3b8;
-}
-
-.settings-geofence-add-actions {
-    display: flex;
-    gap: 6px;
-}
-
-.settings-btn--secondary {
-    background: #f1f5f9;
-    color: #64748b;
-    border: 1px solid #e2e8f0;
-}
-
-.settings-btn--secondary:hover {
-    background: #e2e8f0;
-    color: #475569;
-}
-
-/* Dark mode for add button */
-[data-theme='dark'] .settings-geofence-add-btn {
-    background: #334155;
-    border-color: #475569;
-    color: #60a5fa;
-}
-
-[data-theme='dark'] .settings-geofence-add-btn:hover {
-    border-color: #3b82f6;
-    background: #1e3a5f;
-}
-
-/* Dark mode for add form */
-[data-theme='dark'] .settings-geofence-add-form {
-    background: rgba(59, 130, 246, 0.15);
-    border-color: #3b82f6;
-}
-
-[data-theme='dark'] .settings-geofence-add-input {
-    background: #1e293b;
-    border-color: #475569;
-    color: #f1f5f9;
-}
-
-[data-theme='dark'] .settings-geofence-add-input:focus {
-    border-color: #3b82f6;
-}
-
-[data-theme='dark'] .settings-btn--secondary {
-    background: #334155;
-    color: #94a3b8;
-    border-color: #475569;
-}
-
-[data-theme='dark'] .settings-btn--secondary:hover {
-    background: #475569;
-    color: #f1f5f9;
-}
-
-/* ===== Responsive ===== */
-@media (max-width: 768px) {
-    .settings-title-bar {
-        padding: 16px 16px 0;
-    }
-
-    .settings-title-bar h1 {
-        font-size: 1.25rem;
-    }
-
-    .settings-content {
-        padding: 12px 16px;
-    }
-
-    .settings-sidebar {
-        grid-template-columns: 1fr;
-    }
-
-    .settings-geofence-layout {
-        grid-template-columns: 1fr;
-    }
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.10);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* ===== CI / Company Info Card ===== */
+.card-company-profile {
+  height: 285px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+}
+
+.company-logo-area {
+  width: 200px;
+  height: 117px;
+  background: white;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+  overflow: hidden;
+  position: relative;
+}
+
+.company-logo-img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+.company-logo-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.company-role-badge {
+  padding: 2px 10px;
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 56px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.company-role-text {
+  color: #1C1C1C;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 18px;
+}
+
+.company-name-text {
+  color: #1C1C1C;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 26px;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+.company-name-section {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px; /* Adjust padding to match card padding */
+  margin-bottom: 10px;
+}
+
+.company-name-text-aligned {
+  color: #1C1C1C;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 26px;
+  text-align: left;
+  flex: 1; /* Take up available space */
+}
+
+.logo-edit-button {
+  background: none;
+  border: none;
+  color: #006CEC;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 5px 8px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+.logo-edit-button:hover {
+  background: #E2F1FE;
+}
+
+.company-info-row {
+  width: 200px;
+  height: 40px;
+  background: white;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  box-sizing: border-box;
+}
+
+.company-info-text {
+  color: #888888;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ===== Biz Cert Card ===== */
+.card-biz-cert {
+  height: 312px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+}
+
+.biz-cert-preview-area {
+  width: 200px;
+  height: 238px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f8fafc;
+  overflow: hidden;
+  margin-bottom: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+}
+
+.biz-cert-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.biz-cert-upload-btn {
+  width: 200px;
+  padding: 5px 20px;
+  background: #E2F1FE;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.biz-cert-upload-btn:hover {
+  background: #d0e4fc;
+}
+
+.biz-cert-btn-text {
+  color: #006CEC;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* ===== Opt Out Card ===== */
+.card-opt-out {
+  height: 178px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 15px;
+}
+
+.opt-out-title {
+  color: #1C1C1C;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 26px;
+  margin-bottom: 5px;
+  align-self: flex-start;
+  padding-left: 5px;
+}
+
+.opt-out-desc {
+  width: 200px;
+  color: #1C1C1C;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px; /* Condensed for fit */
+  margin-bottom: 15px;
+}
+
+.opt-out-btn {
+  width: 200px;
+  padding: 3px 18px;
+  background: #FFE7EE;
+  border-radius: 4px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: none;
+}
+.opt-out-btn:hover {
+  background: #fcd5e1;
+}
+
+.opt-out-btn-text {
+  color: #E50E08;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+/* ===== Geofence Overlay ===== */
+.geofence-list-overlay {
+  position: absolute;
+  top: 15px;
+  left: 20px;
+  width: 230px;
+  max-height: calc(100% - 30px);
+  background: white;
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.10);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  z-index: 10; /* Above map */
+}
+
+.geofence-list-header {
+  padding: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.geofence-list-title {
+  color: #1C1C1C;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.geofence-add-btn {
+  color: #006CEC;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.geofence-items-container {
+  overflow-y: auto;
+  flex: 1;
+  padding: 5px 0;
+}
+
+.geofence-item-row {
+  padding: 10px 15px;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.geofence-item-row:hover {
+  background-color: #f8fafc;
+}
+.geofence-item-row.active {
+  background-color: #E2F1FE;
+}
+
+.geofence-item-name {
+  color: #1C1C1C;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 24px;
+}
+
+.geofence-tags {
+  display: flex;
+  gap: 5px;
+}
+
+.geofence-tag {
+  padding: 2px 5px;
+  border-radius: 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.tag-blue { background: #E2F1FE; color: #006CEC; font-size: 12px; font-weight: 500; }
+.tag-red { background: #FFDDDD; color: #E50E08; font-size: 12px; font-weight: 500; }
+
+.geofence-empty-state {
+  padding: 20px;
+  text-align: center;
+  color: #888888;
+  font-size: 14px;
+}
+
+/* Edit form in overlay */
+.geofence-edit-form {
+  padding: 10px;
+  background: #f8fafc;
+}
+.geofence-input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  margin-bottom: 5px;
+  box-sizing: border-box;
+}
+.geofence-actions {
+  display: flex;
+  gap: 5px;
+}
+
+/* New styles for inline editing to prevent wrapping */
+.geofence-edit-inline {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: nowrap;
+}
+
+.geofence-edit-inline .geofence-input {
+  flex-grow: 1;
+  min-width: 0;
+  margin-bottom: 0; /* Remove bottom margin to align better */
+}
+
+.geofence-edit-inline .geofence-actions {
+  flex-shrink: 0;
+  display: flex;
+  gap: 5px;
+}
+
+/* Hidden file input */
+.hidden-input {
+  display: none;
 }
