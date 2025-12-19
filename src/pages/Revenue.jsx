@@ -225,98 +225,57 @@ export default function Revenue() {
 
     // 총 매출 요약 카드
     const SummaryCard = () => (
-        <div
-            style={{
-                background: "linear-gradient(135deg, #1e3a8a 0%, #3730a3 50%, #4c1d95 100%)",
-                borderRadius: 20,
-                padding: 32,
-                marginBottom: 32,
-                position: "relative",
-                overflow: "hidden",
-                boxShadow: "0 20px 40px -12px rgba(30, 58, 138, 0.35)",
-            }}
-        >
+        <div className="revenue-summary">
             {/* 배경 장식 */}
-            <div style={{ position: "absolute", right: -40, top: -40, width: 200, height: 200, borderRadius: "50%", background: "rgba(255,255,255,0.05)" }} />
-            <div style={{ position: "absolute", right: 60, bottom: -60, width: 150, height: 150, borderRadius: "50%", background: "rgba(255,255,255,0.03)" }} />
-            <div style={{ position: "absolute", left: "30%", top: -30, width: 100, height: 100, borderRadius: "50%", background: "rgba(255,255,255,0.02)" }} />
+            <div className="revenue-summary__decoration revenue-summary__decoration--1" />
+            <div className="revenue-summary__decoration revenue-summary__decoration--2" />
+            <div className="revenue-summary__decoration revenue-summary__decoration--3" />
 
-            <div style={{ position: "relative", zIndex: 10, display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
-                        <div
-                            style={{
-                                width: 48,
-                                height: 48,
-                                borderRadius: 14,
-                                background: "rgba(255,255,255,0.15)",
-                                backdropFilter: "blur(10px)",
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                color: "white",
-                            }}
-                        >
+            <div className="revenue-summary__content">
+                <div className="revenue-summary__main">
+                    <div className="revenue-summary__header">
+                        <div className="revenue-summary__icon">
                             <CurrencyIcon />
                         </div>
                         <div>
-                            <p style={{ color: "rgba(255,255,255,0.7)", fontSize: 13, margin: 0, letterSpacing: "0.05em" }}>
+                            <p className="revenue-summary__title">
                                 {new Date().getFullYear()}년 총 매출
                             </p>
-                            <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginTop: 2 }}>
+                            <p className="revenue-summary__subtitle">
                                 Annual Revenue
                             </p>
                         </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
-                        <span style={{ fontSize: 48, fontWeight: 800, color: "white", letterSpacing: "-0.02em", lineHeight: 1 }}>
+                    <div className="revenue-summary__amount-row">
+                        <span className="revenue-summary__amount">
                             {formatCurrency(animatedValues.year)}
                         </span>
-                        <span style={{ fontSize: 20, fontWeight: 600, color: "rgba(255,255,255,0.7)" }}>원</span>
+                        <span className="revenue-summary__amount-unit">원</span>
                     </div>
                 </div>
-                <div
-                    style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 6,
-                        background: "rgba(16, 185, 129, 0.2)",
-                        borderRadius: 20,
-                        padding: "8px 14px",
-                        color: "#34d399",
-                    }}
-                >
+                <div className="revenue-summary__badge">
                     <TrendUpIcon />
-                    <span style={{ fontSize: 13, fontWeight: 600 }}>운영 중</span>
+                    <span>운영 중</span>
                 </div>
             </div>
 
             {/* 하단 통계 */}
-            <div
-                style={{
-                    marginTop: 28,
-                    paddingTop: 24,
-                    borderTop: "1px solid rgba(255,255,255,0.1)",
-                    display: "grid",
-                    gridTemplateColumns: "repeat(3, 1fr)",
-                    gap: 24,
-                }}
-            >
+            <div className="revenue-summary__stats">
                 <div>
-                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginBottom: 4 }}>이번주 매출</p>
-                    <p style={{ color: "white", fontSize: 18, fontWeight: 700, margin: 0 }}>
+                    <p className="revenue-summary__stat-label">이번주 매출</p>
+                    <p className="revenue-summary__stat-value">
                         {formatCurrency(animatedValues.week)}원
                     </p>
                 </div>
                 <div>
-                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginBottom: 4 }}>이번달 매출</p>
-                    <p style={{ color: "white", fontSize: 18, fontWeight: 700, margin: 0 }}>
+                    <p className="revenue-summary__stat-label">이번달 매출</p>
+                    <p className="revenue-summary__stat-value">
                         {formatCurrency(animatedValues.month)}원
                     </p>
                 </div>
                 <div>
-                    <p style={{ color: "rgba(255,255,255,0.5)", fontSize: 12, margin: 0, marginBottom: 4 }}>미수금</p>
-                    <p style={{ color: "#fbbf24", fontSize: 18, fontWeight: 700, margin: 0 }}>지원 예정</p>
+                    <p className="revenue-summary__stat-label">미수금</p>
+                    <p className="revenue-summary__stat-value revenue-summary__stat-value--pending">지원 예정</p>
                 </div>
             </div>
         </div>
