@@ -57,7 +57,7 @@ export default function Login() {
 
   return (
     <div className="auth-page">
-      {/* Left side - Branding */}
+      {/* Left side - Branding (hidden on mobile) */}
       <div className="auth-page__branding">
         <div className="auth-page__branding-content">
           <h1 className="auth-page__brand-title">Findrive</h1>
@@ -124,7 +124,7 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="auth-form" autoComplete="on">
             <div className="auth-form__group">
-              <label className="auth-form__label" htmlFor="login-id">
+              <label className="auth-form__label auth-form__label--desktop" htmlFor="login-id">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
                   <circle cx="12" cy="7" r="4"/>
@@ -138,14 +138,14 @@ export default function Login() {
                 className="auth-form__input"
                 value={id}
                 onChange={(e) => setId(e.target.value)}
-                placeholder="이메일 주소를 입력하세요"
+                placeholder="아이디"
                 autoComplete="username"
                 required
               />
             </div>
 
             <div className="auth-form__group">
-              <label className="auth-form__label" htmlFor="login-pw">
+              <label className="auth-form__label auth-form__label--desktop" htmlFor="login-pw">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                   <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
@@ -160,7 +160,7 @@ export default function Login() {
                   className="auth-form__input auth-form__input--with-icon"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder="비밀번호"
                   autoComplete="current-password"
                   required
                 />
@@ -194,6 +194,9 @@ export default function Login() {
               </div>
             )}
 
+            {/* Mobile divider line */}
+            <div className="auth-form__mobile-divider"></div>
+
             <button type="submit" className="auth-form__submit" disabled={loading}>
               {loading ? (
                 <>
@@ -203,21 +206,18 @@ export default function Login() {
                   로그인 중...
                 </>
               ) : (
-                <>
-                  로그인
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M5 12h14M12 5l7 7-7 7"/>
-                  </svg>
-                </>
+                "로그인"
               )}
             </button>
           </form>
 
-          <div className="auth-card__divider">
+          {/* Desktop divider */}
+          <div className="auth-card__divider auth-card__divider--desktop">
             <span>또는</span>
           </div>
 
-          <div className="auth-card__links">
+          {/* Desktop links */}
+          <div className="auth-card__links auth-card__links--desktop">
             <Link to="/terms" className="auth-card__link auth-card__link--primary">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
@@ -236,7 +236,17 @@ export default function Login() {
               비밀번호 찾기
             </Link>
           </div>
+
+          {/* Mobile links */}
+          <div className="auth-card__links auth-card__links--mobile">
+            <Link to="/terms" className="auth-card__link-text">회원가입</Link>
+            <span className="auth-card__link-separator">|</span>
+            <Link to="/forgot-password" className="auth-card__link-text">비밀번호찾기</Link>
+          </div>
         </div>
+
+        {/* Mobile bottom logo */}
+        <div className="auth-page__mobile-logo">Findrive</div>
       </div>
     </div>
   );

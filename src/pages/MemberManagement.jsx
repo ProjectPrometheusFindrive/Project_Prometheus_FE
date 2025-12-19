@@ -614,55 +614,10 @@ function MemberManagement() {
                     <div className="flex gap-3">
                         <button
                             type="button"
-                            onClick={() => { loadPendingMembers(); loadAllMembers(); }}
-                            disabled={batchWorking || loadingAll || loadingPending}
-                            className="toolbar-button"
-                            style={{
-                                paddingLeft: '14px',
-                                paddingRight: '14px',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                                borderRadius: '6px',
-                                outline: '1px rgba(0, 0, 0, 0.10) solid',
-                                outlineOffset: '-1px',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: '10px',
-                                display: 'inline-flex',
-                                textAlign: 'center',
-                                color: '#1C1C1C',
-                                fontSize: '14px',
-                                fontFamily: 'Pretendard',
-                                fontWeight: 500,
-                                lineHeight: '24px',
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: (batchWorking || loadingAll || loadingPending) ? 'not-allowed' : 'pointer',
-                                opacity: (batchWorking || loadingAll || loadingPending) ? 0.5 : 1,
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!batchWorking && !loadingAll && !loadingPending) {
-                                    e.currentTarget.style.background = '#006CEC';
-                                    e.currentTarget.style.color = 'white';
-                                    e.currentTarget.style.outline = 'none';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!batchWorking && !loadingAll && !loadingPending) {
-                                    e.currentTarget.style.background = 'transparent';
-                                    e.currentTarget.style.color = '#1C1C1C';
-                                    e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
-                                }
-                            }}
-                        >
-                            {(loadingAll || loadingPending) ? '로딩 중...' : '새로고침'}
-                        </button>
-                        <button
-                            type="button"
                             onClick={handleBulkApprove}
                             disabled={batchWorking || selectedPendingCount === 0}
                             className="toolbar-button"
+                            title="일괄승인"
                             style={{
                                 paddingLeft: '14px',
                                 paddingRight: '14px',
@@ -702,13 +657,17 @@ function MemberManagement() {
                                 }
                             }}
                         >
-                            일괄승인
+                            <svg className="toolbar-btn-icon-only" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 8L6.5 11.5L13 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                            </svg>
+                            <span className="toolbar-btn-text">일괄승인</span>
                         </button>
                         <button
                             type="button"
                             onClick={handleBulkWithdraw}
                             disabled={batchWorking || selectedWithdrawEligibleCount === 0}
                             className="toolbar-button"
+                            title="일괄탈퇴"
                             style={{
                                 paddingLeft: '14px',
                                 paddingRight: '14px',
@@ -748,16 +707,18 @@ function MemberManagement() {
                                 }
                             }}
                         >
-                            일괄탈퇴
+                            <svg className="toolbar-btn-icon-only" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                            </svg>
+                            <span className="toolbar-btn-text">일괄탈퇴</span>
                         </button>
                         {/* Bulk role change removed by design; keep only withdraw + filter controls */}
                         <button
                             type="button"
                             onClick={tableFilterState.clearAll}
-                            title="모든 컬럼 필터 초기화"
+                            title="필터초기화"
                             className="toolbar-button"
                             style={{
-                                width: '104px',
                                 paddingLeft: '14px',
                                 paddingRight: '14px',
                                 paddingTop: '4px',
@@ -765,8 +726,9 @@ function MemberManagement() {
                                 borderRadius: '6px',
                                 outline: '1px rgba(0, 0, 0, 0.10) solid',
                                 outlineOffset: '-1px',
-                                justifyContent: 'space-between',
+                                justifyContent: 'center',
                                 alignItems: 'center',
+                                gap: '10px',
                                 display: 'inline-flex',
                                 textAlign: 'center',
                                 color: '#1C1C1C',
@@ -783,21 +745,17 @@ function MemberManagement() {
                                 e.currentTarget.style.background = '#006CEC';
                                 e.currentTarget.style.color = 'white';
                                 e.currentTarget.style.outline = 'none';
-                                const svg = e.currentTarget.querySelector('svg path');
-                                if (svg) svg.setAttribute('fill', 'white');
                             }}
                             onMouseLeave={(e) => {
                                 e.currentTarget.style.background = 'transparent';
                                 e.currentTarget.style.color = '#1C1C1C';
                                 e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
-                                const svg = e.currentTarget.querySelector('svg path');
-                                if (svg) svg.setAttribute('fill', '#1C1C1C');
                             }}
                         >
-                            필터초기화
-                            <svg width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M11.9998 6.97426C12.011 8.31822 11.5834 9.62682 10.7861 10.6886C9.98877 11.7504 8.86834 12.5033 7.60586 12.8256C6.34338 13.148 5.0126 13.0209 3.8286 12.4651C2.6446 11.9092 1.67654 10.957 1.08087 9.76225C1.03928 9.68491 1.01307 9.59975 1.00379 9.51179C0.994503 9.42383 1.00233 9.33484 1.0268 9.25005C1.05127 9.16526 1.0919 9.08638 1.14629 9.01805C1.20069 8.94972 1.26775 8.89332 1.34354 8.85217C1.41933 8.81101 1.50232 8.78593 1.58762 8.7784C1.67293 8.77087 1.75883 8.78104 1.84027 8.80831C1.92172 8.83559 1.99706 8.87942 2.06188 8.93722C2.1267 8.99502 2.17969 9.06564 2.21772 9.14491C2.48916 9.67189 2.85539 10.1405 3.29677 10.5256C3.96005 11.1093 4.77313 11.4813 5.63716 11.5963C6.50118 11.7114 7.37893 11.5645 8.16369 11.1736C8.94845 10.7826 9.60643 10.1645 10.0576 9.39432C10.5088 8.62413 10.7338 7.73506 10.7052 6.8352C10.6766 5.93534 10.3956 5.06344 9.8965 4.32552C9.39738 3.5876 8.70157 3.01543 7.89368 2.67858C7.08578 2.34173 6.2006 2.2547 5.34574 2.42809C4.49089 2.60147 3.70318 3.0278 3.07839 3.65523H4.29232C4.46266 3.65523 4.62603 3.72516 4.74648 3.84965C4.86694 3.97414 4.9346 4.14298 4.9346 4.31903C4.9346 4.49509 4.86694 4.66393 4.74648 4.78842C4.62603 4.9129 4.46266 4.98284 4.29232 4.98284H1.72316C1.55281 4.98284 1.38944 4.9129 1.26899 4.78842C1.14854 4.66393 1.08087 4.49509 1.08087 4.31903V1.66381C1.08087 1.48775 1.14854 1.31891 1.26899 1.19442C1.38944 1.06994 1.55281 1 1.72316 1C1.8935 1 2.05687 1.06994 2.17733 1.19442C2.29778 1.31891 2.36545 1.48775 2.36545 1.66381V2.52676C3.19686 1.75821 4.22566 1.25468 5.32778 1.0769C6.42989 0.899131 7.55823 1.05471 8.5767 1.52486C9.59517 1.99502 10.4603 2.75968 11.0677 3.72661C11.675 4.69354 11.9988 5.82144 11.9998 6.97426Z" fill="#1C1C1C"/>
+                            <svg className="toolbar-btn-icon-only" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M13.5 8C13.5 11.0376 11.0376 13.5 8 13.5C4.96243 13.5 2.5 11.0376 2.5 8C2.5 4.96243 4.96243 2.5 8 2.5C9.875 2.5 11.5 3.5 12.5 5M12.5 2.5V5H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                             </svg>
+                            <span className="toolbar-btn-text">필터초기화</span>
                         </button>
                     </div>
                 </div>
