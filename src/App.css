@@ -4601,6 +4601,16 @@ html {
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
+/* Dashboard chart container - desktop default */
+.dashboard-chart-container {
+    height: 320px;
+}
+
+.dashboard-chart-wrapper {
+    min-width: 260px;
+    height: 100%;
+}
+
 .dashboard-legend {
       display: flex;
       flex-direction: column;
@@ -6111,4 +6121,251 @@ html {
 
 [data-theme='dark'] .accident-reg__divider {
   background: rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   Mobile Responsive Styles - Bottom Navigation & Dashboard Layout
+   ========================================================================== */
+
+/* Mobile bottom navigation bar - hidden by default on desktop */
+.navigation-bar--mobile {
+  display: none;
+}
+
+/* Desktop navigation bar visibility */
+.navigation-bar--desktop {
+  display: inline-flex;
+}
+
+/* Mobile breakpoint: 768px */
+@media (max-width: 768px) {
+  /* Hide desktop navigation in header */
+  .navigation-bar--desktop {
+    display: none;
+  }
+
+  /* Show and style mobile bottom navigation */
+  .navigation-bar--mobile {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 72px;
+    background: #ffffff;
+    border-top: 1px solid #E5E5E5;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 0 12px;
+    z-index: 1100;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  }
+
+  .navigation-bar--mobile .navigation-bar__link {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 4px 8px;
+    min-width: 56px;
+    color: #1C1C1C;
+    font-size: 12px;
+    font-weight: 600;
+    line-height: 19px;
+  }
+
+  .navigation-bar--mobile .navigation-bar__link.is-active {
+    color: #0A45EA;
+  }
+
+  .navigation-bar--mobile .navigation-bar__label {
+    font-size: 12px;
+    line-height: 19px;
+  }
+
+  /* Adjust app layout for bottom navigation */
+  .app-layout {
+    padding-bottom: 72px; /* Space for bottom nav */
+  }
+
+  /* Top header mobile adjustments */
+  .top-header {
+    padding: 12px 16px;
+    height: auto;
+    min-height: 56px;
+  }
+
+  .top-header__left {
+    margin-right: 0;
+  }
+
+  .top-header__service-name--findrive {
+    font-size: 24px;
+  }
+
+  /* Keep profile section on mobile - simplified layout */
+  .top-header__right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .top-header__icon-button {
+    display: none;
+  }
+
+  /* Compact profile for mobile */
+  .top-header__profile-btn {
+    padding: 4px 8px;
+    gap: 8px;
+  }
+
+  .top-header__profile-text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .top-header__profile-name {
+    font-size: 13px;
+  }
+
+  .top-header__profile-company {
+    font-size: 11px;
+  }
+
+  .top-header__profile-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  /* Dashboard page mobile padding */
+  .page-scroll {
+    padding: 16px !important;
+  }
+
+  /* Dashboard row - single column on mobile */
+  .dashboard-row {
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .dashboard-row--top,
+  .dashboard-row--bottom {
+    grid-template-columns: 1fr;
+  }
+
+  /* Dashboard card mobile padding */
+  .dashboard-card {
+    padding: 20px !important;
+  }
+
+  /* Dashboard legend - move below chart on mobile */
+  .status-donut {
+    flex-direction: column !important;
+    gap: 12px !important;
+    align-items: center !important;
+  }
+
+  .status-donut__chart {
+    width: 240px !important;
+    height: 240px !important;
+    max-width: 240px !important;
+    min-width: 240px !important;
+    flex-shrink: 0 !important;
+    margin: 0 auto;
+  }
+
+  /* Fix dashboard card chart container height */
+  .dashboard-chart-container {
+    height: auto !important;
+    min-height: auto;
+  }
+
+  .dashboard-chart-wrapper {
+    min-width: auto !important;
+    height: auto !important;
+  }
+
+  .dashboard-legend {
+    margin-left: 0 !important;
+    margin-top: 0 !important;
+    width: 100% !important;
+    max-width: 320px;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px 16px;
+  }
+
+  .dashboard-legend__item {
+    min-width: auto;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .dashboard-legend__label-wrap {
+    gap: 8px;
+  }
+
+  .dashboard-legend__label {
+    font-size: 14px;
+    line-height: 24px;
+  }
+
+  .dashboard-legend__value {
+    font-size: 14px;
+    line-height: 24px;
+    font-weight: 600;
+  }
+
+  .dashboard-legend__dot {
+    width: 10px;
+    height: 10px;
+  }
+
+  /* Dashboard section titles */
+  .dashboard-card h2 {
+    font-size: 16px !important;
+    line-height: 26px !important;
+    margin-bottom: 20px !important;
+  }
+
+  /* Gauge section mobile */
+  .gauge-disabled-area {
+    padding: 16px 0;
+  }
+
+  .gauge {
+    max-width: 200px;
+  }
+
+  /* DocsReminderBanner mobile */
+  .docs-reminder-banner {
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+}
+
+/* Dark mode mobile navigation */
+[data-theme='dark'] .navigation-bar--mobile {
+  background: #0F172A;
+  border-top-color: #334155;
+}
+
+[data-theme='dark'] .navigation-bar--mobile .navigation-bar__link {
+  color: #E5E7EB;
+}
+
+[data-theme='dark'] .navigation-bar--mobile .navigation-bar__link.is-active {
+  color: #60A5FA;
+}
+
+[data-theme='dark'] .navigation-bar--mobile .navigation-bar__link svg path,
+[data-theme='dark'] .navigation-bar--mobile .navigation-bar__link svg circle {
+  stroke: #E5E7EB;
+}
+
+[data-theme='dark'] .navigation-bar--mobile .navigation-bar__link.is-active svg path,
+[data-theme='dark'] .navigation-bar--mobile .navigation-bar__link.is-active svg circle {
+  stroke: #60A5FA;
 }

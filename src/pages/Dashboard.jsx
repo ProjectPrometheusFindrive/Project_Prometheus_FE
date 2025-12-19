@@ -73,8 +73,8 @@ export default function Dashboard() {
                 <div className="dashboard-row dashboard-row--top">
                     <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }}>
                         <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>자산 현황</h2>
-                        <div className="flex items-center" style={{ height: "320px" }}>
-                            <div className="flex-1 flex items-center justify-center" style={{ minWidth: "260px", height: "100%" }}>
+                        <div className="dashboard-chart-container flex items-center">
+                            <div className="flex-1 flex items-center justify-center dashboard-chart-wrapper">
                                 <StatusDonut
                                     data={vehicleStatus}
                                     colors={ASSET_COLORS}
@@ -90,8 +90,8 @@ export default function Dashboard() {
 
                     <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }}>
                         <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>계약 현황</h2>
-                        <div className="flex items-center" style={{ height: "320px" }}>
-                            <div className="flex-1 flex items-center justify-center" style={{ minWidth: "260px", height: "100%" }}>
+                        <div className="dashboard-chart-container flex items-center">
+                            <div className="flex-1 flex items-center justify-center dashboard-chart-wrapper">
                                 <StatusDonut
                                     data={bizStatusLabeled}
                                     colors={CONTRACT_COLORS}

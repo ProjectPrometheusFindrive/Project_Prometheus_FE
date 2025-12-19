@@ -2,6 +2,7 @@ import React from "react";
 import { Outlet } from "react-router-dom";
 import TopHeader from "./TopHeader";
 import DocsReminderBanner from "./DocsReminderBanner";
+import NavigationBar from "./NavigationBar";
 
 export default function AppLayout() {
   return (
@@ -13,6 +14,8 @@ export default function AppLayout() {
           <Outlet />
         </div>
       </div>
+      {/* Mobile bottom navigation - only visible on mobile */}
+      <NavigationBar isMobile={true} />
     </div>
   );
 }
