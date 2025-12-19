@@ -2,6 +2,7 @@
 
 .revenue-page {
     padding: 30px 60px;
+    overflow-x: hidden;
 }
 
 .revenue-header {
@@ -28,7 +29,7 @@
     padding: 32px;
     margin-bottom: 32px;
     position: relative;
-    overflow: visible;
+    overflow: hidden;
     box-shadow: 0 20px 40px -12px rgba(30, 58, 138, 0.35);
     min-height: 340px;
 }

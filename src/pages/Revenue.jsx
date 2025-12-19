@@ -377,7 +377,6 @@ export default function Revenue() {
                 {/* 헤더 */}
                 <div className="revenue-header">
                     <h1 className="revenue-title">매출 관리</h1>
-                    <p className="revenue-subtitle">기간별 매출 현황을 확인하세요</p>
                 </div>
 
                 {loading ? (
