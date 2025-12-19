@@ -6366,3 +6366,40 @@ html {
 [data-theme='dark'] .navigation-bar--mobile .navigation-bar__link.is-active svg circle {
   stroke: #60A5FA;
 }
+
+/* ==========================================================================
+   Toolbar buttons - Mobile responsive (icon only)
+   ========================================================================== */
+
+/* Desktop: hide icon-only SVGs, show text */
+.toolbar-btn-icon-only {
+  display: none;
+}
+
+.toolbar-btn-text {
+  display: inline;
+  white-space: nowrap;
+}
+
+/* Mobile: show icon-only SVGs, hide text */
+@media (max-width: 768px) {
+  .toolbar-btn-icon-only {
+    display: inline-block;
+  }
+
+  .toolbar-btn-text {
+    display: none;
+  }
+
+  /* Adjust toolbar button padding for icon-only mode */
+  .toolbar-button {
+    padding: 8px !important;
+    min-width: 36px;
+    width: auto !important;
+  }
+
+  /* Reduce toolbar gap on mobile */
+  .table-toolbar .flex.gap-3 {
+    gap: 8px;
+  }
+}
