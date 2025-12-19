@@ -238,7 +238,7 @@ export default function TopHeader() {
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSubmit={handleModalSubmit}
-                title="회사 로고 업로드"
+                title="로고관리"
             />
         </header>
     );
