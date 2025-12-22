@@ -1,22 +1,14 @@
 /* Settings Page Refactoring based on Design References */
 
-.settings-page {
-  width: 100%;
-  min-height: 100vh;
-  background-color: #F3F6FF;
-  position: relative;
-  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, "Helvetica Neue", "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", "Malgun Gothic", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif;
-  overflow-x: hidden;
-}
-
 .page-title-bar {
-  padding: 32px 48px 0;
+  padding: 0 48px;
+  margin-bottom: 24px;
 }
 
 .page-title-bar h1 {
   font-size: 24px;
   font-weight: 700;
-  color: #1C1C1C;
+  color: #1c1c1c;
   line-height: 36px;
   margin: 0 0 24px 0;
 }
@@ -26,7 +18,7 @@
   display: flex;
   gap: 20px;
   padding: 0 48px 40px; /* Matching other pages padding */
-  height: calc(100vh - 80px); /* Adjust based on header height */
+  min-height: calc(100vh - 200px); /* Minimum height but allow growth */
   box-sizing: border-box;
 }
 
@@ -50,13 +42,14 @@
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: white;
+  min-height: 600px; /* Minimum height for map visibility */
 }
 
 /* ===== Common Card Styles ===== */
 .settings-card {
   background: white;
   border-radius: 10px;
-  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.10);
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.1);
   padding: 0;
   position: relative;
   overflow: hidden;
@@ -109,14 +102,14 @@
   margin-bottom: 12px;
 }
 .company-role-text {
-  color: #1C1C1C;
+  color: #1c1c1c;
   font-size: 12px;
   font-weight: 400;
   line-height: 18px;
 }
 
 .company-name-text {
-  color: #1C1C1C;
+  color: #1c1c1c;
   font-size: 16px;
   font-weight: 700;
   line-height: 26px;
@@ -134,7 +127,7 @@
 }
 
 .company-name-text-aligned {
-  color: #1C1C1C;
+  color: #1c1c1c;
   font-size: 16px;
   font-weight: 700;
   line-height: 26px;
@@ -145,7 +138,7 @@
 .logo-edit-button {
   background: none;
   border: none;
-  color: #006CEC;
+  color: #006cec;
   font-size: 12px;
   font-weight: 500;
   cursor: pointer;
@@ -155,7 +148,7 @@
 }
 
 .logo-edit-button:hover {
-  background: #E2F1FE;
+  background: #e2f1fe;
 }
 
 .company-info-row {
@@ -213,7 +206,7 @@
 .biz-cert-upload-btn {
   width: 200px;
   padding: 5px 20px;
-  background: #E2F1FE;
+  background: #e2f1fe;
   border-radius: 4px;
   display: flex;
   justify-content: center;
@@ -227,7 +220,7 @@
 }
 
 .biz-cert-btn-text {
-  color: #006CEC;
+  color: #006cec;
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
@@ -243,7 +236,7 @@
 }
 
 .opt-out-title {
-  color: #1C1C1C;
+  color: #1c1c1c;
   font-size: 16px;
   font-weight: 700;
   line-height: 26px;
@@ -254,7 +247,7 @@
 
 .opt-out-desc {
   width: 200px;
-  color: #1C1C1C;
+  color: #1c1c1c;
   font-size: 14px;
   font-weight: 400;
   line-height: 20px; /* Condensed for fit */
@@ -264,7 +257,7 @@
 .opt-out-btn {
   width: 200px;
   padding: 3px 18px;
-  background: #FFE7EE;
+  background: #ffe7ee;
   border-radius: 4px;
   display: flex;
   justify-content: center;
@@ -277,7 +270,7 @@
 }
 
 .opt-out-btn-text {
-  color: #E50E08;
+  color: #e50e08;
   font-size: 14px;
   font-weight: 400;
   line-height: 24px;
@@ -291,7 +284,7 @@
   width: 230px;
   max-height: calc(100% - 30px);
   background: white;
-  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.10);
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.1);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
@@ -307,13 +300,13 @@
 }
 
 .geofence-list-title {
-  color: #1C1C1C;
+  color: #1c1c1c;
   font-size: 16px;
   font-weight: 700;
 }
 
 .geofence-add-btn {
-  color: #006CEC;
+  color: #006cec;
   background: none;
   border: none;
   font-size: 20px;
@@ -331,7 +324,7 @@
 
 .geofence-item-row {
   padding: 10px 15px;
-  border-bottom: 1px solid rgba(0,0,0,0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.04);
   cursor: pointer;
   display: flex;
   flex-direction: column;
@@ -341,11 +334,11 @@
   background-color: #f8fafc;
 }
 .geofence-item-row.active {
-  background-color: #E2F1FE;
+  background-color: #e2f1fe;
 }
 
 .geofence-item-name {
-  color: #1C1C1C;
+  color: #1c1c1c;
   font-size: 14px;
   font-weight: 600;
   line-height: 24px;
@@ -363,8 +356,18 @@
   align-items: center;
   justify-content: center;
 }
-.tag-blue { background: #E2F1FE; color: #006CEC; font-size: 12px; font-weight: 500; }
-.tag-red { background: #FFDDDD; color: #E50E08; font-size: 12px; font-weight: 500; }
+.tag-blue {
+  background: #e2f1fe;
+  color: #006cec;
+  font-size: 12px;
+  font-weight: 500;
+}
+.tag-red {
+  background: #ffdddd;
+  color: #e50e08;
+  font-size: 12px;
+  font-weight: 500;
+}
 
 .geofence-empty-state {
   padding: 20px;
@@ -414,4 +417,315 @@
 /* Hidden file input */
 .hidden-input {
   display: none;
+}
+
+/* ===== Mobile Map Card ===== */
+.settings-map-card-mobile {
+  display: none; /* Hidden on desktop */
+  position: relative;
+  padding: 0;
+  min-height: 400px;
+  overflow: hidden;
+}
+
+.settings-map-wrapper {
+  width: 100%;
+  height: 400px;
+  min-height: 400px;
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px 10px 0 0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-map-wrapper > div {
+  width: 100% !important;
+  height: 100% !important;
+  flex: 1;
+  min-height: 0;
+}
+
+/* Ensure KakaoMap container fills the wrapper */
+.settings-map-wrapper > div > div {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* For KakaoGeofenceInput */
+.settings-map-wrapper > div[style*='flex'] {
+  height: 100% !important;
+}
+
+.settings-map-wrapper > div[style*='flex'] > div {
+  height: 100% !important;
+  flex: 1;
+}
+
+.geofence-list-overlay-mobile {
+  position: relative;
+  top: auto;
+  left: auto;
+  width: 100%;
+  max-height: none;
+  margin-top: 15px;
+  border-radius: 0;
+  box-shadow: none;
+  border: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ===== Mobile Responsive ===== */
+@media (max-width: 1024px) {
+  .settings-container {
+    flex-direction: column;
+    padding: 0 16px 40px;
+  }
+
+  .settings-left-panel {
+    width: 100%;
+    gap: 20px;
+  }
+
+  .settings-right-panel {
+    display: none; /* Hide desktop map panel on mobile */
+  }
+
+  .settings-map-card-mobile {
+    display: block; /* Show mobile map card */
+    width: 100%;
+  }
+
+  .settings-map-wrapper {
+    width: 100%;
+    height: 400px;
+    min-height: 400px;
+  }
+
+  .page-title-bar {
+    padding: 0 16px;
+  }
+
+  .page-title-bar h1 {
+    margin-bottom: 20px;
+  }
+
+  /* Adjust card heights for mobile */
+  .card-company-profile,
+  .card-biz-cert,
+  .card-opt-out {
+    width: 100%;
+  }
+
+  .card-company-profile {
+    height: auto;
+    min-height: 285px;
+  }
+
+  .card-biz-cert {
+    height: auto;
+    min-height: 312px;
+  }
+
+  .card-opt-out {
+    height: auto;
+    min-height: 178px;
+  }
+
+  .company-logo-area,
+  .company-info-row,
+  .biz-cert-preview-area,
+  .biz-cert-upload-btn,
+  .opt-out-btn {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .company-name-section {
+    padding: 0;
+  }
+}
+
+/* ===== Dark Mode ===== */
+[data-theme='dark'] .page-title-bar h1 {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .settings-container {
+  background: transparent;
+}
+
+[data-theme='dark'] .settings-right-panel {
+  background: #0b1220;
+  border-color: #1f2937;
+}
+
+[data-theme='dark'] .settings-card {
+  background: #0b1220;
+  border-color: #1f2937;
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .company-logo-area {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+[data-theme='dark'] .company-logo-placeholder span {
+  color: #9ca3af !important;
+}
+
+[data-theme='dark'] .company-name-text-aligned {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .logo-edit-button {
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .logo-edit-button:hover {
+  background: rgba(96, 165, 250, 0.15);
+}
+
+[data-theme='dark'] .company-info-row {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+[data-theme='dark'] .company-info-text {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .biz-cert-preview-area {
+  background: #111827;
+  border-color: #1f2937;
+}
+
+[data-theme='dark'] .biz-cert-upload-btn {
+  background: rgba(96, 165, 250, 0.15);
+}
+
+[data-theme='dark'] .biz-cert-upload-btn:hover {
+  background: rgba(96, 165, 250, 0.25);
+}
+
+[data-theme='dark'] .biz-cert-btn-text {
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .opt-out-title {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .opt-out-desc {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .opt-out-btn {
+  background: rgba(239, 68, 68, 0.15);
+}
+
+[data-theme='dark'] .opt-out-btn:hover {
+  background: rgba(239, 68, 68, 0.25);
+}
+
+[data-theme='dark'] .opt-out-btn-text {
+  color: #f87171;
+}
+
+[data-theme='dark'] .geofence-list-overlay {
+  background: #0b1220;
+  border-color: #1f2937;
+  box-shadow: 0px 1px 2px 1px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme='dark'] .geofence-list-header {
+  border-bottom-color: #1f2937;
+}
+
+[data-theme='dark'] .geofence-list-title {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .geofence-add-btn {
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .geofence-item-row {
+  border-bottom-color: #1f2937;
+}
+
+[data-theme='dark'] .geofence-item-row:hover {
+  background-color: #111827;
+}
+
+[data-theme='dark'] .geofence-item-row.active {
+  background-color: rgba(96, 165, 250, 0.15);
+}
+
+[data-theme='dark'] .geofence-item-name {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .geofence-empty-state {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .geofence-edit-form {
+  background: #111827;
+}
+
+[data-theme='dark'] .geofence-input {
+  background: #0b1220;
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .geofence-input::placeholder {
+  color: #64748b;
+}
+
+[data-theme='dark'] .tag-blue {
+  background: rgba(96, 165, 250, 0.15);
+  color: #60a5fa;
+}
+
+[data-theme='dark'] .tag-red {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+/* Override inline styles in dark mode */
+[data-theme='dark'] .company-logo-placeholder span {
+  color: #9ca3af !important;
+}
+
+[data-theme='dark'] .biz-cert-preview-area > div[style*='color'] {
+  color: #9ca3af !important;
+}
+
+[data-theme='dark'] .biz-cert-preview-area svg path {
+  stroke: #9ca3af;
+}
+
+[data-theme='dark'] .biz-cert-preview-area svg rect {
+  fill: #9ca3af;
+}
+
+[data-theme='dark'] .biz-cert-preview-area > div > span[style*='color'] {
+  color: #9ca3af !important;
+}
+
+[data-theme='dark'] .biz-cert-preview-area > div[style*="color: '#ccc'"] {
+  color: #64748b !important;
+}
+
+[data-theme='dark'] .settings-map-card-mobile {
+  background: #0b1220;
+  border-color: #1f2937;
+}
+
+[data-theme='dark'] .geofence-list-overlay-mobile {
+  border-top-color: #1f2937;
 }
