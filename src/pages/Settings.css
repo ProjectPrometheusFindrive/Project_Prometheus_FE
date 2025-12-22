@@ -10,21 +10,22 @@
 }
 
 .page-title-bar {
-  padding: 20px 60px 0;
+  padding: 32px 48px 0;
 }
 
 .page-title-bar h1 {
   font-size: 24px;
   font-weight: 700;
   color: #1C1C1C;
-  margin: 0;
+  line-height: 36px;
+  margin: 0 0 24px 0;
 }
 
 /* ===== Layout Containers ===== */
 .settings-container {
   display: flex;
   gap: 20px;
-  padding: 24px 60px; /* Matching the left margin approx 60px from reference */
+  padding: 0 48px 40px; /* Matching other pages padding */
   height: calc(100vh - 80px); /* Adjust based on header height */
   box-sizing: border-box;
 }

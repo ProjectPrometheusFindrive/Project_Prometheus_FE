@@ -1,19 +1,20 @@
 /* Revenue Page Styles */
 
 .revenue-page {
-    padding: 30px 60px;
+    padding: 0 48px 40px;
     overflow-x: hidden;
 }
 
 .revenue-header {
-    margin-bottom: 32px;
+    margin-bottom: 0;
 }
 
 .revenue-title {
     font-size: 24px;
     font-weight: 700;
-    color: #111827;
-    margin: 0 0 8px 0;
+    color: #1C1C1C;
+    line-height: 36px;
+    margin: 0 0 24px 0;
 }
 
 .revenue-subtitle {
