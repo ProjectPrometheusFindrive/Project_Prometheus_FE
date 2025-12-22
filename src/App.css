@@ -180,18 +180,23 @@ body {
     border: 1px solid #dcdde4;
     box-shadow: 0 12px 26px rgba(12, 26, 75, 0.07);
     min-height: min(600px, calc(100vh - var(--total-vertical-offset))); /* Ensure table header visible, but adapt to small viewports */
+    overflow: hidden; /* Ensure rounded corners are visible */
 }
 
 .table-wrap--scroll-x {
     overflow-x: auto;
+    overflow-y: hidden;
 }
 
 .asset-table {
     width: 100%;
     min-width: 1220px; /* Sum of all column widths to prevent compression */
-    border-collapse: collapse;
+    border-collapse: separate; /* allow border-radius on table corners */
+    border-spacing: 0;
     background: #fff;
     table-layout: fixed; /* Fix column widths to prevent layout shifts */
+    border-radius: 14px; /* ensure inner background follows rounded corners */
+    overflow: hidden; /* clip row backgrounds to rounded edges */
 }
 
 .asset-table th,
@@ -201,6 +206,26 @@ body {
     text-align: left;
     white-space: nowrap;
     color: #1c1c1c;
+}
+
+/* Ensure text color in light mode for Cursor browser compatibility */
+.page--data h1 {
+    color: #111827;
+}
+
+/* 공통 페이지 제목 스타일 */
+.page-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1C1C1C;
+    line-height: 36px;
+    margin: 0 0 24px 0;
+    padding: 0;
+}
+
+/* Dark mode support */
+[data-theme='dark'] .page-title {
+    color: #f1f5f9;
 }
 
 .asset-table th.text-center,
@@ -226,6 +251,7 @@ body {
     line-height: 24px;
     letter-spacing: -0.2px;
     color: #1c1c1c;
+    color: #1c1c1c;
     border-bottom: 1px solid #dcdcdd;
 }
 
@@ -236,6 +262,15 @@ body {
 
 .asset-table thead tr:first-child th:last-child {
     border-top-right-radius: 14px;
+}
+
+/* Rounded corners for first and last body cells in last row */
+.asset-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 14px;
+}
+
+.asset-table tbody tr:last-child td:last-child {
+    border-bottom-right-radius: 14px;
 }
 
 /* Vertical separators removed per design */
@@ -1035,6 +1070,39 @@ body {
     min-width: 220px;
 }
 
+/* Toolbar action buttons (asset/contract/member tables) */
+.toolbar-button {
+    padding: 4px 14px;
+    border-radius: 6px;
+    outline: 1px rgba(0, 0, 0, 0.10) solid;
+    outline-offset: -1px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    text-align: center;
+    color: #1C1C1C;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 500;
+    line-height: 24px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.toolbar-button:hover:not(:disabled) {
+    background: #006CEC;
+    color: #ffffff;
+    outline: none;
+}
+.toolbar-button:disabled {
+    cursor: not-allowed;
+    opacity: 0.55;
+}
+.toolbar-button--spread { justify-content: space-between; }
+.toolbar-button--tight-gap { gap: 5px; }
+
 /* Buttons in toolbar: consistent height */
 .table-toolbar .form-button {
     height: 38px;
@@ -1222,40 +1290,191 @@ body {
 .rental-amount-cell {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  justify-content: center;
+  align-items: flex-end;
+  gap: 4px;
 }
 .rental-amount-cell__value {
-  font-weight: 600;
-  font-size: 0.9rem;
+  color: #1C1C1C;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
 }
-.rental-amount-cell__meta {
-  font-size: 0.8rem;
-  color: #4b5563;
+.rental-amount-cell__value--bold {
+  font-weight: 700;
+}
+.rental-amount-cell__second {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
 }
 .rental-amount-tag {
-  margin-right: 4px;
-}
-.rental-amount-tag--long {
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 16px;
+  background: #E2F1FE;
   color: #006CEC;
 }
+.rental-amount-tag--long {
+  background: #FFDDDD;
+  color: #E50E08;
+}
 .rental-amount-tag--short {
-  color: #E88800;
+  background: #E2F1FE;
+  color: #006CEC;
 }
 .rental-amount-tag--unpaid {
+  background: rgba(235, 74, 69, 0.15);
   color: #EB4A45;
 }
 
-[data-theme='dark'] .rental-amount-cell__meta {
+/* Vehicle type cell */
+.vehicle-type-text {
+  color: #1C1C1C;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+}
+.vehicle-type-text__year {
+  color: #888888;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+}
+[data-theme='dark'] .vehicle-type-text {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .vehicle-type-text__year {
   color: #9ca3af;
 }
-[data-theme='dark'] .rental-amount-tag--long {
+
+[data-theme='dark'] .rental-amount-cell__value {
+  color: #e5e7eb;
+}
+[data-theme='dark'] .rental-amount-tag {
+  background: #0f172a;
+  border: 1px solid #1f2937;
   color: #93c5fd;
 }
+[data-theme='dark'] .rental-amount-tag--long {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fca5a5;
+}
 [data-theme='dark'] .rental-amount-tag--short {
-  color: #fbbf24;
+  background: rgba(59, 130, 246, 0.16);
+  color: #93c5fd;
 }
 [data-theme='dark'] .rental-amount-tag--unpaid {
+  background: rgba(239, 68, 68, 0.16);
   color: #fca5a5;
+}
+
+/* Rental period cell */
+.rental-period {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.rental-period__row {
+  display: flex;
+  align-items: center;
+}
+.rental-period__label {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+}
+.rental-period__label--start { color: #E50E08; }
+.rental-period__label--end { color: #006CEC; }
+.rental-period__value {
+  margin-left: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  color: #1C1C1C;
+}
+[data-theme='dark'] .rental-period__value { color: #e5e7eb; }
+[data-theme='dark'] .rental-period__label--start { color: #fca5a5; }
+[data-theme='dark'] .rental-period__label--end { color: #93c5fd; }
+
+/* Engine status buttons (contracts table) */
+.engine-status-btn {
+  padding: 2px 12px;
+  border-radius: 100px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  font-family: 'Pretendard';
+  border: none;
+  cursor: pointer;
+}
+.engine-status-btn--need {
+  background: rgba(0, 0, 0, 0.05);
+  outline: 1px rgba(0, 0, 0, 0.02) solid;
+  outline-offset: -1px;
+  color: #1C1C1C;
+}
+.engine-status-btn--toggle {
+  background: transparent;
+  border: 1px solid currentColor;
+  color: #1C1C1C;
+}
+.engine-status-btn--on {
+  color: #006CEC;
+  border-color: #006CEC;
+}
+[data-theme='dark'] .engine-status-btn--need {
+  background: rgba(255, 255, 255, 0.06);
+  outline: 1px rgba(255, 255, 255, 0.08) solid;
+  color: #e5e7eb;
+}
+[data-theme='dark'] .engine-status-btn--toggle {
+  color: #e5e7eb;
+  border-color: #1f2937;
+}
+[data-theme='dark'] .engine-status-btn--on {
+  color: #93c5fd;
+  border-color: #1e3a8a;
+}
+
+/* Accident register/check buttons */
+.accident-button {
+  padding: 2px 14px;
+  border-radius: 100px;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 24px;
+  font-family: 'Pretendard';
+  border: none;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.05);
+  color: #1C1C1C;
+}
+.accident-button svg {
+  fill: currentColor;
+}
+.accident-button--has {
+  background: rgba(0, 108, 236, 0.10);
+  color: #006CEC;
+}
+[data-theme='dark'] .accident-button {
+  background: rgba(255, 255, 255, 0.06);
+  color: #e5e7eb;
+}
+[data-theme='dark'] .accident-button--has {
+  background: rgba(0, 108, 236, 0.18);
+  color: #93c5fd;
 }
 
 /* === Restart control badges === */
@@ -4785,6 +5004,10 @@ html {
     box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
 
+.dashboard-card h2 {
+    color: #111827;
+}
+
 /* Dashboard chart container - desktop default */
 .dashboard-chart-container {
     height: 320px;
@@ -5240,15 +5463,24 @@ html {
 /* Toolbar buttons (asset/contract/member tables) */
 [data-theme='dark'] .toolbar-button {
   color: #e5e7eb !important;
+  outline: 1px rgba(148, 163, 184, 0.35) solid !important;
+  background: rgba(148, 163, 184, 0.06);
 }
-[data-theme='dark'] .toolbar-button:hover {
+[data-theme='dark'] .toolbar-button:hover:not(:disabled) {
+  background: #1e3a8a;
   color: #f9fafb !important;
+  outline: 1px solid #60a5fa !important;
+}
+[data-theme='dark'] .toolbar-button:disabled {
+  color: #9ca3af !important;
+  outline-color: #1f2937 !important;
+  background: #111827;
 }
 [data-theme='dark'] .toolbar-button svg path {
-  fill: #e5e7eb;
+  fill: currentColor;
 }
 [data-theme='dark'] .toolbar-button:hover svg path {
-  fill: #f9fafb;
+  fill: currentColor;
 }
 
 /* Device/vehicle status filter dropdowns */
@@ -5596,6 +5828,7 @@ html {
 /* Sticky table layout: keep card chrome on inner .table-wrap */
 .table-wrap--sticky > .table-wrap {
   margin-bottom: 0;
+  overflow: hidden; /* Ensure rounded corners are visible */
 }
 
 /* ==================== 계약 상세 정보 모달 (Rental Detail Modal) ==================== */
@@ -5940,6 +6173,38 @@ html {
 
 [data-theme='dark'] .rental-detail__footer-btn:hover {
   background: #3a3a4e;
+}
+
+[data-theme='dark'] .rental-detail__accident-alert-date {
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .rental-detail__action-btn {
+  background: #0f172a;
+  border-color: #1f2937;
+  color: #e5e7eb;
+}
+[data-theme='dark'] .rental-detail__action-btn svg path {
+  fill: currentColor;
+  stroke: currentColor;
+}
+[data-theme='dark'] .rental-detail__action-btn--primary:hover,
+[data-theme='dark'] .rental-detail__action-btn--outline:hover {
+  background: #1e3a8a;
+  border-color: #1d4ed8;
+  color: #e5e7eb;
+}
+[data-theme='dark'] .rental-detail__action-btn--primary:hover svg path,
+[data-theme='dark'] .rental-detail__action-btn--outline:hover svg path {
+  fill: #e5e7eb;
+  stroke: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-detail__info-value--on {
+  color: #93c5fd;
+}
+[data-theme='dark'] .rental-detail__info-value--status {
+  color: #fca5a5;
 }
 
 [data-theme='dark'] .rental-detail__action-btn--outline {
@@ -6559,6 +6824,7 @@ html {
     font-size: 16px !important;
     line-height: 26px !important;
     margin-bottom: 20px !important;
+    color: #111827 !important;
   }
 
   /* Gauge section mobile */

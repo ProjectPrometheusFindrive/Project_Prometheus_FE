@@ -72,7 +72,7 @@ export default function Dashboard() {
                 {/* 상단: 자산 현황 / 계약 현황 */}
                 <div className="dashboard-row dashboard-row--top">
                     <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }}>
-                        <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>자산 현황</h2>
+                        <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px", color: "#111827" }}>자산 현황</h2>
                         <div className="dashboard-chart-container flex items-center">
                             <div className="flex-1 flex items-center justify-center dashboard-chart-wrapper">
                                 <StatusDonut
@@ -89,7 +89,7 @@ export default function Dashboard() {
                     </section>
 
                     <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }}>
-                        <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>계약 현황</h2>
+                        <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px", color: "#111827" }}>계약 현황</h2>
                         <div className="dashboard-chart-container flex items-center">
                             <div className="flex-1 flex items-center justify-center dashboard-chart-wrapper">
                                 <StatusDonut
@@ -110,7 +110,7 @@ export default function Dashboard() {
                 <div className="dashboard-row dashboard-row--bottom">
                     {scores.map((s) => (
                         <section className="dashboard-card bg-white border border-gray-200 rounded-xl" style={{ padding: "30px" }} key={s.key}>
-                            <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px" }}>{s.label}</h2>
+                            <h2 className="font-bold text-gray-900" style={{ marginTop: 0, marginBottom: "30px", fontSize: "18px", lineHeight: "27px", letterSpacing: "-0.2px", color: "#111827" }}>{s.label}</h2>
                             <div className="gauge-disabled-area">
                                 <div className="gauge-blur-target">
                                     <div className="flex flex-col items-center">

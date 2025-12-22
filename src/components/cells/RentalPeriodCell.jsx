@@ -25,32 +25,15 @@ const RentalPeriodCell = React.memo(function RentalPeriodCell({ rentalPeriod }) 
         return `${year}.${month}.${day}(${dayOfWeek}) / ${hours}:${minutes}`;
     };
 
-    const baseTextStyle = {
-        fontSize: 14,
-        fontFamily: 'Pretendard',
-        fontWeight: 500,
-        lineHeight: '24px',
-    };
-
     return (
-        <div style={{
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0,
-        }}>
-            {/* 인수 */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ ...baseTextStyle, color: '#E50E08' }}>인수</span>
-                <span style={{ ...baseTextStyle, color: '#1C1C1C', marginLeft: 4 }}>
-                    {formatDateTime(rentalPeriod?.start)}
-                </span>
+        <div className="rental-period">
+            <div className="rental-period__row">
+                <span className="rental-period__label rental-period__label--start">인수</span>
+                <span className="rental-period__value">{formatDateTime(rentalPeriod?.start)}</span>
             </div>
-            {/* 반납 */}
-            <div style={{ display: 'flex', alignItems: 'center' }}>
-                <span style={{ ...baseTextStyle, color: '#006CEC' }}>반납</span>
-                <span style={{ ...baseTextStyle, color: '#1C1C1C', marginLeft: 4 }}>
-                    {formatDateTime(rentalPeriod?.end)}
-                </span>
+            <div className="rental-period__row">
+                <span className="rental-period__label rental-period__label--end">반납</span>
+                <span className="rental-period__value">{formatDateTime(rentalPeriod?.end)}</span>
             </div>
         </div>
     );

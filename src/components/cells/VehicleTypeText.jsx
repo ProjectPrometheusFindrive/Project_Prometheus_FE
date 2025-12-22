@@ -9,33 +9,17 @@ export default function VehicleTypeText({ vehicleType }) {
   if (!vehicleType) return <>-</>;
   const yearPattern = /(\d{2,4})년형?/;
   const match = vehicleType.match(yearPattern);
-  if (!match) return <span style={{
-    color: '#1C1C1C',
-    fontSize: 14,
-    fontFamily: 'Pretendard',
-    fontWeight: 500,
-    lineHeight: '24px',
-  }}>{vehicleType}</span>;
+  if (!match) {
+    return <span className="vehicle-type-text">{vehicleType}</span>;
+  }
 
   const yearDigits = match[1];
   const modelPart = vehicleType.replace(yearPattern, "").trim();
   return (
-    <span style={{
-      color: '#1C1C1C',
-      fontSize: 14,
-      fontFamily: 'Pretendard',
-      fontWeight: 500,
-      lineHeight: '24px',
-    }}>
+    <span className="vehicle-type-text">
       {modelPart}
       {modelPart && yearDigits && "  "}
-      <span style={{
-        color: '#888888',
-        fontSize: 14,
-        fontFamily: 'Pretendard',
-        fontWeight: 500,
-        lineHeight: '24px',
-      }}>{yearDigits}년</span>
+      <span className="vehicle-type-text__year">{yearDigits}년</span>
     </span>
   );
 }
