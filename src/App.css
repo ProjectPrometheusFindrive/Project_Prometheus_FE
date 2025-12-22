@@ -1166,6 +1166,8 @@ body {
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
+  width: 100%;
+  box-sizing: border-box;
 }
 /* Ensure nested flex groups keep spacing even if Tailwind gap utilities fail */
 .table-toolbar .flex {
@@ -5078,6 +5080,8 @@ select.form-input {
   flex-direction: column;
   overflow: auto;
   padding-bottom: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 /* Remove vertical scroll from .page-scroll when it contains a sticky table to avoid double scrollbars */
@@ -7319,6 +7323,11 @@ html {
     padding: 8px !important;
     min-width: 36px;
     width: auto !important;
+  }
+
+  /* Center SVG in spread buttons on mobile (when text is hidden) */
+  .toolbar-button--spread {
+    justify-content: center !important;
   }
 
   /* Reduce toolbar gap on mobile */
