@@ -604,7 +604,7 @@ function MemberManagement() {
     return (
         <ErrorBoundary>
             <div className="page page--data member-management-page space-y-4">
-                <h1 className="text-2xl font-semibold text-gray-900">회원관리</h1>
+                <h1 className="page-title">회원관리</h1>
                 {(errorAll || errorPending) && (
                     <div className="error-banner">{errorAll || errorPending}</div>
                 )}
@@ -618,44 +618,6 @@ function MemberManagement() {
                             disabled={batchWorking || selectedPendingCount === 0}
                             className="toolbar-button"
                             title="일괄승인"
-                            style={{
-                                paddingLeft: '14px',
-                                paddingRight: '14px',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                                borderRadius: '6px',
-                                outline: '1px rgba(0, 0, 0, 0.10) solid',
-                                outlineOffset: '-1px',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: '10px',
-                                display: 'inline-flex',
-                                textAlign: 'center',
-                                color: '#1C1C1C',
-                                fontSize: '14px',
-                                fontFamily: 'Pretendard',
-                                fontWeight: 500,
-                                lineHeight: '24px',
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: (batchWorking || selectedPendingCount === 0) ? 'not-allowed' : 'pointer',
-                                opacity: (batchWorking || selectedPendingCount === 0) ? 0.5 : 1,
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!batchWorking && selectedPendingCount > 0) {
-                                    e.currentTarget.style.background = '#006CEC';
-                                    e.currentTarget.style.color = 'white';
-                                    e.currentTarget.style.outline = 'none';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!batchWorking && selectedPendingCount > 0) {
-                                    e.currentTarget.style.background = 'transparent';
-                                    e.currentTarget.style.color = '#1C1C1C';
-                                    e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
-                                }
-                            }}
                         >
                             <svg className="toolbar-btn-icon-only" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M3 8L6.5 11.5L13 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -668,44 +630,6 @@ function MemberManagement() {
                             disabled={batchWorking || selectedWithdrawEligibleCount === 0}
                             className="toolbar-button"
                             title="일괄탈퇴"
-                            style={{
-                                paddingLeft: '14px',
-                                paddingRight: '14px',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                                borderRadius: '6px',
-                                outline: '1px rgba(0, 0, 0, 0.10) solid',
-                                outlineOffset: '-1px',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: '10px',
-                                display: 'inline-flex',
-                                textAlign: 'center',
-                                color: '#1C1C1C',
-                                fontSize: '14px',
-                                fontFamily: 'Pretendard',
-                                fontWeight: 500,
-                                lineHeight: '24px',
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: (batchWorking || selectedWithdrawEligibleCount === 0) ? 'not-allowed' : 'pointer',
-                                opacity: (batchWorking || selectedWithdrawEligibleCount === 0) ? 0.5 : 1,
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                if (!batchWorking && selectedWithdrawEligibleCount > 0) {
-                                    e.currentTarget.style.background = '#006CEC';
-                                    e.currentTarget.style.color = 'white';
-                                    e.currentTarget.style.outline = 'none';
-                                }
-                            }}
-                            onMouseLeave={(e) => {
-                                if (!batchWorking && selectedWithdrawEligibleCount > 0) {
-                                    e.currentTarget.style.background = 'transparent';
-                                    e.currentTarget.style.color = '#1C1C1C';
-                                    e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
-                                }
-                            }}
                         >
                             <svg className="toolbar-btn-icon-only" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M3 8H13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -718,39 +642,6 @@ function MemberManagement() {
                             onClick={tableFilterState.clearAll}
                             title="필터초기화"
                             className="toolbar-button"
-                            style={{
-                                paddingLeft: '14px',
-                                paddingRight: '14px',
-                                paddingTop: '4px',
-                                paddingBottom: '4px',
-                                borderRadius: '6px',
-                                outline: '1px rgba(0, 0, 0, 0.10) solid',
-                                outlineOffset: '-1px',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                gap: '10px',
-                                display: 'inline-flex',
-                                textAlign: 'center',
-                                color: '#1C1C1C',
-                                fontSize: '14px',
-                                fontFamily: 'Pretendard',
-                                fontWeight: 500,
-                                lineHeight: '24px',
-                                background: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s'
-                            }}
-                            onMouseEnter={(e) => {
-                                e.currentTarget.style.background = '#006CEC';
-                                e.currentTarget.style.color = 'white';
-                                e.currentTarget.style.outline = 'none';
-                            }}
-                            onMouseLeave={(e) => {
-                                e.currentTarget.style.background = 'transparent';
-                                e.currentTarget.style.color = '#1C1C1C';
-                                e.currentTarget.style.outline = '1px rgba(0, 0, 0, 0.10) solid';
-                            }}
                         >
                             <svg className="toolbar-btn-icon-only" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M13.5 8C13.5 11.0376 11.0376 13.5 8 13.5C4.96243 13.5 2.5 11.0376 2.5 8C2.5 4.96243 4.96243 2.5 8 2.5C9.875 2.5 11.5 3.5 12.5 5M12.5 2.5V5H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
