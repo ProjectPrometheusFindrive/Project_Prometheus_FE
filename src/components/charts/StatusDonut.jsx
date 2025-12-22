@@ -144,18 +144,21 @@ export default function StatusDonut({
         <div
             className="status-donut"
             style={{
-                display: "inline-flex",
+                display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 32,
-                height: "100%"
+                gap: 20,
+                height: "100%",
+                width: "100%",
+                maxWidth: "100%",
+                boxSizing: "border-box"
             }}
         >
             <div
                 className="status-donut__chart"
                 style={{
-                    width: 320,
-                    height: 320,
+                    width: 280,
+                    height: 280,
                     maxWidth: "100%",
                     flexShrink: 0
                 }}

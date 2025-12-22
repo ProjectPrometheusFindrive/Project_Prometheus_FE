@@ -4791,22 +4791,27 @@ html {
 }
 
 .dashboard-chart-wrapper {
-    min-width: 260px;
+    min-width: 0; /* Allow flex item to shrink below min-content */
     height: 100%;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden; /* Prevent children from overflowing */
 }
 
 .dashboard-legend {
       display: flex;
       flex-direction: column;
       gap: 16px;
-      margin-left: 32px;
+      margin-left: 20px;
       width: 160px;
+      flex-shrink: 0;
   }
 .dashboard-legend__item {
       display: flex;
       align-items: center;
       justify-content: space-between;
       min-width: 140px;
+      white-space: nowrap;
   }
 .dashboard-legend__label-wrap {
       display: inline-flex;
@@ -4825,6 +4830,11 @@ html {
       line-height: 26px;
       color: #1c1c1c;
       letter-spacing: -0.4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      flex: 1;
+      min-width: 0;
   }
 .dashboard-legend__value {
       font-size: 16px;
@@ -4833,6 +4843,8 @@ html {
       color: #1c1c1c;
       letter-spacing: -0.4px;
       text-align: right;
+      flex-shrink: 0;
+      margin-left: 8px;
   }
 
 [data-theme='dark'] .dashboard-card {
@@ -4842,6 +4854,46 @@ html {
 [data-theme='dark'] .dashboard-legend__label,
 [data-theme='dark'] .dashboard-legend__value {
   color: #e5e7eb;
+}
+
+/* Dashboard legend responsive - medium screens (1000px ~ 1400px) */
+@media (min-width: 1000px) and (max-width: 1400px) {
+    .status-donut {
+        gap: 16px;
+    }
+    
+    .status-donut__chart {
+        width: 240px;
+        height: 240px;
+        max-width: 100%;
+        flex-shrink: 0;
+    }
+    
+    .dashboard-legend {
+        margin-left: 16px;
+        width: 140px;
+        gap: 12px;
+        flex-shrink: 0;
+    }
+    
+    .dashboard-legend__item {
+        min-width: auto;
+        white-space: nowrap;
+    }
+    
+    .dashboard-legend__label {
+        font-size: 14px;
+        line-height: 20px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .dashboard-legend__value {
+        font-size: 14px;
+        line-height: 20px;
+        flex-shrink: 0;
+    }
 }
 
 /* Simple modal styles */
