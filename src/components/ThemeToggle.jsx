@@ -27,7 +27,7 @@ export default function ThemeToggle() {
       aria-pressed={isDark}
       aria-label={label}
       title={label}
-      className="top-header__icon-button"
+      className="top-header__icon-button top-header__theme-toggle"
     >
       {isDark ? (
         <svg width="26" height="26" viewBox="0 0 34 34" fill="none" xmlns="http://www.w3.org/2000/svg">
