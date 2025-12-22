@@ -1,0 +1,227 @@
+.memo-history-modal {
+  max-width: 640px !important;
+  padding: 32px 32px 28px;
+}
+
+[data-theme='dark'] .memo-history-modal,
+.memo-history-modal.dark {
+  background: #111827;
+  color: #f3f4f6;
+  border-color: #1f2937;
+}
+
+.memo-history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 2px solid #1c1c1c;
+}
+
+.memo-history-header__titles {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.memo-history-header__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  line-height: 18px;
+  color: #6b7280;
+  letter-spacing: 0.02em;
+}
+
+.memo-history-header__title {
+  font-size: 20px;
+  line-height: 30px;
+  font-weight: 700;
+  color: #1c1c1c;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-header {
+  border-bottom-color: #374151;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-header__eyebrow {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-header__title {
+  color: #f3f4f6;
+}
+
+.memo-history-close {
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 50%;
+  background: #f8f9fb;
+  color: #1c1c1c;
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.memo-history-close:hover {
+  background: #eef2ff;
+  border-color: #c7d2fe;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-close,
+.memo-history-modal.dark .memo-history-close {
+  background: #1f2937;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-close:hover,
+.memo-history-modal.dark .memo-history-close:hover {
+  background: #111827;
+  border-color: #4b5563;
+}
+
+.memo-history-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.memo-history-state {
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.memo-history-state--error {
+  background: #fef2f2;
+  border-color: #fecdd3;
+  color: #b91c1c;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-state,
+.memo-history-modal.dark .memo-history-state {
+  background: #111827;
+  border-color: #1f2937;
+  color: #d1d5db;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-state--error,
+.memo-history-modal.dark .memo-history-state--error {
+  background: #2d1b1b;
+  border-color: #7f1d1d;
+  color: #fecaca;
+}
+
+.memo-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.memo-history-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #fbfbfb;
+  padding: 12px 14px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04);
+}
+
+.memo-history-card--current {
+  border-color: #c7d2fe;
+  background: #eef2ff;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-card,
+.memo-history-modal.dark .memo-history-card {
+  border-color: #1f2937;
+  background: #0f172a;
+  box-shadow: none;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-card--current,
+.memo-history-modal.dark .memo-history-card--current {
+  border-color: #1d4ed8;
+  background: #111827;
+}
+
+.memo-history-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 20px;
+  color: #6b7280;
+  margin-bottom: 6px;
+}
+
+.memo-history-author {
+  color: #111827;
+  font-weight: 600;
+}
+
+.memo-history-dot {
+  color: #d1d5db;
+}
+
+.memo-history-time {
+  color: #6b7280;
+}
+
+.memo-history-badge {
+  margin-left: auto;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #1c64f2;
+  color: white;
+  font-size: 12px;
+  line-height: 18px;
+  font-weight: 600;
+}
+
+.memo-history-text {
+  white-space: pre-wrap;
+  color: #1f2937;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-author,
+.memo-history-modal.dark .memo-history-author {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-time,
+[data-theme='dark'] .memo-history-modal .memo-history-meta,
+.memo-history-modal.dark .memo-history-time,
+.memo-history-modal.dark .memo-history-meta {
+  color: #9ca3af;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-dot,
+.memo-history-modal.dark .memo-history-dot {
+  color: #4b5563;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-text,
+.memo-history-modal.dark .memo-history-text {
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .memo-history-modal .memo-history-badge,
+.memo-history-modal.dark .memo-history-badge {
+  background: #2563eb;
+}
+

@@ -3,6 +3,7 @@ import Modal from "../Modal";
 import { fetchAssetMemoHistory, fetchRentalMemoHistory } from "../../api";
 import { formatYyMmDdHhMmSs } from "../../utils/datetime";
 import { typedStorage } from "../../utils/storage";
+import "./MemoHistoryModal.css";
 
 export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId, title, currentMemo }) {
   const [items, setItems] = useState([]);
@@ -32,7 +33,7 @@ export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId
             const ta = a?.changedAt ? new Date(a.changedAt).getTime() : 0;
             const tb = b?.changedAt ? new Date(b.changedAt).getTime() : 0;
             return tb - ta;
-          });
+          }).map((item) => ({ ...item, isCurrent: false }));
 
           // Include the most recent memo (current value) at top if missing
           const latestText = typeof currentMemo === "string" ? currentMemo.trim() : "";
@@ -40,7 +41,7 @@ export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId
             const info = typedStorage.auth.getUserInfo() || {};
             const name = (info && typeof info.name === "string" && info.name.trim()) ? info.name.trim() : "-";
             const nowIso = new Date().toISOString();
-            setItems([{ changedBy: name, memo: latestText, changedAt: nowIso }, ...sorted]);
+            setItems([{ changedBy: name, memo: latestText, changedAt: nowIso, isCurrent: true }, ...sorted]);
           } else {
             setItems(sorted);
           }
@@ -55,28 +56,50 @@ export default function MemoHistoryModal({ isOpen, onClose, entityType, entityId
     return () => { ignore = true; };
   }, [isOpen, entityType, entityId, currentMemo]);
 
+  const headerContent = (
+    <div className="memo-history-header">
+      <div className="memo-history-header__titles">
+        <p className="memo-history-header__eyebrow">Memo History</p>
+        <strong className="memo-history-header__title">{headerTitle}</strong>
+      </div>
+      <button type="button" className="memo-history-close" onClick={onClose} aria-label="닫기">
+        ×
+      </button>
+    </div>
+  );
+
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={headerTitle} showFooter={false}>
-      <div className="max-h-90 overflow-y-auto pt-1">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      customHeaderContent={headerContent}
+      showFooter={false}
+      className="memo-history-modal"
+    >
+      <div className="memo-history-body">
         {loading && (
-          <div className="text-muted p-2">불러오는 중...</div>
+          <div className="memo-history-state">불러오는 중...</div>
         )}
         {!loading && error && (
-          <div className="text-danger p-2">{error}</div>
+          <div className="memo-history-state memo-history-state--error">{error}</div>
         )}
         {!loading && !error && items.length === 0 && (
-          <div className="text-muted p-2">기록 없음</div>
+          <div className="memo-history-state">기록 없음</div>
         )}
         {!loading && !error && items.length > 0 && (
-          <div>
+          <div className="memo-history-list">
             {items.map((h, idx) => (
-              <div key={`${h.changedAt || idx}-${idx}`} className="py-2 px-1 border-b border-gray-200">
-                <div className="flex items-center gap-2">
-                  <span className="font-semibold">{h.changedBy || "-"}</span>
-                  <span className="text-gray-400">-</span>
-                  <span className="whitespace-pre-wrap">{h.memo || ""}</span>
-                  <span className="text-[12px] text-gray-500">· {formatYyMmDdHhMmSs(h.changedAt)}</span>
+              <div
+                key={`${h.changedAt || idx}-${idx}`}
+                className={`memo-history-card ${h.isCurrent ? "memo-history-card--current" : ""}`}
+              >
+                <div className="memo-history-meta">
+                  <span className="memo-history-author">{h.changedBy || "-"}</span>
+                  <span className="memo-history-dot" aria-hidden="true">•</span>
+                  <span className="memo-history-time">{formatYyMmDdHhMmSs(h.changedAt)}</span>
+                  {h.isCurrent && <span className="memo-history-badge">현재</span>}
                 </div>
+                <div className="memo-history-text">{h.memo || ""}</div>
               </div>
             ))}
           </div>
