@@ -197,7 +197,7 @@ export default function AssetStatus() {
     toggleInconsistency,
     closeStage: closeStageDropdown,
   } = useDropdownState();
-  const { columns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
+  const { columns, visibleColumns, toggleColumnVisibility, moveColumn, resetColumns } = useColumnSettings({
     storageKey: 'asset-columns-settings',
     defaultColumns: DEFAULT_ASSET_COLUMNS,
   });
@@ -1627,6 +1627,7 @@ export default function AssetStatus() {
                 onDrop={handleDrop}
                 onDragEnd={handleDragEnd}
                 onToggleVisibility={toggleColumnVisibility}
+                onReset={resetColumns}
               />
             )}
           </div>

@@ -10,6 +10,7 @@ export default function ColumnSettingsMenu({
   onDrop,
   onDragEnd,
   onToggleVisibility,
+  onReset,
 }) {
   const handleItemKey = (e) => {
     const current = e.currentTarget;
@@ -27,16 +28,11 @@ export default function ColumnSettingsMenu({
 
   const requiredColumns = columns.filter(col => col.required);
   const optionalColumns = columns.filter(col => !col.required);
-  const allVisible = optionalColumns.every(col => col.visible);
 
-  const handleToggleAll = () => {
-    optionalColumns.forEach(col => {
-      if (allVisible && col.visible) {
-        onToggleVisibility(col.key);
-      } else if (!allVisible && !col.visible) {
-        onToggleVisibility(col.key);
-      }
-    });
+  const handleReset = () => {
+    if (onReset) {
+      onReset();
+    }
   };
 
   return (
@@ -57,11 +53,11 @@ export default function ColumnSettingsMenu({
         zIndex: 1000
       }}
     >
-      {/* 선택해제 버튼 */}
+      {/* 초기화 버튼 */}
       <div style={{ padding: '20px 20px 10px 20px' }}>
         <button
           type="button"
-          onClick={handleToggleAll}
+          onClick={handleReset}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -74,25 +70,13 @@ export default function ColumnSettingsMenu({
           }}
         >
           <div style={{ width: 16, height: 16, position: 'relative' }}>
-            {allVisible ? (
-              <div style={{
-                width: 16,
-                height: 16,
-                background: 'white',
-                borderRadius: 3,
-                border: '1px rgba(0, 0, 0, 0.15) solid'
-              }} />
-            ) : (
-              <>
-                <div style={{
-                  width: 16,
-                  height: 16,
-                  background: 'white',
-                  borderRadius: 3,
-                  border: '1px rgba(0, 0, 0, 0.15) solid'
-                }} />
-              </>
-            )}
+            <div style={{
+              width: 16,
+              height: 16,
+              background: 'white',
+              borderRadius: 3,
+              border: '1px rgba(0, 0, 0, 0.15) solid'
+            }} />
           </div>
           <div style={{
             color: '#888888',
@@ -101,7 +85,7 @@ export default function ColumnSettingsMenu({
             fontWeight: 500,
             lineHeight: '20px'
           }}>
-            선택해제
+            초기화
           </div>
         </button>
       </div>

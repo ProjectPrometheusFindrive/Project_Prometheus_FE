@@ -174,7 +174,7 @@ export default function RentalContracts() {
     const [showColumnDropdown, setShowColumnDropdown] = useState(false);
     const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
     const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
-    const { columns, visibleColumns, toggleColumnVisibility, moveColumn } = useColumnSettings({
+    const { columns, visibleColumns, toggleColumnVisibility, moveColumn, resetColumns } = useColumnSettings({
         storageKey: "rental-columns-settings",
         defaultColumns: DEFAULT_COLUMN_CONFIG,
     });
@@ -201,53 +201,15 @@ export default function RentalContracts() {
     }, [selectedContractTrackingData]);
     const filteredTrackingData = useMemo(() => {
         if (!Array.isArray(selectedContractTrackingData) || selectedContractTrackingData.length === 0) {
-            console.log('[filteredTrackingData] No tracking data');
             return [];
         }
         if (!Array.isArray(trackingDateFilters) || trackingDateFilters.length === 0) {
-            console.log('[filteredTrackingData] No filters selected, showing nothing');
             return [];
         }
         const allowed = new Set(trackingDateFilters);
         const filtered = selectedContractTrackingData.filter((entry) => {
             const key = extractLogDateKey(entry);
             return key && allowed.has(key);
-        });
-        console.log('[filteredTrackingData]', {
-            totalEntries: selectedContractTrackingData.length,
-            activeFilters: Array.from(trackingDateFilters),
-            filteredCount: filtered.length,
-            timeRange: (() => {
-                if (filtered.length === 0) return null;
-                // 시간 기준으로 정렬
-                const sorted = [...filtered].sort((a, b) => {
-                    const timeA = a?.dateTime || a?.datetime || a?.timestamp || a?.time || '';
-                    const timeB = b?.dateTime || b?.datetime || b?.timestamp || b?.time || '';
-                    return timeA.localeCompare(timeB);
-                });
-                const first = sorted[0];
-                const last = sorted[sorted.length - 1];
-
-                const formatWithTimezones = (entry, label) => {
-                    const rawTime = entry?.dateTime || entry?.datetime || entry?.timestamp || entry?.time;
-                    if (!rawTime) return null;
-                    const isoString = String(rawTime).replace(/^(\d{4}-\d{2}-\d{2}) /, '$1T');
-                    const utcDate = new Date(isoString);
-                    const kstDate = new Date(utcDate.getTime() + 9 * 60 * 60 * 1000);
-                    return {
-                        label,
-                        raw: rawTime,
-                        utc: utcDate.toISOString(),
-                        kst: kstDate.toISOString().replace('Z', '+09:00'),
-                        dateKey: extractLogDateKey(entry)
-                    };
-                };
-
-                return {
-                    earliest: formatWithTimezones(first, 'EARLIEST'),
-                    latest: formatWithTimezones(last, 'LATEST')
-                };
-            })()
         });
         return filtered;
     }, [selectedContractTrackingData, trackingDateFilters]);
@@ -1254,6 +1216,7 @@ export default function RentalContracts() {
                                 onDrop={handleDrop}
                                 onDragEnd={handleDragEnd}
                                 onToggleVisibility={toggleColumnVisibility}
+                                onReset={resetColumns}
                             />
                         )}
                     </div>

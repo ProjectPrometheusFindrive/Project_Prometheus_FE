@@ -55,6 +55,11 @@ export default function useColumnSettings({ storageKey, defaultColumns }) {
     persist(next);
   };
 
+  const resetColumns = () => {
+    const resetColumns = defaultColumns.map((c) => ({ ...c }));
+    persist(resetColumns);
+  };
+
   const visibleColumns = useMemo(() => columns.filter((c) => c.visible), [columns]);
 
   return {
@@ -63,6 +68,7 @@ export default function useColumnSettings({ storageKey, defaultColumns }) {
     visibleColumns,
     toggleColumnVisibility,
     moveColumn,
+    resetColumns,
   };
 }
 
