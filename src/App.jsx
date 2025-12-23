@@ -105,7 +105,12 @@ function App() {
       <AuthProvider>
         <ConfirmProvider>
         <CompanyProvider>
-          <Router>
+          <Router
+            future={{
+              v7_startTransition: true,
+              v7_relativeSplatPath: true,
+            }}
+          >
             <GlobalToast />
           <ForcePasswordChange />
           <DynamicFavicon />
