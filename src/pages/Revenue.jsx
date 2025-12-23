@@ -373,9 +373,9 @@ export default function Revenue() {
                 }
             `}</style>
 
-            <h1 className="revenue-title">매출 관리</h1>
+            <h1 className="page-title">매출 관리</h1>
 
-            <div className="page-scroll revenue-page">
+            <div className="page-scroll space-y-4">
 
                 {loading ? (
                     <LoadingSpinner />
