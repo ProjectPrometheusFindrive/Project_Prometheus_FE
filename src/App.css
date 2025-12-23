@@ -4012,12 +4012,8 @@ body {
 
 /* Responsive */
 @media (max-width: 1024px) {
-  .auth-page {
-    flex-direction: column;
-  }
-
   .auth-page__branding {
-    flex: none;
+    flex: 0 0 40%;
     padding: 2rem 1.5rem;
   }
 
