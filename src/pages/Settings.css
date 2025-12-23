@@ -1,5 +1,10 @@
 /* Settings Page Refactoring based on Design References */
 
+/* Disable scrolling on web (desktop) - mobile will use default overflow: auto */
+.page.page--data .page-scroll {
+  overflow: hidden;
+}
+
 .page-title-bar {
   padding: 0 48px;
   margin-bottom: 24px;
@@ -17,9 +22,10 @@
 .settings-container {
   display: flex;
   gap: 20px;
-  padding: 0 48px 40px; /* Matching other pages padding */
-  min-height: calc(100vh - 200px); /* Minimum height but allow growth */
+  padding: 0 48px 0; /* Removed bottom padding to prevent unnecessary scroll */
   box-sizing: border-box;
+  height: 100%; /* Fill available space in .page-scroll */
+  min-height: 0; /* Allow flex shrinking */
 }
 
 .settings-left-panel {
@@ -43,6 +49,8 @@
   border: 1px solid rgba(0, 0, 0, 0.08);
   background: white;
   min-height: 600px; /* Minimum height for map visibility */
+  height: 100%; /* Fill available space in flex container */
+  max-height: 100%; /* Don't exceed parent height */
 }
 
 /* ===== Common Card Styles ===== */
@@ -478,6 +486,11 @@
 
 /* ===== Mobile Responsive ===== */
 @media (max-width: 1024px) {
+  /* Enable scrolling on mobile */
+  .page.page--data .page-scroll {
+    overflow: auto;
+  }
+
   .settings-container {
     flex-direction: column;
     padding: 0 16px 40px;
