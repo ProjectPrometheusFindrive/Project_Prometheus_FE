@@ -211,6 +211,25 @@ body {
   padding: 32px 48px 40px;
   background: #f3f6ff;
 }
+
+/* Sticky header page layout */
+.page--sticky-header {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.page-header-sticky {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #f3f6ff;
+  padding-bottom: 16px;
+}
+
+.page--sticky-header .page-scroll {
+  overflow: visible;
+}
+
 @media (max-width: 1024px) {
   :root {
     --total-vertical-offset: 200px; /* Reduced spacing for smaller screens */
@@ -1130,12 +1149,6 @@ body {
 .asset-table tbody tr.row-selected:hover {
   background-color: #d6e7ff;
 }
-/* Subtle zebra striping for dense data table (excluding explicit states) */
-.asset-table
-  tbody
-  tr:nth-child(even):not(.row-selected):not(.is-completed):not(.withdrawn-row):not(.highlight-row) {
-  background-color: #fafbff;
-}
 
 .table-wrap--sticky {
   position: relative;
@@ -1191,7 +1204,7 @@ body {
 .asset-table--sticky thead th {
   position: sticky;
   top: calc(var(--app-header-height, 0px) + var(--table-sticky-extra-offset, 0px));
-  z-index: 5;
+  z-index: 10;
   background: #f5faff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
 }
@@ -1199,6 +1212,11 @@ body {
    container top so the data area scrolls under it (no extra offset). */
 .table-wrap--sticky .asset-table--sticky thead th {
   top: 0;
+}
+/* Dark mode support for sticky header */
+[data-theme='dark'] .asset-table--sticky thead th {
+  background: #020617;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 /* Asset/toolbars: align controls consistently */
@@ -6044,15 +6062,6 @@ html {
   color: #6ee7b7;
 }
 
-/* Zebra striping for dark mode */
-[data-theme='dark']
-  .asset-table
-  tbody
-  tr:nth-child(even):not(.row-selected):not(.is-completed):not(.withdrawn-row):not(
-    .highlight-row
-  ):not(.pending-row) {
-  background-color: #0d1525;
-}
 
 /* Row hover contrast in dark */
 [data-theme='dark']
