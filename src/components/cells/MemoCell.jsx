@@ -59,6 +59,7 @@ const MemoCell = React.memo(function MemoCell({
   }
 
   const [isHovered, setIsHovered] = React.useState(false);
+  const [isButtonHovered, setIsButtonHovered] = React.useState(false);
 
   return (
     <div
@@ -82,6 +83,8 @@ const MemoCell = React.memo(function MemoCell({
             e.stopPropagation();
             onEdit?.(id, value);
           }}
+          onMouseEnter={() => setIsButtonHovered(true)}
+          onMouseLeave={() => setIsButtonHovered(false)}
           aria-label="메모 편집"
           title="메모 편집"
           style={{
@@ -89,31 +92,25 @@ const MemoCell = React.memo(function MemoCell({
             right: '8px',
             top: '50%',
             transform: 'translateY(-50%)',
-            padding: '4px',
-            background: 'white',
-            border: '1px solid #e0e0e0',
-            borderRadius: '4px',
+            padding: 0,
+            background: 'transparent',
+            border: 'none',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 10
           }}
         >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 12 12"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-          >
-            <path
-              fillRule="evenodd"
-              clipRule="evenodd"
-              d="M-8.37771e-06 9.64157V11.6682C-8.37771e-06 11.8549 0.146658 12.0016 0.333324 12.0016H2.35999C2.44665 12.0016 2.53332 11.9682 2.59332 11.9016L9.8733 4.62825L7.37331 2.12825L0.0999914 9.40157C0.0333249 9.46824 -8.37771e-06 9.54824 -8.37771e-06 9.64157ZM11.8066 2.69498C12.0666 2.43499 12.0666 2.01499 11.8066 1.75499L10.2466 0.19499C10.1221 0.0701551 9.95295 0 9.77661 0C9.60026 0 9.43116 0.0701551 9.30661 0.19499L8.08661 1.41499L10.5866 3.91498L11.8066 2.69498Z"
-              fill="black"
-              fillOpacity="0.1"
-            />
-          </svg>
+          {isButtonHovered ? (
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="26.0016" height="26.0016" rx="13.0008" fill="black" fillOpacity="0.1"/>
+              <path fillRule="evenodd" clipRule="evenodd" d="M6.99999 16.6416V18.6682C6.99999 18.8549 7.14666 19.0016 7.33332 19.0016H9.35999C9.44665 19.0016 9.53332 18.9682 9.59332 18.9016L16.8733 11.6282L14.3733 9.12825L7.09999 16.4016C7.03332 16.4682 6.99999 16.5482 6.99999 16.6416ZM18.8066 9.69498C19.0666 9.43499 19.0666 9.01499 18.8066 8.75499L17.2466 7.19499C17.1221 7.07016 16.953 7 16.7766 7C16.6003 7 16.4312 7.07016 16.3066 7.19499L15.0866 8.41499L17.5866 10.915L18.8066 9.69498Z" fill="white"/>
+            </svg>
+          ) : (
+            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fillRule="evenodd" clipRule="evenodd" d="M6.99999 16.6416V18.6682C6.99999 18.8549 7.14666 19.0016 7.33332 19.0016H9.35999C9.44665 19.0016 9.53332 18.9682 9.59332 18.9016L16.8733 11.6282L14.3733 9.12825L7.09999 16.4016C7.03332 16.4682 6.99999 16.5482 6.99999 16.6416ZM18.8066 9.69498C19.0666 9.43499 19.0666 9.01499 18.8066 8.75499L17.2466 7.19499C17.1221 7.07016 16.953 7 16.7766 7C16.6003 7 16.4312 7.07016 16.3066 7.19499L15.0866 8.41499L17.5866 10.915L18.8066 9.69498Z" fill="black" fillOpacity="0.1"/>
+            </svg>
+          )}
         </button>
       )}
     </div>
