@@ -386,17 +386,13 @@ body {
   width: 20px;
   height: 20px;
   display: inline-flex;
-  color: #1c1c1c;
-  opacity: 0.3;
-  transition:
-    opacity 0.16s ease,
-    color 0.16s ease;
+  align-items: center;
+  justify-content: center;
 }
-.asset-table thead th .sort-toggle:hover .sort-icon {
-  opacity: 0.6;
-}
-.asset-table thead th .sort-toggle.active .sort-icon {
-  opacity: 1;
+.asset-table thead th .sort-toggle .sort-icon [data-svg-wrapper] {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Active filtered header style */
@@ -513,6 +509,13 @@ body {
   margin: 8px 0 10px;
   width: calc(100% - 12px);
 }
+.filter-popover--vehicle-type .filter-management-divider {
+  position: absolute;
+  left: 15px;
+  top: 42px;
+  width: 140px;
+  margin: 0;
+}
 
 /* 차종+연식 필터 팝업 */
 .filter-popover--vehicle-type {
@@ -522,7 +525,7 @@ body {
   border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 8px;
   box-shadow: 0px 8px 24px rgba(0, 0, 0, 0.15);
-  padding: 20px 12px 16px 20px;
+  padding: 12px 5px 12px 5px;
   max-height: 400px;
   overflow-y: auto;
 }
@@ -531,20 +534,72 @@ body {
 .vehicle-type-year-filter {
   display: flex;
   flex-direction: column;
+  position: relative;
+  width: 170px;
+  min-height: 433px;
+}
+.vehicle-type-filter__select-all {
+  position: absolute;
+  left: 15px;
+  top: 12px;
+  z-index: 1;
+}
+.vehicle-type-filter__select-all .filter-option__label {
+  color: #006CEC;
+  font-weight: 500;
 }
 .vehicle-type-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
-  margin-top: 10px;
+  margin-top: 52px;
+  padding-left: 15px;
+  padding-right: 15px;
 }
 .vehicle-type-item {
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+.vehicle-type-item__selected-bg {
+  position: absolute;
+  left: -15px;
+  right: -15px;
+  top: -2px;
+  bottom: -2px;
+  background: #F5FAFF;
+  border-radius: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.vehicle-type-item .filter-option {
+  position: relative;
+  z-index: 1;
 }
 .vehicle-type-option {
   position: relative;
   padding-right: 30px;
+}
+.vehicle-type-year-filter .filter-option__label {
+  font-size: 14px;
+  font-family: 'Pretendard', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-weight: 500;
+  line-height: 20px;
+  color: #1C1C1C;
+}
+.vehicle-type-year-filter .filter-option__control {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  background-color: #ffffff;
+}
+.vehicle-type-year-filter .filter-option__control:checked {
+  background-color: #006CEC;
+  border-color: #006CEC;
+}
+.vehicle-type-year-filter .filter-option__control:checked::after {
+  opacity: 1;
 }
 .year-expand-toggle {
   position: absolute;
@@ -699,7 +754,7 @@ body {
   width: 30px;
   height: 30px;
   padding: 2px 1px;
-  background: #f8f8f8;
+  background: transparent;
   border: none;
   border-radius: 100px;
   cursor: pointer;
@@ -708,11 +763,11 @@ body {
 }
 
 .date-range-filter__reset:hover {
-  background: #ececec;
+  background: #F3F4F6;
 }
 
 .date-range-filter__reset:active {
-  background: #e0e0e0;
+  background: #E5E7EB;
 }
 
 .date-range-filter__reset svg {
@@ -751,7 +806,7 @@ body {
   width: 30px;
   height: 30px;
   padding: 2px 1px;
-  background: #f8f8f8;
+  background: transparent;
   border: none;
   border-radius: 100px;
   cursor: pointer;
@@ -760,11 +815,11 @@ body {
 }
 
 .text-filter__reset:hover {
-  background: #ececec;
+  background: #F3F4F6;
 }
 
 .text-filter__reset:active {
-  background: #e0e0e0;
+  background: #E5E7EB;
 }
 
 .text-filter__reset svg {
@@ -794,7 +849,7 @@ body {
   width: 30px;
   height: 30px;
   padding: 2px 1px;
-  background: #f8f8f8;
+  background: transparent;
   border: none;
   border-radius: 100px;
   cursor: pointer;
@@ -803,11 +858,11 @@ body {
 }
 
 .number-range-filter__reset:hover {
-  background: #ececec;
+  background: #F3F4F6;
 }
 
 .number-range-filter__reset:active {
-  background: #e0e0e0;
+  background: #E5E7EB;
 }
 
 .number-range-filter__reset svg {
@@ -1017,17 +1072,17 @@ body {
 [data-theme='dark'] .date-range-filter__reset,
 [data-theme='dark'] .text-filter__reset,
 [data-theme='dark'] .number-range-filter__reset {
-  background: #020617;
+  background: transparent;
 }
 [data-theme='dark'] .date-range-filter__reset:hover,
 [data-theme='dark'] .text-filter__reset:hover,
 [data-theme='dark'] .number-range-filter__reset:hover {
-  background: #111827;
+  background: #374151;
 }
 [data-theme='dark'] .date-range-filter__reset:active,
 [data-theme='dark'] .text-filter__reset:active,
 [data-theme='dark'] .number-range-filter__reset:active {
-  background: #1f2937;
+  background: #4B5563;
 }
 [data-theme='dark'] .date-range-filter__reset svg path,
 [data-theme='dark'] .text-filter__reset svg path,
@@ -1996,21 +2051,55 @@ body {
   border-radius: 8px;
   border: 1px solid rgba(0, 0, 0, 0.08);
   box-shadow: 0 8px 12px rgba(0, 0, 0, 0.2);
-  padding: 8px 0;
+  padding: 0;
   z-index: 1100;
+  overflow: hidden;
 }
 .top-header__profile-menu-item {
   width: 100%;
-  text-align: left;
-  padding: 6px 16px;
+  text-align: center;
+  padding: 10px 16px;
   font-size: 14px;
-  color: #1f2933;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-weight: 500;
+  line-height: 24px;
+  color: #1C1C1C;
   background: transparent;
   border: none;
   cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  word-wrap: break-word;
 }
 .top-header__profile-menu-item:hover {
   background: #f3f4ff;
+}
+.top-header__profile-menu-item--logout {
+  background: #F8F9FA;
+  padding: 10px 24px;
+  border-bottom-right-radius: 8px;
+  border-bottom-left-radius: 8px;
+  outline: 1px solid rgba(0, 0, 0, 0.08);
+  outline-offset: -1px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  margin-top: 0;
+}
+.top-header__profile-menu-item--logout:hover {
+  background: #F8F9FA;
+}
+.top-header__profile-menu-item-text {
+  color: #888888;
+  font-size: 14px;
+  font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+  font-weight: 500;
+  line-height: 24px;
+  word-wrap: break-word;
+  text-align: center;
 }
 .top-header__profile-menu-item--danger {
   color: #b91c1c;
@@ -5243,8 +5332,8 @@ html {
 }
 
 .dashboard-card {
-  background: #f8faff;
-  border-radius: 24px;
+  background: #fff;
+  border-radius: 12px;
   border: 1px solid #dde4ff;
   box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
 }
@@ -5628,6 +5717,16 @@ html {
 [data-theme='dark'] .top-header__profile-menu-item:hover {
   background: #111827;
 }
+[data-theme='dark'] .top-header__profile-menu-item--logout {
+  background: #1f2937;
+  outline-color: rgba(255, 255, 255, 0.1);
+}
+[data-theme='dark'] .top-header__profile-menu-item--logout:hover {
+  background: #1f2937;
+}
+[data-theme='dark'] .top-header__profile-menu-item-text {
+  color: #9ca3af;
+}
 [data-theme='dark'] .top-header__profile-menu-item--danger {
   color: #f87171;
 }
@@ -5793,11 +5892,29 @@ html {
   background-color: #020617 !important;
   border-color: #4b5563 !important;
 }
+/* Refresh icon wrapper hover effect */
+.Dropdown .Frame427319149 .refresh-icon-wrapper {
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+}
+.Dropdown .Frame427319149:hover .refresh-icon-wrapper {
+  background-color: #F3F4F6;
+}
+.Dropdown .Frame427319149:active .refresh-icon-wrapper {
+  background-color: #E5E7EB;
+}
+
 [data-theme='dark'] .Dropdown .Frame427319149 div[data-layer='새로고침'] {
   color: #93c5fd !important;
 }
 [data-theme='dark'] .Dropdown .Frame427319172 svg path {
   fill: #93c5fd;
+}
+[data-theme='dark'] .Dropdown .Frame427319149:hover .refresh-icon-wrapper {
+  background-color: #374151;
+}
+[data-theme='dark'] .Dropdown .Frame427319149:active .refresh-icon-wrapper {
+  background-color: #4B5563;
 }
 
 /* AssetStatus pills (보험등록/단말필요/연결됨/정상 등) */

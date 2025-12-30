@@ -255,7 +255,7 @@ export default function ColumnFilterPopover({
                   fillRule="evenodd"
                   clipRule="evenodd"
                   d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z"
-                  fill="currentColor"
+                  fill="#006CEC"
                 />
               </svg>
             </button>
@@ -321,60 +321,111 @@ export default function ColumnFilterPopover({
                 })}
               </div>
             ) : isEngineStatusFilter ? (
-              <div
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-              >
-                <div className="filter-ops">
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                {/* 새로고침 버튼 */}
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    setSelected([]);
+                    onClear && onClear();
+                  }}
+                >
+                  <span style={{ fontSize: 14, fontWeight: 500, color: '#006CEC' }}>새로고침</span>
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg
+                      width="15"
+                      height="14"
+                      viewBox="0 0 15 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z"
+                        fill="#006CEC"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {/* Divider */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: 0,
+                    borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+                  }}
+                />
+                {/* 옵션 목록 */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {sortedOptions.map((opt) => {
                     const v = opt?.value ?? opt;
                     const label = opt?.label ?? String(v ?? '');
                     const checked = selected.includes(v);
                     return (
-                      <label key={String(v)}>
-                        <input
-                          type="radio"
-                          name={`select-${column.key}`}
-                          checked={checked}
-                          onChange={() => setSelected([v])}
-                        />
-                        {label}
-                      </label>
+                      <div
+                        key={String(v)}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                        }}
+                        onClick={() => setSelected([v])}
+                      >
+                        <span style={{ fontSize: 14, fontWeight: 500, color: '#1C1C1C' }}>
+                          {label}
+                        </span>
+                        {checked ? (
+                          <div
+                            style={{
+                              width: 18,
+                              height: 18,
+                              background: 'white',
+                              borderRadius: 9999,
+                              border: '1px solid #006CEC',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <div
+                              style={{
+                                width: 8,
+                                height: 8,
+                                background: '#006CEC',
+                                borderRadius: 9999,
+                              }}
+                            />
+                          </div>
+                        ) : (
+                          <div
+                            style={{
+                              width: 18,
+                              height: 18,
+                              background: 'white',
+                              borderRadius: 9999,
+                              border: '1px solid #006CEC',
+                            }}
+                          />
+                        )}
+                      </div>
                     );
                   })}
                 </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSelected([]);
-                    onClear && onClear();
-                  }}
-                  aria-label="엔진상태 필터 초기화"
-                  style={{
-                    background: 'transparent',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    marginLeft: '8px',
-                  }}
-                >
-                  <svg
-                    width="15"
-                    height="14"
-                    viewBox="0 0 15 14"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      fillRule="evenodd"
-                      clipRule="evenodd"
-                      d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z"
-                      fill="#006CEC"
-                    />
-                  </svg>
-                </button>
               </div>
             ) : (
               <div className="filter-options">
@@ -408,75 +459,195 @@ export default function ColumnFilterPopover({
         )}
 
         {type === 'boolean' && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div className="filter-ops">
-              <label>
-                <input
-                  type="radio"
-                  name={`bool-${column.key}`}
-                  checked={boolVal === true}
-                  onChange={() => setBoolVal(true)}
-                />{' '}
-                예
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name={`bool-${column.key}`}
-                  checked={boolVal === false}
-                  onChange={() => setBoolVal(false)}
-                />{' '}
-                아니오
-              </label>
-              {column?.filterTriState !== false && (
-                <label>
-                  <input
-                    type="radio"
-                    name={`bool-${column.key}`}
-                    checked={boolVal === null}
-                    onChange={() => setBoolVal(null)}
-                  />{' '}
-                  알수없음
-                </label>
-              )}
-            </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            {/* 새로고침 버튼 (재시동금지, 사고등록 필터만) */}
             {(isRestartBlockedFilter || isAccidentFilter) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setBoolVal(null);
-                  onClear && onClear();
-                }}
-                aria-label={
-                  isRestartBlockedFilter ? '재시동금지 필터 초기화' : '사고등록 필터 초기화'
-                }
+              <>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => {
+                    setBoolVal(null);
+                    onClear && onClear();
+                  }}
+                >
+                  <span style={{ fontSize: 14, fontWeight: 500, color: '#006CEC' }}>새로고침</span>
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <svg
+                      width="15"
+                      height="14"
+                      viewBox="0 0 15 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z"
+                        fill="#006CEC"
+                      />
+                    </svg>
+                  </div>
+                </div>
+                {/* Divider */}
+                <div
+                  style={{
+                    width: '100%',
+                    height: 0,
+                    borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+                  }}
+                />
+              </>
+            )}
+            {/* 옵션 목록 */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <div
                 style={{
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 0,
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  marginLeft: '8px',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
                 }}
+                onClick={() => setBoolVal(true)}
               >
-                <svg
-                  width="15"
-                  height="14"
-                  viewBox="0 0 15 14"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    fillRule="evenodd"
-                    clipRule="evenodd"
-                    d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z"
-                    fill="#006CEC"
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#1C1C1C' }}>예</span>
+                {boolVal === true ? (
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      background: 'white',
+                      borderRadius: 9999,
+                      border: '1px solid #006CEC',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        background: '#006CEC',
+                        borderRadius: 9999,
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      background: 'white',
+                      borderRadius: 9999,
+                      border: '1px solid #006CEC',
+                    }}
                   />
-                </svg>
-              </button>
-            )}
+                )}
+              </div>
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  cursor: 'pointer',
+                }}
+                onClick={() => setBoolVal(false)}
+              >
+                <span style={{ fontSize: 14, fontWeight: 500, color: '#1C1C1C' }}>아니오</span>
+                {boolVal === false ? (
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      background: 'white',
+                      borderRadius: 9999,
+                      border: '1px solid #006CEC',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: 8,
+                        height: 8,
+                        background: '#006CEC',
+                        borderRadius: 9999,
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div
+                    style={{
+                      width: 18,
+                      height: 18,
+                      background: 'white',
+                      borderRadius: 9999,
+                      border: '1px solid #006CEC',
+                    }}
+                  />
+                )}
+              </div>
+              {column?.filterTriState !== false && (
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setBoolVal(null)}
+                >
+                  <span style={{ fontSize: 14, fontWeight: 500, color: '#1C1C1C' }}>알수없음</span>
+                  {boolVal === null ? (
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: 'white',
+                        borderRadius: 9999,
+                        border: '1px solid #006CEC',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 8,
+                          height: 8,
+                          background: '#006CEC',
+                          borderRadius: 9999,
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div
+                      style={{
+                        width: 18,
+                        height: 18,
+                        background: 'white',
+                        borderRadius: 9999,
+                        border: '1px solid #006CEC',
+                      }}
+                    />
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         )}
 
@@ -520,7 +691,7 @@ export default function ColumnFilterPopover({
                   fillRule="evenodd"
                   clipRule="evenodd"
                   d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z"
-                  fill="currentColor"
+                  fill="#006CEC"
                 />
               </svg>
             </button>
@@ -595,7 +766,7 @@ export default function ColumnFilterPopover({
                   fillRule="evenodd"
                   clipRule="evenodd"
                   d="M7.96452 1.5C11.0257 1.5 13.5 3.96643 13.5 7C13.5 10.0336 11.0257 12.5 7.96452 12.5C6.12055 12.5 4.48831 11.6051 3.48161 10.2273L3.03915 9.6217L1.828 10.5066L2.27046 11.1122C3.54872 12.8617 5.62368 14 7.96452 14C11.8461 14 15 10.87 15 7C15 3.13001 11.8461 0 7.96452 0C5.06835 0 2.57851 1.74164 1.5 4.23347V2.75V2H0V2.75V6.25C0 6.66421 0.335786 7 0.75 7H3.75H4.5V5.5H3.75H2.63724C3.29365 3.19393 5.42843 1.5 7.96452 1.5Z"
-                  fill="currentColor"
+                  fill="#006CEC"
                 />
               </svg>
             </button>

@@ -161,12 +161,44 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
     });
   };
 
+  // 전체 선택
+  const handleSelectAll = () => {
+    const allSelections = {};
+    const allExpanded = new Set();
+    for (const type of sortedVehicleTypes) {
+      const years = vehicleTypeYearMap[type] || [];
+      if (years.length > 0) {
+        allSelections[type] = [...years];
+        allExpanded.add(type);
+      }
+    }
+    setSelections(allSelections);
+    setExpandedTypes(allExpanded);
+    const payload = buildFilterPayload(allSelections);
+    if (payload) {
+      onChange && onChange(payload);
+    }
+  };
+
   // 전체 선택 해제
   const handleClear = () => {
     setSelections({});
     setExpandedTypes(new Set());
     onClear && onClear();
   };
+
+  // 전체 선택 여부 확인
+  const isAllSelected = useMemo(() => {
+    if (sortedVehicleTypes.length === 0) return false;
+    for (const type of sortedVehicleTypes) {
+      const years = vehicleTypeYearMap[type] || [];
+      const selectedYears = selections[type] || [];
+      if (years.length > 0 && selectedYears.length !== years.length) {
+        return false;
+      }
+    }
+    return Object.keys(selections).length > 0;
+  }, [selections, sortedVehicleTypes, vehicleTypeYearMap]);
 
   // 외부 value가 변경되면 내부 selections/expandedTypes 동기화
   useEffect(() => {
@@ -181,16 +213,20 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
 
   return (
     <div className="vehicle-type-year-filter">
-      {/* 상단 선택해제 버튼 + 구분선 */}
-      <button
-        type="button"
-        className="filter-management-clear"
-        onClick={handleClear}
-        aria-label="차종 선택해제"
-      >
-        <span aria-hidden="true" className="filter-management-clear__checkbox" />
-        <span className="filter-management-clear__label">선택해제</span>
-      </button>
+      {/* 전체 선택 버튼 */}
+      <div className="vehicle-type-filter__select-all">
+        <label className="filter-option">
+          <input
+            type="checkbox"
+            className="filter-option__control"
+            checked={isAllSelected}
+            onChange={isAllSelected ? handleClear : handleSelectAll}
+          />
+          <span className="filter-option__label">전체선택</span>
+        </label>
+      </div>
+
+      {/* 구분선 */}
       <div className="filter-management-divider" />
 
       {/* 차종 + 연식 목록 */}
@@ -203,6 +239,11 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
 
           return (
             <div key={type} className="vehicle-type-item">
+              {/* 선택된 항목 배경 */}
+              {isSelected && (
+                <div className="vehicle-type-item__selected-bg" />
+              )}
+
               {/* 차종 체크박스 + 확장/축소 버튼 */}
               <label className="filter-option vehicle-type-option">
                 <input
@@ -261,7 +302,7 @@ export default function VehicleTypeYearFilter({ value, onChange, onClear, rows =
                           onChange={() => toggleYear(type, year)}
                           disabled={!isSelected}
                         />
-                        <span className="filter-option__label">{year}</span>
+                        <span className="filter-option__label">{year}년형</span>
                       </label>
                     );
                   })}

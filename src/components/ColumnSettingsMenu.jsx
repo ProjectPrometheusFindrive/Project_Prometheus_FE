@@ -229,9 +229,11 @@ export default function ColumnSettingsMenu({
                 {column.label}
               </div>
             </div>
-            <svg width="12" height="10" viewBox="0 0 12 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path fillRule="evenodd" clipRule="evenodd" d="M0 0H0.642857H11.3571H12V1.25H11.3571H0.642857H0V0ZM0 8.75H0.642857H11.3571H12V10H11.3571H0.642857H0V8.75ZM0.642857 4.375H0V5.625H0.642857H11.3571H12V4.375H11.3571H0.642857Z" fill="#888888"/>
-            </svg>
+            <div data-svg-wrapper data-layer="Vector" className="Vector">
+              <svg width="12" height="6" viewBox="0 0 12 6" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path fillRule="evenodd" clipRule="evenodd" d="M0 0H0.642857H11.3571H12V1.25H11.3571H0.642857H0V0ZM0 4.75H0.642857H11.3571H12V6H11.3571H0.642857H0V4.75Z" fill="#888888"/>
+              </svg>
+            </div>
           </div>
         ))}
       </div>
