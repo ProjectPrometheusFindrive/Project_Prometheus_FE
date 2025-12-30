@@ -1405,7 +1405,7 @@ export default function AssetStatus() {
                   key: column.key,
                   label: column.label,
                   style: {
-                    textAlign: 'center',
+                    textAlign: column.key === 'managementStage' ? 'right' : 'center',
                     ...(column.width
                       ? { width: `${column.width}px`, minWidth: `${column.width}px` }
                       : {}),
@@ -1552,10 +1552,11 @@ export default function AssetStatus() {
   const { selected, selectedCount, clearSelection } = selection;
 
   return (
-    <div className="page page--data space-y-4">
-      <h1 className="page-title">자산등록관리</h1>
+    <div className="page page--data page--sticky-header">
+      <div className="page-header-sticky">
+        <h1 className="page-title">자산등록관리</h1>
 
-      <div className="table-toolbar">
+        <div className="table-toolbar">
         <div className="flex-1" />
         <div className="flex gap-3">
           <button type="button" onClick={openAssetCreate} className="toolbar-button">
@@ -1653,6 +1654,7 @@ export default function AssetStatus() {
             </svg>
           </button>
         </div>
+      </div>
       </div>
 
       <Modal

@@ -181,35 +181,7 @@ const AssetManagementStageCell = React.memo(function AssetManagementStageCell({
   const buttonStyle = MANAGEMENT_STAGE_STYLES[label] || MANAGEMENT_STAGE_STYLES["입고 대상"];
 
   return (
-    <span data-stage-dropdown className="inline-flex items-center gap-6 relative">
-      <button
-        type="button"
-        className={`badge badge--clickable ${badgeClass} management-stage-badge`}
-        onClick={() => onToggleOpen(rowId)}
-        disabled={isSaving}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-controls={dropdownId}
-        aria-label={rowId ? `${rowId} 관리 단계 변경` : "관리 단계 변경"}
-        style={buttonStyle}
-      >
-        <span>{label}</span>
-        <svg
-          width="7"
-          height="4"
-          viewBox="0 0 7 4"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-          aria-hidden="true"
-        >
-          <path
-            d="M0.5 0.5L3.5 3.5L6.5 0.5"
-            stroke="currentColor"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      </button>
+    <span data-stage-dropdown className="inline-flex items-center gap-6 relative justify-end">
       {inconsistent && (
         <span
           className={`inconsistency-indicator ${openInconsistencyId === rowId ? "is-open" : ""}`}
@@ -239,6 +211,34 @@ const AssetManagementStageCell = React.memo(function AssetManagementStageCell({
           </div>
         </span>
       )}
+      <button
+        type="button"
+        className={`badge badge--clickable ${badgeClass} management-stage-badge`}
+        onClick={() => onToggleOpen(rowId)}
+        disabled={isSaving}
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={dropdownId}
+        aria-label={rowId ? `${rowId} 관리 단계 변경` : "관리 단계 변경"}
+        style={buttonStyle}
+      >
+        <span>{label}</span>
+        <svg
+          width="7"
+          height="4"
+          viewBox="0 0 7 4"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          aria-hidden="true"
+        >
+          <path
+            d="M0.5 0.5L3.5 3.5L6.5 0.5"
+            stroke="currentColor"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
       {isOpen && (
         <ul
           id={dropdownId}

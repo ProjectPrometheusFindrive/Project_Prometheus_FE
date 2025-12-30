@@ -212,22 +212,31 @@ body {
   background: #f3f6ff;
 }
 
-/* Sticky header page layout */
+/* Sticky header page layout - header fixed, content scrolls */
 .page--sticky-header {
-  overflow-y: auto;
-  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  gap: 0;
 }
 
 .page-header-sticky {
-  position: sticky;
-  top: 0;
+  flex: 0 0 auto;
   z-index: 20;
   background: #f3f6ff;
   padding-bottom: 16px;
 }
 
 .page--sticky-header .page-scroll {
-  overflow: visible;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Override the table-wrap--sticky hidden overflow for sticky header pages */
+.page--sticky-header .page-scroll:has(.table-wrap--sticky) {
+  overflow-y: auto;
 }
 
 @media (max-width: 1024px) {
@@ -5562,7 +5571,7 @@ html {
   position: relative;
   display: inline-flex;
   align-items: center;
-  margin-left: 6px;
+  margin-right: 6px;
   cursor: pointer;
 }
 .inconsistency-popover {
