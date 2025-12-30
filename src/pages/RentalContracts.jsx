@@ -1166,9 +1166,10 @@ export default function RentalContracts() {
     // getRentalAmountBadges moved to RentalAmountCell component
 
     return (
-        <div className="page page--data space-y-4">
-            <h1 className="page-title">계약등록관리</h1>
-            <div className="table-toolbar">
+        <div className="page page--data page--sticky-header">
+            <div className="page-header-sticky">
+                <h1 className="page-title">계약등록관리</h1>
+                <div className="table-toolbar">
                 <div className="flex-1" />
                 <div className="flex gap-3">
                     <button
@@ -1234,8 +1235,9 @@ export default function RentalContracts() {
                     </button>
                 </div>
             </div>
+            </div>
 
-            <div className="page-scroll space-y-4">
+            <div className="page-scroll page-scroll--with-sticky-table space-y-4">
 
                 <Table
                     rowIdKey="rentalId"

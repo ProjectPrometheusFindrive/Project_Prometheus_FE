@@ -234,10 +234,33 @@ body {
   overflow-x: hidden;
 }
 
-/* Override the table-wrap--sticky hidden overflow for sticky header pages */
-.page--sticky-header .page-scroll:has(.table-wrap--sticky) {
-  overflow-y: auto;
+/* Sticky table pages: avoid relying on :has() to disable outer scrolling.
+   When using Table's stickyHeader (table has its own scroll container),
+   apply this class to .page-scroll so only the table body scrolls.
+   IMPORTANT: must beat `.page--sticky-header .page-scroll` specificity. */
+.page--sticky-header .page-scroll.page-scroll--with-sticky-table {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden; /* prevent outer scroll; table container will scroll */
 }
+
+.page--sticky-header .page-scroll.page-scroll--with-sticky-table .table-wrap--sticky {
+  flex: 1 1 auto;
+  min-height: 0; /* override base min-height: min(600px, ...) */
+}
+
+.page--sticky-header
+  .page-scroll.page-scroll--with-sticky-table
+  .table-wrap--sticky
+  > .table-wrap {
+  min-height: 0; /* override base .table-wrap min-height so flex sizing works */
+}
+
+/* NOTE: Do not force outer scrolling here.
+   Sticky tables manage their own scrolling via `.table-wrap--sticky`.
+   Outer scroll is handled by `:has(.table-wrap--sticky)` (when supported)
+   or by the explicit `.page-scroll--with-sticky-table` class. */
 
 @media (max-width: 1024px) {
   :root {
@@ -274,6 +297,12 @@ body {
   background: #fff;
   table-layout: fixed; /* Fix column widths to prevent layout shifts */
   overflow: hidden; /* clip row backgrounds to rounded edges */
+}
+
+/* Sticky header in tables can break when the table itself has overflow clipping.
+   Allow sticky headers to work by removing overflow clipping in sticky mode. */
+.asset-table--sticky {
+  overflow: visible;
 }
 
 .asset-table th,

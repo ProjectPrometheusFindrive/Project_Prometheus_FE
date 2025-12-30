@@ -749,7 +749,7 @@ function MemberManagement() {
           </div>
         </div>
 
-        <div className="page-scroll space-y-4">
+        <div className="page-scroll page-scroll--with-sticky-table space-y-4">
           {(loadingAll || loadingPending) && unifiedRows.length === 0 ? (
             <div className="loading-state">
               <div className="spinner"></div>

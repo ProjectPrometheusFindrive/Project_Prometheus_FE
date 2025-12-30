@@ -2051,7 +2051,7 @@ export default function AssetStatus() {
         currentMemo={memoHistoryTarget?.memo}
       />
 
-      <div className="page-scroll space-y-4">
+      <div className="page-scroll page-scroll--with-sticky-table space-y-4">
         <Table
           wrapRef={tableWrapRef}
           columns={dynamicColumns}
