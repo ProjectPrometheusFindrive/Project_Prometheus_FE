@@ -221,9 +221,10 @@ body {
 }
 .table-wrap {
   position: relative; /* allow absolute-positioned empty-state centering */
-  border-radius: 14px;
   background: #ffffff;
   border: 1px solid #dcdde4;
+  border-left: none;
+  border-right: none;
   box-shadow: 0 12px 26px rgba(12, 26, 75, 0.07);
   min-height: min(
     600px,
@@ -244,7 +245,6 @@ body {
   border-spacing: 0;
   background: #fff;
   table-layout: fixed; /* Fix column widths to prevent layout shifts */
-  border-radius: 14px; /* ensure inner background follows rounded corners */
   overflow: hidden; /* clip row backgrounds to rounded edges */
 }
 
@@ -304,23 +304,7 @@ body {
   border-bottom: 1px solid #dcdcdd;
 }
 
-/* Rounded corners for first and last header cells */
-.asset-table thead tr:first-child th:first-child {
-  border-top-left-radius: 14px;
-}
-
-.asset-table thead tr:first-child th:last-child {
-  border-top-right-radius: 14px;
-}
-
-/* Rounded corners for first and last body cells in last row */
-.asset-table tbody tr:last-child td:first-child {
-  border-bottom-left-radius: 14px;
-}
-
-.asset-table tbody tr:last-child td:last-child {
-  border-bottom-right-radius: 14px;
-}
+/* Rounded corners removed */
 
 /* Vertical separators removed per design */
 .asset-table thead th + th,
@@ -1109,6 +1093,8 @@ body {
 [data-theme='dark'] .table-wrap {
   background: #020617;
   border-color: #1f2937;
+  border-left: none;
+  border-right: none;
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
 }
 [data-theme='dark'] .asset-table {
