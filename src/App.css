@@ -1260,12 +1260,14 @@ body {
 /* Asset/toolbars: align controls consistently */
 .table-toolbar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 8px;
   margin-bottom: 12px;
   width: 100%;
   box-sizing: border-box;
 }
+
 /* Ensure nested flex groups keep spacing even if Tailwind gap utilities fail */
 .table-toolbar .flex {
   gap: 8px;
@@ -1340,6 +1342,11 @@ body {
 }
 .toolbar-button--spread {
   justify-content: space-between;
+}
+.toolbar-button svg {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
 }
 .toolbar-button--tight-gap {
   gap: 5px;

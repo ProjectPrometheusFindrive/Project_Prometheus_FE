@@ -679,7 +679,7 @@ function MemberManagement() {
 
         <div className="table-toolbar">
           <div className="flex-1"></div>
-          <div className="flex gap-3">
+          <div className="flex gap-3" style={{ marginRight: '12px' }}>
             <button
               type="button"
               onClick={handleBulkApprove}
@@ -729,12 +729,12 @@ function MemberManagement() {
               type="button"
               onClick={tableFilterState.clearAll}
               title="모든 컬럼 필터 초기화"
-              className="toolbar-button toolbar-button--spread"
+              className="toolbar-button toolbar-button--tight-gap"
               style={{ width: '104px' }}
             >
               <span className="toolbar-btn-text">필터초기화</span>
               <svg
-                width="13"
+                width="14"
                 height="14"
                 viewBox="0 0 13 14"
                 fill="none"
