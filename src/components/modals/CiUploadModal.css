@@ -19,6 +19,12 @@
   padding: 40px;
 }
 
+@media (max-width: 768px) {
+  .ci-upload-modal__content {
+    padding: 20px;
+  }
+}
+
 /* Header */
 .ci-upload-modal__header {
   display: flex;
