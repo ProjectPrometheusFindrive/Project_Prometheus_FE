@@ -92,7 +92,7 @@
 .ci-upload-modal__controls {
   width: 100%;
   padding: 5px 20px;
-  background: rgba(0, 0, 0, 0.05);
+  background: white;
   border-radius: 6px;
   border: 1px solid #C3C4C8;
   display: flex;
@@ -103,7 +103,7 @@
 }
 
 .ci-upload-modal__controls:hover {
-  background: rgba(0, 0, 0, 0.08);
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .ci-upload-modal__controls-left {
