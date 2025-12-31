@@ -77,6 +77,14 @@ export default function StatusDonut({
     };
 
     const RAD = Math.PI / 180;
+    const total = useMemo(
+        () =>
+            Array.isArray(data)
+                ? data.reduce((s, it) => s + (it?.value || 0), 0)
+                : 0,
+        [data]
+    );
+    
     const label = ({
         cx,
         cy,
@@ -86,6 +94,14 @@ export default function StatusDonut({
         value,
         payload
     }) => {
+        // 전체 대비 현재 조각의 비율 계산 (백분율)
+        const percentage = total > 0 ? (value / total) * 100 : 0;
+        
+        // 조각이 너무 작으면 (5% 미만) 레이블 표시하지 않음
+        if (percentage < 5) {
+            return null;
+        }
+        
         const radius = ir + (or - ir) * 0.5;
         const x = cx + radius * Math.cos(-midAngle * RAD);
         const y = cy + radius * Math.sin(-midAngle * RAD);
