@@ -848,9 +848,18 @@ export default function AssetStatus() {
         console.debug('[upload-ui] createAsset result:', created);
         const normalized = withManagementStage(created || payload);
         setRows((prev) => [normalized, ...prev]);
+        emitToast('자산이 등록되었습니다.', 'success');
       } catch (e) {
         console.error('Failed to create asset via API', e);
-        emitToast('자산 생성에 실패했습니다.', 'error');
+        // Handle VIN duplicate error (409 Conflict)
+        if (e?.status === 409 || e?.errorType === 'CONFLICT' || e?.data?.error?.type === 'CONFLICT') {
+          const message = e?.data?.error?.message || e?.message || '이미 등록된 VIN입니다.';
+          emitToast(message, 'error');
+        } else {
+          emitToast('자산 생성에 실패했습니다.', 'error');
+        }
+        // Don't close modal on error so user can fix and retry
+        return;
       }
     }
 
