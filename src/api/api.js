@@ -543,13 +543,13 @@ export async function withdrawMember(userId) {
 }
 
 /**
- * Restore a withdrawn member by approving them again
+ * Restore a withdrawn member
  * @param {string} userId - User ID (email) to restore
  * @returns {Promise<boolean>} True if successful
  */
 export async function restoreMember(userId) {
-    // Backend uses the same approve endpoint for reactivation
-    return await approveMember(userId);
+    const response = await membersApi.restore(userId);
+    return response.status === API_STATUS.SUCCESS;
 }
 
 // Revenue

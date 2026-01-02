@@ -865,6 +865,24 @@ export const membersApi = {
             method: 'POST',
             body: JSON.stringify({ userId })
         });
+    },
+
+    /**
+     * Restore a withdrawn member
+     * @param {string} userId - User ID (email) to restore
+     * @returns {Promise<Object>} Response with success status
+     */
+    async restore(userId) {
+        if (!userId || typeof userId !== 'string') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: API_ERRORS.VALIDATION_ERROR,
+                message: 'userId is required'
+            });
+        }
+        return await apiRequest(API_ENDPOINTS.MEMBERS_RESTORE, {
+            method: 'POST',
+            body: JSON.stringify({ userId })
+        });
     }
 };
 
