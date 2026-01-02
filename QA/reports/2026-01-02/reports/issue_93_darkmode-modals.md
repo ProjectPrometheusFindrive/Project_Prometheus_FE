@@ -20,13 +20,13 @@
 ## 화면 캡처
 
 ### 로고관리 모달
-![로고관리 모달 다크모드 미적용](images/issue_93_darkmode-logo-modal.png)
+![로고관리 모달 다크모드 미적용](https://raw.githubusercontent.com/ProjectPrometheusFindrive/Project_Prometheus_FE/main/QA/reports/2026-01-02/images/issue_93_darkmode-logo-modal.png)
 
 ### 터미널 요청 모달
-![터미널 요청 모달 다크모드 미적용](images/issue_93_darkmode-terminal-modal.png)
+![터미널 요청 모달 다크모드 미적용](https://raw.githubusercontent.com/ProjectPrometheusFindrive/Project_Prometheus_FE/main/QA/reports/2026-01-02/images/issue_93_darkmode-terminal-modal.png)
 
 ### 계약등록 모달
-![계약등록 모달 다크모드 미적용](images/issue_93_darkmode-rental-modal.png)
+![계약등록 모달 다크모드 미적용](https://raw.githubusercontent.com/ProjectPrometheusFindrive/Project_Prometheus_FE/main/QA/reports/2026-01-02/images/issue_93_darkmode-rental-modal.png)
 
 ## 환경
 - 브라우저: Chrome

@@ -13,7 +13,7 @@
 모든 자산의 차량등록일이 `'70.01.01`로 동일하게 표시됩니다.
 
 ## 화면 캡처
-![차량등록일 문제](images/issue_91_vehicle-date.png)
+![차량등록일 문제](https://raw.githubusercontent.com/ProjectPrometheusFindrive/Project_Prometheus_FE/main/QA/reports/2026-01-02/images/issue_91_vehicle-date.png)
 
 ## 환경
 - 브라우저: Chrome

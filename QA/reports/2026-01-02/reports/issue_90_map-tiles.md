@@ -15,7 +15,7 @@
 - `http://mts.daumcdn.net/api/v1/tile/PNG02/v16_t7v7r/latest/7/126/58.png` - ERR_ABORTED
 
 ## 화면 캡처
-![지도 타일 로딩 실패](images/issue_90_map-tiles.png)
+![지도 타일 로딩 실패](https://raw.githubusercontent.com/ProjectPrometheusFindrive/Project_Prometheus_FE/main/QA/reports/2026-01-02/images/issue_90_map-tiles.png)
 
 ## 환경
 - 브라우저: Chrome

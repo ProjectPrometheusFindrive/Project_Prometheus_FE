@@ -13,7 +13,7 @@
 "결제 관련 문의는 어떻게 하나요?" 질문이 두 번 나타납니다.
 
 ## 화면 캡처
-![FAQ 중복 질문](images/issue_92_faq-duplicate.png)
+![FAQ 중복 질문](https://raw.githubusercontent.com/ProjectPrometheusFindrive/Project_Prometheus_FE/main/QA/reports/2026-01-02/images/issue_92_faq-duplicate.png)
 
 ## 환경
 - 브라우저: Chrome
