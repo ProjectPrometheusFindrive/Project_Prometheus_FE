@@ -98,6 +98,15 @@ const normalizeDiagnosticList = (asset) => {
   return [];
 };
 
+const sortDiagnosticsByDateDesc = (issues) => {
+  if (!Array.isArray(issues)) return [];
+  return [...issues].sort((a, b) => {
+    const aTime = a?.detectedDate ? new Date(a.detectedDate).getTime() : 0;
+    const bTime = b?.detectedDate ? new Date(b.detectedDate).getTime() : 0;
+    return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
+  });
+};
+
 const severityNumber = (s) => {
   if (typeof s === 'number') return Math.max(0, Math.min(10, s));
   if (typeof s === 'string') {
@@ -579,12 +588,13 @@ export default function AssetStatus() {
       const issues = Array.isArray(diag?.diagnosticCodes)
         ? diag.diagnosticCodes
         : normalizeDiagnosticList(v);
+      const sortedIssues = sortDiagnosticsByDateDesc(issues);
       const detail = {
         category: 'ALL',
         categoryName: '전체 진단',
-        count: issues.length,
+        count: sortedIssues.length,
         vehicleInfo: { plate: v.plate, vehicleType: v.vehicleType, id: v.id },
-        issues,
+        issues: sortedIssues,
       };
       setDiagnosticDetail(detail);
       setShowDiagnosticModal(true);
