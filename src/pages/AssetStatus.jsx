@@ -448,10 +448,11 @@ export default function AssetStatus() {
         setStageDropdownUp(false);
         return;
       }
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
       const rect = trigger.getBoundingClientRect();
-      const spaceBelow = viewportHeight - rect.bottom;
-      const spaceAbove = rect.top;
+      const wrapRect = tableWrapRef.current?.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const spaceBelow = wrapRect ? wrapRect.bottom - rect.bottom : viewportHeight - rect.bottom;
+      const spaceAbove = wrapRect ? rect.top - wrapRect.top : rect.top;
       const dropdownHeight = listEl.offsetHeight || listEl.scrollHeight || 0;
       const gap = 8; // matches CSS spacing
       const shouldFlipUp = spaceBelow < dropdownHeight + gap && spaceAbove > spaceBelow;
