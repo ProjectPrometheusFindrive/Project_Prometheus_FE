@@ -87,6 +87,11 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
   const [vinDuplicateError, setVinDuplicateError] = useState(null);
   const debouncedVin = useDebouncedValue(form.vin, 500);
 
+  // Plate duplicate check state
+  const [plateChecking, setPlateChecking] = useState(false);
+  const [plateDuplicateError, setPlateDuplicateError] = useState(null);
+  const debouncedPlate = useDebouncedValue(form.plate, 500);
+
   // Check VIN duplicate when VIN changes (create mode only)
   useEffect(() => {
     if (isEdit) {
@@ -136,6 +141,57 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       setVinChecking(false);
     };
   }, [debouncedVin, isEdit]);
+
+  // Check plate duplicate when plate changes (create mode only)
+  useEffect(() => {
+    if (isEdit) {
+      setPlateDuplicateError(null);
+      return;
+    }
+    const plate = debouncedPlate?.trim();
+    if (!plate || !isValidKoreanPlate(plate)) {
+      setPlateDuplicateError(null);
+      return;
+    }
+    
+    let cancelled = false;
+    setPlateChecking(true);
+    setPlateDuplicateError(null);
+    
+    (async () => {
+      try {
+        // Check if plate already exists by fetching assets summary (lighter than full fetch)
+        const response = await assetsApi.fetchSummary();
+        if (cancelled) return;
+        
+        if (response.status === API_STATUS.SUCCESS && Array.isArray(response.data)) {
+          const normalizedPlate = normalizeKoreanPlate(plate);
+          const existingAsset = response.data.find(
+            (a) => a.plate && normalizeKoreanPlate(String(a.plate).trim()) === normalizedPlate
+          );
+          if (existingAsset) {
+            setPlateDuplicateError("이미 등록된 차량번호입니다.");
+          } else {
+            setPlateDuplicateError(null);
+          }
+        }
+      } catch (e) {
+        if (!cancelled) {
+          console.warn("차량번호 중복 체크 실패:", e);
+          // Don't show error on check failure, only on save
+        }
+      } finally {
+        if (!cancelled) {
+          setPlateChecking(false);
+        }
+      }
+    })();
+    
+    return () => {
+      cancelled = true;
+      setPlateChecking(false);
+    };
+  }, [debouncedPlate, isEdit]);
 
   const infoRow = (label, value) => (
     <>
@@ -560,6 +616,10 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       emitToast("올바르지 않은 차량번호 형식입니다.", "warning");
       return;
     }
+    if (plateDuplicateError) {
+      emitToast(plateDuplicateError, "error");
+      return;
+    }
     if (vinDuplicateError) {
       emitToast(vinDuplicateError, "error");
       return;
@@ -576,9 +636,15 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       } catch (error) {
         // Handle 409 Conflict error from backend
         if (error?.status === 409 || error?.errorType === API_ERRORS.CONFLICT) {
-          const message = error?.data?.error?.message || error?.message || "이미 등록된 VIN입니다.";
+          const message = error?.data?.error?.message || error?.message || "이미 등록된 정보입니다.";
           emitToast(message, "error");
-          setVinDuplicateError(message);
+          // Check if error is about plate or vin
+          const errorMsg = String(message || "").toLowerCase();
+          if (errorMsg.includes("차량번호") || errorMsg.includes("plate")) {
+            setPlateDuplicateError(message);
+          } else if (errorMsg.includes("vin") || errorMsg.includes("차대번호")) {
+            setVinDuplicateError(message);
+          }
         } else {
           throw error;
         }
@@ -699,20 +765,33 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         {infoRow(
           "차량번호",
           <div className="flex items-center gap-2 w-full flex-wrap">
-            <input id="asset-plate" name="plate"
-              className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
-              value={form.plate}
-              onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
-              onBlur={(e) => {
-                const v = normalizeKoreanPlate(e.target.value);
-                if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
-              }}
-              aria-invalid={isPlateInvalid ? true : undefined}
-              placeholder="예: 28가2345"
-            />
-            {isPlateInvalid && (
-              <span aria-live="polite" className="text-red-700 text-[12px]">올바르지 않은 형식</span>
-            )}
+            <div className="flex-1 min-w-0">
+              <input 
+                id="asset-plate" 
+                name="plate"
+                className={`form-input${isPlateInvalid || plateDuplicateError ? " is-invalid" : ""}`}
+                value={form.plate}
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, plate: e.target.value }));
+                  setPlateDuplicateError(null);
+                }}
+                onBlur={(e) => {
+                  const v = normalizeKoreanPlate(e.target.value);
+                  if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
+                }}
+                aria-invalid={isPlateInvalid || plateDuplicateError ? true : undefined}
+                placeholder="예: 28가2345"
+              />
+              {isPlateInvalid && (
+                <span aria-live="polite" className="text-red-700 text-[12px]">올바르지 않은 형식</span>
+              )}
+              {plateChecking && !isPlateInvalid && (
+                <span aria-live="polite" className="text-[12px] text-gray-600">중복 확인 중...</span>
+              )}
+              {plateDuplicateError && !plateChecking && !isPlateInvalid && (
+                <span aria-live="polite" className="text-red-700 text-[12px]">{plateDuplicateError}</span>
+              )}
+            </div>
             <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} showLabel={false} maxWidth={200} />
           </div>
         )}
@@ -768,7 +847,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       </div>
       <div className="asset-dialog__footer flex justify-end gap-2">
         <button type="button" className="form-button form-button--muted" onClick={() => setStep("upload")}>이전</button>
-        <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid || vinDuplicateError || vinChecking}>저장</button>
+        <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid || plateDuplicateError || plateChecking || vinDuplicateError || vinChecking}>저장</button>
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>
     </>
@@ -846,20 +925,33 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
                 {infoRow(
                   "차량번호",
                   <div className="flex items-center gap-2 w-full flex-wrap">
-                    <input id="asset-plate" name="plate"
-                      className={`form-input${isPlateInvalid ? " is-invalid" : ""}`}
-                      value={form.plate}
-                      onChange={(e) => setForm((p) => ({ ...p, plate: e.target.value }))}
-                      onBlur={(e) => {
-                        const v = normalizeKoreanPlate(e.target.value);
-                        if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
-                      }}
-                      aria-invalid={isPlateInvalid ? true : undefined}
-                      placeholder="예: 234가6789"
-                    />
-                    {isPlateInvalid && (
-                      <span aria-live="polite" className="text-red-700 text-[12px]">올바른 차량번호 형식이 아닙니다.</span>
-                    )}
+                    <div className="flex-1 min-w-0">
+                      <input 
+                        id="asset-plate" 
+                        name="plate"
+                        className={`form-input${isPlateInvalid || plateDuplicateError ? " is-invalid" : ""}`}
+                        value={form.plate}
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, plate: e.target.value }));
+                          setPlateDuplicateError(null);
+                        }}
+                        onBlur={(e) => {
+                          const v = normalizeKoreanPlate(e.target.value);
+                          if (v !== form.plate) setForm((p) => ({ ...p, plate: v }));
+                        }}
+                        aria-invalid={isPlateInvalid || plateDuplicateError ? true : undefined}
+                        placeholder="예: 234가6789"
+                      />
+                      {isPlateInvalid && (
+                        <span aria-live="polite" className="text-red-700 text-[12px]">올바른 차량번호 형식이 아닙니다.</span>
+                      )}
+                      {plateChecking && !isPlateInvalid && (
+                        <span aria-live="polite" className="text-[12px] text-gray-600">중복 확인 중...</span>
+                      )}
+                      {plateDuplicateError && !plateChecking && !isPlateInvalid && (
+                        <span aria-live="polite" className="text-red-700 text-[12px]">{plateDuplicateError}</span>
+                      )}
+                    </div>
                     <OcrSuggestionPicker items={fieldSuggestions.plate || []} onApply={applySuggestion("plate")} showLabel={false} maxWidth={200} />
                   </div>
                 )}
@@ -1043,7 +1135,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         <div className="asset-dialog__footer-actions">
           <button type="button" className="form-button form-button--close" onClick={onClose}>닫기</button>
           {!isEdit && (
-            <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={isPlateInvalid || vinDuplicateError || vinChecking}>저장</button>
+            <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={isPlateInvalid || plateDuplicateError || plateChecking || vinDuplicateError || vinChecking}>저장</button>
           )}
         </div>
       </div>
