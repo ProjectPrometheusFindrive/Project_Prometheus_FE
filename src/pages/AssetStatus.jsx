@@ -183,6 +183,45 @@ const MANAGEMENT_STAGE_BADGE_CLASS = {
   '수리/점검 완료': 'badge--completed',
 };
 
+// Helper function to pre-compute expensive values for performance
+const precomputeAssetValues = (asset) => {
+  if (!asset) return asset;
+  const searchFields = [
+    asset.plate,
+    asset.vehicleType,
+    asset.insuranceInfo,
+    asset.registrationDate,
+    asset.registrationStatus,
+    asset.installer,
+    asset.deviceSerial,
+    asset.id,
+    asset.memo,
+  ];
+  asset._searchText = searchFields.filter(Boolean).join(' ').toLowerCase();
+  
+  // Pre-compute severity
+  if (asset._severityComputed === undefined) {
+    const fromField = typeof asset?.diagnosticMaxSeverity === 'number' ? asset.diagnosticMaxSeverity : null;
+    let max = fromField;
+    if (max == null) {
+      const arr = Array.isArray(asset?.diagnosticCodes) ? asset.diagnosticCodes : [];
+      if (arr.length === 0) {
+        max = 0;
+      } else {
+        max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+      }
+    }
+    asset._severityComputed = Number(max) || 0;
+  }
+  
+  // Pre-compute vehicle health label
+  if (asset._vehicleHealthComputed === undefined) {
+    asset._vehicleHealthComputed = resolveVehicleHealthLabel(asset);
+  }
+  
+  return asset;
+};
+
 export default function AssetStatus() {
   const confirm = useConfirm();
   const auth = useAuth();
@@ -249,7 +288,11 @@ export default function AssetStatus() {
         prev.map((a) => {
           if (a.id !== id) return a;
           const merged = { ...a, ...(patch || {}), ...(resp || {}) };
-          return withManagementStage(merged);
+          // Invalidate pre-computed values when asset is updated
+          delete merged._searchText;
+          delete merged._severityComputed;
+          delete merged._vehicleHealthComputed;
+          return precomputeAssetValues(withManagementStage(merged));
         })
       );
     },
@@ -364,9 +407,12 @@ export default function AssetStatus() {
     const id = pendingStageAssetId;
     if (id) {
       setRows((prev) =>
-        prev.map((row) =>
-          row.id === id ? withManagementStage({ ...row, managementStage: stageAfter }) : row
-        )
+        prev.map((row) => {
+          if (row.id !== id) return row;
+          const updated = withManagementStage({ ...row, managementStage: stageAfter });
+          // Pre-computed values should still be valid, but ensure they exist
+          return precomputeAssetValues(updated);
+        })
       );
       setStageSaving((prev) => ({ ...prev, [id]: true }));
       try {
@@ -379,7 +425,11 @@ export default function AssetStatus() {
                 ? response.managementStage
                 : stageAfter;
             const merged = { ...row, ...(response || {}), managementStage: updatedStage };
-            return withManagementStage(merged);
+            // Invalidate pre-computed values when asset is updated
+            delete merged._searchText;
+            delete merged._severityComputed;
+            delete merged._vehicleHealthComputed;
+            return precomputeAssetValues(withManagementStage(merged));
           })
         );
       } catch (error) {
@@ -431,7 +481,11 @@ export default function AssetStatus() {
       if (!Array.isArray(list)) {
         list = await fetchAssets();
       }
-      let next = Array.isArray(list) ? list.map((a) => withManagementStage({ ...a })) : [];
+      // Pre-compute expensive values for performance (same as initial load)
+      let next = Array.isArray(list) ? list.map((a) => {
+        const asset = withManagementStage({ ...a });
+        return precomputeAssetValues(asset);
+      }) : [];
       setRows(next);
     } catch (e) {
       console.error('Failed to load assets', e);
@@ -448,7 +502,11 @@ export default function AssetStatus() {
         if (!Array.isArray(list)) {
           list = await fetchAssets();
         }
-        let next = Array.isArray(list) ? list.map((a) => withManagementStage({ ...a })) : [];
+        // Pre-compute expensive values for performance
+        let next = Array.isArray(list) ? list.map((a) => {
+          const asset = withManagementStage({ ...a });
+          return precomputeAssetValues(asset);
+        }) : [];
         if (mounted) setRows(next);
       } catch (e) {
         console.error('Failed to load assets', e);
@@ -667,11 +725,17 @@ export default function AssetStatus() {
     };
     try {
       const resp = await saveAsset(activeAsset.id, patch);
-      setRows((prev) =>
-        prev.map((a) =>
-          a.id === activeAsset.id ? withManagementStage({ ...a, ...(resp || patch) }) : a
-        )
-      );
+        setRows((prev) =>
+          prev.map((a) => {
+            if (a.id !== activeAsset.id) return a;
+            const updated = { ...a, ...(resp || patch) };
+            // Invalidate pre-computed values when asset is updated
+            delete updated._searchText;
+            delete updated._severityComputed;
+            delete updated._vehicleHealthComputed;
+            return precomputeAssetValues(withManagementStage(updated));
+          })
+        );
     } catch (e) {
       console.error('Failed to save device info', e);
       emitToast('단말 정보 저장 실패', 'error');
@@ -745,9 +809,15 @@ export default function AssetStatus() {
         const resp = await saveAsset(editingAssetId, patch);
         // If backend returns 204 No Content, resp will be null; merge local patch instead
         setRows((prev) =>
-          prev.map((a) =>
-            a.id === editingAssetId ? withManagementStage({ ...a, ...(resp || patch) }) : a
-          )
+          prev.map((a) => {
+            if (a.id !== editingAssetId) return a;
+            const updated = { ...a, ...(resp || patch) };
+            // Invalidate pre-computed values when asset is updated
+            delete updated._searchText;
+            delete updated._severityComputed;
+            delete updated._vehicleHealthComputed;
+            return precomputeAssetValues(withManagementStage(updated));
+          })
         );
       } catch (e) {
         // Fallback to local optimistic merge
@@ -769,7 +839,11 @@ export default function AssetStatus() {
               systemDelDate: data.systemDelDate || a.systemDelDate,
               registrationStatus: data.registrationStatus || a.registrationStatus,
             };
-            return withManagementStage(updated);
+            // Invalidate pre-computed values when asset is updated
+            delete updated._searchText;
+            delete updated._severityComputed;
+            delete updated._vehicleHealthComputed;
+            return precomputeAssetValues(withManagementStage(updated));
           })
         );
       }
@@ -865,7 +939,7 @@ export default function AssetStatus() {
         });
         const created = await createAsset(payload);
         console.debug('[upload-ui] createAsset result:', created);
-        const normalized = withManagementStage(created || payload);
+        const normalized = precomputeAssetValues(withManagementStage(created || payload));
         setRows((prev) => [normalized, ...prev]);
         emitToast('자산이 등록되었습니다.', 'success');
       } catch (e) {
@@ -893,7 +967,13 @@ export default function AssetStatus() {
     try {
       const resp = await saveAsset(assetId, { memo: newText });
       setRows((prev) =>
-        prev.map((asset) => (asset.id === assetId ? { ...asset, memo: newText } : asset))
+        prev.map((asset) => {
+          if (asset.id !== assetId) return asset;
+          const updated = { ...asset, memo: newText };
+          // Invalidate search text when memo changes
+          delete updated._searchText;
+          return precomputeAssetValues(updated);
+        })
       );
       if (resp == null) {
         setToast({ message: '메모가 저장되었습니다.', type: 'success' });
@@ -1135,43 +1215,47 @@ export default function AssetStatus() {
             </button>
           );
         }
-        // Compute severity: if there are no diagnostics, show 정상
-        const fromField =
-          typeof row?.diagnosticMaxSeverity === 'number' ? row.diagnosticMaxSeverity : null;
-        let max = fromField;
-        if (max == null) {
-          const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
-          if (arr.length === 0) {
-            return (
-              <span
-                className="asset-pill asset-pill--severity asset-pill--severity-ok"
-                style={{
-                  paddingLeft: '14px',
-                  paddingRight: '14px',
-                  paddingTop: '2px',
-                  paddingBottom: '2px',
-                  background: 'rgba(26.22, 129.17, 255, 0.05)',
-                  borderRadius: '100px',
-                  outline: '1px rgba(0, 0, 0, 0.02) solid',
-                  outlineOffset: '-1px',
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                  gap: '10px',
-                  display: 'inline-flex',
-                  textAlign: 'center',
-                  color: '#006CEC',
-                  fontSize: '14px',
-                  fontFamily: 'Pretendard',
-                  fontWeight: 500,
-                  lineHeight: '24px',
-                  wordWrap: 'break-word',
-                }}
-              >
-                정상
-              </span>
-            );
+        // Use pre-computed severity if available
+        let max = row._severityComputed;
+        if (max === undefined) {
+          // Fallback to computing if not pre-computed
+          const fromField =
+            typeof row?.diagnosticMaxSeverity === 'number' ? row.diagnosticMaxSeverity : null;
+          max = fromField;
+          if (max == null) {
+            const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+            if (arr.length === 0) {
+              return (
+                <span
+                  className="asset-pill asset-pill--severity asset-pill--severity-ok"
+                  style={{
+                    paddingLeft: '14px',
+                    paddingRight: '14px',
+                    paddingTop: '2px',
+                    paddingBottom: '2px',
+                    background: 'rgba(26.22, 129.17, 255, 0.05)',
+                    borderRadius: '100px',
+                    outline: '1px rgba(0, 0, 0, 0.02) solid',
+                    outlineOffset: '-1px',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '10px',
+                    display: 'inline-flex',
+                    textAlign: 'center',
+                    color: '#006CEC',
+                    fontSize: '14px',
+                    fontFamily: 'Pretendard',
+                    fontWeight: 500,
+                    lineHeight: '24px',
+                    wordWrap: 'break-word',
+                  }}
+                >
+                  정상
+                </span>
+              );
+            }
+            max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
           }
-          max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
         }
         if (Number(max) === 0) {
           return (
@@ -1307,7 +1391,10 @@ export default function AssetStatus() {
         if (!hasDevice) {
           return <VehicleHealthCell label="단말필요" onClick={openInstallModal} />;
         }
-        const label = resolveVehicleHealthLabel(row);
+        // Use pre-computed value if available
+        const label = row._vehicleHealthComputed !== undefined 
+          ? row._vehicleHealthComputed 
+          : resolveVehicleHealthLabel(row);
         return <VehicleHealthCell label={label} onClick={() => openDiagnosticModal(row)} />;
       }
       case 'diagnosticCodes':
@@ -1548,6 +1635,10 @@ export default function AssetStatus() {
                   ...(column.key === 'severity'
                     ? {
                         sortAccessor: (row) => {
+                          // Use pre-computed value if available
+                          if (row._severityComputed !== undefined) {
+                            return row._severityComputed;
+                          }
                           const fromField =
                             typeof row?.diagnosticMaxSeverity === 'number'
                               ? row.diagnosticMaxSeverity
@@ -1567,6 +1658,10 @@ export default function AssetStatus() {
                         },
                         filterType: 'number-range',
                         filterAccessor: (row) => {
+                          // Use pre-computed value if available
+                          if (row._severityComputed !== undefined) {
+                            return row._severityComputed;
+                          }
                           const fromField =
                             typeof row?.diagnosticMaxSeverity === 'number'
                               ? row.diagnosticMaxSeverity
@@ -1618,24 +1713,13 @@ export default function AssetStatus() {
     const cols = dynamicColumns;
     const afterColumn = applyColumnFilters(rows, columnFilters, cols);
     const term = debouncedQ.trim().toLowerCase();
+    // Optimized filtering: use pre-computed search text if available
+    if (!term && status === 'all') {
+      return afterColumn; // No filtering needed
+    }
     return afterColumn.filter((a) => {
-      const matchesTerm = term
-        ? [
-            a.plate,
-            a.vehicleType,
-            a.insuranceInfo,
-            a.registrationDate,
-            a.registrationStatus,
-            a.installer,
-            a.deviceSerial,
-            a.id,
-            a.memo,
-          ]
-            .filter(Boolean)
-            .join(' ')
-            .toLowerCase()
-            .includes(term)
-        : true;
+      // Use pre-computed search text for faster matching
+      const matchesTerm = term ? (a._searchText || '').includes(term) : true;
       const matchesStatus = status === 'all' ? true : a.registrationStatus === status;
       return matchesTerm && matchesStatus;
     });
