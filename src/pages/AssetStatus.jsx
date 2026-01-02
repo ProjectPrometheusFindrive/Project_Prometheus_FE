@@ -111,6 +111,29 @@ const severityNumber = (s) => {
   return 0;
 };
 
+const normalizeDiagnosticStatus = (value) => {
+  if (!value) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed || trimmed === '-') return null;
+  return trimmed;
+};
+
+const resolveVehicleHealthLabel = (row) => {
+  const provided = normalizeDiagnosticStatus(row?.diagnosticStatus);
+  if (provided) return provided;
+  const maxFromField =
+    typeof row?.diagnosticMaxSeverity === 'number' ? row.diagnosticMaxSeverity : null;
+  if (maxFromField != null) {
+    if (maxFromField === 0) return '정상';
+    return maxFromField > 7 ? '심각' : '관심필요';
+  }
+  const dcount = getDiagnosticCount(row);
+  if (dcount === 0) return '정상';
+  const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+  const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+  return max > 7 ? '심각' : '관심필요';
+};
+
 // vehicleType 문자열과 year 필드를 기반으로 차종/연식 파싱
 const parseVehicleTypeAndYear = (row) => {
   const rawType = row?.vehicleType;
@@ -1229,18 +1252,7 @@ export default function AssetStatus() {
         if (!hasDevice) {
           return <VehicleHealthCell label="단말필요" onClick={openInstallModal} />;
         }
-        const dcount = getDiagnosticCount(row);
-        if (dcount === 0) {
-          return <VehicleHealthCell label="정상" onClick={() => openDiagnosticModal(row)} />;
-        }
-        // Prefer backend-provided status if available; otherwise derive from max severity
-        const provided = row.diagnosticStatus;
-        if (provided) {
-          return <VehicleHealthCell label={provided} onClick={() => openDiagnosticModal(row)} />;
-        }
-        const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
-        const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
-        const label = max > 7 ? '심각' : '관심필요';
+        const label = resolveVehicleHealthLabel(row);
         return <VehicleHealthCell label={label} onClick={() => openDiagnosticModal(row)} />;
       }
       case 'diagnosticCodes':
@@ -1447,18 +1459,7 @@ export default function AssetStatus() {
                         filterAccessor: (row) => {
                           const hasDevice = !!row?.deviceSerial;
                           if (!hasDevice) return '단말필요';
-                          const dcount = getDiagnosticCount(row);
-                          if (dcount === 0) return '정상';
-                          const provided = row.diagnosticStatus;
-                          if (provided) return provided;
-                          const arr = Array.isArray(row?.diagnosticCodes)
-                            ? row.diagnosticCodes
-                            : [];
-                          const max = arr.reduce(
-                            (acc, it) => Math.max(acc, severityNumber(it?.severity)),
-                            0
-                          );
-                          return max > 7 ? '심각' : '관심필요';
+                          return resolveVehicleHealthLabel(row);
                         },
                         filterAllowAnd: false,
                         renderCustomFilter: ({ value, onChange, close }) => (
