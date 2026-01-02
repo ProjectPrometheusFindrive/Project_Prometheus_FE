@@ -284,6 +284,14 @@ body {
   overflow: hidden; /* Ensure rounded corners are visible */
 }
 
+.table-wrap--filter-open {
+  overflow-y: visible;
+}
+
+.table-wrap--filter-open.table-wrap--scroll-x {
+  overflow-y: visible;
+}
+
 .table-wrap--scroll-x {
   overflow-x: auto;
   overflow-y: hidden;
