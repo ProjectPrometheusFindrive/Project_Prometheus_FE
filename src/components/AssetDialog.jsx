@@ -33,6 +33,13 @@ function normalizeFuelLabel(val) {
   return v;
 }
 
+function normalizeConfidence(confidence) {
+  const c = typeof confidence === "number" ? confidence : (confidence && confidence.value) ? confidence.value : 0;
+  return c > 1 ? c / 100 : c;
+}
+
+const isHighConfidence = (confidence) => normalizeConfidence(confidence) >= 0.7;
+
 function formatFullDateDot(value) {
   try {
     const d = new Date(value);
@@ -133,6 +140,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
   useEffect(() => {
     if (form.fuelType) return;
     const candidates = (fieldSuggestions.fuelType || [])
+      .filter((it) => isHighConfidence(it?.confidence))
       .map((it) => normalizeFuelLabel(it?.value))
       .filter(Boolean);
     const unique = Array.from(new Set(candidates));
@@ -258,7 +266,8 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             const fields = suggestions.registrationDoc.fields || [];
             const next = { ...form };
             const map = { plate: "plate", vin: "vin", registrationDate: "registrationDate", make: "make", model: "model", year: "year" };
-            fields.forEach(({ name, value }) => {
+            fields.forEach(({ name, value, confidence }) => {
+              if (!isHighConfidence(confidence)) return;
               const key = map[name];
               if (key && (next[key] == null || next[key] === "")) {
                 next[key] = String(value || "");
@@ -290,7 +299,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
             try {
               const fields = suggestions.amortizationSchedule.fields || [];
               const vField = fields.find((f) => f.name === "vehiclePrice");
-              if (vField && (form.vehicleValue == null || form.vehicleValue === "")) {
+              if (vField && isHighConfidence(vField.confidence) && (form.vehicleValue == null || form.vehicleValue === "")) {
                 const raw = String(vField.value || "");
                 setForm((p) => ({ ...p, vehicleValue: formatCurrency(raw) }));
               }
