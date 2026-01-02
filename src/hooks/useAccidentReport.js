@@ -15,6 +15,18 @@ const DEFAULT_FORM = {
   blackboxFileName: "",
 };
 
+const VIDEO_EXTENSIONS = new Set(["mp4", "avi", "mov", "mpeg", "mpg"]);
+
+const isVideoFile = (file) => {
+  if (!file) return false;
+  const type = String(file.type || "").toLowerCase();
+  if (type.startsWith("video/")) return true;
+  const name = String(file.name || "");
+  const idx = name.lastIndexOf(".");
+  const ext = idx >= 0 ? name.slice(idx + 1).toLowerCase() : "";
+  return ext ? VIDEO_EXTENSIONS.has(ext) : false;
+};
+
 export default function useAccidentReport({ setItems, setSelectedContract }) {
   const [showAccidentModal, setShowAccidentModal] = useState(false);
   const [showAccidentInfoModal, setShowAccidentInfoModal] = useState(false);
@@ -29,6 +41,15 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
 
   const handleAccidentFileChange = (event) => {
     const file = event.target?.files && event.target.files[0] ? event.target.files[0] : null;
+    if (file && !isVideoFile(file)) {
+      emitToast("동영상 파일만 업로드할 수 있습니다.", "warning");
+      setAccidentForm((prev) => ({
+        ...prev,
+        blackboxFile: null,
+        blackboxFileName: "",
+      }));
+      return;
+    }
     setAccidentForm((prev) => ({
       ...prev,
       blackboxFile: file,
@@ -139,6 +160,10 @@ export default function useAccidentReport({ setItems, setSelectedContract }) {
 
     try {
       if (blackboxFile) {
+        if (!isVideoFile(blackboxFile)) {
+          emitToast("동영상 파일만 업로드할 수 있습니다.", "warning");
+          return;
+        }
         const typeOk = isFileTypeAllowed(blackboxFile);
         if (!typeOk) {
           emitToast("허용되지 않는 파일 형식입니다.", "warning");
