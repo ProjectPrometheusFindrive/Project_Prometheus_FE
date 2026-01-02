@@ -1302,7 +1302,7 @@ export default function RentalContracts() {
       '예약 중': '#E9850D',
       대여중: '#0CA255',
       사고접수: '#E50E08',
-      반납지연: '#E9850D',
+      반납지연: '#FF6B00',
       도난의심: '#E50E08',
       완료: '#006CEC',
     };
