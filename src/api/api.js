@@ -432,7 +432,19 @@ export async function ocrExtract(requestBody) {
 // Fax
 export async function sendFax(body) {
     // body should include: receiverNum, receiverName?, title?, files (array), ttlSeconds?
+    // Response: { status: 'success'|'error', data?: { receiptNum, testMode, success, historyId }, error?: { type, message, details? } }
     const response = await faxApi.send(body || {});
+    // BE에서 구조화된 응답을 반환하므로 그대로 반환
+    if (response.status === API_STATUS.SUCCESS) {
+        return response;
+    }
+    // 에러 응답도 그대로 반환하여 호출자가 처리할 수 있도록
+    return response;
+}
+
+export async function fetchFaxHistory(query = {}) {
+    // query: { receiverNum?: string, success?: boolean, limit?: number, offset?: number }
+    const response = await faxApi.getHistory(query);
     return extractData(response);
 }
 
