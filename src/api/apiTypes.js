@@ -221,7 +221,10 @@ export function transformAsset(asset) {
         ...asset,
         registrationDate: asset.registrationDate ? new Date(asset.registrationDate) : null,
         createdAt: asset.createdAt ? new Date(asset.createdAt) : null,
-        updatedAt: asset.updatedAt ? new Date(asset.updatedAt) : null
+        updatedAt: asset.updatedAt ? new Date(asset.updatedAt) : null,
+        // BE에서 자산 상태 자동 업데이트 필드 유지
+        status: asset.status || null,
+        statusUpdatedAt: asset.statusUpdatedAt ? new Date(asset.statusUpdatedAt) : null
     };
 }
 
