@@ -21,13 +21,20 @@ export default function TermsAgreement() {
     }));
   };
 
-  const handleSelectAll = () => {
-    const allChecked = agreements.privacy && agreements.location && agreements.marketing;
-    setAgreements({
-      privacy: !allChecked,
-      location: !allChecked,
-      marketing: !allChecked
-    });
+  const handleSelectAllRequired = () => {
+    const allRequiredChecked = agreements.privacy && agreements.location;
+    setAgreements(prev => ({
+      ...prev,
+      privacy: !allRequiredChecked,
+      location: !allRequiredChecked
+    }));
+  };
+
+  const handleSelectOptional = () => {
+    setAgreements(prev => ({
+      ...prev,
+      marketing: !prev.marketing
+    }));
   };
 
   const handleNext = () => {
@@ -39,7 +46,7 @@ export default function TermsAgreement() {
   };
 
   const canProceed = agreements.privacy && agreements.location;
-  const allChecked = agreements.privacy && agreements.location && agreements.marketing;
+  const allRequiredChecked = agreements.privacy && agreements.location;
 
   return (
     <div className="terms-page">
@@ -71,14 +78,24 @@ export default function TermsAgreement() {
         <div className="terms-card">
           <div className="terms-card__header">
             <h2 className="terms-card__title">약관 동의</h2>
-            <label className="terms-card__select-all">
-              <input
-                type="checkbox"
-                checked={allChecked}
-                onChange={handleSelectAll}
-              />
-              <span>전체 동의</span>
-            </label>
+            <div className="terms-card__select-buttons">
+              <label className="terms-card__select-all terms-card__select-all--required">
+                <input
+                  type="checkbox"
+                  checked={allRequiredChecked}
+                  onChange={handleSelectAllRequired}
+                />
+                <span>필수 전체 동의</span>
+              </label>
+              <label className="terms-card__select-all terms-card__select-all--optional">
+                <input
+                  type="checkbox"
+                  checked={agreements.marketing}
+                  onChange={handleSelectOptional}
+                />
+                <span>선택 동의</span>
+              </label>
+            </div>
           </div>
 
           <div className="terms-card__list">
