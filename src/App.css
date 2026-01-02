@@ -284,6 +284,14 @@ body {
   overflow: hidden; /* Ensure rounded corners are visible */
 }
 
+.table-wrap--filter-open {
+  overflow-y: visible;
+}
+
+.table-wrap--filter-open.table-wrap--scroll-x {
+  overflow-y: visible;
+}
+
 .table-wrap--scroll-x {
   overflow-x: auto;
   overflow-y: hidden;
@@ -4345,8 +4353,9 @@ body {
 
 .terms-page {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  overflow: hidden;
 }
 
 .terms-page__sidebar {
@@ -4429,7 +4438,7 @@ body {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-y: auto;
 }
 
 .terms-card {
@@ -4440,7 +4449,6 @@ body {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   animation: slideUp 0.5s ease-out;
 }
 
@@ -4461,31 +4469,61 @@ body {
   margin: 0;
 }
 
+.terms-card__select-buttons {
+  display: flex;
+  gap: 0.75rem;
+}
+
 .terms-card__select-all {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1.25rem;
-  background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
-  border: 2px solid #86efac;
-  border-radius: 12px;
+  gap: 0.5rem;
+  padding: 0.6rem 1rem;
+  border-radius: 10px;
   cursor: pointer;
   transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
-.terms-card__select-all:hover {
-  background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+.terms-card__select-all--required {
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 2px solid #fca5a5;
+}
+
+.terms-card__select-all--required:hover {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+}
+
+.terms-card__select-all--required input {
+  accent-color: #dc2626;
+}
+
+.terms-card__select-all--required span {
+  font-weight: 600;
+  color: #dc2626;
+}
+
+.terms-card__select-all--optional {
+  background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+  border: 2px solid #cbd5e1;
+}
+
+.terms-card__select-all--optional:hover {
+  background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
+}
+
+.terms-card__select-all--optional input {
+  accent-color: #64748b;
+}
+
+.terms-card__select-all--optional span {
+  font-weight: 600;
+  color: #64748b;
 }
 
 .terms-card__select-all input {
-  width: 20px;
-  height: 20px;
-  accent-color: #22c55e;
-}
-
-.terms-card__select-all span {
-  font-weight: 600;
-  color: #166534;
+  width: 18px;
+  height: 18px;
 }
 
 .terms-card__list {
@@ -4493,9 +4531,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  overflow-y: auto;
-  padding-right: 0.5rem;
-  min-height: 0;
 }
 
 .terms-item {

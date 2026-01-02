@@ -293,7 +293,8 @@ export default function TerminalRequestModal({ isOpen, onClose, defaults }) {
                                     className={`terminal-request-input terminal-request-input--stepper ${fieldErrors.expectedVehicleCount ? "is-invalid" : ""}`}
                                     value={form.expectedVehicleCount}
                                     onChange={(e) => updateField("expectedVehicleCount", e.target.value.replace(/\D/g, ""))}
-                                    readOnly
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
                                 />
                                 <div className="terminal-request-stepper-buttons">
                                     <button type="button" className="terminal-request-stepper-btn terminal-request-stepper-btn--minus" onClick={decrementCount}>

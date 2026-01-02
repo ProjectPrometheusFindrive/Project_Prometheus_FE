@@ -65,6 +65,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
         driverLicenseFile: null,
     });
     const [formErrors, setFormErrors] = useState({});
+    const [dateError, setDateError] = useState("");
 
     const [preUploaded, setPreUploaded] = useState({ contract: [], license: [] });
     const [ocrSuggest, setOcrSuggest] = useState({});
@@ -82,6 +83,9 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
             delete next[field];
             return next;
         });
+        if (field === "start" || field === "end") {
+            setDateError("");
+        }
     };
 
     const getBizRegNo = () => {
@@ -127,6 +131,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
             setOcrSuggest({});
             setBusy({ status: "idle", message: "", percent: 0 });
             setFormErrors({});
+            setDateError("");
             tmpIdRef.current = randomId("rental");
             generatedAtRef.current = new Date();
         }
@@ -297,6 +302,18 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
             setFormErrors(errors);
             emitToast("필수값을 모두 입력해주세요.", "error");
             return;
+        }
+
+        setDateError("");
+        if (form.start && form.end) {
+            const startDate = new Date(form.start);
+            const endDate = new Date(form.end);
+            if (!isNaN(startDate) && !isNaN(endDate) && startDate >= endDate) {
+                const msg = "대여 종료일이 시작일보다 늦어야 합니다.";
+                setDateError(msg);
+                emitToast(msg, "error");
+                return;
+            }
         }
 
         const bizRegNo = getBizRegNo();
@@ -527,6 +544,11 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                             {formErrors.end && <div className="rental-create-modal__error">{formErrors.end}</div>}
                         </div>
                     </div>
+                    {dateError && (
+                        <div style={{ marginTop: "4px", fontSize: "12px", color: "#dc2626" }}>
+                            {dateError}
+                        </div>
+                    )}
 
                     {/* Payment Method & Rental Type */}
                     <div className="rental-create-modal__form-row rental-create-modal__form-row--double">

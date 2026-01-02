@@ -24,7 +24,8 @@ export default function useManagementStage(options) {
     if (!asset?.id || !nextStage) return;
     const assetId = asset.id;
     const previousStage = getManagementStage ? getManagementStage(asset) : asset?.managementStage;
-    if (previousStage === nextStage) return;
+    const hasExplicitStage = asset?.__hasManagementStage ?? Boolean(asset?.managementStage && String(asset.managementStage).trim());
+    if (previousStage === nextStage && hasExplicitStage) return;
 
     // Guardrails based on rentals consistency
     try {

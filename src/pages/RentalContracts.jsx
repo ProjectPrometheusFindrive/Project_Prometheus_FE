@@ -2164,7 +2164,7 @@ export default function RentalContracts() {
                     <input
                       key={fileInputKey}
                       type="file"
-                      accept="video/*,image/*"
+                        accept="video/*"
                       onChange={handleAccidentFileChange}
                       style={{ display: 'none' }}
                     />

@@ -370,7 +370,7 @@ export default function Table({
     if (stickyHeader) {
         return (
             <div ref={wrapRef} className="table-wrap--sticky" style={stickyStyle}>
-                <div className="table-wrap">
+                <div className={["table-wrap", openFilterKey ? "table-wrap--filter-open" : null].filter(Boolean).join(" ")}>
                     {tableContent}
                 </div>
             </div>
@@ -378,7 +378,7 @@ export default function Table({
     }
 
     return (
-        <div ref={wrapRef} className="table-wrap table-wrap--scroll-x">
+        <div ref={wrapRef} className={["table-wrap", "table-wrap--scroll-x", openFilterKey ? "table-wrap--filter-open" : null].filter(Boolean).join(" ")}>
             {tableContent}
         </div>
     );

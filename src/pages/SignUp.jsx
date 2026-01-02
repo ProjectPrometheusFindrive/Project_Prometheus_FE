@@ -164,7 +164,7 @@ export default function SignUp() {
 
     switch (fieldName) {
       case 'userId':
-        if (!value) return { status: 'default', text: '이메일 형식으로 입력해주세요' };
+        if (!value) return { status: 'default', text: '업무용 이메일을 입력해주세요' };
         if (validateEmail(value)) return { status: 'success', text: '올바른 형식입니다' };
         return { status: 'error', text: '올바른 이메일 형식을 입력해주세요' };
 

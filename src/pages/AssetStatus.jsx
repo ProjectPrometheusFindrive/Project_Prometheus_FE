@@ -37,7 +37,7 @@ import useTableSelection from '../hooks/useTableSelection';
 // Local storage fallbacks removed; use API persistence instead
 import { ASSET } from '../constants';
 import { MANAGEMENT_STAGE_OPTIONS } from '../constants/forms';
-import { formatDateShort } from '../utils/date';
+import { formatDateShort, getInsuranceExpiryStatus } from '../utils/date';
 import {
   getManagementStage,
   withManagementStage,
@@ -98,6 +98,15 @@ const normalizeDiagnosticList = (asset) => {
   return [];
 };
 
+const sortDiagnosticsByDateDesc = (issues) => {
+  if (!Array.isArray(issues)) return [];
+  return [...issues].sort((a, b) => {
+    const aTime = a?.detectedDate ? new Date(a.detectedDate).getTime() : 0;
+    const bTime = b?.detectedDate ? new Date(b.detectedDate).getTime() : 0;
+    return (Number.isNaN(bTime) ? 0 : bTime) - (Number.isNaN(aTime) ? 0 : aTime);
+  });
+};
+
 const severityNumber = (s) => {
   if (typeof s === 'number') return Math.max(0, Math.min(10, s));
   if (typeof s === 'string') {
@@ -109,6 +118,29 @@ const severityNumber = (s) => {
     return isNaN(n) ? 0 : Math.max(0, Math.min(10, n));
   }
   return 0;
+};
+
+const normalizeDiagnosticStatus = (value) => {
+  if (!value) return null;
+  const trimmed = String(value).trim();
+  if (!trimmed || trimmed === '-') return null;
+  return trimmed;
+};
+
+const resolveVehicleHealthLabel = (row) => {
+  const provided = normalizeDiagnosticStatus(row?.diagnosticStatus);
+  if (provided) return provided;
+  const maxFromField =
+    typeof row?.diagnosticMaxSeverity === 'number' ? row.diagnosticMaxSeverity : null;
+  if (maxFromField != null) {
+    if (maxFromField === 0) return '정상';
+    return maxFromField > 7 ? '심각' : '관심필요';
+  }
+  const dcount = getDiagnosticCount(row);
+  if (dcount === 0) return '정상';
+  const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
+  const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
+  return max > 7 ? '심각' : '관심필요';
 };
 
 // vehicleType 문자열과 year 필드를 기반으로 차종/연식 파싱
@@ -448,10 +480,11 @@ export default function AssetStatus() {
         setStageDropdownUp(false);
         return;
       }
-      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
       const rect = trigger.getBoundingClientRect();
-      const spaceBelow = viewportHeight - rect.bottom;
-      const spaceAbove = rect.top;
+      const wrapRect = tableWrapRef.current?.getBoundingClientRect();
+      const viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+      const spaceBelow = wrapRect ? wrapRect.bottom - rect.bottom : viewportHeight - rect.bottom;
+      const spaceAbove = wrapRect ? rect.top - wrapRect.top : rect.top;
       const dropdownHeight = listEl.offsetHeight || listEl.scrollHeight || 0;
       const gap = 8; // matches CSS spacing
       const shouldFlipUp = spaceBelow < dropdownHeight + gap && spaceAbove > spaceBelow;
@@ -578,12 +611,13 @@ export default function AssetStatus() {
       const issues = Array.isArray(diag?.diagnosticCodes)
         ? diag.diagnosticCodes
         : normalizeDiagnosticList(v);
+      const sortedIssues = sortDiagnosticsByDateDesc(issues);
       const detail = {
         category: 'ALL',
         categoryName: '전체 진단',
-        count: issues.length,
+        count: sortedIssues.length,
         vehicleInfo: { plate: v.plate, vehicleType: v.vehicleType, id: v.id },
-        issues,
+        issues: sortedIssues,
       };
       setDiagnosticDetail(detail);
       setShowDiagnosticModal(true);
@@ -891,6 +925,22 @@ export default function AssetStatus() {
         return formatDateShort(row.registrationDate);
       case 'insuranceExpiryDate':
         if (row.insuranceExpiryDate) {
+          const status = getInsuranceExpiryStatus(row.insuranceExpiryDate);
+          const colorByStatus = {
+            expired: '#d32f2f',
+            warning: '#f9a825',
+            caution: '#fbc02d',
+            valid: '#006CEC',
+            none: '#006CEC',
+          };
+          const labelByStatus = {
+            expired: '만료',
+            warning: '만료 임박',
+            caution: '만료 예정',
+          };
+          const displayDate = formatDateShort(row.insuranceExpiryDate);
+          const statusLabel = labelByStatus[status];
+          const displayText = status === 'expired' ? `${statusLabel} ${displayDate}` : displayDate;
           return (
             <div
               style={{
@@ -906,7 +956,7 @@ export default function AssetStatus() {
                 title="보험 정보 보기"
                 style={{
                   textAlign: 'center',
-                  color: '#006CEC',
+                  color: colorByStatus[status] || '#006CEC',
                   fontSize: '14px',
                   fontFamily: 'Pretendard',
                   fontWeight: 500,
@@ -918,7 +968,7 @@ export default function AssetStatus() {
                   padding: 0,
                 }}
               >
-                {formatDateShort(row.insuranceExpiryDate)}
+                {displayText}
               </button>
             </div>
           );
@@ -1229,18 +1279,7 @@ export default function AssetStatus() {
         if (!hasDevice) {
           return <VehicleHealthCell label="단말필요" onClick={openInstallModal} />;
         }
-        const dcount = getDiagnosticCount(row);
-        if (dcount === 0) {
-          return <VehicleHealthCell label="정상" onClick={() => openDiagnosticModal(row)} />;
-        }
-        // Prefer backend-provided status if available; otherwise derive from max severity
-        const provided = row.diagnosticStatus;
-        if (provided) {
-          return <VehicleHealthCell label={provided} onClick={() => openDiagnosticModal(row)} />;
-        }
-        const arr = Array.isArray(row?.diagnosticCodes) ? row.diagnosticCodes : [];
-        const max = arr.reduce((acc, it) => Math.max(acc, severityNumber(it?.severity)), 0);
-        const label = max > 7 ? '심각' : '관심필요';
+        const label = resolveVehicleHealthLabel(row);
         return <VehicleHealthCell label={label} onClick={() => openDiagnosticModal(row)} />;
       }
       case 'diagnosticCodes':
@@ -1294,6 +1333,8 @@ export default function AssetStatus() {
             ? {
                 key: column.key,
                 label: column.label,
+                sortable: true,
+                sortAccessor: (row) => (row.deviceSerial ? 1 : 0),
                 style: {
                   textAlign: 'center',
                   ...(column.width
@@ -1443,8 +1484,7 @@ export default function AssetStatus() {
                   ...(column.key === 'insuranceExpiryDate' ? { filterType: 'date-range' } : null),
                   ...(column.key === 'vehicleHealth'
                     ? {
-                        filterType: 'select',
-                        filterAccessor: (row) => {
+                        sortAccessor: (row) => {
                           const hasDevice = !!row?.deviceSerial;
                           if (!hasDevice) return '단말필요';
                           const dcount = getDiagnosticCount(row);
@@ -1460,6 +1500,12 @@ export default function AssetStatus() {
                           );
                           return max > 7 ? '심각' : '관심필요';
                         },
+                        filterType: 'select',
+                        filterAccessor: (row) => {
+                          const hasDevice = !!row?.deviceSerial;
+                          if (!hasDevice) return '단말필요';
+                          return resolveVehicleHealthLabel(row);
+                        },
                         filterAllowAnd: false,
                         renderCustomFilter: ({ value, onChange, close }) => (
                           <VehicleStatusFilterDropdown
@@ -1473,6 +1519,24 @@ export default function AssetStatus() {
                     : null),
                   ...(column.key === 'severity'
                     ? {
+                        sortAccessor: (row) => {
+                          const fromField =
+                            typeof row?.diagnosticMaxSeverity === 'number'
+                              ? row.diagnosticMaxSeverity
+                              : null;
+                          let max = fromField;
+                          if (max == null) {
+                            const arr = Array.isArray(row?.diagnosticCodes)
+                              ? row.diagnosticCodes
+                              : [];
+                            if (arr.length === 0) return 0;
+                            max = arr.reduce(
+                              (acc, it) => Math.max(acc, severityNumber(it?.severity)),
+                              0
+                            );
+                          }
+                          return Number(max) || 0;
+                        },
                         filterType: 'number-range',
                         filterAccessor: (row) => {
                           const fromField =
