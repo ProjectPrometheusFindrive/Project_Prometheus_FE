@@ -397,6 +397,9 @@ export default function AssetStatus() {
     setShowRentalModal(false);
     setPendingStageAssetId(null);
     setPendingNextStage(null);
+
+    // BE에서 계약 생성 후 자산 상태가 자동으로 업데이트되므로 자산 목록 새로고침
+    await refreshAssetList();
   };
 
   // rental create submit handled by hook version; wire context when calling
@@ -419,6 +422,22 @@ export default function AssetStatus() {
   };
 
   // Date formatting handled by utils/date
+
+  // 자산 목록 새로고침 함수 (계약 생성/수정 후 BE에서 자산 상태가 자동 업데이트되므로 호출)
+  const refreshAssetList = React.useCallback(async () => {
+    try {
+      // Prefer lightweight summary for table; gracefully fall back
+      let list = await fetchAssetsSummary().catch(() => null);
+      if (!Array.isArray(list)) {
+        list = await fetchAssets();
+      }
+      let next = Array.isArray(list) ? list.map((a) => withManagementStage({ ...a })) : [];
+      setRows(next);
+    } catch (e) {
+      console.error('Failed to load assets', e);
+      setRows([]);
+    }
+  }, []);
 
   useEffect(() => {
     let mounted = true;
