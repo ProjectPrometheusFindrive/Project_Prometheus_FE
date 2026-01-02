@@ -197,7 +197,7 @@ export default function RentalContracts() {
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
   const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
-  const { columns, visibleColumns, toggleColumnVisibility, moveColumn, resetColumns } =
+  const { columns, visibleColumns, toggleColumnVisibility, moveColumn, resetColumns, deselectAllOptionalColumns } =
     useColumnSettings({
       storageKey: 'rental-columns-settings',
       defaultColumns: DEFAULT_COLUMN_CONFIG,
@@ -1302,7 +1302,7 @@ export default function RentalContracts() {
       '예약 중': '#E9850D',
       대여중: '#0CA255',
       사고접수: '#E50E08',
-      반납지연: '#E9850D',
+      반납지연: '#FF6B00',
       도난의심: '#E50E08',
       완료: '#006CEC',
     };
@@ -1407,6 +1407,7 @@ export default function RentalContracts() {
                   onDragEnd={handleDragEnd}
                   onToggleVisibility={toggleColumnVisibility}
                   onReset={resetColumns}
+                  onDeselectAll={deselectAllOptionalColumns}
                 />
               )}
             </div>

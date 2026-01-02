@@ -11,6 +11,7 @@ export default function ColumnSettingsMenu({
   onDragEnd,
   onToggleVisibility,
   onReset,
+  onDeselectAll,
 }) {
   const handleItemKey = (e) => {
     const current = e.currentTarget;
@@ -35,6 +36,12 @@ export default function ColumnSettingsMenu({
     }
   };
 
+  const handleDeselectAll = () => {
+    if (onDeselectAll) {
+      onDeselectAll();
+    }
+  };
+
   return (
     <div
       data-column-dropdown
@@ -54,7 +61,7 @@ export default function ColumnSettingsMenu({
       }}
     >
       {/* 초기화 버튼 */}
-      <div style={{ padding: '20px 20px 10px 20px' }}>
+      <div style={{ padding: '20px 20px 10px 20px', display: 'flex', flexDirection: 'column', gap: 10 }}>
         <button
           type="button"
           onClick={handleReset}
@@ -88,6 +95,41 @@ export default function ColumnSettingsMenu({
             초기화
           </div>
         </button>
+        {onDeselectAll && (
+          <button
+            type="button"
+            onClick={handleDeselectAll}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+              padding: 0,
+              width: '100%'
+            }}
+          >
+            <div style={{ width: 16, height: 16, position: 'relative' }}>
+              <div style={{
+                width: 16,
+                height: 16,
+                background: 'white',
+                borderRadius: 3,
+                border: '1px rgba(0, 0, 0, 0.15) solid'
+              }} />
+            </div>
+            <div style={{
+              color: '#888888',
+              fontSize: 14,
+              fontFamily: 'Pretendard',
+              fontWeight: 500,
+              lineHeight: '20px'
+            }}>
+              전체 선택 해제
+            </div>
+          </button>
+        )}
       </div>
 
       {/* 구분선 */}
