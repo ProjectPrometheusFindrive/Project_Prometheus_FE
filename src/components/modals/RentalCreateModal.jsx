@@ -64,6 +64,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
         contractFile: null,
         driverLicenseFile: null,
     });
+    const [formErrors, setFormErrors] = useState({});
     const [dateError, setDateError] = useState("");
 
     const [preUploaded, setPreUploaded] = useState({ contract: [], license: [] });
@@ -76,6 +77,12 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
 
     const update = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
+        setFormErrors((prev) => {
+            if (!prev[field]) return prev;
+            const next = { ...prev };
+            delete next[field];
+            return next;
+        });
         if (field === "start" || field === "end") {
             setDateError("");
         }
@@ -123,6 +130,8 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
             setPreUploaded({ contract: [], license: [] });
             setOcrSuggest({});
             setBusy({ status: "idle", message: "", percent: 0 });
+            setFormErrors({});
+            setDateError("");
             tmpIdRef.current = randomId("rental");
             generatedAtRef.current = new Date();
         }
@@ -284,6 +293,17 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
     };
 
     const handleSubmit = async () => {
+        const errors = {};
+        if (!String(form.plate || "").trim()) errors.plate = "차량번호를 선택해주세요.";
+        if (!String(form.renterName || "").trim()) errors.renterName = "계약자명을 입력해주세요.";
+        if (!form.start) errors.start = "대여 시작일을 선택해주세요.";
+        if (!form.end) errors.end = "대여 종료일을 선택해주세요.";
+        if (Object.keys(errors).length > 0) {
+            setFormErrors(errors);
+            emitToast("필수값을 모두 입력해주세요.", "error");
+            return;
+        }
+
         setDateError("");
         if (form.start && form.end) {
             const startDate = new Date(form.start);
@@ -432,7 +452,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                             <select
                                 value={form.plate}
                                 onChange={handlePlateChange}
-                                className="rental-create-modal__select"
+                                className={`rental-create-modal__select${formErrors.plate ? " rental-create-modal__select--error" : ""}`}
                             >
                                 <option value="">{assetsLoading ? "로딩 중..." : "차량번호 선택"}</option>
                                 {sortedAssets.map((a, idx) => (
@@ -443,6 +463,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                             </select>
                             <DropdownIcon />
                         </div>
+                        {formErrors.plate && <div className="rental-create-modal__error">{formErrors.plate}</div>}
                     </div>
 
                     {/* Contract Number */}
@@ -460,8 +481,9 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                                 value={form.renterName}
                                 onChange={(e) => update("renterName", e.target.value)}
                                 placeholder="예: 김나박이"
-                                className="rental-create-modal__input"
+                                className={`rental-create-modal__input${formErrors.renterName ? " rental-create-modal__input--error" : ""}`}
                             />
+                            {formErrors.renterName && <div className="rental-create-modal__error">{formErrors.renterName}</div>}
                         </div>
                         <div className="rental-create-modal__form-col">
                             <label className="rental-create-modal__form-label">계약자 연락처</label>
@@ -502,10 +524,11 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                                     type="date"
                                     value={form.start}
                                     onChange={(e) => update("start", e.target.value)}
-                                    className="rental-create-modal__input rental-create-modal__input--date"
+                                    className={`rental-create-modal__input rental-create-modal__input--date${formErrors.start ? " rental-create-modal__input--error" : ""}`}
                                 />
                                 <CalendarIcon />
                             </div>
+                            {formErrors.start && <div className="rental-create-modal__error">{formErrors.start}</div>}
                         </div>
                         <div className="rental-create-modal__form-col">
                             <label className="rental-create-modal__form-label">대여 종료일</label>
@@ -514,10 +537,11 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                                     type="date"
                                     value={form.end}
                                     onChange={(e) => update("end", e.target.value)}
-                                    className="rental-create-modal__input rental-create-modal__input--date"
+                                    className={`rental-create-modal__input rental-create-modal__input--date${formErrors.end ? " rental-create-modal__input--error" : ""}`}
                                 />
                                 <CalendarIcon />
                             </div>
+                            {formErrors.end && <div className="rental-create-modal__error">{formErrors.end}</div>}
                         </div>
                     </div>
                     {dateError && (
