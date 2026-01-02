@@ -197,7 +197,7 @@ export default function RentalContracts() {
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
   const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
-  const { columns, visibleColumns, toggleColumnVisibility, moveColumn, resetColumns } =
+  const { columns, visibleColumns, toggleColumnVisibility, moveColumn, resetColumns, deselectAllOptionalColumns } =
     useColumnSettings({
       storageKey: 'rental-columns-settings',
       defaultColumns: DEFAULT_COLUMN_CONFIG,
@@ -1407,6 +1407,7 @@ export default function RentalContracts() {
                   onDragEnd={handleDragEnd}
                   onToggleVisibility={toggleColumnVisibility}
                   onReset={resetColumns}
+                  onDeselectAll={deselectAllOptionalColumns}
                 />
               )}
             </div>

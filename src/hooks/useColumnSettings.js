@@ -60,6 +60,13 @@ export default function useColumnSettings({ storageKey, defaultColumns }) {
     persist(resetColumns);
   };
 
+  const deselectAllOptionalColumns = () => {
+    const next = columns.map((col) =>
+      col.required ? col : { ...col, visible: false }
+    );
+    persist(next);
+  };
+
   const visibleColumns = useMemo(() => columns.filter((c) => c.visible), [columns]);
 
   return {
@@ -69,6 +76,7 @@ export default function useColumnSettings({ storageKey, defaultColumns }) {
     toggleColumnVisibility,
     moveColumn,
     resetColumns,
+    deselectAllOptionalColumns,
   };
 }
 
