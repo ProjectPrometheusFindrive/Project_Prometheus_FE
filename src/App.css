@@ -4345,8 +4345,9 @@ body {
 
 .terms-page {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 100%);
+  overflow: hidden;
 }
 
 .terms-page__sidebar {
@@ -4429,7 +4430,8 @@ body {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .terms-card {
@@ -4440,7 +4442,6 @@ body {
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   animation: slideUp 0.5s ease-out;
 }
 
