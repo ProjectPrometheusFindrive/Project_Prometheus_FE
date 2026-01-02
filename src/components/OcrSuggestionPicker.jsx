@@ -20,7 +20,9 @@ function confidenceColor(confidence) {
 }
 
 export default function OcrSuggestionPicker({ items = [], onApply, style = {}, showLabel = true, maxWidth = 220 }) {
-  const list = Array.isArray(items) ? items.filter((it) => it && typeof it.value !== "undefined") : [];
+  const list = Array.isArray(items)
+    ? items.filter((it) => it && typeof it.value !== "undefined" && normalizeConfidence(it.confidence) >= 0.4)
+    : [];
   const initialIndex = useMemo(() => {
     if (list.length === 0) return 0;
     let best = 0;
@@ -38,7 +40,7 @@ export default function OcrSuggestionPicker({ items = [], onApply, style = {}, s
   React.useEffect(() => {
     if (appliedRef.current) return;
     const best = list[initialIndex];
-    if (best && typeof onApply === "function") {
+    if (best && normalizeConfidence(best.confidence) >= 0.7 && typeof onApply === "function") {
       onApply(best.value);
       appliedRef.current = true;
     }
