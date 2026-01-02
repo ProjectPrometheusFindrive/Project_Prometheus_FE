@@ -27,9 +27,23 @@ export function formatDisplayDate(value, locale) {
   return d ? d.toLocaleDateString(locale) : "-";
 }
 
+// Returns insurance expiry status based on today
+export function getInsuranceExpiryStatus(expiryDate) {
+  const expiry = safeDate(expiryDate);
+  if (!expiry) return "none";
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  expiry.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((expiry - today) / (1000 * 60 * 60 * 24));
+  if (diffDays < 0) return "expired";
+  if (diffDays <= 30) return "warning";
+  if (diffDays <= 60) return "caution";
+  return "valid";
+}
+
 export default {
   safeDate,
   formatDateShort,
   formatDisplayDate,
+  getInsuranceExpiryStatus,
 };
-
