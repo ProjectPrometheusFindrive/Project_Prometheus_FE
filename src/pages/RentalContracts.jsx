@@ -10,6 +10,7 @@ import {
   deleteRental,
   fetchAssets,
   fetchRentalLocation,
+  sendFax,
 } from '../api';
 import RentalForm from '../components/forms/RentalForm';
 import Modal from '../components/Modal';
@@ -212,6 +213,57 @@ export default function RentalContracts() {
   const [faxReceiverName, setFaxReceiverName] = useState('');
   const [faxTitle, setFaxTitle] = useState('');
   const [faxFiles, setFaxFiles] = useState([]);
+  const [faxSending, setFaxSending] = useState(false);
+
+  // FAX 번호 검증 (BE와 동일한 규칙: 9-11자리 숫자)
+  const validateFaxNumber = (faxNum) => {
+    if (!faxNum) return { valid: false, message: "수신자 번호를 입력하세요." };
+    const digitsOnly = faxNum.replace(/[^0-9]/g, "");
+    if (digitsOnly.length < 9) {
+      return { valid: false, message: "FAX 번호가 너무 짧습니다. (최소 9자리 필요)" };
+    }
+    if (digitsOnly.length > 11) {
+      return { valid: false, message: "FAX 번호가 너무 깁니다. (최대 11자리)" };
+    }
+    return { valid: true, normalized: digitsOnly };
+  };
+
+  // FAX 발송 핸들러
+  const handleSendFax = async () => {
+    const validation = validateFaxNumber(faxNumber.trim());
+    if (!validation.valid) {
+      setToast({ type: 'warning', message: validation.message });
+      return;
+    }
+    if (!faxFiles.length) {
+      setToast({ type: 'warning', message: '첨부할 파일을 추가하세요.' });
+      return;
+    }
+    setFaxSending(true);
+    try {
+      const files = faxFiles.map((f) => ({ fileName: f.name }));
+      const resp = await sendFax({
+        receiverNum: faxNumber.trim(),
+        receiverName: faxReceiverName.trim() || undefined,
+        title: faxTitle.trim() || undefined,
+        files,
+      });
+      const receipt = resp?.receiptNum || resp?.data?.receiptNum;
+      const testMode = Boolean(resp?.testMode || resp?.data?.testMode);
+      const suffix = testMode ? " (테스트 모드)" : "";
+      setToast({ type: 'success', message: `팩스 전송 요청 완료: ${receipt || "접수됨"}${suffix}` });
+      setFaxNumber('');
+      setFaxReceiverName('');
+      setFaxTitle('');
+      setFaxFiles([]);
+    } catch (e) {
+      const msg = e?.message || "팩스 전송 실패";
+      setToast({ type: 'error', message: msg });
+    } finally {
+      setFaxSending(false);
+    }
+  };
+
   const selectedContractTrackingData = selectedContract?.logRecord || [];
   const trackingDateKeys = useMemo(() => {
     if (!Array.isArray(selectedContractTrackingData) || selectedContractTrackingData.length === 0)
@@ -2353,8 +2405,13 @@ export default function RentalContracts() {
                         style={{ display: 'none' }}
                       />
                     </label>
-                    <button type="button" className="accident-reg__fax-btn">
-                      FAX보내기
+                    <button
+                      type="button"
+                      className="accident-reg__fax-btn"
+                      onClick={handleSendFax}
+                      disabled={faxSending}
+                    >
+                      {faxSending ? '전송 중...' : 'FAX보내기'}
                     </button>
                   </div>
                 </div>

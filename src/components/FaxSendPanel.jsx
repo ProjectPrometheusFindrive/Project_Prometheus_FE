@@ -23,6 +23,20 @@ function isFaxFileAllowed(file) {
   return ["pdf", "png", "jpg", "jpeg", "webp", "ico"].includes(ext);
 }
 
+// FAX 번호 검증 (BE와 동일한 규칙: 9-11자리 숫자)
+function validateFaxNumber(faxNum) {
+  if (!faxNum) return { valid: false, message: "수신자 번호를 입력하세요." };
+  // 숫자만 추출 (하이픈, 공백 등 제거)
+  const digitsOnly = faxNum.replace(/[^0-9]/g, "");
+  if (digitsOnly.length < 9) {
+    return { valid: false, message: "FAX 번호가 너무 짧습니다. (최소 9자리 필요)" };
+  }
+  if (digitsOnly.length > 11) {
+    return { valid: false, message: "FAX 번호가 너무 깁니다. (최대 11자리)" };
+  }
+  return { valid: true, normalized: digitsOnly };
+}
+
 export default function FaxSendPanel({ rentalId, defaultTitle = "사고 접수 서류", compact = false }) {
   const [receiverNum, setReceiverNum] = useState("");
   const [receiverName, setReceiverName] = useState("");
@@ -89,8 +103,10 @@ export default function FaxSendPanel({ rentalId, defaultTitle = "사고 접수 �
   };
 
   const handleSend = async () => {
-    if (!receiverNum.trim()) {
-      emitToast("수신자 번호를 입력하세요.", "warning");
+    // 클라이언트 측 FAX 번호 검증
+    const validation = validateFaxNumber(receiverNum.trim());
+    if (!validation.valid) {
+      emitToast(validation.message, "warning");
       return;
     }
     if (!items.length) {
