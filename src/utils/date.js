@@ -10,14 +10,22 @@ export function safeDate(value) {
 
 // Returns `'yy.mm.dd` style (e.g., '25.09.05)
 export function formatDateShort(value) {
+  // null, undefined, 빈 문자열 체크
+  if (value === null || value === undefined || value === '') {
+    return '-';
+  }
   try {
     const d = new Date(value);
+    // Invalid Date 체크
+    if (isNaN(d.getTime())) {
+      return '-';
+    }
     const yy = String(d.getFullYear()).slice(-2);
     const mm = String(d.getMonth() + 1).padStart(2, "0");
     const dd = String(d.getDate()).padStart(2, "0");
     return `'${yy}.${mm}.${dd}`;
   } catch {
-    return value || "";
+    return '-';
   }
 }
 
