@@ -851,9 +851,9 @@ export default function AssetStatus() {
         emitToast('자산이 등록되었습니다.', 'success');
       } catch (e) {
         console.error('Failed to create asset via API', e);
-        // Handle VIN duplicate error (409 Conflict)
+        // Handle duplicate error (409 Conflict) - VIN or plate
         if (e?.status === 409 || e?.errorType === 'CONFLICT' || e?.data?.error?.type === 'CONFLICT') {
-          const message = e?.data?.error?.message || e?.message || '이미 등록된 VIN입니다.';
+          const message = e?.data?.error?.message || e?.message || '이미 등록된 정보입니다.';
           emitToast(message, 'error');
         } else {
           emitToast('자산 생성에 실패했습니다.', 'error');
