@@ -16,6 +16,9 @@ import { useAuth } from "../contexts/AuthContext";
 import { useCompany } from "../contexts/CompanyContext";
 import OcrSuggestionPicker from "./OcrSuggestionPicker";
 import { emitToast } from "../utils/toast";
+import useDebouncedValue from "../hooks/useDebouncedValue";
+import { assetsApi } from "../api/apiClient";
+import { API_STATUS, API_ERRORS } from "../api/apiTypes";
 
 // Normalize OCR fuel labels to canonical options used in UI
 function normalizeFuelLabel(val) {
@@ -78,6 +81,61 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
 
   // Validate plate format
   const isPlateInvalid = form.plate && !isValidKoreanPlate(form.plate);
+
+  // VIN duplicate check state
+  const [vinChecking, setVinChecking] = useState(false);
+  const [vinDuplicateError, setVinDuplicateError] = useState(null);
+  const debouncedVin = useDebouncedValue(form.vin, 500);
+
+  // Check VIN duplicate when VIN changes (create mode only)
+  useEffect(() => {
+    if (isEdit) {
+      setVinDuplicateError(null);
+      return;
+    }
+    const vin = debouncedVin?.trim();
+    if (!vin || vin.length < 17) {
+      setVinDuplicateError(null);
+      return;
+    }
+    
+    let cancelled = false;
+    setVinChecking(true);
+    setVinDuplicateError(null);
+    
+    (async () => {
+      try {
+        // Check if VIN already exists by fetching assets summary (lighter than full fetch)
+        const response = await assetsApi.fetchSummary();
+        if (cancelled) return;
+        
+        if (response.status === API_STATUS.SUCCESS && Array.isArray(response.data)) {
+          const existingAsset = response.data.find(
+            (a) => a.vin && String(a.vin).trim().toUpperCase() === vin.trim().toUpperCase()
+          );
+          if (existingAsset) {
+            setVinDuplicateError("이미 등록된 VIN입니다.");
+          } else {
+            setVinDuplicateError(null);
+          }
+        }
+      } catch (e) {
+        if (!cancelled) {
+          console.warn("VIN 중복 체크 실패:", e);
+          // Don't show error on check failure, only on save
+        }
+      } finally {
+        if (!cancelled) {
+          setVinChecking(false);
+        }
+      }
+    })();
+    
+    return () => {
+      cancelled = true;
+      setVinChecking(false);
+    };
+  }, [debouncedVin, isEdit]);
 
   const infoRow = (label, value) => (
     <>
@@ -502,14 +560,29 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       emitToast("올바르지 않은 차량번호 형식입니다.", "warning");
       return;
     }
+    if (vinDuplicateError) {
+      emitToast(vinDuplicateError, "error");
+      return;
+    }
     if (onSubmit) {
-      await onSubmit({
-        ...form,
-        registrationDocGcsObjectName: preUploaded.registration[0]?.objectName || null,
-        registrationDocName: preUploaded.registration[0]?.name || null,
-        insuranceDocGcsObjectName: preUploaded.insurance[0]?.objectName || null,
-        insuranceDocName: preUploaded.insurance[0]?.name || null,
-      });
+      try {
+        await onSubmit({
+          ...form,
+          registrationDocGcsObjectName: preUploaded.registration[0]?.objectName || null,
+          registrationDocName: preUploaded.registration[0]?.name || null,
+          insuranceDocGcsObjectName: preUploaded.insurance[0]?.objectName || null,
+          insuranceDocName: preUploaded.insurance[0]?.name || null,
+        });
+      } catch (error) {
+        // Handle 409 Conflict error from backend
+        if (error?.status === 409 || error?.errorType === API_ERRORS.CONFLICT) {
+          const message = error?.data?.error?.message || error?.message || "이미 등록된 VIN입니다.";
+          emitToast(message, "error");
+          setVinDuplicateError(message);
+        } else {
+          throw error;
+        }
+      }
     }
   };
 
@@ -646,7 +719,26 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         {infoRow(
           "차대번호(VIN)",
           <div className="flex items-center gap-2 flex-nowrap">
-            <input id="asset-vin" name="vin" className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHxxxxxxxxxxxxxx" />
+            <div className="flex-1 min-w-0">
+              <input 
+                id="asset-vin" 
+                name="vin" 
+                className={`form-input flex-1 min-w-0${vinDuplicateError ? " is-invalid" : ""}`} 
+                value={form.vin} 
+                onChange={(e) => {
+                  setForm((p) => ({ ...p, vin: e.target.value }));
+                  setVinDuplicateError(null);
+                }} 
+                placeholder="예: KMHxxxxxxxxxxxxxx"
+                aria-invalid={vinDuplicateError ? true : undefined}
+              />
+              {vinChecking && (
+                <span aria-live="polite" className="text-[12px] text-gray-600">중복 확인 중...</span>
+              )}
+              {vinDuplicateError && !vinChecking && (
+                <span aria-live="polite" className="text-red-700 text-[12px]">{vinDuplicateError}</span>
+              )}
+            </div>
             <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
           </div>
         )}
@@ -676,7 +768,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
       </div>
       <div className="asset-dialog__footer flex justify-end gap-2">
         <button type="button" className="form-button form-button--muted" onClick={() => setStep("upload")}>이전</button>
-        <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
+        <button type="button" className="form-button" onClick={handleSave} disabled={isPlateInvalid || vinDuplicateError || vinChecking}>저장</button>
         <button type="button" className="form-button" onClick={onClose}>닫기</button>
       </div>
     </>
@@ -781,7 +873,26 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
                 {infoRow(
                   "차대번호 (VIN)",
                   <div className="flex items-center gap-2 flex-nowrap">
-                    <input id="asset-vin" name="vin" className="form-input flex-1 min-w-0" value={form.vin} onChange={(e) => setForm((p) => ({ ...p, vin: e.target.value }))} placeholder="예: KMHDH41EX6U123456" />
+                    <div className="flex-1 min-w-0">
+                      <input 
+                        id="asset-vin" 
+                        name="vin" 
+                        className={`form-input flex-1 min-w-0${vinDuplicateError ? " is-invalid" : ""}`} 
+                        value={form.vin} 
+                        onChange={(e) => {
+                          setForm((p) => ({ ...p, vin: e.target.value }));
+                          setVinDuplicateError(null);
+                        }} 
+                        placeholder="예: KMHDH41EX6U123456"
+                        aria-invalid={vinDuplicateError ? true : undefined}
+                      />
+                      {vinChecking && (
+                        <span aria-live="polite" className="text-[12px] text-gray-600">중복 확인 중...</span>
+                      )}
+                      {vinDuplicateError && !vinChecking && (
+                        <span aria-live="polite" className="text-red-700 text-[12px]">{vinDuplicateError}</span>
+                      )}
+                    </div>
                     <OcrSuggestionPicker items={fieldSuggestions.vin || []} onApply={applySuggestion("vin")} showLabel={false} maxWidth={240} />
                   </div>
                 )}
@@ -932,7 +1043,7 @@ export default function AssetDialog({ asset = {}, mode = "create", onClose, onSu
         <div className="asset-dialog__footer-actions">
           <button type="button" className="form-button form-button--close" onClick={onClose}>닫기</button>
           {!isEdit && (
-            <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={isPlateInvalid}>저장</button>
+            <button type="button" className="form-button form-button--save" onClick={handleSave} disabled={isPlateInvalid || vinDuplicateError || vinChecking}>저장</button>
           )}
         </div>
       </div>
