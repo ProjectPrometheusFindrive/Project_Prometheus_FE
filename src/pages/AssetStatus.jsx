@@ -37,7 +37,7 @@ import useTableSelection from '../hooks/useTableSelection';
 // Local storage fallbacks removed; use API persistence instead
 import { ASSET } from '../constants';
 import { MANAGEMENT_STAGE_OPTIONS } from '../constants/forms';
-import { formatDateShort } from '../utils/date';
+import { formatDateShort, getInsuranceExpiryStatus } from '../utils/date';
 import {
   getManagementStage,
   withManagementStage,
@@ -891,6 +891,22 @@ export default function AssetStatus() {
         return formatDateShort(row.registrationDate);
       case 'insuranceExpiryDate':
         if (row.insuranceExpiryDate) {
+          const status = getInsuranceExpiryStatus(row.insuranceExpiryDate);
+          const colorByStatus = {
+            expired: '#d32f2f',
+            warning: '#f9a825',
+            caution: '#fbc02d',
+            valid: '#006CEC',
+            none: '#006CEC',
+          };
+          const labelByStatus = {
+            expired: '만료',
+            warning: '만료 임박',
+            caution: '만료 예정',
+          };
+          const displayDate = formatDateShort(row.insuranceExpiryDate);
+          const statusLabel = labelByStatus[status];
+          const displayText = status === 'expired' ? `${statusLabel} ${displayDate}` : displayDate;
           return (
             <div
               style={{
@@ -906,7 +922,7 @@ export default function AssetStatus() {
                 title="보험 정보 보기"
                 style={{
                   textAlign: 'center',
-                  color: '#006CEC',
+                  color: colorByStatus[status] || '#006CEC',
                   fontSize: '14px',
                   fontFamily: 'Pretendard',
                   fontWeight: 500,
@@ -918,7 +934,7 @@ export default function AssetStatus() {
                   padding: 0,
                 }}
               >
-                {formatDateShort(row.insuranceExpiryDate)}
+                {displayText}
               </button>
             </div>
           );
