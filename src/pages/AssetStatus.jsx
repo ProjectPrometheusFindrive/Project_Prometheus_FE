@@ -1295,6 +1295,8 @@ export default function AssetStatus() {
             ? {
                 key: column.key,
                 label: column.label,
+                sortable: true,
+                sortAccessor: (row) => (row.deviceSerial ? 1 : 0),
                 style: {
                   textAlign: 'center',
                   ...(column.width
@@ -1444,6 +1446,22 @@ export default function AssetStatus() {
                   ...(column.key === 'insuranceExpiryDate' ? { filterType: 'date-range' } : null),
                   ...(column.key === 'vehicleHealth'
                     ? {
+                        sortAccessor: (row) => {
+                          const hasDevice = !!row?.deviceSerial;
+                          if (!hasDevice) return '단말필요';
+                          const dcount = getDiagnosticCount(row);
+                          if (dcount === 0) return '정상';
+                          const provided = row.diagnosticStatus;
+                          if (provided) return provided;
+                          const arr = Array.isArray(row?.diagnosticCodes)
+                            ? row.diagnosticCodes
+                            : [];
+                          const max = arr.reduce(
+                            (acc, it) => Math.max(acc, severityNumber(it?.severity)),
+                            0
+                          );
+                          return max > 7 ? '심각' : '관심필요';
+                        },
                         filterType: 'select',
                         filterAccessor: (row) => {
                           const hasDevice = !!row?.deviceSerial;
@@ -1474,6 +1492,24 @@ export default function AssetStatus() {
                     : null),
                   ...(column.key === 'severity'
                     ? {
+                        sortAccessor: (row) => {
+                          const fromField =
+                            typeof row?.diagnosticMaxSeverity === 'number'
+                              ? row.diagnosticMaxSeverity
+                              : null;
+                          let max = fromField;
+                          if (max == null) {
+                            const arr = Array.isArray(row?.diagnosticCodes)
+                              ? row.diagnosticCodes
+                              : [];
+                            if (arr.length === 0) return 0;
+                            max = arr.reduce(
+                              (acc, it) => Math.max(acc, severityNumber(it?.severity)),
+                              0
+                            );
+                          }
+                          return Number(max) || 0;
+                        },
                         filterType: 'number-range',
                         filterAccessor: (row) => {
                           const fromField =
