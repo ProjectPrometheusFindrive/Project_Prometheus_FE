@@ -43,7 +43,26 @@ QA/reports/2026-01-02/
 │   ├── issue_92_faq-duplicate.png
 │   ├── issue_93_darkmode-logo-modal.png
 │   ├── issue_93_darkmode-terminal-modal.png
-│   └── issue_93_darkmode-rental-modal.png
+│   ├── issue_93_darkmode-rental-modal.png
+│   ├── functional_signup_invalid-email-short-password.png
+│   ├── functional_signup_password-mismatch.png
+│   ├── functional_error-handling_offline-mode.png
+│   ├── security_signup_xss-email-attempt.png
+│   ├── security_signup_sql-injection-email-attempt.png
+│   ├── ui-ux_dashboard_darkmode.png
+│   ├── ui-ux_assets_darkmode.png
+│   ├── ui-ux_rentals_darkmode.png
+│   ├── ui-ux_revenue_darkmode.png
+│   ├── ui-ux_settings_darkmode.png
+│   ├── ui-ux_members_darkmode.png
+│   ├── ui-ux_support_darkmode.png
+│   ├── ui-ux_modal_logo-management_darkmode.png
+│   ├── ui-ux_modal_terminal-request_darkmode.png
+│   ├── ui-ux_modal_rental-create_darkmode.png
+│   ├── ui-ux_modal_role-change_darkmode.png
+│   ├── compatibility_dashboard_mobile-375px.png
+│   ├── compatibility_dashboard_tablet-768px.png
+│   └── regression_issue-*.png (회귀 테스트)
 └── reports/
     ├── issue_90_map-tiles.md
     ├── issue_91_vehicle-date.md
