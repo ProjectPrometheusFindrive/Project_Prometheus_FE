@@ -675,12 +675,28 @@ export const faxApi = {
      *   files: (string | { objectName: string, fileName?: string })[],
      *   ttlSeconds?: number
      * }
+     * Response: { status: 'success'|'error', data?: { receiptNum, testMode, success, historyId }, error?: { type, message, details? } }
      */
     async send(body) {
         return await apiRequest(API_ENDPOINTS.FAX_SEND, {
             method: 'POST',
             body: JSON.stringify(body || {})
         });
+    },
+    /**
+     * Get fax history
+     * query: { receiverNum?: string, success?: boolean, limit?: number, offset?: number }
+     * Response: { status: 'success', data: { items, total, limit, offset } }
+     */
+    async getHistory(query = {}) {
+        const params = new URLSearchParams();
+        if (query.receiverNum) params.append('receiverNum', query.receiverNum);
+        if (query.success !== undefined) params.append('success', String(query.success));
+        if (query.limit) params.append('limit', String(query.limit));
+        if (query.offset) params.append('offset', String(query.offset));
+        const queryString = params.toString();
+        const url = queryString ? `${API_ENDPOINTS.FAX_HISTORY}?${queryString}` : API_ENDPOINTS.FAX_HISTORY;
+        return await apiRequest(url);
     }
 };
 

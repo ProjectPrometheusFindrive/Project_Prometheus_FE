@@ -122,11 +122,61 @@ export default function FaxSendPanel({ rentalId, defaultTitle = "사고 접수 �
         title: title.trim() || undefined,
         files,
       });
-      // resp: { status: 'success', receiptNum, testMode }
-      const receipt = resp?.receiptNum || resp?.data?.receiptNum;
-      const testMode = Boolean(resp?.testMode || resp?.data?.testMode);
-      const suffix = testMode ? " (테스트 모드)" : "";
-      emitToast(`팩스 전송 요청 완료: ${receipt || "접수됨"}${suffix}`, "success");
+      
+      // BE 변경: { status: 'success'|'error', data?: { receiptNum, testMode, success, historyId }, error?: { type, message, details? } }
+      if (resp?.status === 'success' && resp?.data) {
+        const { receiptNum, testMode, historyId } = resp.data;
+        const suffix = testMode ? " (테스트 모드)" : "";
+        const receiptText = receiptNum ? `접수번호: ${receiptNum}` : "접수됨";
+        emitToast(`팩스 전송 완료: ${receiptText}${suffix}`, "success", 5000);
+        // 성공 시 입력 필드 초기화
+        setReceiverNum("");
+        setReceiverName("");
+        setTitle(defaultTitle || "");
+        setItems([]);
+      } else if (resp?.status === 'error' && resp?.error) {
+        // 에러 타입별 메시지 처리
+        const errorType = resp.error.type;
+        const errorMessage = resp.error.message || "팩스 전송 실패";
+        let userMessage = errorMessage;
+        
+        // 에러 타입별 사용자 친화적 메시지
+        switch (errorType) {
+          case 'VALIDATION_ERROR':
+            userMessage = `입력 정보 오류: ${errorMessage}`;
+            break;
+          case 'FAX_SERVICE_DISABLED':
+            userMessage = "FAX 서비스가 비활성화되어 있습니다.";
+            break;
+          case 'UNSUPPORTED_FILE_TYPE':
+            userMessage = "지원하지 않는 파일 형식입니다. PDF 또는 이미지 파일만 가능합니다.";
+            break;
+          case 'FILE_TOO_LARGE':
+            userMessage = "파일 크기가 너무 큽니다.";
+            break;
+          case 'DOWNLOAD_ERROR':
+            userMessage = "파일 다운로드 중 오류가 발생했습니다.";
+            break;
+          case 'FAX_PROVIDER_ERROR':
+            userMessage = `FAX 서비스 제공자 오류: ${errorMessage}`;
+            break;
+          case 'FAX_SEND_FAILED':
+            userMessage = `FAX 전송 실패: ${errorMessage}`;
+            break;
+          case 'CONFIG_ERROR':
+            userMessage = "FAX 서비스 설정 오류가 발생했습니다.";
+            break;
+          case 'SERVER_ERROR':
+            userMessage = "서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.";
+            break;
+          default:
+            userMessage = errorMessage;
+        }
+        
+        emitToast(userMessage, "error", 6000);
+      } else {
+        emitToast("팩스 전송 중 알 수 없는 오류가 발생했습니다.", "error", 4000);
+      }
     } catch (e) {
       const msg = e?.message || "팩스 전송 실패";
       emitToast(msg, "error", 4000);

@@ -73,6 +73,7 @@ export const API_ENDPOINTS = {
 
     // Fax
     FAX_SEND: '/fax/send',
+    FAX_HISTORY: '/fax/history',
 
     // Terminal install requests (public)
     TERMINAL_REQUESTS: '/terminal-requests',

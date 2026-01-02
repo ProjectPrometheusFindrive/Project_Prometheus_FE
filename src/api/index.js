@@ -50,6 +50,7 @@ export const {
   requestUploadSign,
   requestResumableSession,
   sendFax,
+  fetchFaxHistory,
 
   // Auth
   login,
