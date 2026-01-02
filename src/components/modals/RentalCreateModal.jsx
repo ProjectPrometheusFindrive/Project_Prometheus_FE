@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, useRef } from "react";
 import { fetchAssets, fetchAssetsSummary, ocrExtract } from "../../api";
 import { getManagementStage } from "../../utils/managementStage";
 import { formatPhone11, formatCurrency } from "../../utils/formatters";
+import { emitToast } from "../../utils/toast";
 import { uploadOneOCR } from "../../utils/uploadHelpers";
 import { randomId } from "../../utils/id";
 import generateContractNumber from "../../utils/rentalId";
@@ -63,6 +64,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
         contractFile: null,
         driverLicenseFile: null,
     });
+    const [dateError, setDateError] = useState("");
 
     const [preUploaded, setPreUploaded] = useState({ contract: [], license: [] });
     const [ocrSuggest, setOcrSuggest] = useState({});
@@ -74,6 +76,9 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
 
     const update = (field, value) => {
         setForm((prev) => ({ ...prev, [field]: value }));
+        if (field === "start" || field === "end") {
+            setDateError("");
+        }
     };
 
     const getBizRegNo = () => {
@@ -279,6 +284,18 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
     };
 
     const handleSubmit = async () => {
+        setDateError("");
+        if (form.start && form.end) {
+            const startDate = new Date(form.start);
+            const endDate = new Date(form.end);
+            if (!isNaN(startDate) && !isNaN(endDate) && startDate >= endDate) {
+                const msg = "대여 종료일이 시작일보다 늦어야 합니다.";
+                setDateError(msg);
+                emitToast(msg, "error");
+                return;
+            }
+        }
+
         const bizRegNo = getBizRegNo();
         const rentalId = generateContractNumber({ bizRegNo, plate: form.plate, date: generatedAtRef.current });
 
@@ -503,6 +520,11 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                             </div>
                         </div>
                     </div>
+                    {dateError && (
+                        <div style={{ marginTop: "4px", fontSize: "12px", color: "#dc2626" }}>
+                            {dateError}
+                        </div>
+                    )}
 
                     {/* Payment Method & Rental Type */}
                     <div className="rental-create-modal__form-row rental-create-modal__form-row--double">
