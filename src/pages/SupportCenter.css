@@ -2,6 +2,7 @@
 
 .support-page {
     padding: 0;
+    padding-bottom: 40px; /* 하단 여백 추가로 내용이 잘리지 않도록 */
 }
 
 .support-page-title {
@@ -264,6 +265,31 @@
     border-color: #006CEC;
 }
 
+.support-form-textarea {
+    flex: 1;
+    min-height: 160px;
+    padding: 12px 14px;
+    background: white;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 4px;
+    font-size: 14px;
+    font-family: 'Pretendard', sans-serif;
+    font-weight: 400;
+    color: #1C1C1C;
+    line-height: 24px;
+    box-sizing: border-box;
+    resize: vertical;
+}
+
+.support-form-textarea::placeholder {
+    color: #888888;
+}
+
+.support-form-textarea:focus {
+    outline: none;
+    border-color: #006CEC;
+}
+
 /* Content Box */
 .support-content-box {
     flex: 1;
@@ -463,8 +489,19 @@
 }
 
 [data-theme='dark'] .support-form-input-wide::placeholder,
-[data-theme='dark'] .support-reply-input::placeholder {
+[data-theme='dark'] .support-reply-input::placeholder,
+[data-theme='dark'] .support-form-textarea::placeholder {
     color: #64748b;
+}
+
+[data-theme='dark'] .support-form-textarea {
+    background: #0f172a;
+    border-color: #334155;
+    color: #f1f5f9;
+}
+
+[data-theme='dark'] .support-form-textarea:focus {
+    border-color: #006CEC;
 }
 
 [data-theme='dark'] .support-content-box {
@@ -492,6 +529,10 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
+    .support-page {
+        padding-bottom: 80px; /* 모바일 하단 네비게이션(72px) + 추가 여백 */
+    }
+
     .support-layout {
         grid-template-columns: 1fr;
         justify-content: stretch;
@@ -518,6 +559,7 @@
 
     .support-select-wrapper,
     .support-form-input-wide,
+    .support-form-textarea,
     .support-content-box {
         width: 100%;
     }
