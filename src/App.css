@@ -5858,6 +5858,10 @@ html {
   background: #0b1220;
 }
 
+[data-theme='dark'] .page-header-sticky {
+  background: #0f172a;
+}
+
 [data-theme='dark'] .top-header__logout-btn {
   background: #111827;
   border-color: #1f2937;
