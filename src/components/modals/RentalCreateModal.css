@@ -511,3 +511,121 @@
         padding-left: 0;
     }
 }
+
+/* Dark mode */
+[data-theme='dark'] .rental-create-modal {
+    background: #1a1a2e;
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__title {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__close svg path {
+    fill: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__header-line {
+    background: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__upload-label {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__upload-preview {
+    background: #0f172a;
+    border-color: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .rental-create-modal__upload-placeholder {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .rental-create-modal__file-input-wrapper {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #4b5563;
+}
+
+[data-theme='dark'] .rental-create-modal__file-input-wrapper:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .rental-create-modal__file-input-wrapper--active {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+[data-theme='dark'] .rental-create-modal__file-btn {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__file-count {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .rental-create-modal__file-count--active {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__divider {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme='dark'] .rental-create-modal__form-label {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__input {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__input::placeholder {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .rental-create-modal__select-wrapper--readonly {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .rental-create-modal__select-wrapper--readonly .rental-create-modal__select {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+[data-theme='dark'] .rental-create-modal__select {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__contract-number-label {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .rental-create-modal__contract-number-value {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__radio {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__radio-circle {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #006CEC;
+}
+
+[data-theme='dark'] .rental-create-modal__footer-line {
+    background: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__btn--cancel {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .rental-create-modal__btn--submit {
+    background: #1d4ed8;
+}

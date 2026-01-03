@@ -275,3 +275,56 @@
 .terminal-request-btn--submit:hover:not(:disabled) {
     background: #0058C4;
 }
+
+/* Dark mode */
+[data-theme='dark'] .terminal-request-modal .header-row {
+    border-bottom-color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-modal .header-row strong {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-label {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-input {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-input::placeholder {
+    color: #9ca3af;
+}
+
+[data-theme='dark'] .terminal-request-radio {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-radio__custom {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: #006CEC;
+}
+
+[data-theme='dark'] .terminal-request-footer__divider {
+    background: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-footer__notice {
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-btn--cancel {
+    background: #374151;
+    color: #e5e7eb;
+}
+
+[data-theme='dark'] .terminal-request-btn--cancel:hover:not(:disabled) {
+    background: #4b5563;
+}
+
+[data-theme='dark'] .terminal-request-btn--submit {
+    background: #1d4ed8;
+}

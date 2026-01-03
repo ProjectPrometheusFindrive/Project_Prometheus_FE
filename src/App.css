@@ -5573,6 +5573,17 @@ html {
   max-width: 480px;
 }
 
+/* Dark mode for modal */
+[data-theme='dark'] .modal {
+  background: #1a1a2e;
+  border-color: #374151;
+  color: #e5e7eb;
+}
+
+[data-theme='dark'] .header-row strong {
+  color: #e5e7eb;
+}
+
 /* Document viewer modal should utilize more viewport space */
 .modal.document-viewer-modal {
   max-width: 95vw;

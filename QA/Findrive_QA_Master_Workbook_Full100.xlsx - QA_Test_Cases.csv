@@ -1,0 +1,142 @@
+TC_ID,Priority,Module,Menu,Screen/Popup,Type,Pre-condition,Test Steps,Test Data,Expected Result,MVP Must-Pass(Y/N),Owner,Result(Pass/Fail/Blocked/Not Run),"Note (-QA 내용, *: 추가의견 또는 노트)",Cycle,Run Date,Environment,Build/Version,Tester,Evidence Link,issue/PR link,Linked Defect ID,Reproducible(Y/N),Retest Result,Retest Date
+TC-AUTH-001,P0,Auth,Login,PC Login,Functional,가입 계정 존재,정상 ID/PW 입력→로그인,valid_id/valid_pw,"홈 진입, 세션 생성",Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-002,P0,Auth,Login,PC Login,Validation,가입 계정 존재,PW 공백→로그인,valid_id/(empty),"PW 필수 안내, 로그인 불가",Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-003,P0,Auth,Login,PC Login,Validation,가입 계정 존재,ID 공백→로그인,(empty)/any,"ID 필수 안내, 로그인 불가",Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-004,P0,Auth,Login,PC Login Error,Functional,가입 계정 존재,오류 PW로 로그인,valid_id/wrong_pw,"에러 표시, 로그인 불가",Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-005,P1,Auth,Login,PC Login Error,Security,미가입 계정,미가입 ID로 로그인,unknown/any,정보 과다 노출 없이 실패,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-006,P1,Auth,Login,Session,Security,로그인 상태,새로고침/탭 이동,-,세션 유지(정책대로),N,QA,Not Run,새로고침하면 각 페이지가 로드되는게 아니라 홈 화면(대시보드)로 이동함,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-007,P1,Auth,Login,Session Expiry,Security,로그인 상태,토큰 만료 후 API 접근,-,재로그인 유도,N,QA,Not Run,session expiry 시간은 얼마나? 로그인 후 작업 없으면 로긴 다시 유도하긴 함,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-008,P1,Auth,Login,Logout,Functional,로그인 상태,유저메뉴→로그아웃,-,"세션 종료, 로그인 화면",N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+,,,,,,가입 계정 존재,비밀번호 재설정,,,,,,,,2025.12.23,,,엄주석,,,,,,
+TC-AUTH-009,P2,Auth,Login,PC Login,UX,-,비밀번호 보기 토글,-,표시/마스킹 정상,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-010,P2,Auth,Login,PC Login,UX,-,Enter 키로 로그인,-,로그인 실행,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-011,P0,Auth,Join,약관동의,Functional,회원가입 진입,필수 약관 미동의로 다음,-,"다음 불가, 필수 안내",Y,QA,blocked,"- 필수 미동의시 다음단계 진행 불가 정상작동
+- 리사이징 필요. 다음단계 버튼이 화면 아래 위치. 엄주석의 경우 75%로 해야 보임 ",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/41,,,,
+TC-AUTH-012,P1,Auth,Join,약관동의,Functional,회원가입 진입,전체동의 체크/해제,-,개별항목 동기화,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-013,P0,Auth,Join,기본정보입력,Validation,회원가입 2단계,필수값 누락 후 가입,-,"필드별 에러, 가입 불가",Y,QA,blocked,"*아이디 안내문구: 업무용 이메일을 입력해주세요로 수정
+- 이외 모두 정상 동작",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/42,,,,
+TC-AUTH-014,P0,Auth,Join,기본정보입력,Validation,회원가입 2단계,PW/확인 불일치,pw1!=pw2,불일치 에러,Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-AUTH-015,P0,Auth,Join,기본정보입력,Validation,중복 ID 존재,중복 ID로 가입,existing_id,"중복 안내, 가입 불가",Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-016,P0,Home,Home,Dashboard,Data,자산 데이터 존재,자산 도넛: 합계=TOTAL 확인,-,합계=TOTAL,Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-017,P0,Home,Home,Dashboard,Data,계약 데이터 존재,계약 도넛: 합계=TOTAL 확인,-,합계=TOTAL,Y,QA,Pass,-,Cycle-1,2025.12.23,test3@test.com,,엄주석,,,,,,
+TC-HOME-018,P1,Home,Home,Dashboard,Data,자산 상태 변경됨,홈 새로고침/재진입,-,차트/수치 반영,N,QA,Not Run,- 관리상태 변경 내역이 바로 반영되지 않음,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-019,P1,Home,Home,Dashboard,Data,계약 상태 변경됨,홈 새로고침/재진입,-,차트/수치 반영,N,QA,fail,- 계약상태가 정상적으로 반영되지 않음,Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/52,,,,
+TC-HOME-020,P1,Home,Home,Score Cards,Data,점수 데이터 있음,점수 범위/표시 확인,-,"0~100, 문구 정상",N,QA,Not Run,,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-021,P2,Home,Home,Score Cards,Empty,점수 데이터 없음,NULL/0 케이스 확인,-,"대체 UI, 오류 없음",N,QA,Not Run,,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-022,P0,Home,Global,Top Nav,Navigation,로그인 상태,상단 메뉴 이동(홈/자산/계약/회원),-,정확한 화면 이동,Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-023,P2,Home,Global,User Menu,UX,로그인 상태,유저 메뉴 열기/닫기,-,정상 토글,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-024,P1,Home,Global,Access Control,Security,로그아웃 상태,보호 페이지 직접 URL 접근,-,로그인으로 리다이렉트,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-HOME-025,P2,Home,Global,Responsive,Responsive,모바일 뷰,대시보드 레이아웃 확인,-,가독성/오버플로우 없음,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-026,P1,Asset,자산등록관리,Asset List,Functional,자산 2건 이상,전체선택/해제,-,정상 동작,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-027,P2,Asset,자산등록관리,Asset List,Functional,자산 존재,개별 체크 선택 유지,-,선택 유지,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-028,P1,Asset,자산등록관리,Asset List,Functional,자산 존재,정렬(차량번호/차종/등록일),-,정렬 정상,N,QA,fail,"- 오름/내림/정리 해재 순으로 잘 작동함
+- 단말상태~심각도 오름/내림 차순 정리 안됨",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/53,,,,
+TC-ASSET-029,P1,Asset,자산등록관리,Filters,Functional,자산 존재,차종 필터 다중 선택,-,선택 값만 노출,N,QA,blocked,"- 필터는 정상작동
+- 차량 대수가 적은 차종을 선택할 때 필터창이 검색결과 크기 때문에 보이지 않음",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/54,,,,
+TC-ASSET-030,P1,Asset,자산등록관리,Filters,Functional,자산 존재,단말/차량/관리 상태 필터 조합,-,자산 존재,단말/차량/관리 상태 필터 조합,QA,blocked,- 조건에 맞는 차량 자산이 없을 때 필터 메뉴 클릭해도 반응이 없음,Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/55,,,,
+TC-ASSET-031,P1,Asset,자산등록관리,Filters,UX,필터 적용,초기화 클릭,-,필터 해제,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-032,P2,Asset,자산등록관리,Column Settings,Functional,-,컬럼 숨김/노출,-,리스트 반영,N,QA,fail,- 칼럼 전체 선택 해제 버튼을 누르면 하나씩 적용됨,Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/56,,,,
+TC-ASSET-033,P2,Asset,자산등록관리,Pagination,Performance,데이터 200+,페이지 이동/스크롤,-,성능 문제 없음,N,QA,Pass,"- 이상 없음. 
+* 특정 차량을 검색하려면 ctrl+F로 검색가능함. 고객들이 할 수 있을까?",Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-034,P1,Asset,자산등록관리,Status Tags,Data,자산 존재,상태 태그 값/색상 확인,-,정의된 값만 표시,N,QA,fail,"- 자산 관리상태 변경이 되지 않음 BMW520i
+- 맨 마지막 행의 관리상태 드랍다운 메뉴가 잘 안보임",Cycle-1,2025.12.23,test3@test.com,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/57,,,,
+TC-ASSET-035,P1,Asset,자산등록관리,Row Actions,Functional,자산 선택,보험/단말/진단 팝업 진입,-,정상 오픈,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-036,P2,Asset,자산등록관리,Popup_자산등록,UX,-,팝업 열기/닫기(X),-,정상 닫힘,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-037,P0,Asset,자산등록관리,Popup_자산등록,OCR,등록증 이미지 준비,이미지 업로드→자동채움,등록증,주요 필드 채움,Y,QA,blocked,"- 정상작동
+- OCR 성능 안좋음. 자동차증록증6 휘발유-> 전기로 표기, 확률 90%로 계산",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/43,,,,
+TC-ASSET-038,P1,Asset,자산등록관리,Popup_자산등록,OCR,부분 가림 이미지,가린 이미지 업로드,부분가림,일부 실패 시 수동 보완 가능,N,QA,Not Run,,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-039,P1,Asset,자산등록관리,Popup_자산등록,Validation,-,필수값 누락 저장,-,에러/저장불가,N,QA,Pass,"- 정상작동
+* VIN만 있어도 등록되는게 맞을까? 필수값 추가 안해도 될까?",Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-040,P0,Asset,자산등록관리,Popup_자산등록,Validation,VIN 기등록,중복 VIN 저장,dup VIN,중복 차단,Y,QA,fail,- vin 동일한데 중복 등록 가능,Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/44,,,,
+TC-ASSET-041,P0,Asset,자산등록관리,Popup_자산등록,Validation,차량번호 기등록,중복 차량번호 저장,dup plate,중복 차단,Y,QA,fail,"- vin, 번호판 동일한데 중복 등록 가능
+* 등록된 정보에 보험처럼 수정기능 넣어 추후 수정할 수 있게 하면 발생가능한 위험성 있는지",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/45,,,,
+TC-ASSET-042,P1,Asset,자산등록관리,Popup_자산등록,Validation,-,차량가액 문자 입력,abc,숫자 검증/에러,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-043,P0,Asset,자산등록관리,Popup_자산등록,Functional,정상 입력,저장,-,"자산 생성, 리스트 반영",Y,QA,Pass,-,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-044,P2,Asset,자산등록관리,Popup_자산등록,Stability,-,연속 저장 클릭(더블클릭),-,중복 생성 방지,N,QA,Pass,*정상 저장한 자산정보에 차 등록증 이미지 보이지 않음,Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-045,P2,Asset,자산등록관리,Popup_자산등록,Security,-,특수문자/스크립트 입력,<script>,이스케이프 처리,N,QA,Not Run,"- 특수문자 사용 가능
+* 입력란에 스크립트 넣어 크롤링 등 데이터 탈취 가능할지 테스트 필요",Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-046,P1,Asset,자산등록관리,Popup_보험정보,Functional,자산 선택,보험정보 조회,-,표시 정상,N,QA,Pass,"- 정상작동
+* (주)테스트의 125호7286 보험정보 없는데 보험만료일이 24.11.14일로 되어 있음",Cycle-1,2025.12.23,Staging,,엄주석,,,,,,
+TC-ASSET-047,P0,Asset,자산등록관리,Popup_보험정보,Data,보험 만료일 과거,만료 보험 저장/확인,-,만료 경고 상태 표시,Y,QA,blocked,-125호7286 만료일이 정상이라면 표시되어야 함,Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/46,,,,
+TC-ASSET-048,P1,Asset,자산등록관리,Popup_보험정보,Audit,보험 등록됨,보험 수정,-,이력/변경 반영,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-ASSET-049,P1,Asset,자산등록관리,Popup_단말정보,Functional,단말 등록됨,단말 정보 표시,-,필드 표시 정상,N,QA,Pass,"-
+* 단말 등록만하면 단말상태 연결됨으로 변경 → 단말 헬스체크 받고 모든 항목이 확인되었을 때 연결됨으로 변경 필요",Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-ASSET-050,P1,Asset,자산등록관리,Popup_단말정보,Validation,단말 등록됨,필수값 누락 저장,-,에러 표시,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-ASSET-051,P2,Asset,자산등록관리,Popup_진단코드,Empty,진단코드 0건,진단코드 상세 열기,-,0건 안내,N,QA,blocked,"- 정상작동
+- 11가1003 심각도가 8이고 6개의 진단코드가 발견되었는데 정상으로 표기되면 안됨",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/58,,,,
+TC-ASSET-052,P1,Asset,자산등록관리,Popup_진단코드,Data,진단코드 다수,심각도/정렬 확인,-,표시 정상,N,QA,blocked,* 11가1003 발생일 기준으로 히스토리 기록 (최근 발생이 맨 위로 가게),Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/59,,,,
+TC-ASSET-053,P0,Asset,자산등록관리,Popup_단말장착신청,Validation,-,필수값 누락 제출,-,제출 차단,Y,QA,blocked,* 신청 장착 대수 숫자로 입력하는 것도 가능하게. 몇 백대 수준이면 클릭을 너무 많이해야 함,Cycle-1,2025.12.23,Staging,,,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/47,,,,
+TC-ASSET-054,P1,Asset,자산등록관리,Popup_단말장착신청,Functional,정상 입력,신청 제출,-,접수 완료 메시지,N,QA,blocked,"* prometheus.rok@gmail.com으로 메일 수신 안됨 - 12월 23일 3시 55분경
+메일이 jsum727@gmail.com으로 접수됨",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/60,,,,
+TC-ASSET-055,P0,Asset,자산등록관리,Status Sync,Data Integrity,대여중 계약 존재,자산 상태=대여중 확인,-,상태 일치,Y,QA,fail,매칭 안됨,Cycle-1,2025.12.23,Staging,,,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/48,,,,
+TC-CTR-056,P0,Contract,계약등록관리,Popup_계약등록,Functional,자산 존재,정상 계약 저장,-,계약 생성/리스트 반영,Y,QA,pass,"- 모든 데이터 입력 후 저장은 됨
+* 필수 입력 데이터 구분이 되나?
+* 계약등록 팝업에서 대여 가능한 차량 계약 저장 후, 동일한 차량 중복 생성됨. 차량 자산 상태가 대여중으로 바로 반영이 되어야 함
+* 계약등록 팝업에서 계약시작시간도 반영 필요",Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-057,P0,Contract,계약등록관리,Popup_계약등록,Validation,-,필수값 누락 저장,-,저장 차단,Y,QA,blocked,* 필수 데이터 입력 안하고 저장 버튼 누르면 1) 계약생성에 실패했다는 문구 발생 2) 일부만 입력하면 정상 저장 안되고 계약등록 팝업 닫힘,Cycle-1,2025.12.23,Staging,,,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/49,,,,
+TC-CTR-058,P0,Contract,계약등록관리,Popup_계약등록,Validation,-,시작일>종료일 저장,-,에러 표시,Y,QA,Not Run,- 반납일이 인수일보다 빠르더라도 등록됨. 반납지연으로 계약상태 구분함,Cycle-1,2025.12.23,test3@test.com,,,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/50,,,,
+TC-CTR-059,P1,Contract,계약등록관리,Popup_계약등록,Validation,-,연락처 형식 오류,010-12-5678,에러 표시,N,QA,Not Run,- 정상등록됨 *에러로 구분할것인가?,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-060,P1,Contract,계약등록관리,Popup_계약등록,OCR,계약서 이미지,계약서 업로드→자동채움,계약서,일부 필드 채움,N,QA,pass,"* 차량정보 하단 대여계약번호가 표출되는데 정상인가?
+*282누7485 예약자명 ""재단법인화성시환경재단"" 길어 칼럼을 넘어감",Cycle-1,2025.12.23,test3@test.com,,,,,,,,
+TC-CTR-061,P2,Contract,계약등록관리,Popup_계약등록,UX,-,단기/장기 토글,-,필드 변화 정상,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-062,P2,Contract,계약등록관리,Popup_계약등록,Stability,-,저장 중 취소/닫기,-,데이터 일관성 유지,N,QA,Not Run,,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-063,P1,Contract,계약등록관리,Popup_계약등록,Validation,-,보증금/대여금액 음수,-100,에러 표시,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-064,P1,Contract,계약등록관리,Contract List,Data,계약 존재,상태 태그 값 확인,-,정의된 값/색상,N,QA,blocked,"* 예약 중, 반납지연이 같은 색?",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/61,,,,
+TC-CTR-065,P1,Contract,계약등록관리,Contract List,Functional,계약 다수,정렬/필터 동작,-,정상 동작,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-066,P0,Contract,계약등록관리,Engine Control,Security,Member 로그인,Member가 엔진 토글 시도,-,권한 제한,Y,QA,Not Run,* 무슨 내용의 QA인지 이해못함,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-067,P0,Contract,계약등록관리,Engine Control,Functional,Admin 로그인,Admin 엔진 ON/OFF,-,상태 반영/피드백,Y,QA,Not Run,* 이게 가능?,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-068,P1,Contract,계약등록관리,Restart Ban,Functional,Admin 로그인,재시동 금지 토글,-,상태 반영,N,QA,Not Run,GO9 PoC로 확인해야 함,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-069,P1,Contract,계약등록관리,Popup_계약상세,Functional,계약 선택,상세 정보 표시,-,필드 표시 정상,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-070,P0,Contract,계약등록관리,State Transition,State,반납지연 상태,도난의심 전환 확인,-,상태 전환/반영,Y,QA,Not Run,GO9 PoC로 확인해야 함,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-071,P1,Contract,계약등록관리,Popup_현재위치,Functional,GPS 있음,현재위치 열기,-,지도/좌표 표시,N,QA,Pass,"-
+* 주행 궤적을 어디까지 보여줄 것인가?",Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-072,P2,Contract,계약등록관리,Popup_현재위치,Empty,GPS 없음,현재위치 열기,-,정보 없음 안내,N,QA,Pass,-,Cycle-1,2025.12.23,Staging,,,,,,,,
+TC-CTR-073,P1,Contract,계약등록관리,Accident Buttons,Functional,계약 존재,사고등록/조회 버튼 동작,-,팝업 오픈,N,QA,blocked,"- 사고 정상 등록됨
+* 참고파일 업로드 없이 등록안되나, 영상이 아니어도 등록됨
+* 사고정보 수정버튼을 클릭하면 사고정보 조회 팝업이 나타나지만 계약 상세 정보 팝업 밑에 생성이 됨
+* 수정할 수 있지 않음",Cycle-1,2025.12.23,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/62,,,,
+TC-CTR-074,P2,Contract,계약등록관리,Data Sync,Data,계약 생성됨,자산 상태 자동 변경,-,자산 상태 반영,N,QA,Not Run,- 자산 상태 자동 변경 안됨,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-CTR-075,P2,Contract,계약등록관리,Stability,Stability,API 오류,저장 실패 처리,500/timeout,에러 메시지/중복 없음,N,QA,Not Run,,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-076,P0,Accident,사고관리,Popup_사고등록_영상,Validation,활성 계약,영상 없이 저장,-,저장 차단,Y,QA,Not Run,"- 영상없이 저장됨
+* 영상없이 저장되게 할 것이냐, 말것이냐 정해야함",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-077,P0,Accident,사고관리,Popup_사고등록_영상,Functional,활성 계약,영상 업로드 후 저장,mp4,"저장 성공, 사고 생성",Y,QA,Pass,-,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-078,P1,Accident,사고관리,Popup_사고등록_영상,Validation,활성 계약,발생일/시간 누락,-,필수 안내 또는 기본값,N,QA,Not Run,"- 발생일 입력은 필수값이나 시간은 누락해도 입력됨
+- 영상대신 다른 확장자 파일 업로드도 가능 → 그대로 두기",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-079,P1,Accident,사고관리,Popup_사고등록_영상,Validation,활성 계약,지원되지 않는 확장자 업로드,exe,차단/안내,N,QA,Not Run,"- 실행파일 업로드해 바이러스 등의 목적으로 코드인젝션 할 수 있나?
+cardinalxperi@gmail.com",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-080,P1,Accident,사고관리,Popup_사고등록_영상,Performance,활성 계약,대용량 영상 업로드,>limit,제한/에러 처리,N,QA,Not Run,- 업로드 용량 제한 존재하나? juhyuckkong@gmail.com,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-081,P1,Accident,사고관리,Popup_사고등록_대여정보,Data,사고 생성됨,대여정보 자동매핑 확인,-,계약 정보와 일치,N,QA,Not Run,"- 11월 4일 반납완료 건에 대해 사고 등록가능함
+- 반납 완료건은 사고 등록, ""재시동 금지"" 하지 못하게 해야 함",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-082,P1,Accident,사고관리,Popup_사고등록_대여정보,Validation,사고 생성됨,FAX 번호 형식 오류,02-abc,발송 차단,N,QA,blocked,"- 팩스 발송 버튼 어디에?
+- 사고 등록 버튼 누를 때는 팩스 발송 버튼 있지만 사고정보 등록후 사고확인, 계약 상세 정보 팝업에서 팩스 발송 버튼 보이지 않음",Cycle-1,2025.12.24,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/63,,,,
+TC-ACC-083,P1,Accident,사고관리,Popup_사고등록_대여정보,Functional,사고 생성됨,FAX 발송 성공/실패 피드백,valid fax,메시지/이력,N,QA,blocked,"- 팩스 발송 버튼 어디에?
+- 사고 등록 버튼 누를 때는 팩스 발송 버튼 있지만 사고정보 등록후 사고확인, 계약 상세 정보 팝업에서 팩스 발송 버튼 보이지 않음",Cycle-1,2025.12.24,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/64,,,,
+TC-ACC-084,P2,Accident,사고관리,Popup_사고등록_대여정보,Rule,사고 생성됨,첨부파일 20개 제한,21 files,초과 차단/안내,N,QA,Not Run,"- 팩스 발송 버튼 어디에?
+- 사고 등록 버튼 누를 때는 팩스 발송 버튼 있지만 사고정보 등록후 사고확인, 계약 상세 정보 팝업에서 팩스 발송 버튼 보이지 않음",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-085,P1,Accident,사고관리,Popup_사고조회,Functional,사고 등록됨,사고정보 조회(PC),-,필드/영상 표시,N,QA,fail,- 차량번호 클릭 → 계약 상세정보 → 사고정보수정 클릭 → 사고 정보 조회 팝업으로 연결됨. 수정할 수 없음,Cycle-1,2025.12.24,Staging,,엄주석,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/65,,,,
+TC-ACC-086,P2,Accident,사고관리,Popup_사고조회,Responsive,사고 등록됨,사고정보 조회(모바일),-,레이아웃 정상,N,QA,Not Run,,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-087,P1,Accident,사고관리,Contract Integration,Data Integrity,사고 등록됨,사고 후 계약 상태/홈 반영,-,상태/지표 반영,N,QA,Not Run,"전반적으로 자산과 계약 관리 플로우 정리 필요
+- 반납 완료 버튼 누를 때 메모장에 로그 기록
+- 반납완료 버튼 누르면 자산등록 메뉴에도 반납완료로 상태 변경
+- 사고 등록하면 관리상태도 사고발생으로 변경?",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-088,P2,Accident,사고관리,Stability,Stability,네트워크 불안,업로드 중 취소/재시도,-,일관성 유지,N,QA,Pass,-,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-089,P1,Accident,사고관리,Security,Security,-,영상 URL 직접 접근(권한),-,권한 없으면 차단,N,QA,Not Run,,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-ACC-090,P2,Accident,사고관리,Audit,Compliance,사고 수정 기능,수정 이력 기록,-,이력 누락 없음,N,QA,Not Run,- 차량번호 클릭 → 계약 상세정보 → 사고정보수정 클릭 → 사고 정보 조회 팝업으로 연결됨. 수정할 수 없음,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-091,P1,Member,회원관리,Member List,Functional,Admin 로그인,회원 목록 조회,-,리스트 표시,N,QA,Pass,-,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-092,P1,Member,회원관리,Member List,Data,회원 존재,권한/상태 컬럼 표시,-,값/색상 정상,N,QA,Pass,-,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-093,P0,Member,회원관리,Popup_멤버관리,Security,Admin 로그인,Member↔Admin 변경 저장,-,권한 변경 반영,Y,QA,확인필요,"-test3@test.com계정의 a@a.com 권한 멤버→어드민 변경
+- test3@test.com계정의 a@a.com 계정 회원탈퇴처리
+- test3@test.com계정의 a@a.com 계정 복원 (12.24 21:52)",Cycle-1,2025.12.24 16:46,Staging,,,,https://github.com/ProjectPrometheusFindrive/Project_Prometheus_FE/issues/51,,,,
+TC-MEM-094,P0,Member,회원관리,Popup_멤버관리,Security,Admin 로그인,Super admin으로 변경 시도,-,불가 안내,Y,QA,Not Run,*슈퍼 어드민으로 변경 버튼 없음,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-095,P0,Member,회원관리,Popup_멤버관리,Rule,동일회사 마지막 Admin,마지막 Admin 탈퇴 시도,-,경고/차단,Y,QA,Not Run,굳이 QA 해야 하나?,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-096,P0,Member,회원관리,Access Control,Security,탈퇴 사용자,탈퇴 계정 로그인/접근,-,로그인 불가/차단,Y,QA,Not Run,a@a.com 계정 로그인/탈퇴/재로그인시도 가능한가? 하다면 pw 필요,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-097,P1,Member,회원관리,Access Control,Security,타 회사 사용자,타 회사 멤버 관리 시도,-,접근 제한,N,QA,Not Run,"- 본사와 지사 개념 적용 필요
+- 지사 계정 관리 기능도 필요할 수 있음
+- 그렇담 사업자번호가 다르지만 본사 사업자번호로 묶어서 admin 계정에 표시해줄 필요 있음",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-098,P2,Member,회원관리,Popup_멤버관리,UX,-,팝업 닫기/취소,-,변경 미반영,N,QA,Pass,-,Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-099,P2,Member,회원관리,Audit,Compliance,권한 변경 수행,변경 이력 기록 확인,-,이력 기록(정책대로),N,QA,Not Run,"admin 계정을 멤버로 변경하면? → ""권한 변경에 실패하였습니다."" 
+다른 어드민 계정이 있는데도 실패하는건지?
+a@a.com, aaaa@aaaa.com도 권한 변경 실패",Cycle-1,2025.12.24,Staging,,,,,,,,
+TC-MEM-100,P2,Member,회원관리,Stability,Stability,-,동시 편집(2탭) 권한 변경,-,충돌 처리/최종 일관성,N,QA,Not Run,권한변경이 되지 않아 테스트 못해봄,Cycle-1,2025.12.24,Staging,,,,,,,,
+,,,고객센터,,,,,,,,,fail,"문의하기 ""내용"" 글 작성이 불가능함",,2025.12.24,,,,,,,,,
+,,,고객센터,,,,,,,,,blocked,화면 밑에가 잘린 느낌,,2025.12.24,,,,,,,,,
