@@ -298,21 +298,38 @@ export default function SupportRequestForm({
 
         {/* 내용 */}
         <div className="support-form-row-inline" style={{ alignItems: 'flex-start' }}>
-          <label className="support-form-label-side" style={{ paddingTop: 10 }}>
+          <label className="support-form-label-side" style={{ paddingTop: 10 }} htmlFor="support-message">
             내용
           </label>
-          <div className="support-content-box">
-            <span className="support-content-text">
-              서비스 이용, 장애 신고, 결제·정산, 계정·권한 등 운영 관련 문의를 남겨주시면 담당자가 답변을 드립니다.
-            </span>
-            <br />
-            <span className="support-content-text">
-              문제가 발생한 화면, 상황, 발생 시간 등을 최대한 자세히 적어주세요.
-            </span>
-            <br />
-            <span className="support-content-warning">
-              주민번호나 계좌번호 등 민감한 정보는 입력하지 마세요.
-            </span>
+          <div className="support-content-wrapper">
+            <div className="support-content-box support-content-box--info">
+              <span className="support-content-text">
+                서비스 이용, 장애 신고, 결제·정산, 계정·권한 등 운영 관련 문의를 남겨주시면 담당자가 답변을 드립니다.
+              </span>
+              <br />
+              <span className="support-content-text">
+                문제가 발생한 화면, 상황, 발생 시간 등을 최대한 자세히 적어주세요.
+              </span>
+              <br />
+              <span className="support-content-warning">
+                주민번호나 계좌번호 등 민감한 정보는 입력하지 마세요.
+              </span>
+            </div>
+            <textarea
+              id="support-message"
+              className="support-form-textarea"
+              value={form.message}
+              onChange={(e) => updateField("message", e.target.value)}
+              placeholder="문의 내용을 입력하세요"
+              rows={6}
+              required
+            />
+            {fieldErrors.message && (
+              <div className="support-field-error">
+                <ErrorIconSmall />
+                {fieldErrors.message}
+              </div>
+            )}
           </div>
         </div>
 
