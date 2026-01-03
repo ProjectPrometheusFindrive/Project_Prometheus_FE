@@ -65,6 +65,7 @@ const KakaoMap = ({
     const infoWindowRef = useRef(null);
     const geocoderRef = useRef(null);
     const hasFittedBoundsRef = useRef(false);
+    const idleListenerRef = useRef(null);
 
     // Keep overlays and edit handles for cleanup/reuse
     const overlaysRef = useRef({
@@ -658,6 +659,39 @@ const KakaoMap = ({
                 drawOrUpdatePolylines(map);
                 createOrUpdateVehicleMarker(map);
                 fitMapToVisibleData(map);
+                
+                // 지도 타일 로딩 개선: relayout() 호출로 타일 재로딩 유도
+                // 지도가 완전히 렌더링된 후 relayout()을 호출하여 타일 재로딩
+                setTimeout(() => {
+                    try {
+                        if (map && mapContainer.current) {
+                            const center = map.getCenter();
+                            map.relayout();
+                            // relayout 후 중심점 복원
+                            if (center) {
+                                map.setCenter(center);
+                            }
+                        }
+                    } catch (err) {
+                        console.warn("지도 relayout 실패:", err);
+                    }
+                }, 300);
+                
+                // 추가 재시도: 지도 이벤트 리스너로 타일 로딩 완료 감지
+                if (window.kakao?.maps?.event) {
+                    const handleIdle = () => {
+                        try {
+                            if (map && mapContainer.current) {
+                                map.relayout();
+                            }
+                        } catch (err) {
+                            console.warn("지도 idle 이벤트 처리 실패:", err);
+                        }
+                    };
+                    window.kakao.maps.event.addListener(map, 'idle', handleIdle);
+                    idleListenerRef.current = { map, handler: handleIdle };
+                }
+                
                 setIsLoading(false);
                 setError(null);
             } catch (err) {
@@ -679,6 +713,17 @@ const KakaoMap = ({
                 if (infoWindowRef.current) {
                     infoWindowRef.current.close();
                     infoWindowRef.current = null;
+                }
+                // 이벤트 리스너 제거
+                if (idleListenerRef.current && window.kakao?.maps?.event) {
+                    try {
+                        window.kakao.maps.event.removeListener(
+                            idleListenerRef.current.map,
+                            'idle',
+                            idleListenerRef.current.handler
+                        );
+                    } catch {}
+                    idleListenerRef.current = null;
                 }
                 mapRef.current = null;
             } catch {}
