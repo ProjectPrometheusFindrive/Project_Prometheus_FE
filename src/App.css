@@ -7426,11 +7426,13 @@ html {
 
   .dashboard-legend__item {
     min-width: auto;
-    justify-content: flex-start;
+    justify-content: space-between;
     gap: 8px;
   }
 
   .dashboard-legend__label-wrap {
+    flex: 1;
+    min-width: 0;
     gap: 8px;
   }
 
