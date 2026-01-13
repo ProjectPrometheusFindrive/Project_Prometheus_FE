@@ -86,7 +86,7 @@ export default function ColumnSettingsMenu({
             }} />
           </div>
           <div style={{
-            color: '#888888',
+            color: '#1C1C1C',
             fontSize: 14,
             fontFamily: 'Pretendard',
             fontWeight: 500,
@@ -120,7 +120,7 @@ export default function ColumnSettingsMenu({
               }} />
             </div>
             <div style={{
-              color: '#888888',
+              color: '#1C1C1C',
               fontSize: 14,
               fontFamily: 'Pretendard',
               fontWeight: 500,
