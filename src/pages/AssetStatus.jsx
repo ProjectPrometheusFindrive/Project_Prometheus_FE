@@ -305,6 +305,16 @@ export default function AssetStatus() {
 
   // inline panel removed
 
+  // Reusable function to refresh rental consistency index per VIN
+  const refreshRentalIndex = React.useCallback(async () => {
+    try {
+      const index = await buildRentalIndexByVin();
+      setRentalsByVin(index || {});
+    } catch (e) {
+      console.error('Failed to refresh rentals index', e);
+    }
+  }, []);
+
   const { handleManagementStageChange } = useManagementStage({
     setRows,
     setStageSaving,
@@ -315,6 +325,12 @@ export default function AssetStatus() {
     setPendingNextStage,
     setRentalFormInitial,
   });
+
+  // Wrapper to refresh rental index after management stage change
+  const handleManagementStageChangeWithRefresh = React.useCallback(async (asset, nextStage) => {
+    await handleManagementStageChange(asset, nextStage);
+    await refreshRentalIndex();
+  }, [handleManagementStageChange, refreshRentalIndex]);
 
   const handleRentalCreateSubmit = async (data) => {
     // Create rental via API, then upload any provided docs (multi-file)
@@ -450,6 +466,8 @@ export default function AssetStatus() {
 
     // BE에서 계약 생성 후 자산 상태가 자동으로 업데이트되므로 자산 목록 새로고침
     await refreshAssetList();
+    // 계약 생성 후 rental index도 갱신하여 경고 아이콘이 최신 상태를 반영하도록 함
+    await refreshRentalIndex();
   };
 
   // rental create submit handled by hook version; wire context when calling
@@ -520,20 +538,8 @@ export default function AssetStatus() {
 
   // Load rental consistency index per VIN (lightweight)
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      try {
-        const index = await buildRentalIndexByVin();
-        if (mounted) setRentalsByVin(index || {});
-      } catch (e) {
-        console.error('Failed to load rentals for consistency indicator', e);
-        if (mounted) setRentalsByVin({});
-      }
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    refreshRentalIndex();
+  }, [refreshRentalIndex]);
 
   // 외부 클릭 및 ESC 감지는 useDropdownState 훅에서 처리됨
 
@@ -1376,7 +1382,7 @@ export default function AssetStatus() {
             onToggleOpen={toggleStageDropdown}
             onSelect={(value) => {
               closeStageDropdown();
-              handleManagementStageChange(row, value);
+              handleManagementStageChangeWithRefresh(row, value);
             }}
             inconsistent={inconsistent}
             reason={reason}
