@@ -43,9 +43,14 @@ export default function useManagementStage(options) {
       } catch (e) {
           console.warn("Failed to fetch rentals for VIN using resolveVehicleRentals", e);
           // Fallback to fetchRentals if resolveVehicleRentals fails
-          let rentals = await fetchRentals();
-          const list = Array.isArray(rentals) ? rentals : [];
-
+          try {
+            const rentals = await fetchRentals();
+            const list = Array.isArray(rentals) ? rentals : [];
+            // Filter by VIN and assign to allRentalsForVin
+            allRentalsForVin = list.filter(r => String(r?.vin || '') === String(asset.vin || ''));
+          } catch (fallbackErr) {
+            console.warn("Fallback fetchRentals also failed", fallbackErr);
+          }
       }
 
       const openForVin = allRentalsForVin.filter((r) => {
