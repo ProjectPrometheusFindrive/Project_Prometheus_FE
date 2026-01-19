@@ -5,6 +5,7 @@
 :root {
   --app-header-height: 60px;
   --total-vertical-offset: 250px; /* header + page padding + toolbar + margins */
+  --filter-popover-min-height: 500px; /* Issue #54: 필터 팝오버 높이 보장 */
   /* Shared badge typography for consistent look */
   --badge-font-size: 0.8rem;
   --badge-font-weight: 400;
@@ -255,6 +256,20 @@ body {
   .table-wrap--sticky
   > .table-wrap {
   min-height: 0; /* override base .table-wrap min-height so flex sizing works */
+}
+
+/* Issue #54: 필터가 열릴 때 테이블 최소 높이 보장 (팝오버 잘림 방지) */
+.page--sticky-header
+  .page-scroll.page-scroll--with-sticky-table
+  .table-wrap--sticky:has(.table-wrap--filter-open) {
+  min-height: var(--filter-popover-min-height, 500px);
+}
+
+.page--sticky-header
+  .page-scroll.page-scroll--with-sticky-table
+  .table-wrap--sticky
+  > .table-wrap.table-wrap--filter-open {
+  min-height: var(--filter-popover-min-height, 500px);
 }
 
 /* NOTE: Do not force outer scrolling here.
