@@ -34,7 +34,7 @@ export default function VehicleStatusFilterDropdown({ value, onChange, onClear, 
       data-layer="Dropdown_차량상태"
       className="Dropdown"
       style={{
-        width: 130,
+        width: 160,
         height: 190,
         position: 'relative',
       }}
@@ -44,7 +44,7 @@ export default function VehicleStatusFilterDropdown({ value, onChange, onClear, 
         data-layer="Rectangle 12"
         className="Rectangle12"
         style={{
-          width: 130,
+          width: 160,
           height: 190,
           left: 0,
           top: 0,
@@ -61,7 +61,7 @@ export default function VehicleStatusFilterDropdown({ value, onChange, onClear, 
         data-layer="Line 3"
         className="Line3"
         style={{
-          width: 90,
+          width: 120,
           height: 0,
           left: 20,
           top: 50,
@@ -76,7 +76,7 @@ export default function VehicleStatusFilterDropdown({ value, onChange, onClear, 
         data-layer="Frame 427319158"
         className="Frame427319158"
         style={{
-          width: 90,
+          width: 120,
           left: 20,
           top: 60,
           position: 'absolute',
@@ -174,7 +174,7 @@ export default function VehicleStatusFilterDropdown({ value, onChange, onClear, 
         data-layer="Frame 427319149"
         className="Frame427319149"
         style={{
-          width: 90,
+          width: 120,
           left: 20,
           top: 20,
           position: 'absolute',
