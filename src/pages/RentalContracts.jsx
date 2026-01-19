@@ -1300,7 +1300,7 @@ export default function RentalContracts() {
                 />
               </svg>
             )}
-            {hasAccident ? '사고확인' : '사고등록'}
+            {hasAccident ? '사고정보조회' : '사고등록'}
           </button>
         );
       }
@@ -1808,7 +1808,7 @@ export default function RentalContracts() {
                     </linearGradient>
                   </defs>
                 </svg>
-                {selectedContract.accidentReported ? '사고정보수정' : '사고등록'}
+                {selectedContract.accidentReported ? '사고정보조회' : '사고등록'}
               </button>
               {(() => {
                 const now = new Date();
