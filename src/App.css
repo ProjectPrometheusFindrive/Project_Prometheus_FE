@@ -2025,7 +2025,7 @@ body {
   cursor: pointer;
 }
 
-.top-header__service-name--findrive {
+.top-header__service-name--pangea {
   font-family: 'Gabarito', sans-serif;
   font-weight: 800;
   font-size: 30px;
@@ -7331,7 +7331,7 @@ html {
     margin-right: 0;
   }
 
-  .top-header__service-name--findrive {
+  .top-header__service-name--pangea {
     font-size: 24px;
   }
 

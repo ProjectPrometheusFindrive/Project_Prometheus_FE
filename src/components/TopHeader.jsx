@@ -99,7 +99,7 @@ export default function TopHeader() {
                     role="link"
                     tabIndex={0}
                     title="대시보드로 이동"
-                    aria-label="Findrive 대시보드로 이동"
+                    aria-label="Pangea 대시보드로 이동"
                     onKeyDown={(e) => {
                         if (e.key === "Enter" || e.key === " ") {
                             e.preventDefault();
@@ -107,7 +107,7 @@ export default function TopHeader() {
                         }
                     }}
                 >
-                    <span className="top-header__service-name--findrive">Findrive</span>
+                    <span className="top-header__service-name--pangea">Pangea</span>
                 </div>
             </div>
 

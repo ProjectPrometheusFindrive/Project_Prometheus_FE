@@ -60,7 +60,7 @@ export default function Login() {
       {/* Left side - Branding (hidden on mobile) */}
       <div className="auth-page__branding">
         <div className="auth-page__branding-content">
-          <h1 className="auth-page__brand-title">Findrive</h1>
+          <h1 className="auth-page__brand-title">Pangea</h1>
           <p className="auth-page__brand-tagline">차량 관리의 새로운 기준</p>
         </div>
         {/* Car illustration */}
@@ -246,7 +246,7 @@ export default function Login() {
         </div>
 
         {/* Mobile bottom logo */}
-        <div className="auth-page__mobile-logo">Findrive</div>
+        <div className="auth-page__mobile-logo">Pangea</div>
       </div>
     </div>
   );
