@@ -52,10 +52,20 @@ export const getManagementStage = (asset = {}) => {
     const deviceSerial = (asset.deviceSerial || "").trim();
     const totalIssues = getDiagnosticCount(asset);
 
-    if (vehicleStatus === "대여중" || vehicleStatus === "운행중" || vehicleStatus === "반납대기") {
+    if (
+        vehicleStatus === "대여중" ||
+        vehicleStatus === "운행중" ||
+        vehicleStatus === "연장요청" ||
+        vehicleStatus === "반납대기"
+    ) {
         return "대여중";
     }
-    if (vehicleStatus === "예약중") {
+    if (
+        vehicleStatus === "예약중" ||
+        vehicleStatus === "예약 중" ||
+        vehicleStatus === "예약확정" ||
+        vehicleStatus === "체크아웃대기"
+    ) {
         return "예약중";
     }
     if (vehicleStatus === "정비중" || vehicleStatus === "수리중" || vehicleStatus === "점검중" || vehicleStatus === "도난추적") {

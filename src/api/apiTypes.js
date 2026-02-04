@@ -29,6 +29,8 @@ export const API_ENDPOINTS = {
     RENTALS_BY_VIN: (vin) => `/rentals/byVin/${encodeURIComponent(vin)}`,
     RENTAL_INDEX_BY_VIN: '/rentals/indexByVin',
     RENTAL_MEMO_HISTORY: (id) => `/rentals/${encodeURIComponent(id)}/memoHistory`,
+    RENTAL_TRANSITION: (id) => `/rentals/${encodeURIComponent(id)}/transition`,
+    RENTAL_TRANSITIONS: (id) => `/rentals/${encodeURIComponent(id)}/transitions`,
     // Current location (and optional recent track) for a single rental
     RENTAL_LOCATION: (id) => `/rentals/${encodeURIComponent(id)}/location`,
     // Bulk locations for rentals (e.g., for map views)
@@ -184,15 +186,16 @@ export function handleApiError(error, endpoint = 'unknown') {
     if (error.status === 409) {
         return createApiResponse(null, API_STATUS.ERROR, {
             type: API_ERRORS.CONFLICT,
-            message: '이미 존재하는 아이디입니다.',
+            message: error.message || error?.data?.error?.message || '요청 충돌이 발생했습니다. 최신 상태를 확인 후 다시 시도해주세요.',
             status: statusCode,
             details
         });
     }
     
     if (error.status >= 400 && error.status < 500) {
+        const errType = error?.errorType;
         return createApiResponse(null, API_STATUS.ERROR, {
-            type: API_ERRORS.VALIDATION_ERROR,
+            type: errType || API_ERRORS.VALIDATION_ERROR,
             message: error.message || 'Request validation failed',
             status: statusCode,
             details
@@ -284,7 +287,26 @@ export function transformRental(rental) {
             end: periodRaw.end ? new Date(periodRaw.end) : null,
         }
         : null;
-    const out = { ...normalized, rentalPeriod };
+    const normalizeStateHistory = (history) => {
+        if (!Array.isArray(history)) return [];
+        return history.map((entry) => ({
+            ...entry,
+            from: entry?.from ?? null,
+            to: entry?.to ?? null,
+            action: entry?.action ?? null,
+            at: entry?.at ?? null,
+            by: entry?.by ?? null,
+            payload: entry?.payload ?? {},
+        }));
+    };
+    const out = {
+        ...normalized,
+        rentalPeriod,
+        allowedActions: Array.isArray(rental.allowedActions ?? rental.allowed_actions)
+            ? (rental.allowedActions ?? rental.allowed_actions)
+            : [],
+        stateHistory: normalizeStateHistory(rental.stateHistory ?? rental.state_history),
+    };
     // If locationUpdatedAt is missing, derive from currentLocation.recordedAt when available
     if (!out.locationUpdatedAt && out.currentLocation && out.currentLocation.recordedAt) {
         out.locationUpdatedAt = out.currentLocation.recordedAt;

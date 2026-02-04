@@ -17,6 +17,7 @@ import {
     revenueApi
 } from './apiClient';
 import { API_STATUS, API_ERRORS, createOperationResult } from './apiTypes';
+import { CONTRACT_TERMINAL_STATUSES, normalizeContractStatus } from '../constants/contractState';
 
 // Helper to extract data from standardized response
 function extractData(response) {
@@ -167,6 +168,16 @@ export async function fetchRentalAccidentDetail(rentalId) {
     return extractData(response);
 }
 
+export async function transitionRentalState(rentalId, action, payload) {
+    const response = await rentalsApi.transition(rentalId, action, payload || {});
+    return extractData(response);
+}
+
+export async function fetchRentalTransitions(rentalId) {
+    const response = await rentalsApi.fetchTransitions(rentalId);
+    return extractData(response);
+}
+
 // Vehicles snapshot
 export async function fetchVehicles() {
     const response = await vehiclesApi.fetchAll();
@@ -225,7 +236,8 @@ export async function buildRentalIndexByVin() {
         if (!vin) return acc;
         const now = new Date();
         const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
-        const open = !(returnedAt && now >= returnedAt) && r?.contractStatus !== '완료';
+        const normalizedStatus = normalizeContractStatus(r?.contractStatus);
+        const open = !(returnedAt && now >= returnedAt) && !CONTRACT_TERMINAL_STATUSES.has(normalizedStatus);
         if (!acc[vin]) acc[vin] = { hasActive: false, hasReserved: false, hasOverdue: false, hasStolen: false, openCount: 0, activeContractSummary: null, reservedContractSummary: null };
         if (open) {
             acc[vin].openCount += 1;

@@ -8,7 +8,6 @@ import { randomId } from "../../utils/id";
 import generateContractNumber from "../../utils/rentalId";
 import { useAuth } from "../../contexts/AuthContext";
 import { useCompany } from "../../contexts/CompanyContext";
-import StatusBadge from "../badges/StatusBadge";
 import FilesPreviewCarousel from "../FilesPreviewCarousel";
 import FilePreview from "../FilePreview";
 import "./RentalCreateModal.css";
@@ -61,6 +60,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
         deposit: initial.deposit || "",
         paymentMethod: initial.paymentMethod || "월별 자동이체",
         rentalType: initial.rentalType || "장기",
+        contractStatus: initial.contractStatus || "예약확정",
         contractFile: null,
         driverLicenseFile: null,
     });
@@ -124,6 +124,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                 deposit: initial.deposit || "",
                 paymentMethod: initial.paymentMethod || "월별 자동이체",
                 rentalType: initial.rentalType || "장기",
+                contractStatus: initial.contractStatus || "예약확정",
                 contractFile: null,
                 driverLicenseFile: null,
             });
@@ -470,6 +471,21 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                     <div className="rental-create-modal__contract-number">
                         <span className="rental-create-modal__contract-number-label">대여 계약번호</span>
                         <span className="rental-create-modal__contract-number-value">{contractNumber}</span>
+                    </div>
+
+                    <div className="rental-create-modal__form-row">
+                        <label className="rental-create-modal__form-label">초기 계약 상태</label>
+                        <div className="rental-create-modal__select-wrapper rental-create-modal__select-wrapper--wide">
+                            <select
+                                value={form.contractStatus}
+                                onChange={(e) => update("contractStatus", e.target.value)}
+                                className="rental-create-modal__select"
+                            >
+                                <option value="예약확정">예약확정 (기본)</option>
+                                <option value="문의">문의</option>
+                            </select>
+                            <DropdownIcon />
+                        </div>
                     </div>
 
                     {/* Renter Name & Contact */}

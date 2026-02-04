@@ -160,7 +160,9 @@ async function apiRequest(endpoint, options = {}) {
 
         if (!response.ok) {
             const errorType = payload?.error?.type;
-            const err = new Error(`HTTP ${status}: ${response.statusText}`);
+            const err = new Error(
+                payload?.error?.message || payload?.message || `HTTP ${status}: ${response.statusText}`
+            );
             // Preserve status details for upper-layer error handling
             err.status = status;
             err.statusText = response.statusText;
@@ -535,6 +537,40 @@ export const rentalsApi = {
         }
         const rid = sanitizeId(id);
         return await apiRequest(API_ENDPOINTS.RENTAL_ACCIDENT_DETAIL(rid));
+    },
+
+    async transition(id, action, payload = {}) {
+        if (!validateId(id) && typeof id !== 'number') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid rental ID'
+            });
+        }
+        if (!action || typeof action !== 'string') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid transition action'
+            });
+        }
+        const rid = sanitizeId(id);
+        return await apiRequest(API_ENDPOINTS.RENTAL_TRANSITION(rid), {
+            method: 'POST',
+            body: JSON.stringify({
+                action: String(action).trim(),
+                payload: payload && typeof payload === 'object' ? payload : {}
+            })
+        });
+    },
+
+    async fetchTransitions(id) {
+        if (!validateId(id) && typeof id !== 'number') {
+            return createApiResponse(null, API_STATUS.ERROR, {
+                type: 'VALIDATION_ERROR',
+                message: 'Invalid rental ID'
+            });
+        }
+        const rid = sanitizeId(id);
+        return await apiRequest(API_ENDPOINTS.RENTAL_TRANSITIONS(rid));
     }
 };
 
