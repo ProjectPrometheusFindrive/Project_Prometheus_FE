@@ -3,6 +3,7 @@ import { useConfirm } from "../contexts/ConfirmContext";
 import { fetchRentals, fetchRentalsSummary, updateRental, saveAsset, createRental, resolveVehicleRentals } from "../api";
 import { uploadMany } from "../utils/uploadHelpers";
 import { emitToast } from "../utils/toast";
+import { CONTRACT_TERMINAL_STATUSES, normalizeContractStatus } from "../constants/contractState";
 
 // Extracts management stage transitions and the rental-create follow-up flow.
 // Requires several state setters so it can coordinate UI with API work.
@@ -55,7 +56,8 @@ export default function useManagementStage(options) {
 
       const openForVin = allRentalsForVin.filter((r) => {
         const returnedAt = r?.returnedAt ? new Date(r.returnedAt) : null;
-        return !(returnedAt && now >= returnedAt) && r?.contractStatus !== "완료";
+        const normalizedStatus = normalizeContractStatus(r?.contractStatus);
+        return !(returnedAt && now >= returnedAt) && !CONTRACT_TERMINAL_STATUSES.has(normalizedStatus);
       });
 
       const startOf = (r) => (r?.rentalPeriod?.start ? new Date(r.rentalPeriod.start) : null);

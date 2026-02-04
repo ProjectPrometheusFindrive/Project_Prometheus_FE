@@ -1560,6 +1560,76 @@ body {
   color: #eb4a45;
 }
 
+.badge--contract-inquiry {
+  background: rgba(100, 116, 139, 0.14);
+  color: #475569;
+}
+
+.badge--contract-reserved {
+  background: rgba(37, 99, 235, 0.14);
+  color: #1d4ed8;
+}
+
+.badge--contract-checkout-pending {
+  background: rgba(245, 158, 11, 0.18);
+  color: #b45309;
+}
+
+.badge--contract-active {
+  background: rgba(22, 163, 74, 0.14);
+  color: #15803d;
+}
+
+.badge--contract-extension {
+  background: rgba(234, 88, 12, 0.14);
+  color: #c2410c;
+}
+
+.badge--contract-return-pending {
+  background: rgba(124, 58, 237, 0.14);
+  color: #6d28d9;
+}
+
+.badge--contract-closed {
+  background: rgba(55, 65, 81, 0.14);
+  color: #374151;
+}
+
+.badge--contract-canceled {
+  background: rgba(220, 38, 38, 0.12);
+  color: #b91c1c;
+}
+
+.badge--contract-no-show {
+  background: transparent;
+  border: 1px solid rgba(185, 28, 28, 0.5);
+  color: #991b1b;
+}
+
+.contract-action-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.contract-action-chip {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1e293b;
+  border-radius: 999px;
+  font-size: 12px;
+  line-height: 1;
+  padding: 7px 10px;
+  cursor: pointer;
+}
+
+.contract-action-chip:hover {
+  background: #eff6ff;
+  border-color: #93c5fd;
+}
+
 /* Rental amount cell (contracts) */
 .rental-amount-cell {
   display: flex;
@@ -6105,6 +6175,48 @@ html {
   color: #fca5a5;
 }
 
+[data-theme='dark'] .badge--contract-inquiry {
+  background: #1f2937;
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .badge--contract-reserved {
+  background: #102a56;
+  color: #93c5fd;
+}
+
+[data-theme='dark'] .badge--contract-checkout-pending,
+[data-theme='dark'] .badge--contract-extension {
+  background: #3a2210;
+  color: #fdba74;
+}
+
+[data-theme='dark'] .badge--contract-active {
+  background: #0f2e23;
+  color: #86efac;
+}
+
+[data-theme='dark'] .badge--contract-return-pending {
+  background: #2e1065;
+  color: #c4b5fd;
+}
+
+[data-theme='dark'] .badge--contract-closed {
+  background: #1f2937;
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .badge--contract-canceled {
+  background: #3a1214;
+  color: #fca5a5;
+}
+
+[data-theme='dark'] .badge--contract-no-show {
+  background: transparent;
+  border-color: rgba(252, 165, 165, 0.6);
+  color: #fecaca;
+}
+
 [data-theme='dark'] .badge--accident {
   background: #3a2210;
   color: #fdba74;
@@ -6618,6 +6730,166 @@ html {
   cursor: not-allowed;
 }
 
+.workflow-action-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.workflow-action-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #1e293b;
+  border-radius: 999px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.workflow-action-btn.is-active {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.workflow-panel {
+  margin-top: 12px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 12px;
+}
+
+.workflow-panel__title {
+  font-weight: 700;
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.workflow-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+}
+
+.workflow-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  color: #334155;
+}
+
+.workflow-field input {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 10px;
+}
+
+.workflow-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #1e293b;
+}
+
+.workflow-panel__actions {
+  margin-top: 10px;
+  display: flex;
+  gap: 8px;
+}
+
+.workflow-submit-btn,
+.workflow-cancel-btn {
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.workflow-submit-btn {
+  border: 1px solid #2563eb;
+  background: #2563eb;
+  color: #fff;
+}
+
+.workflow-cancel-btn {
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  color: #334155;
+}
+
+.contract-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.contract-timeline__item {
+  display: flex;
+  gap: 10px;
+}
+
+.contract-timeline__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  margin-top: 6px;
+  background: #2563eb;
+  flex: 0 0 auto;
+}
+
+.contract-timeline__content {
+  flex: 1;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #fff;
+  padding: 10px;
+}
+
+.contract-timeline__main {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.contract-timeline__arrow {
+  color: #64748b;
+}
+
+.contract-timeline__meta {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+.contract-timeline__payload {
+  margin: 8px 0 0;
+  border-radius: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 8px;
+  white-space: pre-wrap;
+  font-size: 11px;
+  color: #334155;
+}
+
+.contract-timeline__empty {
+  font-size: 13px;
+  color: #64748b;
+}
+
+@media (max-width: 900px) {
+  .workflow-fields {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Section */
 .rental-detail__section {
   margin-bottom: 20px;
@@ -6830,6 +7102,78 @@ html {
 
 [data-theme='dark'] .rental-detail__action-btn--outline {
   color: #ffffff;
+}
+
+[data-theme='dark'] .contract-action-chip {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .contract-action-chip:hover {
+  background: #1e293b;
+  border-color: #475569;
+}
+
+[data-theme='dark'] .workflow-action-btn {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .workflow-action-btn.is-active {
+  background: #172554;
+  border-color: #1d4ed8;
+  color: #bfdbfe;
+}
+
+[data-theme='dark'] .workflow-panel {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+[data-theme='dark'] .workflow-panel__title,
+[data-theme='dark'] .workflow-field,
+[data-theme='dark'] .workflow-check {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .workflow-field input {
+  background: #020617;
+  border-color: #334155;
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .workflow-submit-btn {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+}
+
+[data-theme='dark'] .workflow-cancel-btn {
+  background: #0f172a;
+  border-color: #334155;
+  color: #cbd5e1;
+}
+
+[data-theme='dark'] .contract-timeline__content {
+  background: #0f172a;
+  border-color: #334155;
+}
+
+[data-theme='dark'] .contract-timeline__main {
+  color: #e2e8f0;
+}
+
+[data-theme='dark'] .contract-timeline__meta,
+[data-theme='dark'] .contract-timeline__empty,
+[data-theme='dark'] .contract-timeline__arrow {
+  color: #94a3b8;
+}
+
+[data-theme='dark'] .contract-timeline__payload {
+  background: #020617;
+  border-color: #334155;
+  color: #cbd5e1;
 }
 
 /* ==================== 사고 등록 모달 (Accident Registration Modal) ==================== */

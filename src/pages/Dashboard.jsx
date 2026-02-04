@@ -4,10 +4,21 @@ import { fetchDashboardData } from "../api";
 import useApprovalQueryEffects from "../hooks/useApprovalQueryEffects";
 import StatusDonut from "../components/charts/StatusDonut";
 import TerminalRequestModal from "../components/modals/TerminalRequestModal";
+import { CONTRACT_STATUSES } from "../constants/contractState";
 
 // Colors aligned with Figma asset status donut
 const ASSET_COLORS = ["#1D4693", "#1A53EF", "#3690FF", "#78B5FF", "#A9D0FF"];
-const CONTRACT_COLORS = ["#22C55E", "#4ADE80", "#86EFAC"]; // green shades
+const CONTRACT_COLORS = [
+    "#64748B", // 문의
+    "#2563EB", // 예약확정
+    "#F59E0B", // 체크아웃대기
+    "#16A34A", // 대여중
+    "#EA580C", // 연장요청
+    "#7C3AED", // 반납대기
+    "#374151", // 종결
+    "#DC2626", // 취소
+    "#B91C1C", // 노쇼
+];
 
 export default function Dashboard() {
     const [vehicleStatus, setVehicleStatus] = useState([]);
@@ -35,10 +46,10 @@ export default function Dashboard() {
 
                 // 계약 현황
                 const contractCounts = summary.contractStatusCounts || {};
-                const contractDist = Object.entries(contractCounts).map(([name, value]) => ({
+                const contractDist = CONTRACT_STATUSES.map((name) => ({
                     name,
-                    value: Number(value) || 0,
-                    rawValue: Number(value) || 0
+                    value: Number(contractCounts[name]) || 0,
+                    rawValue: Number(contractCounts[name]) || 0,
                 }));
                 setBizStatusLabeled(contractDist.filter((d) => (d?.value ?? 0) > 0));
             } catch (e) {

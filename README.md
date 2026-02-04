@@ -35,6 +35,16 @@ npm run preview  # 빌드 미리보기
 - 성공 응답: `{ status: "success", data: { recipients: [...], submitted: {...} } }`
 - 오류: `400 VALIDATION_ERROR` 시 `details` 배열 제공, `503 EMAIL_NOT_CONFIGURED`, `502/503 EMAIL_FAILED`(메일 재시도/문의 필요)
 
+## 계약 상태 전환 연동
+- 상태는 서버 상태머신(`contractStatus`) 기준으로 사용합니다.
+- 전환 API:
+  - `POST /rentals/:id/transition` 요청: `{ action, payload? }`
+  - `GET /rentals/:id/transitions` 응답: `{ currentState, allowedActions, stateHistory }`
+- 렌탈 상세 API `GET /rentals/:id` 응답에도 `allowedActions`, `stateHistory`가 포함될 수 있습니다.
+- 대표 오류:
+  - `409 CONFLICT`: 동시 전환 충돌(최신 상태 재조회 후 재시도)
+  - `422 INVALID_TRANSITION`: 현재 상태에서 허용되지 않는 액션
+
 ## 폴더 구조(요약)
 ```
 src/

@@ -26,6 +26,8 @@ export const {
   deleteRental,
   fetchRentalMemoHistory,
   fetchRentalAccidentDetail,
+  transitionRentalState,
+  fetchRentalTransitions,
   fetchVehicles,
   buildRentalIndexByVin,
   resolveVehicleRentals,

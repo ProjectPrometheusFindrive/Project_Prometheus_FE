@@ -48,15 +48,18 @@ const StatusBadge = ({ type, variant, children, className = "", style = {} }) =>
 
 const RentalStatusBadge = ({ status }) => {
   const getStatusConfig = () => {
-    if (status === "도난 의심") {
-      return { type: "suspicious", text: "도난 의심" };
-    } else if (status?.startsWith("연체")) {
-      return { type: "overdue", text: status };
-    } else if (status === "대여 중") {
-      return { type: "rented", text: "대여 중" };
-    } else {
-      return { type: "available", text: status || "-" };
-    }
+    const map = {
+      문의: { type: "contract-inquiry", text: "문의" },
+      예약확정: { type: "contract-reserved", text: "예약확정" },
+      체크아웃대기: { type: "contract-checkout-pending", text: "체크아웃대기" },
+      대여중: { type: "contract-active", text: "대여중" },
+      연장요청: { type: "contract-extension", text: "연장요청" },
+      반납대기: { type: "contract-return-pending", text: "반납대기" },
+      종결: { type: "contract-closed", text: "종결" },
+      취소: { type: "contract-canceled", text: "취소" },
+      노쇼: { type: "contract-no-show", text: "노쇼" },
+    };
+    return map[status] || { type: "default", text: status || "-" };
   };
 
   const config = getStatusConfig();

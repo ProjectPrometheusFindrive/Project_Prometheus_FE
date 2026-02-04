@@ -4,7 +4,9 @@ import {
   fetchRentals,
   fetchRentalsSummary,
   fetchRentalById,
+  fetchRentalTransitions,
   fetchRentalAccidentDetail,
+  transitionRentalState,
   updateRental,
   createRental,
   deleteRental,
@@ -39,7 +41,7 @@ import {
   RentalAmountCell,
 } from '../components/cells';
 import useMemoEditor from '../hooks/useMemoEditor';
-import { computeContractStatus, toDate } from '../utils/contracts';
+import { computeContractStatus } from '../utils/contracts';
 // (unused constants/uploads imports removed)
 import { uploadMany } from '../utils/uploadHelpers';
 import { parseCurrency, formatCurrencyDisplay, formatNumberDisplay } from '../utils/formatters';
@@ -54,6 +56,13 @@ import ColumnSettingsMenu from '../components/ColumnSettingsMenu';
 import useAccidentReport from '../hooks/useAccidentReport';
 import { emitToast } from '../utils/toast';
 import VehicleTypeYearFilter from '../components/filters/VehicleTypeYearFilter';
+import {
+  CONTRACT_STATUSES,
+  CONTRACT_TERMINAL_STATUSES,
+  CONTRACT_STATUS_BADGE_TYPE,
+  getContractActionLabel,
+  normalizeContractStatus,
+} from '../constants/contractState';
 
 const DEFAULT_COLUMN_CONFIG = [
   { key: 'select', label: '선택', visible: true, required: true, width: 60 },
@@ -63,6 +72,7 @@ const DEFAULT_COLUMN_CONFIG = [
   { key: 'renterName', label: '예약자명', visible: true, required: false, width: 80 },
   { key: 'rentalPeriod', label: '예약기간', visible: true, required: false, width: 200 },
   { key: 'contractStatus', label: '계약상태', visible: true, required: false, width: 90 },
+  { key: 'stateActions', label: '상태전환', visible: true, required: false, width: 220 },
   { key: 'engineStatus', label: '엔진상태', visible: true, required: false, width: 80 },
   { key: 'restartBlocked', label: '재시동금지', visible: true, required: false, width: 90 },
   { key: 'accident', label: '사고등록', visible: true, required: false, width: 90 },
@@ -195,6 +205,21 @@ export default function RentalContracts() {
   } = useMemoEditor();
   const [showMemoHistoryModal, setShowMemoHistoryModal] = useState(false);
   const [memoHistoryTarget, setMemoHistoryTarget] = useState(null); // { id, plate or renterName }
+  const [workflowAction, setWorkflowAction] = useState('');
+  const [workflowPayload, setWorkflowPayload] = useState({
+    requestedEndDate: '',
+    reason: '',
+    documentsVerified: false,
+    paymentReceived: false,
+    depositCollected: false,
+    mileageAtHandover: '',
+    handoverNotes: '',
+    exteriorCheck: false,
+    interiorCheck: false,
+    mileageRecorded: false,
+    fuelLevelRecorded: false,
+    settlementCompleted: false,
+  });
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const [draggedColumnIndex, setDraggedColumnIndex] = useState(null);
   const [dragOverColumnIndex, setDragOverColumnIndex] = useState(null);
@@ -262,6 +287,61 @@ export default function RentalContracts() {
     } finally {
       setFaxSending(false);
     }
+  };
+
+  const payloadActions = new Set([
+    'request_extension',
+    'handover',
+    'complete_inspection',
+  ]);
+
+  const extractTransitionPayload = (action) => {
+    if (action === 'request_extension') {
+      return {
+        requestedEndDate: workflowPayload.requestedEndDate || undefined,
+        reason: workflowPayload.reason || undefined,
+      };
+    }
+    if (action === 'handover') {
+      return {
+        documentsVerified: Boolean(workflowPayload.documentsVerified),
+        paymentReceived: Boolean(workflowPayload.paymentReceived),
+        depositCollected: Boolean(workflowPayload.depositCollected),
+        mileageAtHandover:
+          workflowPayload.mileageAtHandover === ''
+            ? undefined
+            : Number(workflowPayload.mileageAtHandover),
+        handoverNotes: workflowPayload.handoverNotes || undefined,
+      };
+    }
+    if (action === 'complete_inspection') {
+      return {
+        exteriorCheck: Boolean(workflowPayload.exteriorCheck),
+        interiorCheck: Boolean(workflowPayload.interiorCheck),
+        mileageRecorded: Boolean(workflowPayload.mileageRecorded),
+        fuelLevelRecorded: Boolean(workflowPayload.fuelLevelRecorded),
+        settlementCompleted: Boolean(workflowPayload.settlementCompleted),
+      };
+    }
+    return {};
+  };
+
+  const resetWorkflowState = () => {
+    setWorkflowAction('');
+    setWorkflowPayload({
+      requestedEndDate: '',
+      reason: '',
+      documentsVerified: false,
+      paymentReceived: false,
+      depositCollected: false,
+      mileageAtHandover: '',
+      handoverNotes: '',
+      exteriorCheck: false,
+      interiorCheck: false,
+      mileageRecorded: false,
+      fuelLevelRecorded: false,
+      settlementCompleted: false,
+    });
   };
 
   const selectedContractTrackingData = selectedContract?.logRecord || [];
@@ -386,39 +466,23 @@ export default function RentalContracts() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showColumnDropdown]);
 
+  useEffect(() => {
+    if (!showDetail) {
+      resetWorkflowState();
+    }
+  }, [showDetail]);
+
   const rows = useMemo(() => {
-    const now = new Date();
-
-    const isOpenContract = (r) => {
-      const status = computeContractStatus(r, now);
-      if (status === '완료') return false; // 열린 계약에서 제외
-      // 문제 상태는 항상 표시
-      if (status === '반납지연' || status === '도난의심' || status === '사고접수') return true;
-      // 진행/예약 상태만 표시
-      const isFuture = !!(toDate(r?.rentalPeriod?.start) && now < toDate(r.rentalPeriod.start));
-      const isActive = !!(
-        toDate(r?.rentalPeriod?.start) &&
-        toDate(r?.rentalPeriod?.end) &&
-        now >= toDate(r.rentalPeriod.start) &&
-        now <= toDate(r.rentalPeriod.end)
-      );
-      return isActive || isFuture;
-    };
-
-    const enrich = (r) => {
-      const end = toDate(r?.rentalPeriod?.end);
-      const overdueDays = end ? Math.max(0, Math.floor((now - end) / (1000 * 60 * 60 * 24))) : 0;
-      const status = computeContractStatus(r, now);
+    const enriched = items.map((r) => {
+      const status = computeContractStatus(r);
       const isLongTerm = (r.rentalDurationDays || 0) > 30;
       const hasUnpaid = (r.unpaidAmount || 0) > 0;
       const hasDevice = computeHasDevice(r, hasDeviceByPlate);
       return {
         ...r,
-        isActive: status === '대여중',
-        isOverdue: status === '반납지연',
-        isStolen: status === '도난의심',
-        overdueDays,
         contractStatus: status,
+        allowedActions: Array.isArray(r?.allowedActions) ? r.allowedActions : [],
+        stateHistory: Array.isArray(r?.stateHistory) ? r.stateHistory : [],
         isLongTerm,
         hasUnpaid,
         engineOn: r.engineStatus === 'on',
@@ -426,13 +490,15 @@ export default function RentalContracts() {
         memo: r.memo || '',
         hasDevice,
       };
-    };
-
-    const openRows = items.filter(isOpenContract).map(enrich);
-    const completedRows = items.filter((r) => computeContractStatus(r, now) === '완료').map(enrich);
-
-    // 열린 계약 위, 완료 계약 아래로 정렬
-    return [...openRows, ...completedRows];
+    });
+    return enriched.sort((a, b) => {
+      const aTerminal = CONTRACT_TERMINAL_STATUSES.has(normalizeContractStatus(a.contractStatus));
+      const bTerminal = CONTRACT_TERMINAL_STATUSES.has(normalizeContractStatus(b.contractStatus));
+      if (aTerminal !== bTerminal) return aTerminal ? 1 : -1;
+      const aStart = a?.rentalPeriod?.start ? new Date(a.rentalPeriod.start).getTime() : 0;
+      const bStart = b?.rentalPeriod?.start ? new Date(b.rentalPeriod.start).getTime() : 0;
+      return bStart - aStart;
+    });
   }, [items, hasDeviceByPlate]);
 
   const tableFilterState = useTableFilters({ storageKey: 'rental-table-filters' });
@@ -533,12 +599,33 @@ export default function RentalContracts() {
   const handlePlateClick = (contract) => {
     if (!contract) return;
     // Open with summary data, then hydrate with full details
-    setSelectedContract(contract);
+    setSelectedContract({ ...contract, contractStatus: computeContractStatus(contract) });
+    resetWorkflowState();
     setShowDetail(true);
     (async () => {
       try {
         const full = await fetchRentalById(contract.rentalId);
-        let merged = { ...contract, ...full };
+        const transitions = await fetchRentalTransitions(contract.rentalId).catch(() => null);
+        let merged = {
+          ...contract,
+          ...full,
+          ...(transitions || {}),
+          contractStatus: computeContractStatus({ ...contract, ...full, ...(transitions || {}) }),
+          allowedActions: Array.isArray(transitions?.allowedActions)
+            ? transitions.allowedActions
+            : Array.isArray(full?.allowedActions)
+              ? full.allowedActions
+              : Array.isArray(contract?.allowedActions)
+                ? contract.allowedActions
+                : [],
+          stateHistory: Array.isArray(transitions?.stateHistory)
+            ? transitions.stateHistory
+            : Array.isArray(full?.stateHistory)
+              ? full.stateHistory
+              : Array.isArray(contract?.stateHistory)
+                ? contract.stateHistory
+                : [],
+        };
 
         // 사고 정보가 있으면 상세 사고 정보도 가져옴
         if (merged.accidentReported) {
@@ -556,10 +643,42 @@ export default function RentalContracts() {
           if (!prev || prev.rentalId !== contract.rentalId) return prev;
           return merged;
         });
+        setItems((prev) =>
+          prev.map((it) => (String(it.rentalId) === String(contract.rentalId) ? { ...it, ...merged } : it))
+        );
       } catch (e) {
         console.error('Failed to load rental details', e);
       }
     })();
+  };
+
+  const refreshRental = async (rentalId) => {
+    const [full, transitions] = await Promise.all([
+      fetchRentalById(rentalId),
+      fetchRentalTransitions(rentalId).catch(() => null),
+    ]);
+    const merged = {
+      ...full,
+      ...(transitions || {}),
+      contractStatus: computeContractStatus({ ...full, ...(transitions || {}) }),
+      allowedActions: Array.isArray(transitions?.allowedActions)
+        ? transitions.allowedActions
+        : Array.isArray(full?.allowedActions)
+          ? full.allowedActions
+          : [],
+      stateHistory: Array.isArray(transitions?.stateHistory)
+        ? transitions.stateHistory
+        : Array.isArray(full?.stateHistory)
+          ? full.stateHistory
+          : [],
+    };
+    setItems((prev) =>
+      prev.map((it) => (String(it.rentalId) === String(rentalId) ? { ...it, ...merged } : it))
+    );
+    setSelectedContract((prev) =>
+      prev && String(prev.rentalId) === String(rentalId) ? { ...prev, ...merged } : prev
+    );
+    return merged;
   };
 
   const handleToggleRestart = async (rentalId) => {
@@ -583,6 +702,49 @@ export default function RentalContracts() {
       console.error('Failed to update restart flag', e);
       emitToast('재시동 금지 상태 변경 실패', 'error');
     }
+  };
+
+  const executeTransition = async (rentalId, action, payload = {}) => {
+    try {
+      await transitionRentalState(rentalId, action, payload);
+      await refreshRental(rentalId);
+      emitToast(`${getContractActionLabel(action)} 완료`, 'success');
+      resetWorkflowState();
+      return true;
+    } catch (e) {
+      const errorType = e?.errorType || e?.type || e?.data?.error?.type;
+      if (errorType === 'CONFLICT') {
+        await refreshRental(rentalId).catch(() => null);
+        emitToast('상태가 이미 변경되었습니다. 최신 상태를 확인 후 다시 시도해주세요.', 'warning');
+        return false;
+      }
+      if (errorType === 'INVALID_TRANSITION') {
+        await refreshRental(rentalId).catch(() => null);
+        emitToast('현재 상태에서 허용되지 않는 전환입니다.', 'warning');
+        return false;
+      }
+      emitToast(e?.message || '상태 전환에 실패했습니다.', 'error');
+      return false;
+    }
+  };
+
+  const handleStateAction = async (row, action) => {
+    if (!row?.rentalId || !action) return;
+    if (payloadActions.has(action)) {
+      handlePlateClick(row);
+      setWorkflowAction(action);
+      return;
+    }
+    if (action === 'cancel' || action === 'no_show') {
+      const ok = await confirm({
+        title: '상태 전환',
+        message: `${getContractActionLabel(action)} 처리하시겠습니까?`,
+        confirmText: '실행',
+        cancelText: '취소',
+      });
+      if (!ok) return;
+    }
+    await executeTransition(row.rentalId, action);
   };
 
   const handleMemoEdit = (rentalId, currentMemo) => onMemoEdit(rentalId, currentMemo);
@@ -1055,15 +1217,8 @@ export default function RentalContracts() {
           ...(col.key === 'contractStatus'
             ? {
                 filterType: 'multi-select',
-                filterAccessor: (row) => computeContractStatus(row),
-                filterOptions: [
-                  { value: '대여중', label: '대여중' },
-                  { value: '예약 중', label: '예약 중' },
-                  { value: '반납지연', label: '반납지연' },
-                  { value: '도난의심', label: '도난의심' },
-                  { value: '사고접수', label: '사고접수' },
-                  { value: '완료', label: '완료' },
-                ],
+                filterAccessor: (row) => normalizeContractStatus(row?.contractStatus),
+                filterOptions: CONTRACT_STATUSES.map((status) => ({ value: status, label: status })),
                 filterAllowAnd: false,
                 filterHideHeader: true,
               }
@@ -1106,6 +1261,7 @@ export default function RentalContracts() {
       memoText,
       handleToggleRestart,
       handlePlateClick,
+      handleStateAction,
       handleOpenAccidentModal,
     ]
   );
@@ -1169,6 +1325,27 @@ export default function RentalContracts() {
         return <RentalAmountCell row={row} />;
       case 'contractStatus':
         return getContractStatusBadge(row.contractStatus);
+      case 'stateActions': {
+        const actions = Array.isArray(row?.allowedActions) ? row.allowedActions : [];
+        if (actions.length === 0) {
+          return <span style={{ color: '#9CA3AF', fontSize: 12 }}>없음</span>;
+        }
+        return (
+          <div className="contract-action-cell">
+            {actions.slice(0, 3).map((action) => (
+              <button
+                key={`${row.rentalId}-${action}`}
+                type="button"
+                className="contract-action-chip"
+                onClick={() => handleStateAction(row, action)}
+                title={getContractActionLabel(action)}
+              >
+                {getContractActionLabel(action)}
+              </button>
+            ))}
+          </div>
+        );
+      }
       case 'engineStatus': {
         if (!row?.hasDevice) {
           return (
@@ -1332,6 +1509,7 @@ export default function RentalContracts() {
   const formatDateTime = (dateString) => {
     if (!dateString) return '-';
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return String(dateString);
     const year = date.getFullYear().toString().slice(-2);
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
@@ -1341,43 +1519,144 @@ export default function RentalContracts() {
   };
 
   const getContractStatusBadge = (status) => {
-    if (!status) {
+    const normalized = normalizeContractStatus(status);
+    const badgeType = CONTRACT_STATUS_BADGE_TYPE[normalized];
+    if (!badgeType) {
       return (
         <span style={{ color: '#1C1C1C', fontSize: 14, fontFamily: 'Pretendard', fontWeight: 500 }}>
-          -
+          {normalized || '-'}
         </span>
       );
     }
+    return <StatusBadge type={badgeType}>{normalized}</StatusBadge>;
+  };
 
-    // 디자인: 배경 없이 SVG dot + 텍스트 (bold)
-    const statusColorMap = {
-      '예약 중': '#E9850D',
-      대여중: '#0CA255',
-      사고접수: '#E50E08',
-      반납지연: '#FF6B00',
-      도난의심: '#E50E08',
-      완료: '#006CEC',
-    };
-    const color = statusColorMap[status] || '#1C1C1C';
-    return (
-      <span
-        style={{
-          color,
-          fontSize: 14,
-          fontFamily: 'Pretendard',
-          fontWeight: 700,
-          lineHeight: '24px',
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 4,
-        }}
-      >
-        <svg width="7" height="7" viewBox="0 0 7 7" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="3.5" cy="3.5" r="3.5" fill={color} />
-        </svg>
-        {status}
-      </span>
-    );
+  const renderWorkflowFields = () => {
+    if (!workflowAction) return null;
+    if (workflowAction === 'request_extension') {
+      return (
+        <div className="workflow-fields">
+          <label className="workflow-field">
+            <span>연장 종료일</span>
+            <input
+              type="date"
+              value={workflowPayload.requestedEndDate}
+              onChange={(e) =>
+                setWorkflowPayload((prev) => ({ ...prev, requestedEndDate: e.target.value }))
+              }
+            />
+          </label>
+          <label className="workflow-field">
+            <span>요청 사유</span>
+            <input
+              type="text"
+              value={workflowPayload.reason}
+              placeholder="연장 요청 사유 입력"
+              onChange={(e) => setWorkflowPayload((prev) => ({ ...prev, reason: e.target.value }))}
+            />
+          </label>
+        </div>
+      );
+    }
+    if (workflowAction === 'handover') {
+      return (
+        <div className="workflow-fields">
+          <label className="workflow-check">
+            <input
+              type="checkbox"
+              checked={workflowPayload.documentsVerified}
+              onChange={(e) =>
+                setWorkflowPayload((prev) => ({ ...prev, documentsVerified: e.target.checked }))
+              }
+            />
+            서류 확인 완료
+          </label>
+          <label className="workflow-check">
+            <input
+              type="checkbox"
+              checked={workflowPayload.paymentReceived}
+              onChange={(e) =>
+                setWorkflowPayload((prev) => ({ ...prev, paymentReceived: e.target.checked }))
+              }
+            />
+            결제 확인 완료
+          </label>
+          <label className="workflow-check">
+            <input
+              type="checkbox"
+              checked={workflowPayload.depositCollected}
+              onChange={(e) =>
+                setWorkflowPayload((prev) => ({ ...prev, depositCollected: e.target.checked }))
+              }
+            />
+            보증금 수령 완료
+          </label>
+          <label className="workflow-field">
+            <span>인수 시 주행거리(km)</span>
+            <input
+              type="number"
+              value={workflowPayload.mileageAtHandover}
+              onChange={(e) =>
+                setWorkflowPayload((prev) => ({ ...prev, mileageAtHandover: e.target.value }))
+              }
+            />
+          </label>
+          <label className="workflow-field">
+            <span>인수 메모</span>
+            <input
+              type="text"
+              value={workflowPayload.handoverNotes}
+              onChange={(e) =>
+                setWorkflowPayload((prev) => ({ ...prev, handoverNotes: e.target.value }))
+              }
+            />
+          </label>
+        </div>
+      );
+    }
+    if (workflowAction === 'complete_inspection') {
+      return (
+        <div className="workflow-fields">
+          {[
+            ['exteriorCheck', '외관 점검 완료'],
+            ['interiorCheck', '내부 점검 완료'],
+            ['mileageRecorded', '주행거리 기록 완료'],
+            ['fuelLevelRecorded', '연료량 기록 완료'],
+            ['settlementCompleted', '정산 완료'],
+          ].map(([key, label]) => (
+            <label key={key} className="workflow-check">
+              <input
+                type="checkbox"
+                checked={Boolean(workflowPayload[key])}
+                onChange={(e) =>
+                  setWorkflowPayload((prev) => ({ ...prev, [key]: e.target.checked }))
+                }
+              />
+              {label}
+            </label>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
+  const submitWorkflowAction = async () => {
+    if (!selectedContract?.rentalId || !workflowAction) return;
+    const payload = extractTransitionPayload(workflowAction);
+    const ok = await executeTransition(selectedContract.rentalId, workflowAction, payload);
+    if (ok) {
+      await refreshRental(selectedContract.rentalId).catch(() => null);
+    }
+  };
+
+  const getStateHistoryRows = (contract) => {
+    const history = Array.isArray(contract?.stateHistory) ? contract.stateHistory : [];
+    return [...history].sort((a, b) => {
+      const atA = a?.at ? Date.parse(a.at) : 0;
+      const atB = b?.at ? Date.parse(b.at) : 0;
+      return atB - atA;
+    });
   };
 
   // getRentalAmountBadges moved to RentalAmountCell component
@@ -1493,7 +1772,9 @@ export default function RentalContracts() {
           rowIdKey="rentalId"
           columns={dynamicColumns}
           data={filteredRows}
-          rowClassName={(row) => (row.contractStatus === '완료' ? 'is-completed' : undefined)}
+          rowClassName={(row) =>
+            normalizeContractStatus(row.contractStatus) === '종결' ? 'is-completed' : undefined
+          }
           selection={{ selected, toggleSelect, toggleSelectAllVisible, allVisibleSelected }}
           emptyMessage="조건에 맞는 계약이 없습니다."
           stickyHeader
@@ -1810,79 +2091,57 @@ export default function RentalContracts() {
                 </svg>
                 {selectedContract.accidentReported ? '사고정보조회' : '사고등록'}
               </button>
-              {(() => {
-                const now = new Date();
-                const returnedAt = selectedContract?.returnedAt
-                  ? new Date(selectedContract.returnedAt)
-                  : null;
-                const isReturned = returnedAt ? now >= returnedAt : false;
-                return (
-                  <button
-                    className="rental-detail__action-btn rental-detail__action-btn--outline"
-                    onClick={async () => {
-                      const ok = window.confirm('반납 등록 하시겠습니까?');
-                      if (!ok) return;
-                      const rid = selectedContract.rentalId;
-                      const ts = new Date().toISOString();
-                      try {
-                        await updateRental(rid, { returnedAt: ts });
-                      } catch (e) {
-                        console.warn('updateRental failed; falling back to local state', e);
-                      }
-                      setItems((prev) =>
-                        prev.map((it) => (it.rentalId === rid ? { ...it, returnedAt: ts } : it))
-                      );
-                      setShowDetail(false);
-                      setSelectedContract(null);
-                    }}
-                    disabled={isReturned}
-                    title={isReturned ? '이미 반납 처리됨' : '반납 처리'}
-                  >
-                    <svg
-                      width="18"
-                      height="18"
-                      viewBox="0 0 18 18"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
-                    >
-                      <g clipPath="url(#clip_check)">
-                        <path
-                          d="M16.7142 8.28984V8.99955C16.7133 10.6631 16.1746 12.2817 15.1786 13.6141C14.1825 14.9465 12.7825 15.9212 11.1872 16.3928C9.59195 16.8645 7.88696 16.8079 6.32652 16.2314C4.76608 15.6549 3.43381 14.5894 2.52839 13.1939C1.62296 11.7983 1.19291 10.1475 1.30237 8.48757C1.41182 6.82765 2.05492 5.24758 3.13575 3.98301C4.21657 2.71844 5.67722 1.83713 7.29985 1.47052C8.92247 1.10391 10.6201 1.27164 12.1396 1.9487"
-                          stroke="url(#paint_check)"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                        <path
-                          d="M16.7142 3.56656L8.80209 11.2808L6.42847 8.96887"
-                          stroke="#006CEC"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </g>
-                      <defs>
-                        <linearGradient
-                          id="paint_check"
-                          x1="8.99993"
-                          y1="1.28085"
-                          x2="8.99993"
-                          y2="16.7094"
-                          gradientUnits="userSpaceOnUse"
-                        >
-                          <stop stopColor="#239EFF" />
-                          <stop offset="1" stopColor="#005BE4" />
-                        </linearGradient>
-                        <clipPath id="clip_check">
-                          <rect width="18" height="18" fill="white" />
-                        </clipPath>
-                      </defs>
-                    </svg>
-                    반납등록
-                  </button>
-                );
-              })()}
+              {(selectedContract.allowedActions || []).map((action) => (
+                <button
+                  key={`detail-action-${action}`}
+                  className="rental-detail__action-btn rental-detail__action-btn--outline"
+                  type="button"
+                  onClick={() => {
+                    if (payloadActions.has(action)) {
+                      setWorkflowAction(action);
+                    } else {
+                      handleStateAction(selectedContract, action);
+                    }
+                  }}
+                >
+                  {getContractActionLabel(action)}
+                </button>
+              ))}
             </div>
+
+            {(selectedContract.allowedActions || []).length > 0 && (
+              <div className="rental-detail__section">
+                <h3 className="rental-detail__section-title">상태 전환 워크플로우</h3>
+                <div className="workflow-action-list">
+                  {(selectedContract.allowedActions || []).map((action) => (
+                    <button
+                      key={`workflow-${action}`}
+                      type="button"
+                      className={`workflow-action-btn${workflowAction === action ? ' is-active' : ''}`}
+                      onClick={() => setWorkflowAction(action)}
+                    >
+                      {getContractActionLabel(action)}
+                    </button>
+                  ))}
+                </div>
+                {workflowAction && (
+                  <div className="workflow-panel">
+                    <div className="workflow-panel__title">{getContractActionLabel(workflowAction)}</div>
+                    {renderWorkflowFields()}
+                    <div className="workflow-panel__actions">
+                      <button type="button" className="workflow-submit-btn" onClick={submitWorkflowAction}>
+                        전환 실행
+                      </button>
+                      <button type="button" className="workflow-cancel-btn" onClick={resetWorkflowState}>
+                        취소
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="rental-detail__section-divider"></div>
 
             {/* 기본정보 섹션 */}
             <div className="rental-detail__section">
@@ -1921,16 +2180,47 @@ export default function RentalContracts() {
 
             <div className="rental-detail__section-divider"></div>
 
+            <div className="rental-detail__section">
+              <h3 className="rental-detail__section-title">상태 이력 타임라인</h3>
+              <div className="contract-timeline">
+                {getStateHistoryRows(selectedContract).length === 0 ? (
+                  <div className="contract-timeline__empty">상태 이력이 없습니다.</div>
+                ) : (
+                  getStateHistoryRows(selectedContract).map((entry, index) => (
+                    <div className="contract-timeline__item" key={`history-${index}-${entry?.at || 'none'}`}>
+                      <div className="contract-timeline__dot" />
+                      <div className="contract-timeline__content">
+                        <div className="contract-timeline__main">
+                          <span>{normalizeContractStatus(entry?.from) || '시작'}</span>
+                          <span className="contract-timeline__arrow">→</span>
+                          <span>{normalizeContractStatus(entry?.to) || '-'}</span>
+                        </div>
+                        <div className="contract-timeline__meta">
+                          {getContractActionLabel(entry?.action)} · {formatDateTime(entry?.at)} ·{' '}
+                          {entry?.by || 'system'}
+                        </div>
+                        {entry?.payload && Object.keys(entry.payload).length > 0 && (
+                          <pre className="contract-timeline__payload">
+                            {JSON.stringify(entry.payload, null, 2)}
+                          </pre>
+                        )}
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
+            <div className="rental-detail__section-divider"></div>
+
             {/* 계약정보 섹션 */}
             <div className="rental-detail__section">
               <h3 className="rental-detail__section-title">계약정보</h3>
               <div className="rental-detail__info-grid">
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">계약상태</span>
-                  <span
-                    className={`rental-detail__info-value ${computeContractStatus(selectedContract) === '반납지연' ? 'rental-detail__info-value--status' : ''}`}
-                  >
-                    {computeContractStatus(selectedContract) || '-'}
+                  <span className="rental-detail__info-value">
+                    {normalizeContractStatus(selectedContract.contractStatus) || '-'}
                   </span>
                 </div>
                 <div className="rental-detail__info-row">
