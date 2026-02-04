@@ -495,7 +495,7 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                     {/* Address */}
                     <div className="rental-create-modal__form-row">
                         <label className="rental-create-modal__form-label">계약자 주소</label>
-                        <div className="rental-create-modal__input-wrapper rental-create-modal__input-wrapper--wide">
+                        <div className="rental-create-modal__input-wrapper">
                             <input
                                 type="text"
                                 value={form.address}
@@ -503,9 +503,6 @@ const RentalCreateModal = ({ isOpen, onClose, onSubmit, initial = {} }) => {
                                 placeholder="주소를 입력하세요"
                                 className="rental-create-modal__input rental-create-modal__input--wide"
                             />
-                            <button type="button" className="rental-create-modal__postcode-btn">
-                                우편번호
-                            </button>
                         </div>
                     </div>
 

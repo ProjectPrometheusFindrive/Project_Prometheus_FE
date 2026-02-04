@@ -311,27 +311,6 @@
     gap: 10px;
 }
 
-.rental-create-modal__input-wrapper--wide {
-    position: relative;
-}
-
-.rental-create-modal__postcode-btn {
-    position: absolute;
-    right: 14px;
-    background: transparent;
-    border: none;
-    font-size: 12px;
-    font-family: 'Pretendard', sans-serif;
-    font-weight: 600;
-    color: #006CEC;
-    line-height: 18px;
-    cursor: pointer;
-}
-
-.rental-create-modal__postcode-btn:hover {
-    text-decoration: underline;
-}
-
 .rental-create-modal__date-wrapper {
     flex: 1;
     position: relative;
