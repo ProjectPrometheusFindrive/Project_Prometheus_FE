@@ -285,6 +285,23 @@
 
 .rental-create-modal__input--date {
     padding-right: 40px;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: textfield;
+    background-image: url("../../assets/calendar.svg");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px 18px;
+}
+
+.rental-create-modal__input--date::-webkit-calendar-picker-indicator {
+    opacity: 0;
+    cursor: pointer;
+}
+
+.rental-create-modal__input--date::-webkit-inner-spin-button,
+.rental-create-modal__input--date::-webkit-clear-button {
+    display: none;
 }
 
 .rental-create-modal__input-wrapper {
@@ -320,12 +337,6 @@
     position: relative;
     display: flex;
     align-items: center;
-}
-
-.rental-create-modal__date-wrapper svg {
-    position: absolute;
-    right: 14px;
-    pointer-events: none;
 }
 
 .rental-create-modal__select-wrapper {
