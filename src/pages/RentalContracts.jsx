@@ -44,12 +44,17 @@ import useMemoEditor from '../hooks/useMemoEditor';
 import { computeContractStatus } from '../utils/contracts';
 // (unused constants/uploads imports removed)
 import { uploadMany } from '../utils/uploadHelpers';
-import { parseCurrency, formatCurrencyDisplay, formatNumberDisplay } from '../utils/formatters';
+import {
+  parseCurrency,
+  formatCurrencyDisplay,
+  formatNumberDisplay,
+  formatPhone11,
+} from '../utils/formatters';
 import { formatDisplayDate } from '../utils/date';
 import { formatYyMmDdHhMmSs } from '../utils/datetime';
 import FilePreview from '../components/FilePreview';
 import { useAuth } from '../contexts/AuthContext';
-import { ROLES } from '../constants/auth';
+import { ROLES, isRoleAtLeast } from '../constants/auth';
 import useColumnSettings from '../hooks/useColumnSettings';
 import { VehicleTypeText } from '../components/cells';
 import ColumnSettingsMenu from '../components/ColumnSettingsMenu';
@@ -188,9 +193,13 @@ export default function RentalContracts() {
   const confirm = useConfirm();
   const auth = useAuth();
   const isSuperAdmin = auth?.user?.role === ROLES.SUPER_ADMIN;
+  const canEditContract = isRoleAtLeast(auth?.user?.role, ROLES.ADMIN);
   const [items, setItems] = useState([]);
   const [showCreate, setShowCreate] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [isDetailEditing, setIsDetailEditing] = useState(false);
+  const [detailDraft, setDetailDraft] = useState(null);
+  const [isSavingDetail, setIsSavingDetail] = useState(false);
   const [showLocationMap, setShowLocationMap] = useState(false);
   const [isLoadingLocation, setIsLoadingLocation] = useState(false);
   const [trailLimit, setTrailLimit] = useState(TRAIL_INITIAL_LIMIT);
@@ -239,6 +248,43 @@ export default function RentalContracts() {
   const [faxTitle, setFaxTitle] = useState('');
   const [faxFiles, setFaxFiles] = useState([]);
   const [faxSending, setFaxSending] = useState(false);
+
+  const toDatetimeLocalValue = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  };
+
+  const toIsoOrEmpty = (value) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString();
+  };
+
+  const createDetailDraft = (contract) => ({
+    renterName: contract?.renterName || '',
+    contactNumber: contract?.contactNumber || '',
+    insuranceName: contract?.insuranceName || '',
+    paymentMethod: contract?.paymentMethod || '',
+    rentalAmount: String(contract?.rentalAmount ?? ''),
+    deposit: String(contract?.deposit ?? ''),
+    unpaidAmount: String(contract?.unpaidAmount ?? ''),
+    memo: contract?.memo || '',
+    specialNotes: contract?.specialNotes || '',
+    start: toDatetimeLocalValue(contract?.rentalPeriod?.start),
+    end: toDatetimeLocalValue(contract?.rentalPeriod?.end),
+    rentalLocationAddress:
+      contract?.rentalLocation?.address || contract?.address || contract?.location || '',
+    returnLocationAddress:
+      contract?.returnLocation?.address || contract?.address || contract?.location || '',
+  });
 
   // FAX 번호 검증 (BE와 동일한 규칙: 9-11자리 숫자)
   const validateFaxNumber = (faxNum) => {
@@ -469,8 +515,139 @@ export default function RentalContracts() {
   useEffect(() => {
     if (!showDetail) {
       resetWorkflowState();
+      setIsDetailEditing(false);
+      setDetailDraft(null);
+      setIsSavingDetail(false);
     }
   }, [showDetail]);
+
+  useEffect(() => {
+    if (!showDetail || !selectedContract || isDetailEditing) return;
+    setDetailDraft(createDetailDraft(selectedContract));
+  }, [showDetail, selectedContract, isDetailEditing]);
+
+  const buildDetailPatch = (source, draft) => {
+    const patch = {};
+    if (!source || !draft) return patch;
+
+    const trim = (v) => String(v ?? '').trim();
+    const srcRenterName = trim(source.renterName);
+    const srcContact = trim(source.contactNumber);
+    const srcInsurance = trim(source.insuranceName);
+    const srcPaymentMethod = trim(source.paymentMethod);
+    const srcMemo = String(source.memo || '');
+    const srcSpecialNotes = String(source.specialNotes || '');
+    const srcStart = source?.rentalPeriod?.start || '';
+    const srcEnd = source?.rentalPeriod?.end || '';
+    const srcStartLocal = toDatetimeLocalValue(srcStart);
+    const srcEndLocal = toDatetimeLocalValue(srcEnd);
+    const srcRentalLocationAddress = trim(
+      source?.rentalLocation?.address || source?.address || source?.location || ''
+    );
+    const srcReturnLocationAddress = trim(
+      source?.returnLocation?.address || source?.address || source?.location || ''
+    );
+
+    const nextRenterName = trim(draft.renterName);
+    const nextContact = trim(draft.contactNumber);
+    const nextInsurance = trim(draft.insuranceName);
+    const nextPaymentMethod = trim(draft.paymentMethod);
+    const nextMemo = String(draft.memo || '');
+    const nextSpecialNotes = String(draft.specialNotes || '');
+    const nextStart = toIsoOrEmpty(draft.start);
+    const nextEnd = toIsoOrEmpty(draft.end);
+    const nextRentalLocationAddress = trim(draft.rentalLocationAddress);
+    const nextReturnLocationAddress = trim(draft.returnLocationAddress);
+
+    const nextRentalAmount = parseCurrency(draft.rentalAmount);
+    const nextDeposit = parseCurrency(draft.deposit);
+    const nextUnpaidAmount = parseCurrency(draft.unpaidAmount);
+
+    if (srcRenterName !== nextRenterName) patch.renterName = nextRenterName;
+    if (srcContact !== nextContact) patch.contactNumber = nextContact;
+    if (srcInsurance !== nextInsurance) patch.insuranceName = nextInsurance;
+    if (srcPaymentMethod !== nextPaymentMethod) patch.paymentMethod = nextPaymentMethod;
+    if (Number(source?.rentalAmount || 0) !== nextRentalAmount) patch.rentalAmount = nextRentalAmount;
+    if (Number(source?.deposit || 0) !== nextDeposit) patch.deposit = nextDeposit;
+    if (Number(source?.unpaidAmount || 0) !== nextUnpaidAmount) patch.unpaidAmount = nextUnpaidAmount;
+    if (srcMemo !== nextMemo) patch.memo = nextMemo;
+    if (srcSpecialNotes !== nextSpecialNotes) patch.specialNotes = nextSpecialNotes;
+    if ((draft.start || '') !== srcStartLocal || (draft.end || '') !== srcEndLocal) {
+      patch.rentalPeriod = {
+        start: nextStart || srcStart || '',
+        end: nextEnd || srcEnd || '',
+      };
+    }
+    if (srcRentalLocationAddress !== nextRentalLocationAddress) {
+      patch.rentalLocation = {
+        ...(source?.rentalLocation || {}),
+        address: nextRentalLocationAddress,
+      };
+    }
+    if (srcReturnLocationAddress !== nextReturnLocationAddress) {
+      patch.returnLocation = {
+        ...(source?.returnLocation || {}),
+        address: nextReturnLocationAddress,
+      };
+    }
+
+    return patch;
+  };
+
+  const handleDetailClose = async () => {
+    if (isDetailEditing) {
+      const ok = await confirm({
+        title: '수정 취소',
+        message: '저장하지 않은 변경 내용이 있습니다. 닫으시겠습니까?',
+        confirmText: '닫기',
+        cancelText: '계속 수정',
+      });
+      if (!ok) return;
+    }
+    setShowDetail(false);
+  };
+
+  const handleDetailEditStart = () => {
+    if (!selectedContract || !canEditContract) return;
+    setDetailDraft(createDetailDraft(selectedContract));
+    setIsDetailEditing(true);
+  };
+
+  const handleDetailEditCancel = () => {
+    setDetailDraft(createDetailDraft(selectedContract));
+    setIsDetailEditing(false);
+  };
+
+  const handleDetailDraftChange = (field, value) => {
+    setDetailDraft((prev) => ({ ...(prev || {}), [field]: value }));
+  };
+
+  const handleDetailSave = async () => {
+    if (!selectedContract?.rentalId || !detailDraft || isSavingDetail) return;
+    const patch = buildDetailPatch(selectedContract, detailDraft);
+    if (Object.keys(patch).length === 0) {
+      emitToast('변경된 내용이 없습니다.', 'info');
+      setIsDetailEditing(false);
+      return;
+    }
+
+    try {
+      setIsSavingDetail(true);
+      await updateRental(selectedContract.rentalId, patch);
+      await refreshRental(selectedContract.rentalId);
+      setIsDetailEditing(false);
+      emitToast('계약 정보가 저장되었습니다.', 'success');
+    } catch (e) {
+      const errorType = e?.errorType || e?.type || e?.data?.error?.type;
+      if (errorType === 'FORBIDDEN') {
+        emitToast('계약 수정 권한이 없습니다.', 'warning');
+      } else {
+        emitToast(e?.message || '계약 저장에 실패했습니다.', 'error');
+      }
+    } finally {
+      setIsSavingDetail(false);
+    }
+  };
 
   const rows = useMemo(() => {
     const enriched = items.map((r) => {
@@ -599,6 +776,7 @@ export default function RentalContracts() {
   const handlePlateClick = (contract) => {
     if (!contract) return;
     // Open with summary data, then hydrate with full details
+    setIsDetailEditing(false);
     setSelectedContract({ ...contract, contractStatus: computeContractStatus(contract) });
     resetWorkflowState();
     setShowDetail(true);
@@ -1659,6 +1837,12 @@ export default function RentalContracts() {
     });
   };
 
+  const detailPatchPreview = useMemo(
+    () => (selectedContract && detailDraft ? buildDetailPatch(selectedContract, detailDraft) : {}),
+    [selectedContract, detailDraft]
+  );
+  const hasDetailChanges = Object.keys(detailPatchPreview).length > 0;
+
   // getRentalAmountBadges moved to RentalAmountCell component
 
   return (
@@ -1795,7 +1979,7 @@ export default function RentalContracts() {
 
       <Modal
         isOpen={showDetail}
-        onClose={() => setShowDetail(false)}
+        onClose={handleDetailClose}
         showFooter={false}
         ariaLabel="Contract Details"
         className="rental-detail-modal"
@@ -1810,7 +1994,7 @@ export default function RentalContracts() {
               </div>
               <button
                 className="rental-detail__close-btn"
-                onClick={() => setShowDetail(false)}
+                onClick={handleDetailClose}
                 aria-label="닫기"
               >
                 <svg
@@ -2027,10 +2211,40 @@ export default function RentalContracts() {
 
             {/* Action Buttons */}
             <div className="rental-detail__actions">
+              {isDetailEditing ? (
+                <>
+                  <button
+                    className="rental-detail__action-btn rental-detail__action-btn--primary"
+                    onClick={handleDetailSave}
+                    disabled={isSavingDetail || !hasDetailChanges}
+                    title="수정한 내용을 저장"
+                  >
+                    {isSavingDetail ? '저장 중...' : '저장'}
+                  </button>
+                  <button
+                    className="rental-detail__action-btn rental-detail__action-btn--outline"
+                    type="button"
+                    onClick={handleDetailEditCancel}
+                    disabled={isSavingDetail}
+                  >
+                    취소
+                  </button>
+                </>
+              ) : (
+                canEditContract && (
+                  <button
+                    className="rental-detail__action-btn rental-detail__action-btn--outline"
+                    type="button"
+                    onClick={handleDetailEditStart}
+                  >
+                    수정
+                  </button>
+                )
+              )}
               <button
                 className="rental-detail__action-btn rental-detail__action-btn--primary"
                 onClick={handleShowLocation}
-                disabled={isLoadingLocation}
+                disabled={isLoadingLocation || isDetailEditing}
                 title="현재 위치를 지도에서 확인"
               >
                 <svg
@@ -2063,6 +2277,7 @@ export default function RentalContracts() {
               <button
                 className="rental-detail__action-btn rental-detail__action-btn--outline"
                 onClick={() => handleOpenAccidentModal(selectedContract)}
+                disabled={isDetailEditing}
               >
                 <svg
                   width="17"
@@ -2096,6 +2311,7 @@ export default function RentalContracts() {
                   key={`detail-action-${action}`}
                   className="rental-detail__action-btn rental-detail__action-btn--outline"
                   type="button"
+                  disabled={isDetailEditing}
                   onClick={() => {
                     if (payloadActions.has(action)) {
                       setWorkflowAction(action);
@@ -2109,7 +2325,7 @@ export default function RentalContracts() {
               ))}
             </div>
 
-            {(selectedContract.allowedActions || []).length > 0 && (
+            {!isDetailEditing && (selectedContract.allowedActions || []).length > 0 && (
               <div className="rental-detail__section">
                 <h3 className="rental-detail__section-title">상태 전환 워크플로우</h3>
                 <div className="workflow-action-list">
@@ -2159,15 +2375,33 @@ export default function RentalContracts() {
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">예약자명</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.renterName || '-'}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.renterName || ''}
+                      onChange={(e) => handleDetailDraftChange('renterName', e.target.value)}
+                      placeholder="예약자명 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">{selectedContract.renterName || '-'}</span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">연락처</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.contactNumber || '-'}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.contactNumber || ''}
+                      onChange={(e) =>
+                        handleDetailDraftChange('contactNumber', formatPhone11(e.target.value))
+                      }
+                      placeholder="000-0000-0000"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {selectedContract.contactNumber || '-'}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">면허정보</span>
@@ -2231,33 +2465,82 @@ export default function RentalContracts() {
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">대여 시작</span>
-                  <span className="rental-detail__info-value">
-                    {formatDateTime(selectedContract.rentalPeriod?.start)}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      type="datetime-local"
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.start || ''}
+                      onChange={(e) => handleDetailDraftChange('start', e.target.value)}
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {formatDateTime(selectedContract.rentalPeriod?.start)}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">대여 종료</span>
-                  <span className="rental-detail__info-value">
-                    {formatDateTime(selectedContract.rentalPeriod?.end)}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      type="datetime-local"
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.end || ''}
+                      onChange={(e) => handleDetailDraftChange('end', e.target.value)}
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {formatDateTime(selectedContract.rentalPeriod?.end)}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">배차위치</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.rentalLocation?.address || selectedContract.address || '-'}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.rentalLocationAddress || ''}
+                      onChange={(e) =>
+                        handleDetailDraftChange('rentalLocationAddress', e.target.value)
+                      }
+                      placeholder="배차 위치 주소 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {selectedContract.rentalLocation?.address || selectedContract.address || '-'}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">반납위치</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.returnLocation?.address || selectedContract.address || '-'}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.returnLocationAddress || ''}
+                      onChange={(e) =>
+                        handleDetailDraftChange('returnLocationAddress', e.target.value)
+                      }
+                      placeholder="반납 위치 주소 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {selectedContract.returnLocation?.address || selectedContract.address || '-'}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">보험회사</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.insuranceName || '-'}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.insuranceName || ''}
+                      onChange={(e) => handleDetailDraftChange('insuranceName', e.target.value)}
+                      placeholder="보험회사 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {selectedContract.insuranceName || '-'}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -2270,27 +2553,86 @@ export default function RentalContracts() {
               <div className="rental-detail__info-grid">
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">대여 금액</span>
-                  <span className="rental-detail__info-value">
-                    {formatCurrencyDisplay(selectedContract.rentalAmount || 0)}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      inputMode="numeric"
+                      value={detailDraft?.rentalAmount || ''}
+                      onChange={(e) =>
+                        handleDetailDraftChange(
+                          'rentalAmount',
+                          String(e.target.value || '').replace(/[^0-9]/g, '')
+                        )
+                      }
+                      placeholder="대여 금액 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {formatCurrencyDisplay(selectedContract.rentalAmount || 0)}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">보증금</span>
-                  <span className="rental-detail__info-value">
-                    {formatCurrencyDisplay(selectedContract.deposit || 0)}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      inputMode="numeric"
+                      value={detailDraft?.deposit || ''}
+                      onChange={(e) =>
+                        handleDetailDraftChange(
+                          'deposit',
+                          String(e.target.value || '').replace(/[^0-9]/g, '')
+                        )
+                      }
+                      placeholder="보증금 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {formatCurrencyDisplay(selectedContract.deposit || 0)}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">미납 금액</span>
-                  <span className="rental-detail__info-value">
-                    {formatCurrencyDisplay(selectedContract.unpaidAmount || 0)}
-                  </span>
+                  {isDetailEditing ? (
+                    <input
+                      className="rental-detail__edit-input"
+                      inputMode="numeric"
+                      value={detailDraft?.unpaidAmount || ''}
+                      onChange={(e) =>
+                        handleDetailDraftChange(
+                          'unpaidAmount',
+                          String(e.target.value || '').replace(/[^0-9]/g, '')
+                        )
+                      }
+                      placeholder="미납 금액 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {formatCurrencyDisplay(selectedContract.unpaidAmount || 0)}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">결제 방법</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.paymentMethod || '-'}
-                  </span>
+                  {isDetailEditing ? (
+                    <select
+                      className="rental-detail__edit-input"
+                      value={detailDraft?.paymentMethod || ''}
+                      onChange={(e) => handleDetailDraftChange('paymentMethod', e.target.value)}
+                    >
+                      <option value="">선택</option>
+                      <option value="월별 자동이체">월별 자동이체</option>
+                      <option value="일시불">일시불</option>
+                      <option value="계좌이체">계좌이체</option>
+                      <option value="카드 결제">카드 결제</option>
+                    </select>
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {selectedContract.paymentMethod || '-'}
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
@@ -2368,9 +2710,18 @@ export default function RentalContracts() {
               <div className="rental-detail__info-grid">
                 <div className="rental-detail__info-row rental-detail__info-row--full">
                   <span className="rental-detail__info-label">메모사항</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.memo || '메모가 없습니다.'}
-                  </span>
+                  {isDetailEditing ? (
+                    <textarea
+                      className="rental-detail__edit-textarea"
+                      value={detailDraft?.memo || ''}
+                      onChange={(e) => handleDetailDraftChange('memo', e.target.value)}
+                      placeholder="메모를 입력하세요."
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {selectedContract.memo || '메모가 없습니다.'}
+                    </span>
+                  )}
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">등록일</span>
@@ -2382,17 +2733,55 @@ export default function RentalContracts() {
                 </div>
                 <div className="rental-detail__info-row">
                   <span className="rental-detail__info-label">특이사항</span>
-                  <span className="rental-detail__info-value">
-                    {selectedContract.specialNotes || '없음'}
-                  </span>
+                  {isDetailEditing ? (
+                    <textarea
+                      className="rental-detail__edit-textarea"
+                      value={detailDraft?.specialNotes || ''}
+                      onChange={(e) => handleDetailDraftChange('specialNotes', e.target.value)}
+                      placeholder="특이사항 입력"
+                    />
+                  ) : (
+                    <span className="rental-detail__info-value">
+                      {selectedContract.specialNotes || '없음'}
+                    </span>
+                  )}
                 </div>
               </div>
+            </div>
+
+            <div className="rental-detail__section-divider"></div>
+
+            <div className="rental-detail__section">
+              <h3 className="rental-detail__section-title">수정 내역</h3>
+              {Array.isArray(selectedContract?.changeHistory) && selectedContract.changeHistory.length > 0 ? (
+                <div className="contract-timeline">
+                  {selectedContract.changeHistory.map((entry, index) => (
+                    <div className="contract-timeline__item" key={`change-${index}`}>
+                      <div className="contract-timeline__dot" />
+                      <div className="contract-timeline__content">
+                        <div className="contract-timeline__main">
+                          <span>{entry?.field || '필드'}</span>
+                          <span className="contract-timeline__arrow">→</span>
+                          <span>{`${entry?.before ?? '-'} → ${entry?.after ?? '-'}`}</span>
+                        </div>
+                        <div className="contract-timeline__meta">
+                          {formatDateTime(entry?.changedAt)} · {entry?.changedBy || 'system'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="contract-timeline__empty">
+                  표시할 수정 내역이 없습니다. (필드 단위 이력 API 연동 대기)
+                </div>
+              )}
             </div>
 
             {/* Footer */}
             <div className="rental-detail__footer">
               <div className="rental-detail__footer-line"></div>
-              <button className="rental-detail__footer-btn" onClick={() => setShowDetail(false)}>
+              <button className="rental-detail__footer-btn" onClick={handleDetailClose}>
                 닫기
               </button>
             </div>

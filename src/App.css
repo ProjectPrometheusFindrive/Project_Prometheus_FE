@@ -6956,6 +6956,35 @@ html {
   white-space: nowrap;
 }
 
+.rental-detail__edit-input {
+  flex: 1;
+  height: 44px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  color: #1c1c1c;
+  font-size: 14px;
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+}
+
+.rental-detail__edit-textarea {
+  flex: 1;
+  min-height: 80px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.16);
+  color: #1c1c1c;
+  font-size: 14px;
+  font-family: 'Pretendard', sans-serif;
+  font-weight: 400;
+  line-height: 24px;
+  resize: vertical;
+}
+
 .rental-detail__info-value--status {
   color: #e50e08;
   font-weight: 700;
@@ -7048,6 +7077,13 @@ html {
 [data-theme='dark'] .rental-detail__info-value {
   background: #2a2a3e;
   border-color: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
+}
+
+[data-theme='dark'] .rental-detail__edit-input,
+[data-theme='dark'] .rental-detail__edit-textarea {
+  background: #121a2a;
+  border-color: rgba(255, 255, 255, 0.18);
   color: #ffffff;
 }
 
