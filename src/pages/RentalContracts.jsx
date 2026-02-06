@@ -33,6 +33,7 @@ import UploadProgress from '../components/UploadProgress';
 import { FiAlertTriangle } from 'react-icons/fi';
 import MemoHistoryModal from '../components/modals/MemoHistoryModal';
 import TerminalRequestModal from '../components/modals/TerminalRequestModal';
+import MultiDocGallery from '../components/MultiDocGallery';
 import {
   MemoCell,
   CompanyCell,
@@ -182,6 +183,49 @@ function formatTrackingDateLabel(key) {
   const month = parseInt(parts[1], 10);
   const day = parseInt(parts[2], 10);
   return `${month}월 ${day}일`;
+}
+
+function toList(value) {
+  if (Array.isArray(value)) return value.filter((item) => item != null && String(item).trim());
+  if (value == null) return [];
+  const s = String(value).trim();
+  return s ? [s] : [];
+}
+
+function buildDocItems(contract, { namesKey, urlsKey, objectNamesKey, singleNameKey, singleUrlKey, singleObjectNameKey, fallbackLabel }) {
+  const names = [
+    ...toList(contract?.[namesKey]),
+    ...toList(contract?.[singleNameKey]),
+  ];
+  const urls = [
+    ...toList(contract?.[urlsKey]),
+    ...toList(contract?.[singleUrlKey]),
+  ];
+  const objectNames = [
+    ...toList(contract?.[objectNamesKey]),
+    ...toList(contract?.[singleObjectNameKey]),
+  ];
+
+  const maxLen = Math.max(names.length, urls.length, objectNames.length);
+  if (maxLen === 0) return [];
+
+  const seen = new Set();
+  const items = [];
+  for (let i = 0; i < maxLen; i++) {
+    const name = names[i] || `${fallbackLabel} ${i + 1}`;
+    const url = urls[i] || '';
+    const objectName = objectNames[i] || '';
+    if (!url && !objectName) continue;
+    const dedupeKey = `${url}::${objectName}`;
+    if (seen.has(dedupeKey)) continue;
+    seen.add(dedupeKey);
+    items.push({
+      name,
+      ...(url ? { url } : {}),
+      ...(objectName ? { objectName } : {}),
+    });
+  }
+  return items;
 }
 
 export default function RentalContracts() {
@@ -2358,6 +2402,50 @@ export default function RentalContracts() {
                   </span>
                 </div>
               </div>
+            </div>
+
+            <div className="rental-detail__section-divider"></div>
+
+            <div className="rental-detail__section">
+              <h3 className="rental-detail__section-title">문서</h3>
+              {(() => {
+                const contractDocs = buildDocItems(selectedContract, {
+                  namesKey: 'contractDocNames',
+                  urlsKey: 'contractDocUrls',
+                  objectNamesKey: 'contractDocGcsObjectNames',
+                  singleNameKey: 'contractDocName',
+                  singleUrlKey: 'contractDocUrl',
+                  singleObjectNameKey: 'contractDocGcsObjectName',
+                  fallbackLabel: '계약서',
+                });
+                const licenseDocs = buildDocItems(selectedContract, {
+                  namesKey: 'licenseDocNames',
+                  urlsKey: 'licenseDocUrls',
+                  objectNamesKey: 'licenseDocGcsObjectNames',
+                  singleNameKey: 'licenseDocName',
+                  singleUrlKey: 'licenseDocUrl',
+                  singleObjectNameKey: 'licenseDocGcsObjectName',
+                  fallbackLabel: '운전면허증',
+                });
+                const hasDocs = contractDocs.length > 0 || licenseDocs.length > 0;
+
+                if (!hasDocs) {
+                  return (
+                    <div className="rental-detail__info-value">등록된 문서가 없습니다.</div>
+                  );
+                }
+
+                return (
+                  <>
+                    {contractDocs.length > 0 && (
+                      <MultiDocGallery title="계약서" items={contractDocs} />
+                    )}
+                    {licenseDocs.length > 0 && (
+                      <MultiDocGallery title="운전면허증" items={licenseDocs} />
+                    )}
+                  </>
+                );
+              })()}
             </div>
 
             <div className="rental-detail__section-divider"></div>
